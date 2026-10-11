@@ -99,6 +99,7 @@ export const gameplayNames: Record<string, string> = {
   giant: '巨人',
   rp: 'RP',
   item: '道具',
+  brawl: '50人乱斗',
 }
 
 export function gameplayName(gameplay: string | null | undefined): string {

@@ -69,6 +69,10 @@ func (l *Lobby) RelayMotion(c *Client, frame []byte) {
 	}
 	// Receivers name the sender by this slot.
 	frame[motionSlotOffset] = byte(sender.slot)
+	if r.race.brawl != nil {
+		l.relayBrawlMotion(r, c, frame)
+		return
+	}
 	recipientMask := int(frame[motionMaskOffset])
 	for _, m := range r.members {
 		if m.playerID == c.playerID || recipientMask&(1<<m.slot) == 0 ||

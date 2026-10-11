@@ -309,6 +309,9 @@ type race struct {
 	// bonusLucci is each rewarded racer's in-race lucci (settled apart).
 	bonusLucci map[string]int
 
+	// brawl is a 50人乱斗 race's AI racers and relay state (brawl.go).
+	brawl *brawlRace
+
 	// cheat is the race in the anti-cheat plugin (from its countdown) and
 	// guards its racers (lobby.guard).
 	cheat  cheat.Race
@@ -440,6 +443,10 @@ func (r *race) snapshot() obj {
 	if r.item != nil {
 		// Not in Java: the item race ruleset, after every other field.
 		value = append(value, field{"item", r.item})
+	}
+	if r.brawl != nil {
+		// Not in Java: a 50人乱斗 race's ruleset and AI racers.
+		value = append(value, field{"brawl", r.brawl.snapshot()})
 	}
 	return value
 }

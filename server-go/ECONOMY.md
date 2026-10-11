@@ -48,6 +48,7 @@
 - 奖励放在比赛快照新字段 `race.rewards`（`{playerId: {exp, lucci}}`，所有玩法都有，含没有名次结果的挡人模式）（乘配置倍率后的值，与入账一致）和结算 `contract.RaceSettlement.Rewards`（`[{playerId, accountId, exp, lucci}]`，倍率前的基础值）；`race.results[]` 保持 Java 原样。客户端立即显示；数据服务在结算事务中入账（幂等键 = raceId + accountId）。
 - 每日上限（按**数据服务收到结算时**的北京时间自然日，不采用游戏节点上报的完成时间）：比赛经验 20,000、比赛金币 30,000；超出部分不入账（`/api/account` 反映真实值）。完成时间早于 24 小时前的结算只保存比赛记录、不发奖励。
 - 单条奖励上限 = 公式最大值（8 人、Combine 频道、组队胜方的第 1 名：经验 145 / 金币 216，倍率前），超出的条目丢弃并记录警告。
+- 50人乱斗（`server-go/BRAWL.md` 第 6 节）：AI 车手没有奖励；玩家在全部 T 名车手中的第 r 名按 8 人房间的第 1 + ⌊(r−1)×8/T⌋ 名、N = min(T, 8) 计算，所以不会超过上面的单条上限。
 - 道具赛的赛中金币（`client/ITEM_MODE.md` C.8）：金币道具箱（车 `lucciItemCube`）、奇奇被飞碟击中（角色 `lucciUfo`）、气球爆掉、吃掉地雷（角色 `lucciMine`）每次 10，每人每局最多 200（`contract.MaxBonusLucci`）。游戏节点累计在本局，`race.rewards` 显示的金币 = 倍率后的比赛金币 + 赛中金币；结算条目另列 `bonusLucci`（不乘倍率，也不随结算倍率变化）。数据服务入账 = `ApplyRate(lucci) + bonusLucci`，与比赛金币一起计入每日上限；`bonusLucci` 不在 0–200 时只丢弃赛中金币并记录警告（比赛金币照常入账）。中途离开、没有奖励条目的车手赛中金币也不发。
 - 结算携带游戏节点显示奖励时用的倍率（`RaceSettlement.expRate/lucciRate`）；数据服务在 [0, max(10, 当前配置)] 范围内采用它，保证显示值与入账值一致。
 

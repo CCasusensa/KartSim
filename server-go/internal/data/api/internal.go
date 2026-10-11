@@ -24,8 +24,9 @@ import (
 const (
 	maxHeartbeatPlayers = 10_000
 	maxRaceResults      = 100
-	// maxRoomRacers is the largest room a game node opens (room capacity
-	// 2-8), so the most racers one reward formula can count.
+	// maxRoomRacers is the most racers one reward formula counts: a room
+	// holds 2-8, and a 50人乱斗 race of up to 50 is rewarded as one of eight
+	// (BRAWL.md 6).
 	maxRoomRacers = 8
 	// staleSettlement is how long after its finish a race still earns
 	// rewards. Every reward counts against the data service's current

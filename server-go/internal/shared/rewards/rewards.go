@@ -128,7 +128,10 @@ type RaceInput struct {
 	WinningTeam int        // 1 or 2 in team mode; 0 means no winner bonus
 	Roadblock   *Roadblock // set for gameplay "roadblock"
 	Racers      []Racer    // every racer who finished loading; N = len(Racers)
-	Rates       Rates
+	// Counted, when positive, is N instead: a 50人乱斗 race rewards only its
+	// players, as racers of an eight-racer race (Racers' ranks are mapped).
+	Counted int
+	Rates   Rates
 }
 
 // RacerReward is the reward of one racer.
@@ -156,6 +159,9 @@ func ChannelExpBonus(channel string) float64 {
 // With a single loaded racer p is 1 and the N-2 term is 0.
 func RaceRewards(in RaceInput) []RacerReward {
 	n := len(in.Racers)
+	if in.Counted > 0 {
+		n = in.Counted
+	}
 	expBonus := ChannelExpBonus(in.Channel)
 	rewards := make([]RacerReward, 0, n)
 	for _, racer := range in.Racers {

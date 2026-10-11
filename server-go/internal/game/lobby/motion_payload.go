@@ -9,6 +9,8 @@ package lobby
 import (
 	"encoding/binary"
 	"math"
+
+	"kartsim/internal/game/brawl"
 )
 
 // kinematicPayloadLength is the payload length of a kinematic motion kind
@@ -70,8 +72,8 @@ func nonzeroQuaternion(b []byte, offset int) bool {
 }
 
 // maxMotionSlot is the highest room slot a frame may name (motion.ts
-// MAX_MOTION_SLOT).
-const maxMotionSlot = 7
+// MAX_MOTION_SLOT): a 50人乱斗 room's last seat.
+const maxMotionSlot = brawl.Slots - 1
 
 // validReset is payload.ts validReset: the reset started at most 2 s before
 // the frame (uint32 arithmetic).

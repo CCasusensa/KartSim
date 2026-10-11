@@ -118,9 +118,9 @@
 
 **本地新增 `race.rewards`：**比赛有结果后（`finished` 阶段），快照的 `race` 末尾多一个字段 `rewards`，即 `{ "<playerId>": { "exp": 88, "lucci": 120 } }`，每位载入完成的车手一项，所有玩法都有（挡人模式没有名次结果，也按 `server-go/ECONOMY.md` 2.1 的规则折算）；`race.results` 保持原样。数值已乘数据服务的奖励倍率 `KART_EXP_RATE`/`KART_LUCCI_RATE`（游戏节点从心跳响应得到，用与入账相同的 `rewards.ApplyRate` 换算），结算发给数据服务的是倍率前的基础值（另带显示时用的倍率）；数据服务乘倍率、按收到结算时的北京时间自然日套每日上限后入账（按 `raceId` 与账号幂等；完成时间早于 24 小时前的结算不发奖励），实际入账以 `GET /api/account` 为准。防刷规则只影响 `rewards`：服务器观察到的比赛时长（`finish` 到达时间 − `startAt`）不足 10 秒，或客户端 `elapsedMs` 比它短 3 秒以上的完赛按未完赛计奖；挡人模式开跑 10 秒内结束时所有人按未完赛，中途离开房间的车手没有奖励项（名次赛中完赛后才离开的照常有）；组队平局时双方都没有胜方加成（`winningTeam` 仍按原样输出）。例如倍率为 1 时两人 `speedIndiCombine` 个人赛：第 1 名经验 88、金币 120，第 2 名经验 33、金币 40；经验倍率 1.5、金币倍率 2 时第 1 名显示经验 132、金币 240。
 
-`revision` 从 1 开始，每次状态更新递增；客户端会丢弃旧版本和自己已离开的房间（`client/src/multiplayer/room-state.ts:20-45`）。频道决定模式和速度：`speedIndiCombine` / `speedTeamCombine` 是速度 7，`speedIndiInfinit` / `speedTeamInfinit` 是速度 4（`client/src/multiplayer/room-validation.ts:111-116`）；本地新增的道具频道 `itemIndiCombine`（个人）/ `itemTeamCombine`（组队）是速度 7，只用于 `gameplay:"item"`。房间必须有 `trackId` 或 p3553 的 `randomTrackCode`；人数 2–8，成员 ID 与槽位唯一、房主必须在成员中。装备若出现必须满足完整 34 个分类和数值范围；比赛的 `roster` 每人必须有有效装备（`client/src/multiplayer/room-validation.ts:193-225,344-408`）。房间阶段为 `open → loading → countdown/racing → finished`，非 `open` 阶段必须附有效 `race`。**与 Java 不同：**比赛中（`loading`/`countdown`/`racing`）有车手离开房间时不再取消整局，其他车手继续比赛、跑完为止；离开者从 `members` 消失但仍在 `roster` 中，已载入的在 `results` 中按未完赛排在最后，服务端不再等它载入或完赛；浏览器把它标为退出、隐藏它的赛车并取消碰撞。只有挡人模式载入阶段跑者离开（或已凑不齐 5 名载入车手）、或所有车手都离开时才取消（`raceError: "MEMBER_LEFT"`）。同样，`load-failed` 与载入超时只把该车手移出本局（从 `loadedIds` 删除，留在房间等下一局，之后的比赛命令返回 `NOT_RACE_PARTICIPANT`），其他人载入完即开赛；只有本局无法开始时才取消（`LOAD_FAILED`/`LOAD_TIMEOUT`）。`loading` 之后不在 `loadedIds` 中的 `roster` 车手即已被移出。详见 `server-go/DESIGN.md` 4.3。具体赛果字段、结束时限与团队得分约束见 `client/src/multiplayer/room-validation.ts:305-341`。
+`revision` 从 1 开始，每次状态更新递增；客户端会丢弃旧版本和自己已离开的房间（`client/src/multiplayer/room-state.ts:20-45`）。频道决定模式和速度：`speedIndiCombine` / `speedTeamCombine` 是速度 7，`speedIndiInfinit` / `speedTeamInfinit` 是速度 4（`client/src/multiplayer/room-validation.ts:111-116`）；本地新增的道具频道 `itemIndiCombine`（个人）/ `itemTeamCombine`（组队）是速度 7，只用于 `gameplay:"item"`。房间必须有 `trackId` 或 p3553 的 `randomTrackCode`；人数 2–8（本地新增的 50人乱斗 `brawl` 为 2–50，座位 0–49，见 `server-go/BRAWL.md`），成员 ID 与槽位唯一、房主必须在成员中。装备若出现必须满足完整 34 个分类和数值范围；比赛的 `roster` 每人必须有有效装备（`client/src/multiplayer/room-validation.ts:193-225,344-408`）。房间阶段为 `open → loading → countdown/racing → finished`，非 `open` 阶段必须附有效 `race`。**与 Java 不同：**比赛中（`loading`/`countdown`/`racing`）有车手离开房间时不再取消整局，其他车手继续比赛、跑完为止；离开者从 `members` 消失但仍在 `roster` 中，已载入的在 `results` 中按未完赛排在最后，服务端不再等它载入或完赛；浏览器把它标为退出、隐藏它的赛车并取消碰撞。只有挡人模式载入阶段跑者离开（或已凑不齐 5 名载入车手）、或所有车手都离开时才取消（`raceError: "MEMBER_LEFT"`）。同样，`load-failed` 与载入超时只把该车手移出本局（从 `loadedIds` 删除，留在房间等下一局，之后的比赛命令返回 `NOT_RACE_PARTICIPANT`），其他人载入完即开赛；只有本局无法开始时才取消（`LOAD_FAILED`/`LOAD_TIMEOUT`）。`loading` 之后不在 `loadedIds` 中的 `roster` 车手即已被移出。详见 `server-go/DESIGN.md` 4.3。具体赛果字段、结束时限与团队得分约束见 `client/src/multiplayer/room-validation.ts:305-341`。
 
-真实比赛装载器还要求 `race.startSlots`：键必须恰好覆盖 `race.roster` 中的每个 `playerId`，值是互不重复的 0–7 整数起跑位。这个条件目前没有包含在 `room-validation.ts` 的静态校验里，但缺失会使浏览器在载入赛道时返回“本局缺少完整起跑位表”（`recovered/formatted/index.js:77081-77100`）。本地端到端脚本会单独检查它。
+真实比赛装载器还要求 `race.startSlots`：键必须恰好覆盖 `race.roster` 中的每个 `playerId`，值是互不重复的 0–7 整数起跑位（50人乱斗为 0–49：8 号以后每 8 个一排向后 5 米）。这个条件目前没有包含在 `room-validation.ts` 的静态校验里，但缺失会使浏览器在载入赛道时返回“本局缺少完整起跑位表”（`recovered/formatted/index.js:77081-77100`）。本地端到端脚本会单独检查它。
 
 `rooms` 列表中的每个摘要必须含 `roomId,name,mode,capacity,speedVersion,channelName,speed,gameplay,resourceVersion,count,locked`，以及 `trackId` 或 `randomTrackCode`；额外的 `gaming` 可帮助前端判断是否可快速加入（`client/src/multiplayer/server-events.ts:107-124`）。
 
@@ -136,6 +136,7 @@
 | 巨人 `giant` | 个人标准速度、限定赛道；`giant-state` 按玩家序号和增长状态校验后广播 | 名次与完整赛程分别写入 `race_results`、`race_outcomes` |
 | RP `rp` | 每人收到冻结的赛车抽选；目前奖池为已确认可加载的赛车 387、390、378、361，飞宠为 0 | 同上 |
 | LTE `lte` | p3553、标准速度、三张专用赛道；本地前端启用 Web 试玩入口和 Z/X 躲闪 | 同上；自动补氮气、香蕉事件尚未完整实现 |
+| 50人乱斗 `brawl` | p3553、`speedIndiCombine`、人数 2–50、限定赛道池；开赛时开着的空座由 AI 车手补上（名单里带 `ai:true`，一人也能开赛）；服务器忽略接收者掩码、按距离降频转发，并发送 AI 的运动帧（见 [`server-go/BRAWL.md`](server-go/BRAWL.md)） | 同上；`race.brawl` 记录规则与 AI 名单；未完赛者按路线距离排名；奖励按 8 人房间折算，AI 无奖励 |
 | 道具赛 `item` | p3553、道具频道 `itemIndiCombine`/`itemTeamCombine`（速度 7）；只能选道具赛道（`TRACK_NOT_ITEM`），默认道具 hot1 首图；载入窗口 90 秒；道具由服务器按名次抽取，`item` 请求按玩家序号校验后广播（见下文） | 同上；`race.item` 记录规则与概率表；组队道具赛最先冲线者的队伍获胜 |
 
 ### 本地新增：道具赛
@@ -263,15 +264,15 @@
 | 偏移 | 长度 | 字段 |
 | --- | --- | --- |
 | 0 | 1 | 载荷类型 1–10 |
-| 1 | 1 | 接收者掩码（按房间座位号的位；直连 P2P 帧为 0） |
-| 2 | 1 | 发送者的房间座位号 0–7；游戏节点转发前改写为发送者真实的座位号，不信任客户端填的值 |
+| 1 | 1 | 接收者掩码（按房间座位号的位；直连 P2P 帧为 0；50人乱斗里游戏节点忽略它） |
+| 2 | 1 | 发送者的房间座位号 0–7（50人乱斗 0–49）；游戏节点转发前改写为发送者真实的座位号，不信任客户端填的值 |
 | 3 | 1 | 比赛标记：比赛 UUID 的第一个字节；与发送者当前比赛不符的帧（上一场遗留的）被丢弃 |
 | 4 | 4 | 32 位序号，小端 |
 | 8 | 80–163 | 载荷 |
 
 接收端用房间快照把座位号对应到玩家。载荷与原版相同，只有带路由段的类型 8 和 10 例外：原版在载荷偏移 150 放 16 字节的被观察玩家 UUID，本地版只放 1 字节的座位号（类型 8 载荷 166 → 151 字节，类型 10 载荷 178 → 163 字节）。比赛中最常见的类型 8/10 帧因此从 222/234 字节降到 159/171 字节（少 27–28%）；算上 UDP/DTLS/SCTP 或 TCP 的包头，网络上约少 20%。原版帧的第一个字节是 `0x4d`，按本地格式会被当作非法类型丢弃；前端与游戏节点必须一起升级（旧节点对新前端的 `hello` 返回 `PROTOCOL_MISMATCH`，前端会提示换服务器）。
 
-本地游戏节点在同一条 WebSocket（或 WebRTC `motion` 通道）上接收二进制帧，校验长度、类型、比赛标记、发送者已载入且未离开后，按接收者掩码只转发给同一房间、已载入的其他车手（与 Java 版 `relayMotion` 的转发规则一致）；运动帧从不经过数据服务。
+本地游戏节点在同一条 WebSocket（或 WebRTC `motion` 通道）上接收二进制帧，校验长度、类型、比赛标记、发送者已载入且未离开后，按接收者掩码只转发给同一房间、已载入的其他车手（与 Java 版 `relayMotion` 的转发规则一致）；运动帧从不经过数据服务。50人乱斗例外：忽略掩码，转给其他所有已载入的玩家，并按与接收者的距离降频（40 米内每帧、60 米内每 128 毫秒、100 米内每 256 毫秒、更远每 512 毫秒）；AI 车手的帧由游戏节点生成，发送者座位号是 AI 的座位（`server-go/BRAWL.md` 第 3、4 节）。
 
 **本地新增：服务端反作弊**（`server-go/ANTICHEAT.md`）。游戏节点先按浏览器解码器（`payload.ts`）校验载荷，浏览器解不开的帧一律不转发（否则接收方会断开整条连接）。其余检查由可选的反作弊插件完成（规则不公开），它检查运动帧、完赛、道具赛请求与团队集气。`team-charge` 的单次集气量不再限制在原版的 100000 以内（带充能器的合法上报会超过它），只拒绝非数、非正数与超过 10¹² 的（`INVALID_CHARGE`）。插件要求踢出时，车手先收到不带 `requestId` 的 `{"type":"error","code":"CHEAT_DETECTED","check":"…"}`（`check` 为检测项），随即按离开处理移出房间与本局，连接在这条消息之后以 1008 `anti-cheat` 关闭；关闭前它的请求都回复 `CHEAT_DETECTED`，运动帧丢弃。浏览器据此提示“已被移出比赛”并回到大厅。
 

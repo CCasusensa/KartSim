@@ -7,11 +7,17 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+
+	"kartsim/internal/game/brawl"
 )
 
 // Track and race data each client gameplay mode needs (GameModes.java).
 
 const roadblockLimitMs = 180_000
+
+// maxRoomCapacity is the most seats a room has, but for a 50人乱斗 room
+// (brawl.Slots).
+const maxRoomCapacity = 8
 
 var (
 	roadblockTracks = []string{
@@ -29,7 +35,7 @@ var (
 	lteTracks     = []string{"jurassic_R02", "beach_R05", "moonhill_R06"}
 	defaultTracks = []string{"village_R01", "desert_I01", "forest_I01", "ice_I03"}
 
-	gameplays = []string{"ordinary", "grip", "shadow", "roadblock", "lte", "giant", "rp", "item"}
+	gameplays = []string{"ordinary", "grip", "shadow", "roadblock", "lte", "giant", "rp", "item", "brawl"}
 
 	// rpKarts were checked against the local P3553 catalog, model, parameter,
 	// animation-frame and texture resources. The server cannot trust an
@@ -46,7 +52,7 @@ func validateCreation(gameplay, channel, version string, capacity int) error {
 	if gameplay != "ordinary" && version != "p3553" {
 		return fail(http.StatusBadRequest, "RESOURCE_VERSION_UNSUPPORTED")
 	}
-	if (gameplay == "roadblock" || gameplay == "giant") && channel != "speedIndiCombine" {
+	if (gameplay == "roadblock" || gameplay == "giant" || gameplay == "brawl") && channel != "speedIndiCombine" {
 		return fail(http.StatusBadRequest, "INVALID_CHANNEL")
 	}
 	if (gameplay == "grip" || gameplay == "lte") && !strings.HasSuffix(channel, "Combine") {
@@ -58,6 +64,10 @@ func validateCreation(gameplay, channel, version string, capacity int) error {
 	}
 	if gameplay == "roadblock" && capacity < 5 {
 		return fail(http.StatusBadRequest, "NOT_ENOUGH_PLAYERS")
+	}
+	// Only a 50人乱斗 room seats more than the release's eight.
+	if gameplay != "brawl" && capacity > maxRoomCapacity {
+		return fail(http.StatusBadRequest, "INVALID_CAPACITY")
 	}
 	return nil
 }
@@ -78,12 +88,17 @@ func validateTrack(r *room, trackID string) error {
 		if !slices.Contains(giantTracks, trackID) {
 			return fail(http.StatusBadRequest, "INVALID_TRACK")
 		}
+	case "brawl":
+		if brawl.TrackByID(trackID) == nil {
+			return fail(http.StatusBadRequest, "INVALID_TRACK")
+		}
 	}
 	return nil
 }
 
 func validateRandomTrack(r *room, code int) error {
-	if (r.gameplay == "roadblock" || r.gameplay == "lte" || r.gameplay == "giant") && code != 0 {
+	if (r.gameplay == "roadblock" || r.gameplay == "lte" || r.gameplay == "giant" || r.gameplay == "brawl") &&
+		code != 0 {
 		return fail(http.StatusBadRequest, "INVALID_TRACK")
 	}
 	return nil
@@ -101,6 +116,8 @@ func chooseTrack(r *room) string {
 		pool = lteTracks
 	case "giant":
 		pool = giantTracks
+	case "brawl":
+		pool = brawl.TrackIDs()
 	default:
 		pool = defaultTracks
 	}
@@ -123,6 +140,8 @@ func addRaceData(r *room, rc *race) {
 		rc.lte = obj{{"ruleset", "web-lte-v1"}, {"featureSet", "dodge-trial"}}
 	case "rp":
 		rc.rp = rpDraws(r)
+	case "brawl":
+		rc.brawl = &brawlRace{}
 	}
 }
 

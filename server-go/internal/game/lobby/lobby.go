@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"kartsim/internal/game/brawl"
 	"kartsim/internal/game/cheat"
 	"kartsim/internal/game/itemmode"
 	"kartsim/internal/game/names"
@@ -752,7 +753,7 @@ func (l *Lobby) create(c *Client, in Request, check *ownershipCheck) (obj, error
 	if err != nil {
 		return nil, err
 	}
-	capacity, err := in.integer("capacity", 2, 8)
+	capacity, err := in.integer("capacity", 2, brawl.Slots)
 	if err != nil {
 		return nil, err
 	}
@@ -1103,9 +1104,12 @@ func (l *Lobby) applyMutation(r *room, m *member, c *Client, typ string, in Requ
 		if err := requireHost(r, c); err != nil {
 			return err
 		}
-		slot, err := in.integer("slot", 0, 7)
+		slot, err := in.integer("slot", 0, brawl.Slots-1)
 		if err != nil {
 			return err
+		}
+		if slot >= maxRoomCapacity && r.gameplay != "brawl" {
+			return fail(http.StatusBadRequest, "INVALID_SLOT")
 		}
 		closed, err := in.booleanField("closed")
 		if err != nil {
@@ -1316,7 +1320,8 @@ func (l *Lobby) start(c *Client, in Request, check *ownershipCheck) (obj, error)
 	if revision != r.revision {
 		return nil, fail(http.StatusConflict, "STALE_REVISION")
 	}
-	if len(r.members) < 2 {
+	// A 50人乱斗 room races its AI too: one player and an open seat do.
+	if len(r.members) < 2 && (r.gameplay != "brawl" || len(openSeats(r)) == 0) {
 		return nil, fail(http.StatusBadRequest, "NOT_ENOUGH_PLAYERS")
 	}
 	if r.gameplay == "roadblock" && len(r.members) < 5 {
@@ -1394,6 +1399,7 @@ func (l *Lobby) start(c *Client, in Request, check *ownershipCheck) (obj, error)
 	}
 	r.race = rc
 	addRaceData(r, rc)
+	l.seatBrawlBots(r, rc)
 	l.startItemRace(r, rc, check)
 	r.kickVote = nil
 	r.phase = "loading"
@@ -1439,6 +1445,11 @@ func (l *Lobby) membersOwnEquipment(r *room, check *ownershipCheck) error {
 		}
 	}
 	switch {
+	case len(need.items) > startVerifyBatch:
+		// A 50人乱斗 room can need more checks than the node runs at once
+		// (maxConcurrentVerifies): a batch per round (maxVerifyRounds).
+		need.items = need.items[:startVerifyBatch]
+		return need
 	case len(need.items) > 0:
 		return need
 	case failure != nil:
@@ -1457,6 +1468,9 @@ func (l *Lobby) membersOwnEquipment(r *room, check *ownershipCheck) error {
 	}
 	return errNotOwned()
 }
+
+// startVerifyBatch is the most equipment checks one round of a start makes.
+const startVerifyBatch = 24
 
 func isCode(err error, code string) bool {
 	rejected, ok := apierr.As(err)
@@ -1518,6 +1532,7 @@ func (l *Lobby) startCountdownWhenLoaded(r *room) {
 	r.phase = "countdown"
 	rc.itemStartPending = rc.items != nil
 	l.startCheatRace(r)
+	l.startBrawlField(r)
 	roomID, raceID := r.id, rc.id
 	l.schedule(3*time.Second, func() { l.beginRace(roomID, raceID) })
 }
@@ -1791,9 +1806,17 @@ func (l *Lobby) finalizeRace(roomID, raceID string) {
 	}
 	// Racers who left without finishing rank after the other unfinished ones.
 	retired := func(id string) bool { return rc.isOut(id) && !rc.hasFinished(id) }
+	// Not in Java: a 50人乱斗 race, where most racers are still on the
+	// track, ranks the unfinished ones by how far they got.
+	further := func(a, b string) int {
+		if rc.brawl == nil {
+			return 0
+		}
+		return cmp.Compare(rc.progress[b], rc.progress[a])
+	}
 	order := slices.Clone(rc.loadedIDs)
 	slices.SortStableFunc(order, func(a, b string) int {
-		return cmp.Or(cmp.Compare(timeOf(a), timeOf(b)), compareBool(retired(a), retired(b)))
+		return cmp.Or(cmp.Compare(timeOf(a), timeOf(b)), compareBool(retired(a), retired(b)), further(a, b))
 	})
 	rc.results = make([]resultRow, 0, len(order))
 	rc.resultsSet = true
@@ -1965,6 +1988,17 @@ func (l *Lobby) awardRanked(r *room) {
 			}
 		}
 	}
+	in := rewards.RaceInput{Racers: racers}
+	if rc.brawl != nil {
+		// 50人乱斗: the AI racers earn nothing; the players' ranks among
+		// everyone count as in an eight-racer race (brawlRewardRank).
+		total := len(racers)
+		in.Racers = slices.DeleteFunc(racers, func(racer rewards.Racer) bool { return rc.brawl.isBot(racer.PlayerID) })
+		for i := range in.Racers {
+			in.Racers[i].Rank = brawlRewardRank(in.Racers[i].Rank, total)
+		}
+		in.Counted = min(total, maxRoomCapacity)
+	}
 	// Racers who left the room before finishing earn nothing; N still
 	// counts them.
 	var retired []string
@@ -1973,7 +2007,7 @@ func (l *Lobby) awardRanked(r *room) {
 			retired = append(retired, id)
 		}
 	}
-	l.setRewards(r, rewards.RaceInput{Racers: racers}, retired)
+	l.setRewards(r, in, retired)
 }
 
 // awardRoadblock computes the rewards of a roadblock race, which has no
