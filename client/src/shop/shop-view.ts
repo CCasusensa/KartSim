@@ -30,7 +30,10 @@
 import {
   currentAccountSession, type AccountSession, type Currency, type InventoryItem,
 } from "../account/account-session";
-import { fetchShopCatalog, isShopApiError, ShopPurchaser, shopErrorMessage } from "./shop-api";
+import {
+  claimFreeCoupon, fetchFreeCoupon, fetchShopCatalog, isShopApiError, newRequestId, ShopPurchaser, shopErrorMessage,
+  type FreeCouponStatus,
+} from "./shop-api";
 import { imageVar, isShopArtLibrary, loadShopArt, loadShopFont } from "./shop-assets";
 import { BuyDialogController, BuyDialogView, trapFocus, type BuyDialogState } from "./shop-buy-dialog";
 import type { ShopCatalog, ShopItem, ShopOffer } from "./shop-catalog";
@@ -149,6 +152,17 @@ export interface ShopOpenOptions {
   /** Interface sounds. */
   onHover?(): void;
   onActivate?(): void;
+}
+
+/** The 点击获取点券 button's text (ECONOMY.md 2.5). */
+export const FREE_COUPON_LABEL = "点击获取点券";
+const CURRENCY_NAMES: Record<"coupon" | "lucci" | "koin", string> = { coupon: "点券", lucci: "金币", koin: "K币" };
+
+/** "10,000 点券、5 金币": the amounts of a grant that are not zero. */
+export function grantText(grant: Record<"coupon" | "lucci" | "koin", number>): string {
+  const parts = (["coupon", "lucci", "koin"] as const).filter(key => grant[key] > 0)
+    .map(key => `${grant[key].toLocaleString("zh-CN")} ${CURRENCY_NAMES[key]}`);
+  return parts.length ? parts.join("、") : "0 点券";
 }
 
 const SEARCH_DEBOUNCE_MS = 150;
@@ -436,6 +450,11 @@ class ShopView {
   private toastTimer?: ReturnType<typeof setTimeout>;
   private loadAbort?: AbortController;
   private spendAbort?: AbortController;
+  /** 点击获取点券 (ECONOMY.md 2.5): the original 充值 button, shown while the admin keeps it on. */
+  private claimButton?: HTMLButtonElement;
+  private claimAbort?: AbortController;
+  private claimGrant?: FreeCouponStatus;
+  private claiming = false;
   private index?: ShopIndex;
   private query: ShopQuery;
   private line = 0;
@@ -494,6 +513,7 @@ class ShopView {
     this.mountStage();
     void this.load();
     void this.loadSpendEvent();
+    void this.loadFreeCoupon();
     this.element.tabIndex = -1;
     this.element.focus({ preventScroll: true });
   }
@@ -598,8 +618,14 @@ class ShopView {
         this.showToast(message);
       });
     };
-    // 充值 is not offered: the big 充值 button stays hidden; 输入兑奖券 is not open yet.
+    // 充值 is not offered: the big 充值 button becomes the admin's 点击获取点券
+    // button (hidden until the data service says it is on); 输入兑奖券 is not open yet.
     for (const target of this.tree.all("shopGCoinCharge")) target.hidden = true;
+    const claim = this.tree.named("shopGCoinCharge");
+    if (claim instanceof HTMLButtonElement) {
+      this.claimButton = claim;
+      claim.addEventListener("click", () => { void this.claimFreeCoupon(); });
+    }
     notice(this.tree.named("shopCoupon"), "兑奖券暂未开放");
     const gacha = this.tree.named("gachaOpenResult");
     gacha.setAttribute("aria-label", SHOP_STRINGS.gachaUseResult);
@@ -880,6 +906,59 @@ class ShopView {
     const status = await fetchSpendEvent(this.options.session, abort.signal);
     if (this.disposed || abort.signal.aborted) return;
     try { this.spend.render(status); } catch { this.spend.render(undefined); }
+  }
+
+  // --- 点击获取点券 (ECONOMY.md 2.5) ---------------------------------------
+
+  private async loadFreeCoupon(): Promise<void> {
+    this.claimAbort?.abort();
+    const abort = new AbortController();
+    this.claimAbort = abort;
+    let status: FreeCouponStatus | undefined;
+    try {
+      status = await fetchFreeCoupon(this.options.session, abort.signal);
+    } catch {
+      return;
+    }
+    if (this.disposed || abort.signal.aborted) return;
+    this.showFreeCoupon(status);
+  }
+
+  /** Shows the button with the amounts a click gives, or hides it. */
+  private showFreeCoupon(status: FreeCouponStatus | undefined): void {
+    const button = this.claimButton;
+    if (!button) return;
+    this.claimGrant = status?.enabled ? status : undefined;
+    button.hidden = !this.claimGrant;
+    if (!this.claimGrant) return;
+    setText(button, FREE_COUPON_LABEL);
+    const amounts = `每次 ${grantText(this.claimGrant)}`;
+    button.setAttribute("aria-label", `${FREE_COUPON_LABEL}（${amounts}）`);
+    button.title = amounts;
+  }
+
+  private async claimFreeCoupon(): Promise<void> {
+    const button = this.claimButton;
+    if (!button || this.claiming || this.disposed || !this.claimGrant) return;
+    this.options.onActivate?.();
+    this.claiming = true;
+    button.disabled = true;
+    try {
+      // One requestId per click: a retry of this click could not credit twice.
+      const result = await claimFreeCoupon(this.options.session, newRequestId());
+      if (this.disposed) return;
+      this.showToast(result.duplicate ? "本次领取已经到账。" : `已获得 ${grantText(result.granted)}`);
+      void this.options.session.refresh().catch(() => {});
+    } catch (error) {
+      if (this.disposed) return;
+      const code = isShopApiError(error) ? error.code : "NETWORK_ERROR";
+      this.showToast(isShopApiError(error) ? error.message : shopErrorMessage(code));
+      if (code === "SHOP_CLAIM_CLOSED") this.showFreeCoupon(undefined);
+      else if (code !== "LOGIN_REQUIRED") void this.options.session.refresh().catch(() => {});
+    } finally {
+      this.claiming = false;
+      button.disabled = false;
+    }
   }
 
   /** A reward's picture: the item preview where the renderer has one (the kind icon stays otherwise). */
@@ -1653,6 +1732,7 @@ class ShopView {
   };
 
   dispose(): void {
+    this.claimAbort?.abort();
     if (this.disposed) return;
     this.disposed = true;
     this.loadAbort?.abort();

@@ -51,6 +51,7 @@ export const reasonNames: Record<string, string> = {
   starter: '新手礼包',
   race: '比赛奖励',
   racebonus: '比赛赠送',
+  shopclaim: '商城领取',
   levelup: '升级奖励',
   timeattack: '计时赛奖励',
   purchase: '商城购买',

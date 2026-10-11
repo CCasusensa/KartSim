@@ -7,6 +7,9 @@ import { parseShopCatalog, ShopCatalogError, type ShopCatalog, type ShopOffer } 
 
 export const SHOP_CATALOG_PATH = "/api/shop/catalog";
 export const SHOP_PURCHASE_PATH = "/api/shop/purchase";
+/** The 点击获取点券 button (ECONOMY.md 2.5): its settings, and one click. */
+export const SHOP_FREE_COUPON_PATH = "/api/shop/free-coupon";
+export const SHOP_FREE_COUPON_CLAIM_PATH = "/api/shop/free-coupon/claim";
 
 /** The session members the shop requests use. */
 export type ShopApiSession = Pick<AccountSession, "backendOrigin" | "authorizedFetch">;
@@ -21,6 +24,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   QUANTITY_LIMIT: "该道具的数量已达上限，无法继续购买。",
   REQUEST_ID_CONFLICT: "购买请求冲突，请重新选择后再试。",
   INVALID_REQUEST_ID: "购买请求无效，请刷新商店后重试。",
+  SHOP_CLAIM_CLOSED: "领取已关闭。",
+  BALANCE_LIMIT: "余额已达上限，无法继续领取。",
   LOGIN_REQUIRED: "登录已失效，请重新登录。",
   TOO_MANY_ATTEMPTS: "操作过于频繁，请稍后再试。",
   DATA_SERVICE_UNAVAILABLE: "数据服务暂时不可用，请稍后再试。",
@@ -381,4 +386,92 @@ export class ShopPurchaser {
     }
     return parsePurchaseResult(body);
   }
+}
+
+// --- 点击获取点券 (ECONOMY.md 2.5) ---------------------------------------------
+
+/** What the admin set for the shop's free grant button. */
+export interface FreeCouponStatus {
+  enabled: boolean;
+  coupon: number;
+  lucci: number;
+  koin: number;
+}
+
+export interface FreeCouponClaimResult {
+  wallet: Record<Currency, number>;
+  /** What this click credited (all zero for a repeated requestId). */
+  granted: Record<Currency, number>;
+  duplicate: boolean;
+}
+
+function grantAmounts(value: unknown): Record<Currency, number> | undefined {
+  if (typeof value !== "object" || value === null) return undefined;
+  const body = value as Record<string, unknown>;
+  if (!finiteNumber(body.coupon) || !finiteNumber(body.lucci) || !finiteNumber(body.koin)) return undefined;
+  return { coupon: body.coupon, lucci: body.lucci, koin: body.koin };
+}
+
+/** Validates the GET /api/shop/free-coupon body; undefined when it is not one. */
+export function parseFreeCouponStatus(value: unknown): FreeCouponStatus | undefined {
+  const amounts = grantAmounts(value);
+  const enabled = (value as { enabled?: unknown } | null)?.enabled;
+  return amounts && typeof enabled === "boolean" ? { enabled, ...amounts } : undefined;
+}
+
+/**
+ * GET /api/shop/free-coupon: the button's settings, or undefined when the
+ * data service does not offer the button (an older service, a failure):
+ * the shop then shows no button.
+ */
+export async function fetchFreeCoupon(session: ShopApiSession,
+  signal?: AbortSignal): Promise<FreeCouponStatus | undefined> {
+  try {
+    const response = await session.authorizedFetch(SHOP_FREE_COUPON_PATH, {
+      method: "GET", headers: { Accept: "application/json" }, cache: "no-store",
+      ...(signal ? { signal } : {}),
+    });
+    if (!response.ok) return undefined;
+    return parseFreeCouponStatus(await response.json());
+  } catch (error) {
+    if (abortError(error)) throw error;
+    return undefined;
+  }
+}
+
+/** Validates the POST /api/shop/free-coupon/claim body {wallet, granted, duplicate}. */
+export function parseFreeCouponClaim(value: unknown): FreeCouponClaimResult {
+  const invalid = () => new ShopApiError("INVALID_RESPONSE", 200);
+  if (typeof value !== "object" || value === null) throw invalid();
+  const body = value as Record<string, unknown>;
+  const wallet = grantAmounts(body.wallet);
+  const granted = grantAmounts(body.granted);
+  if (!wallet || !granted || typeof body.duplicate !== "boolean") throw invalid();
+  return { wallet, granted, duplicate: body.duplicate };
+}
+
+/**
+ * POST /api/shop/free-coupon/claim: one click of the button. Each click
+ * sends its own requestId; the server credits a requestId once, so a
+ * repeat (a retry) answers duplicate instead of crediting again.
+ */
+export async function claimFreeCoupon(session: ShopApiSession, requestId: string,
+  timeoutMs = PURCHASE_TIMEOUT_MS): Promise<FreeCouponClaimResult> {
+  let response: Response;
+  try {
+    response = await session.authorizedFetch(SHOP_FREE_COUPON_CLAIM_PATH, {
+      method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ requestId }), signal: timeoutSignal(timeoutMs),
+    });
+  } catch (error) {
+    throw new ShopApiError("NETWORK_ERROR", 0, { cause: error });
+  }
+  if (!response.ok) throw new ShopApiError(await errorCode(response), response.status);
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch (error) {
+    throw new ShopApiError("INVALID_RESPONSE", response.status, { cause: error });
+  }
+  return parseFreeCouponClaim(body);
 }

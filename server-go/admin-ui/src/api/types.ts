@@ -504,11 +504,17 @@ export interface CurrencyGrant {
   koin: number
 }
 
+/** The shop's 点击获取点券 button (ECONOMY.md 2.5). */
+export interface ShopClaimSettings extends CurrencyGrant {
+  enabled: boolean
+}
+
 export interface EconomySettings {
   register: CurrencyGrant
   race: CurrencyGrant
+  shopClaim: ShopClaimSettings
   updatedAt: number
   updatedBy: string
-  defaults: { register: CurrencyGrant; race: CurrencyGrant }
+  defaults: { register: CurrencyGrant; race: CurrencyGrant; shopClaim: ShopClaimSettings }
   serverTime: number
 }

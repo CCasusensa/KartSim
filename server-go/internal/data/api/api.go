@@ -318,6 +318,8 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/shop/catalog", a.shopCatalog)
 	route("POST /api/shop/purchase", a.purchase)
 	route("GET /api/shop/spend-event", a.shopSpendEvent)
+	route("GET /api/shop/free-coupon", a.shopClaimStatus)
+	route("POST /api/shop/free-coupon/claim", a.shopClaim)
 	route("POST /api/timeattack/settle", a.settleTimeAttack)
 	route("GET /api/admin/me", a.adminMe)
 	route("GET /api/admin/overview", a.adminOverview)

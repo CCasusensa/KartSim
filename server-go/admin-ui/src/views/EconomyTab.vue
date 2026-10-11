@@ -3,17 +3,19 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Refresh, RefreshLeft } from '@element-plus/icons-vue'
 import { api, errorMessage } from '../api/client'
-import type { CurrencyGrant, EconomySettings } from '../api/types'
+import type { CurrencyGrant, EconomySettings, ShopClaimSettings } from '../api/types'
 import { useNarrow } from '../composables/useNarrow'
 import { useTab } from '../composables/useTabs'
 import { formatTime } from '../utils/time'
 import { showError } from '../utils/ui'
 
-// 经济设置 (ECONOMY.md 2.3/2.4): GET /api/admin/economy, PUT
-// /api/admin/economy {register{coupon,lucci,koin}, race{coupon,lucci,koin}}.
-// The registration grant is credited when an account's wallet is created;
-// the per-race grant goes to every racer who finishes an online race (game
-// nodes show it with their next heartbeat, within about 10 seconds).
+// 经济设置 (ECONOMY.md 2.3–2.5): GET /api/admin/economy, PUT
+// /api/admin/economy {register{coupon,lucci,koin}, race{coupon,lucci,koin},
+// shopClaim{enabled,coupon,lucci,koin}}. The registration grant is credited
+// when an account's wallet is created; the per-race grant goes to every racer
+// who finishes an online race (game nodes show it with their next heartbeat,
+// within about 10 seconds); the shop's 点击获取点券 button credits its amounts
+// on every click while it is enabled.
 
 const MAX = 1_000_000_000
 const CURRENCIES: { key: keyof CurrencyGrant; label: string }[] = [
@@ -30,13 +32,16 @@ const narrow = useNarrow()
 const form = reactive({
   register: { coupon: 0, lucci: 0, koin: 0 } as CurrencyGrant,
   race: { coupon: 0, lucci: 0, koin: 0 } as CurrencyGrant,
+  shopClaim: { enabled: false, coupon: 0, lucci: 0, koin: 0 } as ShopClaimSettings,
 })
 
-function fill(from: { register: CurrencyGrant; race: CurrencyGrant }) {
+function fill(from: { register: CurrencyGrant; race: CurrencyGrant; shopClaim: ShopClaimSettings }) {
   for (const { key } of CURRENCIES) {
     form.register[key] = from.register[key]
     form.race[key] = from.race[key]
+    form.shopClaim[key] = from.shopClaim[key]
   }
+  form.shopClaim.enabled = from.shopClaim.enabled
 }
 
 async function load() {
@@ -59,7 +64,9 @@ onMounted(load)
 const dirty = computed(() => {
   const saved = settings.value
   if (!saved) return false
-  return CURRENCIES.some(({ key }) => form.register[key] !== saved.register[key] || form.race[key] !== saved.race[key])
+  return form.shopClaim.enabled !== saved.shopClaim.enabled ||
+    CURRENCIES.some(({ key }) => form.register[key] !== saved.register[key] || form.race[key] !== saved.race[key] ||
+      form.shopClaim[key] !== saved.shopClaim[key])
 })
 
 function valid(grant: CurrencyGrant): boolean {
@@ -68,7 +75,7 @@ function valid(grant: CurrencyGrant): boolean {
 
 async function save() {
   if (saving.value) return
-  if (!valid(form.register) || !valid(form.race)) {
+  if (!valid(form.register) || !valid(form.race) || !valid(form.shopClaim)) {
     failure.value = `每项须为 0–${MAX.toLocaleString('zh-CN')} 的整数`
     return
   }
@@ -77,6 +84,7 @@ async function save() {
     settings.value = await api.put<EconomySettings>('/api/admin/economy', {
       register: { ...form.register },
       race: { ...form.race },
+      shopClaim: { ...form.shopClaim },
     })
     fill(settings.value)
     failure.value = ''
@@ -96,7 +104,7 @@ function restoreDefaults() {
 <template>
   <el-card shadow="never" class="page-card">
     <p class="page-note">
-      注册赠送在账号的钱包建立时入账（流水原因“新手礼包”）；比赛赠送发给每位跑完联机比赛的车手，不计每日上限（流水原因“比赛赠送”），游戏节点约 10 秒内随心跳更新显示。
+      注册赠送在账号的钱包建立时入账（流水原因“新手礼包”）；比赛赠送发给每位跑完联机比赛的车手，不计每日上限（流水原因“比赛赠送”），游戏节点约 10 秒内随心跳更新显示；商城“点击获取点券”按钮开启时显示在商城左上，每次点击按下面的数额入账（流水原因“商城领取”），玩家下次打开商城时按新设置显示。
     </p>
     <div class="toolbar">
       <el-button type="primary" :loading="saving" :disabled="loading || !settings || !dirty" @click="save">保存</el-button>
@@ -117,6 +125,15 @@ function restoreDefaults() {
       <el-form-item v-for="currency in CURRENCIES" :key="'race-' + currency.key" :label="currency.label">
         <el-input-number v-model="form.race[currency.key]" :min="0" :max="MAX" :step="10" :precision="0" controls-position="right" class="amount" />
         <span v-if="settings" class="hint">默认 {{ settings.defaults.race[currency.key].toLocaleString('zh-CN') }}</span>
+      </el-form-item>
+      <el-divider content-position="left">商城“点击获取点券”按钮</el-divider>
+      <el-form-item label="显示按钮">
+        <el-switch v-model="form.shopClaim.enabled" inline-prompt active-text="开" inactive-text="关" />
+        <span v-if="settings" class="hint">默认{{ settings.defaults.shopClaim.enabled ? '开' : '关' }}；关闭后商城不再显示该按钮，点击也不入账</span>
+      </el-form-item>
+      <el-form-item v-for="currency in CURRENCIES" :key="'claim-' + currency.key" :label="'每次' + currency.label">
+        <el-input-number v-model="form.shopClaim[currency.key]" :min="0" :max="MAX" :step="1000" :precision="0" controls-position="right" class="amount" :disabled="!form.shopClaim.enabled" />
+        <span v-if="settings" class="hint">默认 {{ settings.defaults.shopClaim[currency.key].toLocaleString('zh-CN') }}</span>
       </el-form-item>
     </el-form>
   </el-card>

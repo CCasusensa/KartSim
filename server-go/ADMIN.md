@@ -24,7 +24,7 @@
 | 抽奖与开箱 | 寻宝/精品道具场抽奖记录与开箱记录 |
 | 俱乐部 | 俱乐部列表：名称、会长、等级、人数、创建时间 |
 | 抽奖活动、奖励箱、公告、邀请码 | 原后台的功能，用 Element Plus 表单与表格重做，接口不变 |
-| 经济设置 | 注册赠送与每场比赛赠送的点券/金币/K币（`GET`/`PUT /api/admin/economy`，`ECONOMY.md` 2.4）：表单、默认值提示、最后修改人与时间 |
+| 经济设置 | 注册赠送与每场比赛赠送的点券/金币/K币，以及商城“点击获取点券”按钮的开关与每次数额（`GET`/`PUT /api/admin/economy`，`ECONOMY.md` 2.4/2.5）：表单、默认值提示、最后修改人与时间 |
 
 - 所有表格：服务器端分页（每页 20/50/100）、搜索、可排序列；空数据、加载中、出错都有提示；时间统一按北京时间显示 `YYYY-MM-DD HH:mm:ss`；金额千分位。
 
@@ -129,10 +129,10 @@
 - **抽奖摘要**：寻宝里由保底触发的抽取归入“保底奖励”，与精品道具场的里程保底奖励写法相同，例如“寻宝 10 次：宝宝、…；保底奖励：…”。
 - **游戏客户端**：登录或进入游戏得到 `ACCOUNT_BANNED` 时显示“账号已被封禁，解封时间：YYYY-MM-DD HH:mm（原因：…）”（时间按北京时间），永久封禁（到期在 2099 年及以后，与后台的“永久”一致）显示“账号已被永久封禁（原因：…）”；没有原因时省略括号，拿不到时间（旧游戏节点）时显示“账号已被封禁（原因：…）”或“账号已被封禁。”，不再显示原始错误码。原因按文本显示，不当作 HTML。
 
-## 7. 经济设置（schema v15 `app_settings`，规则见 [`ECONOMY.md`](ECONOMY.md) 2.3/2.4）
+## 7. 经济设置（schema v15 `app_settings`，规则见 [`ECONOMY.md`](ECONOMY.md) 2.3–2.5）
 
-- `GET /api/admin/economy` → `{register{coupon,lucci,koin}, race{coupon,lucci,koin}, updatedAt, updatedBy, defaults{register, race}, serverTime}`；没有保存过时 `updatedAt` 为 0、`updatedBy` 为空，数值等于 `defaults`。
-- `PUT /api/admin/economy` `{register{coupon,lucci,koin}, race{coupon,lucci,koin}}`：每项 0–1,000,000,000 的整数，否则 400 `INVALID_ECONOMY_SETTINGS`；成功返回与 GET 相同的对象，并写日志 `admin economy settings`。注册赠送对之后建立的钱包生效；每场比赛赠送在游戏节点下一次心跳后显示、由数据服务按结算时的设置入账。
+- `GET /api/admin/economy` → `{register{coupon,lucci,koin}, race{coupon,lucci,koin}, shopClaim{enabled,coupon,lucci,koin}, updatedAt, updatedBy, defaults{register, race, shopClaim}, serverTime}`；没有保存过时 `updatedAt` 为 0、`updatedBy` 为空，数值等于 `defaults`（`shopClaim` 默认开启、每次 10,000 点券）。
+- `PUT /api/admin/economy` `{register{coupon,lucci,koin}, race{coupon,lucci,koin}, shopClaim{enabled,coupon,lucci,koin}}`：每项 0–1,000,000,000 的整数，否则 400 `INVALID_ECONOMY_SETTINGS`；不带 `shopClaim` 时按钮设置保持原样；成功返回与 GET 相同的对象，并写日志 `admin economy settings`。注册赠送对之后建立的钱包生效；每场比赛赠送在游戏节点下一次心跳后显示、由数据服务按结算时的设置入账；商城按钮在玩家下次打开商城时按新设置显示，每次点击按点击时的设置入账（`ECONOMY.md` 2.5，流水原因“商城领取”）。
 
 ## 6. 反作弊记录（schema v14，规则见 [`ANTICHEAT.md`](ANTICHEAT.md)）
 

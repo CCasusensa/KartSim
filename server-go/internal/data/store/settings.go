@@ -23,6 +23,9 @@ const (
 	DefaultRegisterKoin   = 20_000
 	// DefaultRaceCoupon is the 点券 a finished online race adds by default.
 	DefaultRaceCoupon = 100
+	// DefaultShopClaimCoupon is what the shop's 点击获取点券 button hands
+	// out per click until the admin changes it (the button starts enabled).
+	DefaultShopClaimCoupon = 10_000
 	// MaxGrantAmount bounds every admin-set grant.
 	MaxGrantAmount = contract.MaxCurrencyGrant
 )
@@ -57,6 +60,14 @@ func (g CurrencyGrant) Valid() bool {
 	return true
 }
 
+// ShopClaimSettings are the shop's 点击获取点券 button (ECONOMY.md 2.5): whether
+// it is shown and what one click credits (reason "shopclaim", ref = the
+// click's requestId).
+type ShopClaimSettings struct {
+	Enabled bool `json:"enabled"`
+	CurrencyGrant
+}
+
 // EconomySettings are the grants the admin console sets.
 type EconomySettings struct {
 	// Register is credited when an account's wallet is created (reason
@@ -65,9 +76,16 @@ type EconomySettings struct {
 	// Race is credited to every racer who finished an online race, on top
 	// of the formula rewards and outside the daily caps (reason "racebonus",
 	// ref = raceId).
-	Race      CurrencyGrant `json:"race"`
-	UpdatedAt int64         `json:"updatedAt"`
-	UpdatedBy string        `json:"updatedBy"`
+	Race CurrencyGrant `json:"race"`
+	// ShopClaim is the shop's free grant button.
+	ShopClaim ShopClaimSettings `json:"shopClaim"`
+	UpdatedAt int64             `json:"updatedAt"`
+	UpdatedBy string            `json:"updatedBy"`
+}
+
+// Valid reports whether every grant is within 0 and MaxGrantAmount.
+func (e EconomySettings) Valid() bool {
+	return e.Register.Valid() && e.Race.Valid() && e.ShopClaim.Valid()
 }
 
 var errInvalidEconomySettings = errors.New("economy settings out of range")
@@ -78,6 +96,8 @@ func (s *Store) DefaultEconomySettings() EconomySettings {
 	return EconomySettings{
 		Register: CurrencyGrant{Coupon: s.rules.StartingCoupon, Lucci: s.rules.StartingLucci, Koin: s.rules.StartingKoin},
 		Race:     CurrencyGrant{Coupon: s.rules.RaceCoupon},
+		ShopClaim: ShopClaimSettings{Enabled: true,
+			CurrencyGrant: CurrencyGrant{Coupon: DefaultShopClaimCoupon}},
 	}
 }
 
@@ -103,24 +123,30 @@ func (s *Store) economySettings(ctx context.Context, q settingsQuerier) (Economy
 	var stored struct {
 		Register CurrencyGrant `json:"register"`
 		Race     CurrencyGrant `json:"race"`
+		// Rows saved before the shop button existed keep its default.
+		ShopClaim *ShopClaimSettings `json:"shopClaim"`
 	}
 	if err := json.Unmarshal([]byte(raw), &stored); err != nil {
 		return settings, fmt.Errorf("economy settings: %w", err)
 	}
 	settings.Register, settings.Race = stored.Register, stored.Race
+	if stored.ShopClaim != nil {
+		settings.ShopClaim = *stored.ShopClaim
+	}
 	return settings, nil
 }
 
 // SaveEconomySettings stores the grants (each amount 0–MaxGrantAmount)
 // with who changed them and returns what is now in effect.
 func (s *Store) SaveEconomySettings(ctx context.Context, settings EconomySettings, admin string, now int64) (EconomySettings, error) {
-	if !settings.Register.Valid() || !settings.Race.Valid() {
+	if !settings.Valid() {
 		return EconomySettings{}, errInvalidEconomySettings
 	}
 	encoded, err := json.Marshal(struct {
-		Register CurrencyGrant `json:"register"`
-		Race     CurrencyGrant `json:"race"`
-	}{settings.Register, settings.Race})
+		Register  CurrencyGrant     `json:"register"`
+		Race      CurrencyGrant     `json:"race"`
+		ShopClaim ShopClaimSettings `json:"shopClaim"`
+	}{settings.Register, settings.Race, settings.ShopClaim})
 	if err != nil {
 		return EconomySettings{}, err
 	}

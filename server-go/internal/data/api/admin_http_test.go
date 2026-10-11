@@ -865,25 +865,30 @@ func TestAdminEconomySettings(t *testing.T) {
 	var got economySettingsJSON
 	h.adminGet("/api/admin/economy", &got)
 	defaults := h.api.store.DefaultEconomySettings()
-	if got.Register != defaults.Register || got.Race != defaults.Race || got.UpdatedAt != 0 || got.UpdatedBy != "" ||
-		got.Defaults.Register != defaults.Register || got.Defaults.Race != defaults.Race {
+	if got.Register != defaults.Register || got.Race != defaults.Race || got.ShopClaim != defaults.ShopClaim ||
+		got.UpdatedAt != 0 || got.UpdatedBy != "" || got.Defaults.Register != defaults.Register ||
+		got.Defaults.Race != defaults.Race || got.Defaults.ShopClaim != defaults.ShopClaim ||
+		!got.ShopClaim.Enabled || got.ShopClaim.Coupon != store.DefaultShopClaimCoupon {
 		t.Fatalf("defaults %+v", got)
 	}
 	for _, body := range []map[string]any{
 		{"register": map[string]any{"coupon": -1, "lucci": 0, "koin": 0}, "race": map[string]any{}},
 		{"register": map[string]any{}, "race": map[string]any{"koin": store.MaxGrantAmount + 1}},
 		{"register": map[string]any{"coupon": 1.5}},
+		{"register": map[string]any{}, "race": map[string]any{}, "shopClaim": map[string]any{"enabled": true, "coupon": -5}},
 	} {
 		h.put("/api/admin/economy", body, h.adminHeader).expect(t, http.StatusBadRequest, "")
 	}
 	saved := h.put("/api/admin/economy", map[string]any{
-		"register": map[string]any{"coupon": 1, "lucci": 2, "koin": 3},
-		"race":     map[string]any{"coupon": 4, "lucci": 5, "koin": 6},
+		"register":  map[string]any{"coupon": 1, "lucci": 2, "koin": 3},
+		"race":      map[string]any{"coupon": 4, "lucci": 5, "koin": 6},
+		"shopClaim": map[string]any{"enabled": true, "coupon": 10_000, "lucci": 0, "koin": 7},
 	}, h.adminHeader).expect(t, http.StatusOK, "")
 	saved.json(t, &got)
 	want := store.CurrencyGrant{Coupon: 1, Lucci: 2, Koin: 3}
+	wantClaim := store.ShopClaimSettings{Enabled: true, CurrencyGrant: store.CurrencyGrant{Coupon: 10_000, Koin: 7}}
 	if got.Register != want || got.Race != (store.CurrencyGrant{Coupon: 4, Lucci: 5, Koin: 6}) ||
-		got.UpdatedBy != h.adminName || got.UpdatedAt == 0 {
+		got.ShopClaim != wantClaim || got.UpdatedBy != h.adminName || got.UpdatedAt == 0 {
 		t.Fatalf("saved %+v", got)
 	}
 	h.adminGet("/api/admin/economy", &got)
@@ -911,4 +916,50 @@ func TestAdminEconomySettings(t *testing.T) {
 	if wallet["coupon"] != 5.0 || wallet["lucci"] != 27.0 || wallet["koin"] != 9.0 {
 		t.Fatalf("wallet after a finished race %v", wallet)
 	}
+
+	// The shop button (ECONOMY.md 2.5): the player sees the settings, a
+	// click credits them once per requestId, and a disabled button refuses.
+	token := h.login("economy_"+h.u, password)
+	h.get("/api/shop/free-coupon", nil).expect(t, http.StatusUnauthorized, "LOGIN_REQUIRED")
+	var status shopClaimJSON
+	h.get("/api/shop/free-coupon", bearerHeader(token)).expect(t, http.StatusOK, "").json(t, &status)
+	if !status.Enabled || status.Coupon != 10_000 || status.Lucci != 0 || status.Koin != 7 || status.ServerTime == 0 {
+		t.Fatalf("shop claim status %+v", status)
+	}
+	h.post("/api/shop/free-coupon/claim", map[string]any{"requestId": "nope"}, bearerHeader(token)).
+		expect(t, http.StatusBadRequest, "INVALID_REQUEST_ID")
+	request := "11111111-2222-4333-8444-555555555555" // unique per account: the ledger keys it by account
+	var claimed store.ShopClaimResult
+	h.post("/api/shop/free-coupon/claim", map[string]any{"requestId": request}, bearerHeader(token)).
+		expect(t, http.StatusOK, "").json(t, &claimed)
+	if claimed.Duplicate || claimed.Granted != (store.CurrencyGrant{Coupon: 10_000, Koin: 7}) ||
+		claimed.Wallet != (store.Wallet{Coupon: 10_005, Lucci: 27, Koin: 16}) {
+		t.Fatalf("claim %+v", claimed)
+	}
+	h.post("/api/shop/free-coupon/claim", map[string]any{"requestId": request}, bearerHeader(token)).
+		expect(t, http.StatusOK, "").json(t, &claimed)
+	if !claimed.Duplicate || claimed.Granted != (store.CurrencyGrant{}) ||
+		claimed.Wallet != (store.Wallet{Coupon: 10_005, Lucci: 27, Koin: 16}) {
+		t.Fatalf("repeated claim %+v", claimed)
+	}
+	t.Cleanup(func() { h.cleanup("DELETE FROM wallet_ledger WHERE account_id = ?", player) })
+	// Switching the button off keeps the amounts; a body without shopClaim keeps the switch.
+	h.put("/api/admin/economy", map[string]any{
+		"register":  map[string]any{"coupon": 1, "lucci": 2, "koin": 3},
+		"race":      map[string]any{"coupon": 4, "lucci": 5, "koin": 6},
+		"shopClaim": map[string]any{"enabled": false, "coupon": 10_000, "lucci": 0, "koin": 7},
+	}, h.adminHeader).expect(t, http.StatusOK, "")
+	h.put("/api/admin/economy", map[string]any{
+		"register": map[string]any{"coupon": 1, "lucci": 2, "koin": 3},
+		"race":     map[string]any{"coupon": 4, "lucci": 5, "koin": 6},
+	}, h.adminHeader).expect(t, http.StatusOK, "").json(t, &got)
+	if got.ShopClaim != (store.ShopClaimSettings{CurrencyGrant: store.CurrencyGrant{Coupon: 10_000, Koin: 7}}) {
+		t.Fatalf("shop claim after switching off %+v", got.ShopClaim)
+	}
+	h.get("/api/shop/free-coupon", bearerHeader(token)).expect(t, http.StatusOK, "").json(t, &status)
+	if status.Enabled {
+		t.Fatalf("status while off %+v", status)
+	}
+	h.post("/api/shop/free-coupon/claim", map[string]any{"requestId": "11111111-2222-4333-8444-555555555556"},
+		bearerHeader(token)).expect(t, http.StatusForbidden, "SHOP_CLAIM_CLOSED")
 }

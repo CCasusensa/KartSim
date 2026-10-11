@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { AccountSession, AccountSummary, InventoryItem } from "../account/account-session";
-import { clearShopCatalogCache, SHOP_CATALOG_PATH, SHOP_PURCHASE_PATH } from "./shop-api";
+import {
+  clearShopCatalogCache, SHOP_CATALOG_PATH, SHOP_FREE_COUPON_CLAIM_PATH, SHOP_FREE_COUPON_PATH, SHOP_PURCHASE_PATH,
+} from "./shop-api";
 import { DIALOG_INPUT_GUARD_MS } from "./shop-buy-dialog";
 import { SHOP_TASKBAR_HEIGHT } from "../timeattack/ready-shop";
 import { find } from "./shop-original";
@@ -24,8 +26,10 @@ type Handler = (body: Record<string, unknown>) => Response | Promise<Response>;
 
 /** An account session that serves the fixture catalog and answers purchases from a queue. */
 function shopSession(purchases: Handler[] = [], inventory: InventoryItem[] = [], catalog: unknown = MALL_CATALOG_JSON,
-  spendEvent: () => Response = () => json({ error: "NOT_FOUND" }, 404)) {
+  spendEvent: () => Response = () => json({ error: "NOT_FOUND" }, 404),
+  freeCoupon: () => Response = () => json({ error: "NOT_FOUND" }, 404), claims: Handler[] = []) {
   const bodies: Record<string, unknown>[] = [];
+  const claimBodies: Record<string, unknown>[] = [];
   const paths: string[] = [];
   let refreshes = 0;
   const account: AccountSummary = summary({ coupon: 1000, lucci: 0, koin: 0 });
@@ -40,6 +44,13 @@ function shopSession(purchases: Handler[] = [], inventory: InventoryItem[] = [],
       paths.push(path);
       if (path === SHOP_CATALOG_PATH) return json(catalog, 200, { ETag: '"v1"' });
       if (path === SHOP_SPEND_EVENT_PATH) return spendEvent();
+      if (path === SHOP_FREE_COUPON_PATH) return freeCoupon();
+      if (path === SHOP_FREE_COUPON_CLAIM_PATH) {
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        claimBodies.push(body);
+        const handler = claims.shift();
+        return handler ? handler(body) : json({ error: "SHOP_CLAIM_CLOSED" }, 403);
+      }
       if (path === SHOP_PURCHASE_PATH) {
         const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
         bodies.push(body);
@@ -49,7 +60,7 @@ function shopSession(purchases: Handler[] = [], inventory: InventoryItem[] = [],
       return json({ error: "NOT_FOUND" }, 404);
     },
   };
-  return { session, bodies, paths, refreshes: () => refreshes };
+  return { session, bodies, claimBodies, paths, refreshes: () => refreshes };
 }
 
 const settle = async () => { for (let round = 0; round < 6; round++) await new Promise(resolve => setImmediate(resolve)); };
@@ -73,7 +84,8 @@ function fakeStage(accept: (item: ShopPreviewRequest) => boolean = () => true) {
 
 async function openTestShop(purchases: Handler[] = [], inventory: InventoryItem[] = [],
   extra: { stage?: ReturnType<typeof fakeStage>; catalog?: unknown; taskbarHeight?: number;
-    spendEvent?: () => Response; options?: Partial<ShopOpenOptions>; viewport?: [number, number] } = {}) {
+    spendEvent?: () => Response; freeCoupon?: () => Response; claims?: Handler[];
+    options?: Partial<ShopOpenOptions>; viewport?: [number, number] } = {}) {
   clearShopCatalogCache();
   const dom: TestDom = installShopTestDom();
   if (extra.viewport) [dom.window.innerWidth, dom.window.innerHeight] = extra.viewport;
@@ -82,7 +94,7 @@ async function openTestShop(purchases: Handler[] = [], inventory: InventoryItem[
   // The game's own keyboard handler (application-construction: window keydown).
   const pageKeys: string[] = [];
   dom.window.addEventListener("keydown", event => pageKeys.push(String(event.key)));
-  const fixture = shopSession(purchases, inventory, extra.catalog, extra.spendEvent);
+  const fixture = shopSession(purchases, inventory, extra.catalog, extra.spendEvent, extra.freeCoupon, extra.claims);
   let closes = 0;
   const handle = await openShop({
     root: root as unknown as HTMLElement, library: {}, session: fixture.session,
@@ -535,7 +547,8 @@ test("赠送、兑奖券与精品记录照原版显示并提示暂未开放，�
     shop.card("3:10").querySelector("[data-name=giveGift]")!.click();
     assert.equal(shop.toast(), "赠送暂未开放");
     assert.equal(shop.root.querySelectorAll("[data-name=shopGCoinCharge]").length, 1, "only the big 充值 button");
-    assert.equal(shop.root.querySelectorAll("[data-name=shopGCoinCharge]")[0]!.hidden, true, "充值 is not offered");
+    assert.equal(shop.root.querySelectorAll("[data-name=shopGCoinCharge]")[0]!.hidden, true,
+      "充值 is not offered, and the data service has no 点击获取点券 button");
     shop.named("shopCoupon").click();
     assert.equal(shop.toast(), "兑奖券暂未开放");
     shop.named("gachaOpenResult").click();
@@ -672,4 +685,49 @@ test("在大厅上打开：透明露出大厅的三维场景和顶栏；在别�
     away.close();
   }
   assert.equal(disposed, 1, "the top bar goes with the shop");
+});
+
+// 商城“点击获取点券”按钮 (ECONOMY.md 2.5): the original 充值 button shows with
+// the admin's amounts while the data service says the button is on; a click
+// sends one requestId, tells what arrived and refreshes the wallet; the
+// button hides when the admin switches it off.
+test("点击获取点券按钮：后台开启时显示，点击入账并刷新钱包，关闭后隐藏", async () => {
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+  const status = (enabled: boolean) => () => json({ enabled, coupon: 10_000, lucci: 0, koin: 25, serverTime: 1 });
+  const shop = await openTestShop([], [], { freeCoupon: status(true), claims: [
+    () => json({ wallet: { coupon: 11_000, lucci: 0, koin: 25 }, granted: { coupon: 10_000, lucci: 0, koin: 25 }, duplicate: false }),
+    () => json({ wallet: { coupon: 11_000, lucci: 0, koin: 25 }, granted: { coupon: 0, lucci: 0, koin: 0 }, duplicate: true }),
+  ] });
+  try {
+    const button = shop.named("shopGCoinCharge") as TestElement & { disabled?: boolean; title?: string };
+    assert.equal(button.hidden, false, "the button shows while the admin keeps it on");
+    assert.equal(button.text(), "点击获取点券");
+    assert.equal(button.title, "每次 10,000 点券、25 K币");
+    button.click();
+    await settle();
+    assert.equal(shop.claimBodies.length, 1);
+    assert.match(String(shop.claimBodies[0]!.requestId), UUID);
+    assert.equal(shop.toast(), "已获得 10,000 点券、25 K币");
+    assert.equal(shop.refreshes(), 1, "the wallet is re-read after a claim");
+    assert.equal(button.disabled, false);
+    button.click();
+    await settle();
+    assert.notEqual(shop.claimBodies[1]!.requestId, shop.claimBodies[0]!.requestId, "every click is its own request");
+    assert.equal(shop.toast(), "本次领取已经到账。");
+    // The admin switched it off meanwhile: the click is refused and the button goes.
+    button.click();
+    await settle();
+    assert.equal(shop.claimBodies.length, 3);
+    assert.equal(shop.toast(), "领取已关闭。");
+    assert.equal(button.hidden, true);
+  } finally {
+    shop.close();
+  }
+  const off = await openTestShop([], [], { freeCoupon: status(false) });
+  try {
+    assert.equal(off.named("shopGCoinCharge").hidden, true, "hidden while the admin keeps it off");
+    assert.equal(off.claimBodies.length, 0);
+  } finally {
+    off.close();
+  }
 });

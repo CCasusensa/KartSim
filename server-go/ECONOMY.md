@@ -71,6 +71,12 @@
 - 每场比赛赠送：数据服务在结算事务里给结算条目标了 `finished: true` 的车手（游戏节点按 2.1 的完赛判定计奖的车手；挡人模式人人算完赛；未完赛、中途离开、超过 24 小时的结算不发）按当时的设置入账，流水原因 `racebonus`、关联 = raceId，**不计**每日上限，也不乘倍率。
 - 显示：数据服务在心跳响应里带 `raceBonus{coupon,lucci,koin}`，游戏节点保存最新值（越界值忽略），把它加进完赛者的 `race.rewards`（`lucci` 加上金币赠送，另带 `coupon`/`koin` 字段，为 0 时省略），所以玩家看到的仍等于入账值（改设置后一个心跳内生效）。客户端结算栏第二行显示“+金币 +点券 +K币”。
 
+### 2.5 商城“点击获取点券”按钮（管理页面“经济设置”，schema v15 `app_settings` 同一行）
+
+- 商城左上原版“充值”按钮的位置放一个“点击获取点券”按钮：后台开关打开时显示，每次点击按后台设置入账（默认开启、每次 10,000 点券、金币与 K币为 0；每项 0–1,000,000,000）。设置随 `GET`/`PUT /api/admin/economy` 的 `shopClaim{enabled,coupon,lucci,koin}` 读写（PUT 不带 `shopClaim` 时保持原样）；没有保存过、或保存于此功能之前的行都按默认值。
+- `GET /api/shop/free-coupon`（需登录）→ `{enabled, coupon, lucci, koin, serverTime}`，商城打开时读取，决定按钮是否显示与提示的数额。
+- `POST /api/shop/free-coupon/claim` `{requestId}` → `{wallet, granted{coupon,lucci,koin}, duplicate}`：在钱包锁内按当时的设置入账，每种货币一行流水（原因 `shopclaim`、关联 = requestId），所以同一 `requestId` 重发只回 `duplicate: true`，不重复入账；浏览器每次点击一个新的 `requestId`。开关关闭时 403 `SHOP_CLAIM_CLOSED`，余额将超过 10^12 时 409 `BALANCE_LIMIT`，受每账号写接口限流（429 `TOO_MANY_ATTEMPTS`）。不计每日上限，也不乘倍率。
+
 ## 3. 商店数据
 
 ### 3.1 导出
@@ -254,11 +260,13 @@ daily_rewards(account_id, day CHAR(10), kind VARCHAR(16), count INT, exp BIGINT,
 | `GET /api/shop/catalog` | 商店目录（`ETag` = 版本，支持 304，gzip） |
 | `POST /api/shop/purchase` | `{offerId, requestId, expectedPrice?, expectedCurrency?}` → `{wallet, item, purchaseId}`；错误 `OFFER_NOT_FOUND`、`INSUFFICIENT_FUNDS`、`ALREADY_OWNED`、`EXP_REQUIRED`、`PRICE_CHANGED`（与当前报价不符，409）、`REQUEST_ID_CONFLICT`；浏览器每个购买对话框一个 `requestId`，对话框内“重试”复用。扣款永远是报价的 `price`（`originalPrice` 只用于显示，限购不限制次数） |
 | `GET /api/shop/spend-event` | 需登录（Bearer）。商城累计消费活动（3.4）：`{event, spent, active, serverTime}`。`event` 为当前显示的活动（`{eventType, eventPeriod{start,end}, rewardPeriod{start,end}, steps[{step, value, stockId, reward{name, category, itemId, count, days, iconHint}}]}`，显示期 = 活动开始至奖励领取期结束），`spent` = 该账号在活动期 `[start, end+1s)` 内商店购买花费的点券（`wallet_ledger` 中 `reason='purchase'`、`currency='coupon'` 的扣款合计；管理员扣款、金币/K币不算），`active` = 现在是否仍在活动期内（活动期后、领奖期内为 `false`，`spent` 不再增长）。没有显示中的活动时 `{"event": null, "spent": 0, "active": false, "serverTime"}`。只读，奖励不发放 |
+| `GET /api/shop/free-coupon` | 需登录。商城“点击获取点券”按钮的设置 `{enabled, coupon, lucci, koin, serverTime}`（2.5） |
+| `POST /api/shop/free-coupon/claim` | `{requestId}` → `{wallet, granted, duplicate}`；每次点击入账一次（2.5）；错误 `SHOP_CLAIM_CLOSED`（403）、`BALANCE_LIMIT`（409）、`INVALID_REQUEST_ID` |
 | `POST /api/timeattack/settle` | `{trackId, elapsedMs, requestId}` → `{exp, lucci, newRecord, capped, bestMs, levelUps, summary}`；错误见 2.2 |
 | `GET /multiplayer/admin` | 管理后台（单页应用，登录后调用 `/api/admin/*`，见 `ADMIN.md`） |
 | `POST /api/admin/grant` | 管理员给账号加/减货币或经验 `{username, currency, amount, note, requestId?}`（currency 为 coupon/lucci/koin/exp），写流水；余额不能为负（409 `INSUFFICIENT_FUNDS`/`INSUFFICIENT_EXP`），也不能超过 10^12（409 `BALANCE_LIMIT`） |
 | `GET /api/admin/accounts` | 查询账号（等级、余额、物品数等；分页，参数与字段见 `ADMIN.md` 第 3–5 节） |
-| `GET`/`PUT /api/admin/economy` | 注册赠送与每场比赛赠送（2.4） |
+| `GET`/`PUT /api/admin/economy` | 注册赠送、每场比赛赠送（2.4）与商城领取按钮（2.5） |
 | `POST /multiplayer/admin/invites` | 保留 |
 
 内部（游戏节点）：
