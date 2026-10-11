@@ -1,5 +1,6 @@
 import { MotionClockMapping, RemoteMotionPredictor,
   type RemoteMotionFrameOptions, type RemoteMotionSnapshot } from "./remote-motion";
+import { RemotePoseSmoother } from "./remote-pose-smoothing";
 import type { RailMatrix } from "../driving/rail-frame";
 import { BRAWL_SLOTS, brawlAiIds } from "./lobby-brawl-mode";
 
@@ -74,6 +75,8 @@ export interface RemoteFleetDependencies {
 interface RemotePeer {
   parameters: RemoteFleetAssets["participants"][number]["remoteParameters"];
   motion: RemoteMotionPredictor;
+  /** Not in the release: the drawn pose glides onto each new packet's prediction. */
+  smoother: RemotePoseSmoother;
   presentation: PresentationBuffer;
   sequence?: number;
   receivedAt?: number;
@@ -167,6 +170,7 @@ export class RemoteFleet {
       this.remotes.set(player.playerId, {
         parameters: player.remoteParameters,
         motion: new RemoteMotionPredictor(mass, inertia),
+        smoother: new RemotePoseSmoother(),
         presentation: deps.createPresentation(),
       });
       if (assets.drivingMode?.kind === "giant")
@@ -281,8 +285,14 @@ export class RemoteFleet {
   update(now: number, options: RemoteMotionFrameOptions): void {
     if (this.disposed || !this.clock) return;
     try {
+      const tick = Math.trunc(now);
       for (const [playerId, peer] of this.remotes) {
-        peer.motion.update(Math.trunc(now), options);
+        // The predictor restarts from its newest packet when previousTick is unset.
+        const reanchored = peer.motion.previousTick === undefined &&
+          peer.motion.snapshot !== undefined;
+        peer.motion.update(tick, options);
+        peer.smoother.observe(peer.motion.copyPose(), tick, reanchored,
+          options.locked || options.bypass);
         this.giants.get(playerId)?.updateVehicle(now, () => {});
       }
     } catch (error) {
@@ -378,10 +388,12 @@ export class RemoteFleet {
     return this.disposed ? undefined : this.remotes.get(playerId)?.presentation.consume();
   }
 
+  /** The drawn (smoothed) pose; collisions read the raw prediction instead. */
   copyWebPose(playerId: string) {
     const peer = this.remotes.get(playerId);
-    const pose = peer?.motion.copyPose();
-    if (!pose || this.disposed) return undefined;
+    const raw = peer?.motion.copyPose();
+    if (!raw || this.disposed) return undefined;
+    const pose = peer!.smoother.displayed ?? raw;
     return {
       position: { x: pose.position[0], y: pose.position[2],
         z: Math.fround(-pose.position[1]) },
@@ -401,7 +413,7 @@ export class RemoteFleet {
     for (const giant of this.giants.values()) giant.dispose();
     this.giants.clear();
     this.giantSequences.clear();
-    for (const peer of this.remotes.values()) peer.motion.clear();
+    for (const peer of this.remotes.values()) { peer.motion.clear(); peer.smoother.reset(); }
     this.remotes.clear();
     this.collisionOrder.length = 0;
     this.departed.clear();

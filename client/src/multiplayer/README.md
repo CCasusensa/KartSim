@@ -70,6 +70,11 @@ bundle. It can be developed independently of the original minified code.
   elapsed clock and per-frame actions.
 - `remote-motion.ts`, `remote-fleet.ts`: remote clock mapping, pose prediction,
   peer vehicle lifetime and collision processing.
+- `remote-pose-smoothing.ts` (not in the release): the drawn pose of a remote
+  kart glides onto each new packet's prediction over ~100–300 ms instead of
+  jumping with it; collisions, rank and slipstream still read the raw
+  prediction. Corrections over 8 m or 90° (resets, warps) snap at once. Used
+  by the race `RemoteFleet` and the 卡丁城 `CityFleet`.
 - `race-driving-scales.ts`: leader-gap catchup and charger multipliers plus
   slipstream charge, burst and cooldown state from the multiplayer race runtime.
 - `race-peer-cadence.ts`: peer motion recipient cadence, stale-contact scaling,

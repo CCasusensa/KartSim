@@ -9,6 +9,7 @@
 import { MotionClockMapping, RemoteMotionPredictor,
   type RemoteMotionFrameOptions, type RemoteMotionSnapshot } from "../multiplayer/remote-motion";
 import { isNewerSequence } from "../multiplayer/motion";
+import { RemotePoseSmoother } from "../multiplayer/remote-pose-smoothing";
 import type { RailMatrix } from "../driving/rail-frame";
 import { VehicleMotionReceiver } from "../vehicle/remote-vehicle-motion";
 import { racePresenterInitializationDependencies } from "../generated/world.js";
@@ -23,6 +24,8 @@ interface Peer {
   slot: number;
   participant?: any;
   motion?: RemoteMotionPredictor;
+  /** Not in the release: the drawn pose glides onto each new frame's prediction. */
+  smoother: RemotePoseSmoother;
   presentation: VehicleMotionReceiver;
   sequence?: number;
   receivedAt?: number;
@@ -83,7 +86,7 @@ export class CityFleet {
     if (this.peers.has(member.playerId)) { this.update_member(member); return; }
     const peer: Peer = {
       member, playerId: member.playerId, slot: member.id % 8,
-      presentation: new VehicleMotionReceiver(), removed: false,
+      presentation: new VehicleMotionReceiver(), smoother: new RemotePoseSmoother(), removed: false,
     };
     this.peers.set(member.playerId, peer);
     this.byId.set(member.id, peer);
@@ -233,6 +236,7 @@ export class CityFleet {
         return new RemoteMotionPredictor(mass, [{ x: d, y: 0, z: 0 }, { x: 0, y: d, z: 0 }, { x: 0, y: 0, z: d }]); })()
       : peer.motion;
     peer.receivedAt = undefined;
+    peer.smoother.reset();
     this.host.presenter.initialPoses.set(peer.playerId, poseFromDesign(pose));
   }
 
@@ -240,9 +244,18 @@ export class CityFleet {
 
   update(now: number, options: RemoteMotionFrameOptions): void {
     if (this.disposed) return;
+    const tick = Math.trunc(now);
     for (const peer of this.peers.values()) {
-      try { peer.motion?.update(Math.trunc(now), options); }
-      catch (error) { console.warn("城市成员预测失败", peer.member.name, error); peer.motion = undefined; }
+      try {
+        if (!peer.motion) { peer.smoother.reset(); continue; }
+        const reanchored = peer.motion.previousTick === undefined && peer.motion.snapshot !== undefined;
+        peer.motion.update(tick, options);
+        peer.smoother.observe(peer.motion.copyPose(), tick, reanchored, options.locked || options.bypass);
+      } catch (error) {
+        console.warn("城市成员预测失败", peer.member.name, error);
+        peer.motion = undefined;
+        peer.smoother.reset();
+      }
     }
   }
 
@@ -280,8 +293,9 @@ export class CityFleet {
   copyWebPose(playerId: string) {
     const peer = this.peers.get(playerId);
     if (!peer) return undefined;
-    const pose = peer.motion?.copyPose();
-    if (pose) {
+    const raw = peer.motion?.copyPose();
+    if (raw) {
+      const pose = peer.smoother.displayed ?? raw;
       return {
         position: { x: pose.position[0], y: pose.position[2], z: Math.fround(-pose.position[1]) },
         ...webBasis(pose.rotation),
