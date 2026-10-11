@@ -191,6 +191,8 @@
 
 ### 3.4 商城累计消费活动（events.json）
 
+> 2026-10-11 起商城不显示这个窗口（`client/src/shop/shop-view.ts` 的 `SPEND_EVENT_SHOWN = false`，客户端也不再请求 `/api/shop/spend-event`）；数据与接口保留，以便日后重新开放。
+
 - 来源 `zeta_/cn/content/tcCashEvent.xml`（`stage_mqShop` 的 tcCash 窗口，“累计消费活动”）：
 
 ```json

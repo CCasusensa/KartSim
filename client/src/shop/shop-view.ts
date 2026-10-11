@@ -14,8 +14,9 @@
  *    closes, and the taskbar the host leaves free goes elsewhere.
  *  - Left: the player's rider and kart (MqShopStage) with try-ons (a card
  *    click), panned in like camIntroAni; 初始状态 puts the current equipment
- *    back. Top left: 充值 / 输入兑奖券 (not open yet) and, under them, the
- *    累计消费活动 window (tcCashWndPos, shop-spend-event.ts).
+ *    back. Top left: 点击获取点券 / 输入兑奖券 (not open yet) and, under them,
+ *    the 累计消费活动 window (tcCashWndPos, shop-spend-event.ts), hidden since
+ *    2026-10-11 (SPEND_EVENT_SHOWN).
  *  - Right, shopItems: itemCatTab (推荐 卡丁车 角色 礼包 装备 使用) and the
  *    itemSubCatTab row of the original mall (catalog shopTabs), the itemList
  *    grid of 230×194 shopCard{Cash,Lucci,Koin} cards, 3 per row and 3 rows,
@@ -156,6 +157,12 @@ export interface ShopOpenOptions {
 
 /** The 点击获取点券 button's text (ECONOMY.md 2.5). */
 export const FREE_COUPON_LABEL = "点击获取点券";
+/**
+ * The 累计消费活动 window is not shown (2026-10-11): the shop neither asks
+ * /api/shop/spend-event nor draws the window. The service, the panel and
+ * their tests stay for when it comes back.
+ */
+export const SPEND_EVENT_SHOWN = false;
 const CURRENCY_NAMES: Record<"coupon" | "lucci" | "koin", string> = { coupon: "点券", lucci: "金币", koin: "K币" };
 
 /** "10,000 点券、5 金币": the amounts of a grant that are not zero. */
@@ -898,9 +905,13 @@ class ShopView {
     }
   }
 
-  /** The 累计消费活动 window: shown while the service reports an event on display. */
+  /** The 累计消费活动 window: shown while the service reports an event on display (SPEND_EVENT_SHOWN). */
   private async loadSpendEvent(): Promise<void> {
     this.spendAbort?.abort();
+    if (!SPEND_EVENT_SHOWN) {
+      this.spend.render(undefined);
+      return;
+    }
     const abort = new AbortController();
     this.spendAbort = abort;
     const status = await fetchSpendEvent(this.options.session, abort.signal);

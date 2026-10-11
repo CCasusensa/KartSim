@@ -8,7 +8,7 @@ import {
 import { DIALOG_INPUT_GUARD_MS } from "./shop-buy-dialog";
 import { SHOP_TASKBAR_HEIGHT } from "../timeattack/ready-shop";
 import { find } from "./shop-original";
-import { SHOP_SPEND_EVENT_PATH } from "./shop-spend-event";
+import { parseSpendEventStatus, SHOP_SPEND_EVENT_PATH, SpendEventPanel } from "./shop-spend-event";
 import { json, MALL_CATALOG_JSON, spendEventJson, summary } from "./shop-test-fixtures";
 import { installShopTestDom, TestEvent, type TestDom, type TestElement } from "./shop-test-dom";
 import {
@@ -598,55 +598,53 @@ test("任务栏那一条留给任务栏：商品列表不伸进去，车库、�
   }
 });
 
-test("累计消费活动：/api/shop/spend-event 的活动画在 tcCashWndPos，按原版窗口显示进度与奖励", async () => {
+test("累计消费活动已隐藏：商城不请求 /api/shop/spend-event，窗口不显示，买东西后也不显示", async () => {
   const shop = await openTestShop([], [], { spendEvent: () => json(spendEventJson(2500)) });
   try {
-    assert.ok(shop.paths.includes(SHOP_SPEND_EVENT_PATH));
-    const panel = shop.root.querySelector(".ks-shop-spend")!;
-    assert.equal(panel.hidden, false);
-    // tcCashWndPos: 550×184, align center, adjust -395 -170 → under 充值 / 输入兑奖券.
-    assert.deepEqual(["left", "top", "width", "height"].map(key => px(panel, key)), [290, 278, 550, 184]);
-    const text = (name: string) => panel.querySelector(`[data-name=${name}]`)!.text();
-    assert.equal(text("period"), "活动期间 : 2026-9-17 6:00 ~ 2026-10-15 5:59");
-    assert.equal(text("tcCashPoint"), "2500");
-    assert.equal(text("tcCashPointStr"), "累计消费电池数");
-    assert.equal(text("help"), "活动期间消费一定电池，即可获得相应奖励！");
-    const steps = panel.querySelectorAll(".ks-shop-spend-step");
-    assert.deepEqual(steps.map(step => step.querySelector("[data-name=rewardCount]")!.text()),
-      ["10 个", "200 个", "40 个", "无限制"]);
-    assert.deepEqual(steps.map(step => step.querySelector("[data-name=point]")!.text()), ["1000", "2000", "5000", "8000"]);
-    // Slots end at each quarter of the 440 px bar; the first two are reached (display only).
-    assert.deepEqual(steps.map(step => px(step, "left")), [30, 140, 250, 360]);
-    assert.deepEqual(steps.map(step => step.dataset.reached), ["true", "true", "false", "false"]);
-    assert.equal(steps[0]!.querySelector("[data-name=tcEventReward]")!.disabled, true);
-    assert.deepEqual(steps.map(step => step.querySelector("[data-name=close]")!.hidden), [true, true, true, true]);
-    assert.equal(panel.querySelector("[data-name=progressBar]")!.hidden, false);
-    assert.equal(panel.querySelector("[data-name=pointProgress]")!.hidden, false);
+    assert.equal(shop.root.querySelector(".ks-shop-spend")!.hidden, true);
+    assert.ok(!shop.paths.includes(SHOP_SPEND_EVENT_PATH), "the event is not even asked for");
+    shop.buy("3:10").click({ detail: 1 });
+    shop.dom.advance(DIALOG_INPUT_GUARD_MS);
+    shop.ok().click();
+    await settle();
+    assert.equal(shop.bodies.length, 1, "the purchase went through");
+    assert.ok(!shop.paths.includes(SHOP_SPEND_EVENT_PATH));
+    assert.equal(shop.root.querySelector(".ks-shop-spend")!.hidden, true);
   } finally {
     shop.close();
   }
-  // No event, an older data service (404), a malformed answer: no window.
-  for (const answer of [() => json(spendEventJson(0, { event: null })), () => json({ error: "NOT_FOUND" }, 404),
-    () => json({ event: { eventType: "charge" }, spent: 0, active: true, serverTime: 1 })]) {
-    const hidden = await openTestShop([], [], { spendEvent: answer });
-    try {
-      assert.equal(hidden.root.querySelector(".ks-shop-spend")!.hidden, true);
-    } finally {
-      hidden.close();
-    }
-  }
+});
+
+test("累计消费活动窗口本身仍按原版显示进度与奖励（供日后重新开放）", () => {
+  const dom = installShopTestDom();
+  const panel = new SpendEventPanel();
+  dom.document.body.append(panel.element as unknown as TestElement);
+  const text = (name: string) => (panel.element.querySelector(`[data-name=${name}]`) as unknown as TestElement).text();
+  panel.render(parseSpendEventStatus(spendEventJson(2500)));
+  assert.equal(panel.element.hidden, false);
+  assert.equal(text("period"), "活动期间 : 2026-9-17 6:00 ~ 2026-10-15 5:59");
+  assert.equal(text("tcCashPoint"), "2500");
+  assert.equal(text("tcCashPointStr"), "累计消费电池数");
+  assert.equal(text("help"), "活动期间消费一定电池，即可获得相应奖励！");
+  const steps = () => (panel.element.querySelectorAll(".ks-shop-spend-step") as unknown as TestElement[]);
+  assert.deepEqual(steps().map(step => step.querySelector("[data-name=rewardCount]")!.text()),
+    ["10 个", "200 个", "40 个", "无限制"]);
+  assert.deepEqual(steps().map(step => step.querySelector("[data-name=point]")!.text()), ["1000", "2000", "5000", "8000"]);
+  // Slots end at each quarter of the 440 px bar; the first two are reached (display only).
+  assert.deepEqual(steps().map(step => px(step, "left")), [30, 140, 250, 360]);
+  assert.deepEqual(steps().map(step => step.dataset.reached), ["true", "true", "false", "false"]);
+  // No event, or a malformed answer: no window.
+  panel.render(parseSpendEventStatus(spendEventJson(0, { event: null })));
+  assert.equal(panel.element.hidden, true);
+  panel.render(undefined);
+  assert.equal(panel.element.hidden, true);
   // After the event period, during the reward period: spending no longer counts.
-  const ended = await openTestShop([], [], { spendEvent: () => json(spendEventJson(1200,
-    { active: false, serverTime: Date.parse("2026-10-18T12:00:00+08:00") })) });
-  try {
-    const panel = ended.root.querySelector(".ks-shop-spend")!;
-    assert.equal(panel.hidden, false);
-    assert.equal(panel.querySelector("[data-name=help]")!.text(), "累计消费活动已结束。");
-    assert.deepEqual(panel.querySelectorAll(".ks-shop-spend-step").map(step =>
-      step.querySelector("[data-name=close]")!.hidden), [true, false, false, false]);
-  } finally {
-    ended.close();
-  }
+  panel.render(parseSpendEventStatus(spendEventJson(1200,
+    { active: false, serverTime: Date.parse("2026-10-18T12:00:00+08:00") })));
+  assert.equal(panel.element.hidden, false);
+  assert.equal(text("help"), "累计消费活动已结束。");
+  assert.deepEqual(steps().map(step => step.querySelector("[data-name=close]")!.hidden), [true, false, false, false]);
+  panel.dispose();
 });
 
 test("在大厅上打开：透明露出大厅的三维场景和顶栏；在别处打开：大厅静帧（不模糊）和同样的顶栏", async () => {
