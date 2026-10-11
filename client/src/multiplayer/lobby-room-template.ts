@@ -72,6 +72,12 @@ export function buildLobbyRoomTemplate(
   function transform(node: RoomTemplateNode): RoomTemplateNode | undefined {
     const name = attribute(node, "name") ?? "";
     if (node.name === "Skip") return undefined;
+    // The root's untextured fullscreen color panel ("200 0 0 0"): a tint in
+    // the original engine, a fill here, which would darken the lobby behind
+    // the room (lobby-room-backdrop.ts). The original shows it undimmed.
+    if (node.name === "Panel" && !name &&
+      attribute(node, "windowRect") === "fullscreen" &&
+      attribute(node, "color") && !attribute(node, "texture")) return undefined;
     const showHidden = alwaysVisibleNames.has(name) ||
       (roadblock && name === "roadBlockTime");
     if ((attribute(node, "visible") === "false" && !showHidden) ||

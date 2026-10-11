@@ -15,6 +15,11 @@ export interface TopBarArtLibrary {
   canonicalCandidates(path: string): ArtResource[];
 }
 
+/** Whether a resource library can serve the status bar art. */
+export function isTopBarLibrary(library: unknown): library is TopBarArtLibrary {
+  return typeof (library as Partial<TopBarArtLibrary> | undefined)?.canonicalCandidates === "function";
+}
+
 export interface LobbyTopBarArt {
   /** The level's glove icon and its name, e.g. 黄色手套5. */
   level?: { image: string; name: string };

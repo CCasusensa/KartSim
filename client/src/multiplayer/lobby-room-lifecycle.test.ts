@@ -222,3 +222,21 @@ test("room disposal invalidates track load and releases owners in release order"
   };
   assert.deepEqual(inspect(true), inspect(false));
 });
+
+test("释放房间时也释放挂在上面的大厅顶栏", () => {
+  const events: string[] = [];
+  const host = {
+    disposed: false, visible: true, trackLoad: 0, animation: undefined,
+    previews: undefined, countdown: undefined, trackChangeNotice: undefined,
+    topBar: { dispose() { events.push("topbar"); } },
+    onEmotionKey() {},
+    removeRoomKeyboard() { events.push("keyboard"); },
+    view: { element: { removeEventListener() {}, contains: () => false },
+      dispose() { events.push("view"); }, hide() {}, show() {}, focus() {}, render() {},
+      state() { return {}; } },
+  } as unknown as Parameters<typeof disposeLobbyRoom>[0];
+  disposeLobbyRoom(host, { cancelFrame() {}, keyboard: { addEventListener() {},
+    removeEventListener() {} } } as unknown as Parameters<typeof disposeLobbyRoom>[1]);
+  assert.deepEqual(events, ["keyboard", "topbar", "view"]);
+  assert.equal(host.disposed, true);
+});

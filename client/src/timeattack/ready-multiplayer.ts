@@ -6,9 +6,13 @@ import { channelLicenseWarning } from "../license/license-model";
 import { cheatKickMessage, type CheatKick } from "../multiplayer/cheat-kick";
 import type { ReadyOptions, ReadySelection } from "./ready-flow";
 import { selectionKeep } from "./ready-garage";
+import { isTopBarLibrary } from "../ui/lobby-top-bar-assets";
+import { mountLobbyTopBar } from "../ui/lobby-top-bar";
+import { MAIN_MENU_FONT_FAMILY } from "../ui/main-menu-view";
 import { goReadyHome, type ReadyHomeController } from "./ready-home";
 import { closeReadyLottery } from "./ready-lottery";
 import { closeReadyShop } from "./ready-shop";
+import { openShopUnlessRacing, type GuardedShopController } from "./ready-shop-guard";
 
 interface Profile {
   favoriteTracks: unknown[];
@@ -188,6 +192,19 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
     },
     status: (message: string, error: boolean) => {
       if (error) host.hud.showDebugText(message, "error");
+    },
+    // The lobby's status bar stays above the room, as in the original; its
+    // "+" opens the shop like the home's.
+    topBar: (barHost: HTMLElement) => {
+      const session = activeBrowserSession();
+      if (!session) return undefined;
+      return mountLobbyTopBar(barHost, {
+        session, fontFamily: MAIN_MENU_FONT_FAMILY,
+        ...(isTopBarLibrary(library) ? { library } : {}),
+        onCharge: () => openShopUnlessRacing(controller as unknown as GuardedShopController),
+        onHover: () => host.getInterfaceAudio()?.playHover(),
+        onActivate: () => host.getInterfaceAudio()?.playClick(),
+      });
     },
     // Our own connection dropped (mid-race too): leave multiplayer for the 大厅
     // (home); 多人游戏 there connects again.

@@ -104,6 +104,7 @@ async function observeLoad(rewritten: boolean, variant: LoadVariant) {
       return { id: "previews" };
     },
     drawBackdrop() {},
+    attachTopBar() { return undefined; },
   };
   const classDeps = {
     G2: dependencies.mode, fa: dependencies.loadRoleTeams,
@@ -238,6 +239,7 @@ test("房间窗口拿到大厅背景绘制器，原版舞台在窗口底下保�
     withEmotions: definition => definition,
     async loadView(options) { viewOptions = options; return view; },
     drawBackdrop() {},
+    attachTopBar() { return undefined; },
     loadTrackChangeNotice: async () => ({ dispose() {} }),
     createPreviews: () => ({}),
   };
@@ -249,4 +251,41 @@ test("房间窗口拿到大厅背景绘制器，原版舞台在窗口底下保�
     undefined, dependencies);
   assert.equal(viewOptions?.backdrop, dependencies.drawBackdrop);
   assert.equal(viewOptions?.label, "多人游戏房间");
+});
+
+test("大厅给了顶栏工厂时房间把它挂到自己的元素上，提示加载失败也会一并释放", async () => {
+  const events: unknown[][] = [];
+  const element = { contains: () => false, addEventListener() {}, hidden: false };
+  const view = { element, dispose() { events.push(["view-dispose"]); }, focus() {}, render() {} };
+  const topBar = () => ({ dispose() {} });
+  const make = (variant: "ok" | "notice-error"): LobbyRoomConstructionDependencies => ({
+    mode: () => "ordinary",
+    loadRoleTeams: async () => [],
+    loadEmotions: async () => [],
+    loadCountdown: async () => ({ dispose() { events.push(["countdown-dispose"]); }, reset() {} }),
+    loadDefinition: async () => ({}),
+    withEmotions: definition => definition,
+    async loadView() { return view; },
+    drawBackdrop() {},
+    attachTopBar(target, mount) {
+      events.push(["attach", target === element, mount === topBar]);
+      return { dispose() { events.push(["topbar-dispose"]); } };
+    },
+    async loadTrackChangeNotice() {
+      if (variant === "notice-error") throw new Error("notice failed");
+      return { dispose() {} };
+    },
+    createPreviews: () => ({}),
+  });
+  const host = () => ({ installRoomKeyboard() {}, updateCountdown() {},
+    onEmotionKey() {}, onRoomKey() {} }) as unknown as ConstructedLobbyRoom;
+  const loaded = await loadLobbyRoom(host, {}, {}, { phase: "open" }, "player", { topBar },
+    undefined, make("ok"));
+  assert.ok(loaded.topBar);
+  await assert.rejects(loadLobbyRoom(host, {}, {}, { phase: "open" }, "player", { topBar },
+    undefined, make("notice-error")), /notice failed/);
+  assert.deepEqual(events, [
+    ["attach", true, true],
+    ["attach", true, true], ["topbar-dispose"], ["view-dispose"], ["countdown-dispose"],
+  ]);
 });

@@ -17,13 +17,14 @@ function recordingContext() {
 const area = { x: 0, y: 0, width: 1600, height: 900 };
 
 // Runs before any frame is kept: the module state cannot be cleared again.
+// Without a document no blurred copy exists, so the frame is drawn sharp.
 test("没有大厅画面时房间背景只铺深蓝底色", () => {
   const { context, calls } = recordingContext();
   drawLobbyRoomBackdrop(context, area);
   assert.deepEqual(calls, [["fill", LOBBY_ROOM_BACKDROP_FILL, 0, 0, 1600, 900]]);
 });
 
-test("房间背景把大厅最新一帧按覆盖裁切铺满设计区域，交给窗口自己的暗幕压暗", () => {
+test("房间背景把大厅最新一帧按覆盖裁切铺满设计区域", () => {
   const image = { tag: "lobby-frame" };
   // A 4:3 frame on the 16:9 stage: full width, the middle 450 rows.
   setLobbyHomeBackdrop({ image: image as unknown as CanvasImageSource, width: 800, height: 600 });

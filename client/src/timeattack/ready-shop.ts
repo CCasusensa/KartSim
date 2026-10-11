@@ -22,7 +22,7 @@ import type { InventoryItem } from "../account/account-session";
 import type { ShopBackdrop, ShopOpenOptions, ShopPreviewRenderer, ShopTab } from "../shop/shop-view";
 import { lobbyHomeBackdrop, lobbyShopBackdrop } from "../ui/lobby-home-backdrop";
 import { mountLobbyTopBar } from "../ui/lobby-top-bar";
-import type { TopBarArtLibrary } from "../ui/lobby-top-bar-assets";
+import { isTopBarLibrary } from "../ui/lobby-top-bar-assets";
 import { MAIN_MENU_FONT_FAMILY } from "../ui/main-menu-view";
 import type { ReadyOptions, ReadySelection } from "./ready-flow";
 import { createShopPreview, type ShopRiderSelection } from "./shop-preview";
@@ -181,10 +181,6 @@ function followTaskbar(taskbar: HTMLElement, onLeave: (button: string) => void):
   };
   document.addEventListener("click", onNavigation, true);
   return () => document.removeEventListener("click", onNavigation, true);
-}
-
-function isTopBarLibrary(library: unknown): library is TopBarArtLibrary {
-  return typeof (library as Partial<TopBarArtLibrary> | undefined)?.canonicalCandidates === "function";
 }
 
 /** Open the shop over the current page; one at a time. */

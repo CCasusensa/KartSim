@@ -59,6 +59,7 @@ export interface LobbyRoomLifecycleHost {
     dispose(): void;
   };
   countdown?: { dispose(): void };
+  topBar?: { dispose(): void };
   bubbles: Map<unknown, { sequence: number; text: string; until: number }>;
   lastChatSequence: number;
   lastManualStartAllowed: boolean;
@@ -212,6 +213,7 @@ export function disposeLobbyRoom(host: LobbyRoomLifecycleHost,
   host.trackChangeNotice?.dispose();
   host.removeRoomKeyboard();
   host.view.element.removeEventListener("keydown", host.onEmotionKey, true);
+  host.topBar?.dispose();
   host.view.dispose();
 }
 

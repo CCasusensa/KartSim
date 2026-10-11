@@ -1,7 +1,7 @@
 import type { LobbyDrawHost, LobbyLayoutNode, LobbyRect,
   LobbyRoomSummary } from "./lobby-list-draw";
-import { coverCrop, mainMenuBackdrop } from "./main-menu-view";
-import { lobbyHomeBackdrop } from "./lobby-home-backdrop";
+import { mainMenuBackdrop } from "./main-menu-view";
+import { blurredLobbyBackdrop, lobbyHomeBackdrop } from "./lobby-home-backdrop";
 import { X6 } from "../generated/library.js";
 import { lobbyThemeIcons, type LobbyThemeIcons, type ThemeIconLibrary } from "./lobby-theme-icons";
 import {
@@ -127,34 +127,12 @@ function roundRect(context: CanvasRenderingContext2D, rect: LobbyRect, radius: n
   context.roundRect(rect.x, rect.y, rect.width, rect.height, radius);
 }
 
-const blurredBackdrops = new WeakMap<object, HTMLCanvasElement>();
-
-/** A small pre-blurred copy, so hover redraws do not blur the full stage each time. */
-function blurredBackdrop(source: Texture): HTMLCanvasElement | undefined {
-  const key = source.image as object;
-  const cached = blurredBackdrops.get(key);
-  if (cached) return cached;
-  if (typeof document === "undefined") return undefined;
-  const canvas = document.createElement("canvas");
-  canvas.width = 800;
-  canvas.height = 417;
-  const context = canvas.getContext("2d");
-  if (!context) return undefined;
-  const crop = coverCrop(source, canvas);
-  context.filter = "blur(5px)";
-  // Draw past the edges so the blur does not darken them.
-  context.drawImage(source.image, crop.x, crop.y, crop.width, crop.height, -12, -12,
-    canvas.width + 24, canvas.height + 24);
-  blurredBackdrops.set(key, canvas);
-  return canvas;
-}
-
 function drawBackdrop(context: CanvasRenderingContext2D): void {
   const { width, visibleHeight } = LOBBY_LAYOUT;
   context.fillStyle = "#0d2350";
   context.fillRect(0, 0, width, LOBBY_LAYOUT.height);
   const source = lobbyHomeBackdrop() ?? mainMenuBackdrop();
-  const blurred = source && blurredBackdrop(source);
+  const blurred = source && blurredLobbyBackdrop(source);
   if (blurred) context.drawImage(blurred, 0, 0, width, visibleHeight);
   const shade = context.createLinearGradient(0, 0, 0, visibleHeight);
   shade.addColorStop(0, "rgba(16,44,104,.62)");

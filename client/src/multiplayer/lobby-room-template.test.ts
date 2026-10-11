@@ -166,3 +166,20 @@ test("emotion wheel button layout and text match release", () => {
       releaseFns.Fl0(root, emotions));
   }
 });
+
+test("root fullscreen untextured color panel (the dim over the lobby) is dropped", () => {
+  const { card, difficulty, balloon, teams } = fixture(false);
+  const dim = node("Panel", undefined, [], { windowRect: "fullscreen", color: "200 0 0 0",
+    alphaBlend: "true" });
+  const textured = node("Panel", undefined, [], { windowRect: "fullscreen", color: "white",
+    texture: "img_mainSideBG" });
+  const named = node("Panel", "shade", [], { windowRect: "fullscreen", color: "100 0 0 0" });
+  const root = node("Container", undefined, [dim, textured, named, node("Panel", "rider0")],
+    { windowRect: "fullscreen" });
+  const result = buildLobbyRoomTemplate(root, card, teams, difficulty, balloon, false,
+    dependencies())!;
+  const kept = result.children.map(child =>
+    child.attributes.find(field => field.name === "name")?.value ??
+    child.attributes.find(field => field.name === "texture")?.value);
+  assert.deepEqual(kept, ["img_mainSideBG", "shade", "rider0"]);
+});

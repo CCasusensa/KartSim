@@ -23,6 +23,8 @@ export interface ConstructedLobbyRoom {
     render(): void;
   };
   trackChangeNotice: { dispose(): void };
+  /** The lobby status bar over the room, when the lobby offers one. */
+  topBar?: { dispose(): void };
   previews: unknown;
   busy: boolean;
   connected: boolean;
@@ -49,6 +51,9 @@ interface RoomKeyboardEvent {
   stopPropagation(): void;
 }
 
+/** The lobby's status bar factory, passed with the room actions (ready-multiplayer.ts). */
+export type LobbyRoomTopBarMount = (host: HTMLElement) => { dispose(): void } | undefined;
+
 export interface LobbyRoomConstructionDependencies {
   mode(room: RoomSnapshot): string;
   loadRoleTeams(library: unknown): Promise<unknown[]>;
@@ -60,6 +65,9 @@ export interface LobbyRoomConstructionDependencies {
   /** Paints the lobby scene under the room window, as the original stage does. */
   drawBackdrop(context: CanvasRenderingContext2D,
     area: { x: number; y: number; width: number; height: number }): void;
+  /** Mounts the lobby status bar into the room element (lobby-room-top-bar.ts). */
+  attachTopBar(element: ConstructedLobbyRoom["view"]["element"],
+    mount: LobbyRoomTopBarMount): { dispose(): void } | undefined;
   loadTrackChangeNotice(library: unknown, root: unknown, room: RoomSnapshot,
     playerId: unknown): Promise<ConstructedLobbyRoom["trackChangeNotice"]>;
   createPreviews(library: unknown, render: () => void,
@@ -82,7 +90,8 @@ export async function loadLobbyRoom<T extends ConstructedLobbyRoom>(
     library: unknown) => T,
   library: unknown, root: unknown, room: RoomSnapshot, playerId: unknown,
   actions: { onActivate?: unknown; onHover?: unknown;
-    onError?(error: unknown): void }, audioContext: unknown,
+    onError?(error: unknown): void; topBar?: LobbyRoomTopBarMount },
+  audioContext: unknown,
   dependencies: LobbyRoomConstructionDependencies): Promise<T> {
   const host = create(room, playerId, actions, library);
   if (dependencies.mode(room) === "roadblock") {
@@ -108,10 +117,16 @@ export async function loadLobbyRoom<T extends ConstructedLobbyRoom>(
     throw error;
   }
 
+  // The original keeps the lobby's status bar above the ready room.
+  if (actions.topBar) {
+    host.topBar = dependencies.attachTopBar(host.view.element, actions.topBar);
+  }
+
   try {
     host.trackChangeNotice = await dependencies.loadTrackChangeNotice(
       library, root, room, playerId);
   } catch (error) {
+    host.topBar?.dispose();
     host.view.dispose();
     host.countdown.dispose();
     throw error;
