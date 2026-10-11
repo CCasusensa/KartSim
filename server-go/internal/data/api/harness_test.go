@@ -41,6 +41,9 @@ type harness struct {
 	internal *httptest.Server
 }
 
+// harnessStartingLucci is the starting lucci the tests count on.
+const harnessStartingLucci = 10_000
+
 type harnessOptions struct {
 	mysql        bool
 	publicOrigin string
@@ -93,6 +96,14 @@ func newHarness(t *testing.T, opts harnessOptions) *harness {
 	if opts.messenger.OfflineGrace == 0 {
 		opts.messenger.OfflineGrace = 100 * time.Millisecond
 	}
+	// The economy tests count on 10,000 starting lucci and no other grants
+	// (the admin-set grants of ECONOMY.md 2.3/2.4 default higher).
+	startingLucci := opts.startingLucci
+	if startingLucci == nil {
+		value := int64(harnessStartingLucci)
+		startingLucci = &value
+	}
+	noGrant := int64(0)
 	h.api = New(Options{
 		Store:          st,
 		Cache:          cache.New(client, h.prefix, datatest.Logger()),
@@ -107,7 +118,10 @@ func newHarness(t *testing.T, opts harnessOptions) *harness {
 		AllowGuests:    opts.allowGuests,
 		AdminUsernames: opts.admins,
 		Rates:          opts.rates,
-		StartingLucci:  opts.startingLucci,
+		StartingLucci:  startingLucci,
+		StartingCoupon: &noGrant,
+		StartingKoin:   &noGrant,
+		RaceCoupon:     &noGrant,
 		Limiter:        cache.NewLimiter(client, h.prefix),
 		Limits:         &limits,
 		TrustedProxies: opts.trustedProxies,

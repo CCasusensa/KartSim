@@ -109,6 +109,9 @@ func Run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 		AdminUsernames: cfg.AdminUsernames,
 		Rates:          &rates,
 		StartingLucci:  &cfg.StartingLucci,
+		StartingCoupon: &cfg.StartingCoupon,
+		StartingKoin:   &cfg.StartingKoin,
+		RaceCoupon:     &cfg.RaceCoupon,
 		TrustedProxies: cfg.TrustedProxies,
 		Limiter:        cache.NewLimiter(rdb, cfg.RedisPrefix),
 		Messenger: messenger.Options{MaxConnections: cfg.MessengerMaxConnections,
@@ -117,7 +120,8 @@ func Run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 	})
 	logger.Info("account economy", "registration", cfg.Registration, "guests", cfg.AllowGuests,
 		"admins", len(cfg.AdminUsernames), "expRate", cfg.ExpRate, "lucciRate", cfg.LucciRate,
-		"startingLucci", cfg.StartingLucci, "catalog", data.Catalog.Version[:12], "offers", data.Catalog.OfferCount())
+		"startingLucci", cfg.StartingLucci, "startingCoupon", cfg.StartingCoupon, "startingKoin", cfg.StartingKoin,
+		"raceCoupon", cfg.RaceCoupon, "catalog", data.Catalog.Version[:12], "offers", data.Catalog.OfferCount())
 	if err := service.Bootstrap(ctx, cfg.BootstrapInvite); err != nil {
 		return fmt.Errorf("bootstrap invite: %w", err)
 	}

@@ -546,3 +546,53 @@ func TestAgentKeepsHeartbeatRates(t *testing.T) {
 		t.Fatalf("a rejected heartbeat changed the rates: %+v", got)
 	}
 }
+
+// The agent keeps the admin-set per-race grant of the latest heartbeat
+// response (ECONOMY.md 2.4) for the lobby's race.rewards: none before one,
+// and an out-of-range value keeps the previous one.
+func TestAgentKeepsHeartbeatRaceBonus(t *testing.T) {
+	var mu sync.Mutex
+	reply := contract.HeartbeatResponse{Accepted: true, DataNode: "data-1"}
+	data := &recorder{reply: func(path string, _ []byte) (int, any) {
+		if path != contract.PathHeartbeat {
+			return 0, nil
+		}
+		mu.Lock()
+		defer mu.Unlock()
+		return http.StatusOK, reply
+	}}
+	server := httptest.NewServer(data)
+	defer server.Close()
+	agent := NewAgent(NewDataClient(server.URL, []byte(secret)), NodeInfo{NodeID: "game-1"}, time.Hour, quiet)
+	agent.SetSource(source{})
+	ctx := context.Background()
+	agent.heartbeat(ctx)
+	if got := agent.RaceBonus(); got != (contract.CurrencyAmounts{}) {
+		t.Fatalf("bonus without one in the response %+v", got)
+	}
+	set := func(bonus contract.CurrencyAmounts) {
+		mu.Lock()
+		defer mu.Unlock()
+		reply.RaceBonus = &bonus
+	}
+	set(contract.CurrencyAmounts{Coupon: 100, Koin: 5})
+	agent.heartbeat(ctx)
+	if got := agent.RaceBonus(); got != (contract.CurrencyAmounts{Coupon: 100, Koin: 5}) {
+		t.Fatalf("bonus %+v", got)
+	}
+	set(contract.CurrencyAmounts{Coupon: -1})
+	agent.heartbeat(ctx)
+	if got := agent.RaceBonus(); got != (contract.CurrencyAmounts{Coupon: 100, Koin: 5}) {
+		t.Fatalf("an invalid bonus must keep the previous one: %+v", got)
+	}
+	set(contract.CurrencyAmounts{Lucci: contract.MaxCurrencyGrant + 1})
+	agent.heartbeat(ctx)
+	if got := agent.RaceBonus(); got != (contract.CurrencyAmounts{Coupon: 100, Koin: 5}) {
+		t.Fatalf("an oversized bonus must keep the previous one: %+v", got)
+	}
+	set(contract.CurrencyAmounts{})
+	agent.heartbeat(ctx)
+	if got := agent.RaceBonus(); got != (contract.CurrencyAmounts{}) {
+		t.Fatalf("a cleared bonus must apply: %+v", got)
+	}
+}

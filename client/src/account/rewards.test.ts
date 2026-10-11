@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { formatRaceReward, parseRaceRewards, settleTimeAttack } from "./rewards";
+import { formatRaceReward, formatRaceRewardLines, parseRaceRewards, settleTimeAttack } from "./rewards";
 import { summaryFixture } from "./account-test-fixtures";
 
 test("race.rewards are read per player and malformed entries are skipped", () => {
@@ -17,6 +17,16 @@ test("race.rewards are read per player and malformed entries are skipped", () =>
   assert.equal(parseRaceRewards(undefined).size, 0);
   assert.equal(parseRaceRewards([]).size, 0);
   assert.equal(formatRaceReward({ exp: 121, lucci: 180 }), "+121经验 +180金币");
+  // The admin-set per-race grant of a finisher (ECONOMY.md 2.4) rides along.
+  const granted = parseRaceRewards({
+    "member-1": { exp: 121, lucci: 180, coupon: 100 },
+    "member-2": { exp: 10, lucci: 10, coupon: 0, koin: 5 },
+    "member-3": { exp: 10, lucci: 10, coupon: -1 },
+  });
+  assert.deepEqual([...granted], [["member-1", { exp: 121, lucci: 180, coupon: 100 }],
+    ["member-2", { exp: 10, lucci: 10, koin: 5 }]]);
+  assert.equal(formatRaceReward({ exp: 121, lucci: 180, coupon: 100 }), "+121经验 +180金币 +100点券");
+  assert.deepEqual(formatRaceRewardLines({ exp: 10, lucci: 10, koin: 5 }), ["+10经验", "+10金币 +5K币"]);
 });
 
 test("time attack settlement posts the run and applies the returned account", async () => {

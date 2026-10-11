@@ -199,8 +199,8 @@ var accountSorts = map[string]string{
 // stay for the 道具图鉴 and do not count.
 const adminAccountColumns = `SELECT a.id, a.username, a.nickname, a.admin, a.created_at, a.register_ip,
 		a.last_login_at, a.last_login_ip, a.last_seen_at, a.last_seen_ip, a.banned_until, a.ban_reason,
-		COALESCE(p.exp, 0) AS acc_exp, COALESCE(w.coupon, 0) AS acc_coupon, COALESCE(w.lucci, ?) AS acc_lucci,
-		COALESCE(w.koin, 0) AS acc_koin,
+		COALESCE(p.exp, 0) AS acc_exp, COALESCE(w.coupon, ?) AS acc_coupon, COALESCE(w.lucci, ?) AS acc_lucci,
+		COALESCE(w.koin, ?) AS acc_koin,
 		(SELECT COUNT(*) FROM inventory_items i WHERE i.account_id = a.id AND i.quantity > 0
 			AND (i.expires_at IS NULL OR i.expires_at > ?)),
 		EXISTS(SELECT 1 FROM account_onboarding o WHERE o.account_id = a.id)
@@ -251,7 +251,13 @@ func (s *Store) AdminAccount(ctx context.Context, accountID string, now int64) (
 
 func (s *Store) adminAccounts(ctx context.Context, now int64, tail string, args ...any) ([]AdminAccountRow, error) {
 	list := []AdminAccountRow{}
-	err := s.queryRows(ctx, adminAccountColumns+tail, append([]any{s.rules.StartingLucci, now}, args...),
+	// An account without a wallet row yet shows the registration grant.
+	settings, err := s.economySettings(ctx, s.db)
+	if err != nil {
+		return list, err
+	}
+	grant := settings.Register
+	err = s.queryRows(ctx, adminAccountColumns+tail, append([]any{grant.Coupon, grant.Lucci, grant.Koin, now}, args...),
 		func(rows *sql.Rows) error {
 			var row AdminAccountRow
 			if err := rows.Scan(&row.Account.ID, &row.Account.Username, &row.Account.Nickname, &row.Account.Admin,

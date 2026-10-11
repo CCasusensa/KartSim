@@ -201,7 +201,6 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
       return mountLobbyTopBar(barHost, {
         session, fontFamily: MAIN_MENU_FONT_FAMILY,
         ...(isTopBarLibrary(library) ? { library } : {}),
-        onCharge: () => openShopUnlessRacing(controller as unknown as GuardedShopController),
         onHover: () => host.getInterfaceAudio()?.playHover(),
         onActivate: () => host.getInterfaceAudio()?.playClick(),
       });

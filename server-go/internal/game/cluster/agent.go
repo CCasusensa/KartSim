@@ -62,6 +62,9 @@ type Agent struct {
 	// rates are the data service's reward rates from the latest heartbeat
 	// response (nil until one reported them).
 	rates atomic.Pointer[rewards.Rates]
+	// raceBonus is the admin-set per-race grant from the latest heartbeat
+	// response (nil until one reported it).
+	raceBonus atomic.Pointer[contract.CurrencyAmounts]
 }
 
 type queuedRelease struct {
@@ -423,6 +426,7 @@ func (a *Agent) heartbeat(ctx context.Context) {
 	}
 	if err == nil {
 		a.updateRates(resp)
+		a.updateRaceBonus(resp)
 	}
 	a.mu.Lock()
 	wasHealthy, reported := a.healthy, a.reported
@@ -479,6 +483,33 @@ func (a *Agent) updateRates(resp contract.HeartbeatResponse) {
 	}
 	if a.rates.Swap(&next) == nil || next != previous {
 		a.log.Info("reward rates from the data service", "expRate", next.Exp, "lucciRate", next.Lucci)
+	}
+}
+
+// RaceBonus returns the admin-set grant a finished online race adds
+// (ECONOMY.md 2.4) as last reported by the data service; none before that.
+// Safe to call with any lock held.
+func (a *Agent) RaceBonus() contract.CurrencyAmounts {
+	if bonus := a.raceBonus.Load(); bonus != nil {
+		return *bonus
+	}
+	return contract.CurrencyAmounts{}
+}
+
+// updateRaceBonus keeps the per-race grant of a heartbeat response. A
+// missing or out-of-range value keeps the previous one.
+func (a *Agent) updateRaceBonus(resp contract.HeartbeatResponse) {
+	if resp.RaceBonus == nil {
+		return
+	}
+	next := *resp.RaceBonus
+	for _, amount := range []int64{next.Coupon, next.Lucci, next.Koin} {
+		if amount < 0 || amount > contract.MaxCurrencyGrant {
+			return
+		}
+	}
+	if previous := a.raceBonus.Swap(&next); previous == nil || *previous != next {
+		a.log.Info("race bonus from the data service", "coupon", next.Coupon, "lucci", next.Lucci, "koin", next.Koin)
 	}
 }
 

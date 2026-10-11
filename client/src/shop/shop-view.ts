@@ -598,12 +598,8 @@ class ShopView {
         this.showToast(message);
       });
     };
-    // The big 充值 (and 输入兑奖券) buttons: not open yet.
-    for (const target of this.tree.all("shopGCoinCharge")) {
-      target.setAttribute("aria-label", SHOP_STRINGS.rechargeGCoin);
-      target.title = SHOP_STRINGS.rechargeGCoin;
-      notice(target, "商城充值暂未开放");
-    }
+    // 充值 is not offered: the big 充值 button stays hidden; 输入兑奖券 is not open yet.
+    for (const target of this.tree.all("shopGCoinCharge")) target.hidden = true;
     notice(this.tree.named("shopCoupon"), "兑奖券暂未开放");
     const gacha = this.tree.named("gachaOpenResult");
     gacha.setAttribute("aria-label", SHOP_STRINGS.gachaUseResult);

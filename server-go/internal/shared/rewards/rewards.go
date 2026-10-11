@@ -78,7 +78,8 @@ func DefaultRates() Rates { return Rates{Exp: 1, Lucci: 1} }
 
 // Apply scales a base reward by the rates with ApplyRate.
 func (r Rates) Apply(base Reward) Reward {
-	return Reward{Exp: ApplyRate(base.Exp, r.Exp), Lucci: ApplyRate(base.Lucci, r.Lucci)}
+	return Reward{Exp: ApplyRate(base.Exp, r.Exp), Lucci: ApplyRate(base.Lucci, r.Lucci),
+		Coupon: base.Coupon, Koin: base.Koin}
 }
 
 // ApplyRate multiplies a base amount by a configured rate and rounds half
@@ -95,10 +96,14 @@ func ApplyRate(amount int64, rateValue float64) int64 {
 	return round(float64(amount) * rate(rateValue))
 }
 
-// Reward is an amount of exp and lucci.
+// Reward is an amount of exp and lucci. Coupon and Koin carry the
+// admin-set per-race grant a finished racer is shown (ECONOMY.md 2.4);
+// they are never scaled by the rates.
 type Reward struct {
-	Exp   int64 `json:"exp"`
-	Lucci int64 `json:"lucci"`
+	Exp    int64 `json:"exp"`
+	Lucci  int64 `json:"lucci"`
+	Coupon int64 `json:"coupon,omitempty"`
+	Koin   int64 `json:"koin,omitempty"`
 }
 
 // Racer is one loaded racer of a finished online race.
@@ -134,9 +139,12 @@ type RaceInput struct {
 	Rates   Rates
 }
 
-// RacerReward is the reward of one racer.
+// RacerReward is the reward of one racer. Finished says it was rewarded
+// as a finisher (everyone in a roadblock race), which the per-race grant
+// of ECONOMY.md 2.4 goes by.
 type RacerReward struct {
 	PlayerID string `json:"playerId"`
+	Finished bool   `json:"-"`
 	Reward
 }
 
@@ -193,7 +201,7 @@ func RaceRewards(in RaceInput) []RacerReward {
 			exp *= WinningTeamBonus
 			lucci *= WinningTeamBonus
 		}
-		rewards = append(rewards, RacerReward{PlayerID: racer.PlayerID, Reward: Reward{
+		rewards = append(rewards, RacerReward{PlayerID: racer.PlayerID, Finished: finished, Reward: Reward{
 			Exp:   round(exp * rate(in.Rates.Exp)),
 			Lucci: round(lucci * rate(in.Rates.Lucci)),
 		}})

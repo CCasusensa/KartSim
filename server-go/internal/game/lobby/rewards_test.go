@@ -84,8 +84,8 @@ func TestRaceRewardsInSnapshotAndSettlement(t *testing.T) {
 	}
 	s := settlements[0]
 	assertEqual(t, s.Rewards, []contract.RaceReward{
-		{PlayerID: pro.playerID, AccountID: "acc-pro", Exp: 94, Lucci: 130},
-		{PlayerID: second.playerID, Exp: 66, Lucci: 90},
+		{PlayerID: pro.playerID, AccountID: "acc-pro", Exp: 94, Lucci: 130, Finished: true},
+		{PlayerID: second.playerID, Exp: 66, Lucci: 90, Finished: true},
 		{PlayerID: third.playerID, Exp: 11, Lucci: 10},
 	})
 	if !bytes.Contains(rawField(t, s.Snapshot, "race"), []byte(`"rewards":`+wantJSON)) {
@@ -120,9 +120,9 @@ func TestTeamRaceRewards(t *testing.T) {
 		players[3].playerID: reward(10, 10),   // no time, losing team
 	})
 	assertEqual(t, h.recorder.settlements()[0].Rewards, []contract.RaceReward{
-		{PlayerID: players[0].playerID, AccountID: "acc-a", Exp: 108, Lucci: 168},
-		{PlayerID: players[1].playerID, Exp: 73, Lucci: 113},
-		{PlayerID: players[2].playerID, Exp: 68, Lucci: 104},
+		{PlayerID: players[0].playerID, AccountID: "acc-a", Exp: 108, Lucci: 168, Finished: true},
+		{PlayerID: players[1].playerID, Exp: 73, Lucci: 113, Finished: true},
+		{PlayerID: players[2].playerID, Exp: 68, Lucci: 104, Finished: true},
 		{PlayerID: players[3].playerID, Exp: 10, Lucci: 10},
 	})
 }
@@ -173,10 +173,11 @@ func TestRoadblockRewards(t *testing.T) {
 				t.Fatalf("settlements %+v", settlements)
 			}
 			got := settlements[0].Rewards
+			// Everyone in a roadblock race counts as finished (ECONOMY.md 2.4).
 			wantRunner := contract.RaceReward{PlayerID: players[0].playerID, AccountID: "acc-runner",
-				Exp: 50, Lucci: 70}
+				Exp: 50, Lucci: 70, Finished: true}
 			wantBlocker := contract.RaceReward{PlayerID: players[1].playerID, AccountID: "acc-blocker",
-				Exp: 105, Lucci: 150}
+				Exp: 105, Lucci: 150, Finished: true}
 			if reason == "finish" {
 				wantRunner.Exp, wantRunner.Lucci, wantBlocker.Exp, wantBlocker.Lucci = 105, 150, 84, 120
 			}
@@ -192,7 +193,7 @@ func TestRoadblockRewards(t *testing.T) {
 				assertEqual(t, got[:2], []contract.RaceReward{wantRunner, wantBlocker})
 			}
 			assertEqual(t, got[len(got)-1], contract.RaceReward{PlayerID: players[4].playerID,
-				Exp: wantBlocker.Exp, Lucci: wantBlocker.Lucci})
+				Exp: wantBlocker.Exp, Lucci: wantBlocker.Lucci, Finished: true})
 		})
 	}
 }
@@ -219,8 +220,8 @@ func TestRaceRewardsShowConfiguredRates(t *testing.T) {
 	assertEqual(t, raceOf(object(h.sink(second).last(t)["room"]))["rewards"], shown)
 	settlement := h.recorder.settlements()[0]
 	assertEqual(t, settlement.Rewards, []contract.RaceReward{
-		{PlayerID: pro.playerID, AccountID: "acc-pro", Exp: 94, Lucci: 130},
-		{PlayerID: second.playerID, Exp: 66, Lucci: 90},
+		{PlayerID: pro.playerID, AccountID: "acc-pro", Exp: 94, Lucci: 130, Finished: true},
+		{PlayerID: second.playerID, Exp: 66, Lucci: 90, Finished: true},
 		{PlayerID: third.playerID, Exp: 11, Lucci: 10},
 	})
 	for _, reward := range settlement.Rewards {

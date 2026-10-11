@@ -97,7 +97,24 @@ type HeartbeatResponse struct {
 	// data service: the node keeps showing base amounts (rates 1).
 	ExpRate   *float64 `json:"expRate,omitempty"`
 	LucciRate *float64 `json:"lucciRate,omitempty"`
+	// RaceBonus is the admin-set grant every finished online race adds
+	// (ECONOMY.md 2.4). The node shows it in race.rewards for the racers it
+	// rewards as finishers; the data service credits it from its own
+	// settings for the settlement entries marked finished. Absent from an
+	// older data service: nothing extra is shown.
+	RaceBonus *CurrencyAmounts `json:"raceBonus,omitempty"`
 }
+
+// CurrencyAmounts is an amount of each currency (点券, 金币, K币).
+type CurrencyAmounts struct {
+	Coupon int64 `json:"coupon"`
+	Lucci  int64 `json:"lucci"`
+	Koin   int64 `json:"koin"`
+}
+
+// MaxCurrencyGrant bounds each amount of an admin-set grant (the
+// registration and per-race grants of ECONOMY.md 2.3/2.4).
+const MaxCurrencyGrant = 1_000_000_000
 
 // NodeLeaveRequest removes a node and its presence claims on shutdown.
 type NodeLeaveRequest struct {
@@ -227,6 +244,10 @@ type RaceReward struct {
 	// at most MaxBonusLucci): credited on top of Lucci, without the rate
 	// (race.rewards shows the sum).
 	BonusLucci int `json:"bonusLucci,omitempty"`
+	// Finished says the node rewarded the racer as a finisher (ECONOMY.md
+	// 2.1; everyone in a roadblock race): the data service adds the
+	// admin-set per-race grant (ECONOMY.md 2.4) to such entries.
+	Finished bool `json:"finished,omitempty"`
 }
 
 // MaxBonusLucci bounds a racer's in-race lucci in one race.

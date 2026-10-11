@@ -83,6 +83,8 @@ await runLocalCluster("economy-smoke", {
     KART_BOOTSTRAP_INVITE: bootstrapInvite,
     KART_EXP_RATE: String(rates.exp), KART_LUCCI_RATE: String(rates.lucci),
     KART_STARTING_LUCCI: String(STARTING_LUCCI),
+    // The script's wallet arithmetic assumes no other grants (ECONOMY.md 2.3/2.4).
+    KART_STARTING_COUPON: "0", KART_STARTING_KOIN: "0", KART_RACE_COUPON: "0",
   },
   // Game nodes learn the rates from heartbeat responses (contract.HeartbeatResponse.ExpRate).
   // Its racers finish without driving the track, which the anti-cheat
@@ -279,6 +281,29 @@ await runLocalCluster("economy-smoke", {
   assertApiError(await alice.call(`/api/admin/accounts?q=${alice.username}`), 403, "ADMIN_REQUIRED",
     "account search by a non-admin");
   assert.deepEqual(await walletOf(alice), fresh.wallet);
+
+  // 经济设置 (ECONOMY.md 2.3/2.4): the grants start at the configured
+  // defaults, admins change them, players may not read them.
+  const economyPath = "/api/admin/economy";
+  const zero = { coupon: 0, lucci: 0, koin: 0 };
+  const economy = await admin.call(economyPath);
+  assert.equal(economy.status, 200, `economy settings: ${economy.status} ${economy.text}`);
+  assert.deepEqual(economy.body.register, { coupon: 0, lucci: STARTING_LUCCI, koin: 0 }, "default registration grant");
+  assert.deepEqual(economy.body.race, zero, "default per-race grant");
+  assert.equal(economy.body.updatedAt, 0, "never saved");
+  const savedEconomy = await admin.call(economyPath, { method: "PUT",
+    body: { register: { coupon: 1, lucci: 2, koin: 3 }, race: { coupon: 4, lucci: 5, koin: 6 } } });
+  assert.equal(savedEconomy.status, 200, `save economy settings: ${savedEconomy.status} ${savedEconomy.text}`);
+  assert.deepEqual(savedEconomy.body.register, { coupon: 1, lucci: 2, koin: 3 });
+  assert.deepEqual(savedEconomy.body.race, { coupon: 4, lucci: 5, koin: 6 });
+  assert.equal(savedEconomy.body.updatedBy, adminUsername);
+  assertApiError(await admin.call(economyPath, { method: "PUT", body: { register: { coupon: -1 }, race: zero } }),
+    400, "INVALID_ECONOMY_SETTINGS", "negative grant");
+  assertApiError(await alice.call(economyPath), 403, "ADMIN_REQUIRED", "economy settings by a non-admin");
+  const restored = await admin.call(economyPath, { method: "PUT",
+    body: { register: { coupon: 0, lucci: STARTING_LUCCI, koin: 0 }, race: zero } });
+  assert.equal(restored.status, 200, "restore economy settings");
+  console.log("✓ economy settings: defaults reported, saved by an admin with validation, refused for players");
 
   const price = permanent.offer.price;
   const granted = await grant({ username: alice.username, currency: "coupon", amount: price });

@@ -1,5 +1,5 @@
 import { setLobbyHomeBackdrop, setLobbyShopBackdrop } from "./lobby-home-backdrop";
-import { LobbyTopBar, type LobbyAccountInfo, type LobbyChargeCurrency, type LobbyExperience,
+import { LobbyTopBar, type LobbyAccountInfo, type LobbyExperience,
   type LobbyWallet } from "./lobby-top-bar";
 import type { LobbyTopBarArt } from "./lobby-top-bar-assets";
 import { coverCrop } from "./main-menu-view";
@@ -17,7 +17,7 @@ import {
  * the status bar stay, the rest steps aside.
  */
 
-export type { LobbyAccountInfo, LobbyChargeCurrency, LobbyExperience, LobbyWallet } from "./lobby-top-bar";
+export type { LobbyAccountInfo, LobbyExperience, LobbyWallet } from "./lobby-top-bar";
 
 export interface LobbyImage { image: CanvasImageSource; width: number; height: number }
 
@@ -105,8 +105,6 @@ export interface LobbyHomeOptions {
   level?: number;
   wallet?: Partial<LobbyWallet>;
   experience?: LobbyExperience;
-  /** The "+" beside 点券 and K币; without it they say the shop is closed. */
-  onCharge?(currency: LobbyChargeCurrency): void;
   /** Clicking the rider glove, level or name (the account panel). */
   onAccount?(): void;
   /** Shown after the wallet in the top bar (the 资源下载 button). */
@@ -286,7 +284,6 @@ export class LobbyHomeView {
       ...(options.level !== undefined ? { level: options.level } : {}),
       ...(options.wallet ? { wallet: options.wallet } : {}),
       ...(options.experience ? { experience: options.experience } : {}),
-      ...(options.onCharge ? { onCharge: options.onCharge } : {}),
       ...(options.onAccount ? { onAccount: options.onAccount } : {}),
       onNotice: message => this.showNotice(message),
       onHover: () => this.options.onHover?.(),

@@ -40,14 +40,12 @@ test("the top bar shows the account and updates level, glove, experience and wal
   const dom = installFakeDom();
   try {
     const { LobbyHomeView } = await import("./lobby-home-view");
-    const charges: string[] = [];
     let accounts = 0;
     const root = dom.document.createElement("div");
     const view = new LobbyHomeView(root as unknown as HTMLElement, {
       riderName: "车手甲", level: 3, banners: [],
       wallet: { coupon: 5, lucci: 10_000, koin: 20 },
       experience: { exp: 250, levelExp: 148, nextLevelExp: 300 },
-      onCharge: currency => charges.push(currency),
       onAccount: () => { accounts++; },
       onEntry: () => {},
     });
@@ -73,19 +71,17 @@ test("the top bar shows the account and updates level, glove, experience and wal
     assert.equal(glove.title, "绿色手套5");
     assert.equal(glove.children[0]!.src, "data:image/png;base64,AA");
 
-    for (const plus of element.querySelectorAll(".ks-lobby-plus")) plus.click();
-    assert.deepEqual(charges, ["coupon", "koin"]);
+    assert.equal(element.querySelectorAll(".ks-lobby-plus").length, 0, "充值 is not offered");
     element.querySelector("button.ks-lobby-player")!.click();
     assert.equal(accounts, 1);
     view.dispose();
 
-    // Without a shop the release notice stays.
+    // Without an account there is no account button either.
     const plain = new LobbyHomeView(root as unknown as HTMLElement,
       { riderName: "车手", banners: [], onEntry: () => {} });
     const plainElement = plain.element as unknown as import("./fake-dom").FakeElement;
     assert.equal(plainElement.querySelector("button.ks-lobby-player"), null);
-    plainElement.querySelector(".ks-lobby-plus")!.click();
-    assert.equal(plainElement.querySelector(".ks-lobby-notice")!.textContent, "商城充值暂未开放");
+    assert.equal(plainElement.querySelector(".ks-lobby-plus"), null);
     assert.equal(plainElement.querySelector(".ks-lobby-exp")!.hidden, true);
     plain.dispose();
   } finally {
@@ -137,9 +133,7 @@ test("同一个顶栏可挂在商店里：跟随账号刷新等级、名字与�
       return () => listeners.delete(listener);
     } };
     const host = dom.document.createElement("div");
-    const notices: string[] = [];
-    const mounted = mountLobbyTopBar(host as unknown as HTMLElement, { session, fontFamily: "KartSim Main Menu",
-      onCharge: () => notices.push("charge") });
+    const mounted = mountLobbyTopBar(host as unknown as HTMLElement, { session, fontFamily: "KartSim Main Menu" });
     const bar = host.querySelector(".ks-lobby-top")!;
     const text = (selector: string) => bar.querySelector(selector)?.text();
     assert.equal(text(".ks-lobby-level"), "Lv.3");
@@ -148,8 +142,7 @@ test("同一个顶栏可挂在商店里：跟随账号刷新等级、名字与�
       ["点券 5", "金币 10,000", "K币 20"]);
     assert.equal(host.style.getPropertyValue("--ks-lobby-font"), "\"KartSim Main Menu\"");
     assert.equal(bar.querySelector("button.ks-lobby-player"), null, "no account panel inside the shop");
-    for (const plus of bar.querySelectorAll(".ks-lobby-plus")) plus.click();
-    assert.deepEqual(notices, ["charge", "charge"]);
+    assert.equal(bar.querySelectorAll(".ks-lobby-plus").length, 0, "充值 is not offered in the shop either");
     summary = { ...summary, progress: { ...summary.progress, level: 4 }, wallet: { coupon: 100, lucci: 9_000, koin: 0 } };
     for (const listener of listeners) listener();
     assert.equal(text(".ks-lobby-level"), "Lv.4");

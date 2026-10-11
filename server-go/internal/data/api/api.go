@@ -71,6 +71,9 @@ type Options struct {
 	Limiter        *cache.Limiter // rate limits; none when nil
 	Limits         *RateLimits    // DefaultRateLimits when nil
 	StartingLucci  *int64         // KART_STARTING_LUCCI; store.DefaultStartingLucci when nil
+	StartingCoupon *int64         // KART_STARTING_COUPON; store.DefaultRegisterCoupon when nil
+	StartingKoin   *int64         // KART_STARTING_KOIN; store.DefaultRegisterKoin when nil
+	RaceCoupon     *int64         // KART_RACE_COUPON; store.DefaultRaceCoupon when nil
 
 	// Messenger tunes the friends and private chat sockets (DESIGN.md 9);
 	// its Origin policy, clock and logger are the API's.
@@ -189,11 +192,17 @@ func New(opts Options) *API {
 	}
 	st := opts.Store
 	if st != nil {
-		startingLucci := int64(store.DefaultStartingLucci)
-		if opts.StartingLucci != nil {
-			startingLucci = *opts.StartingLucci
+		amount := func(configured *int64, fallback int64) int64 {
+			if configured != nil {
+				return *configured
+			}
+			return fallback
 		}
-		st = st.WithEconomy(store.EconomyRules{Data: data, StartingLucci: startingLucci, Rates: rates})
+		st = st.WithEconomy(store.EconomyRules{Data: data, Rates: rates,
+			StartingLucci:  amount(opts.StartingLucci, store.DefaultStartingLucci),
+			StartingCoupon: amount(opts.StartingCoupon, store.DefaultRegisterCoupon),
+			StartingKoin:   amount(opts.StartingKoin, store.DefaultRegisterKoin),
+			RaceCoupon:     amount(opts.RaceCoupon, store.DefaultRaceCoupon)})
 	}
 	a := &API{
 		store:          st,
@@ -410,6 +419,8 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/riders/{nickname}", a.riderCard)
 	route("GET /api/admin/lottery", a.adminLottery)
 	route("PUT /api/admin/lottery", a.adminSaveLottery)
+	route("GET /api/admin/economy", a.adminEconomy)
+	route("PUT /api/admin/economy", a.adminSaveEconomy)
 	mux.Handle("GET /api/myroom/ws", a.rooms)
 
 	return recoverPanics(a.network.CORS(jsonFallback(mux)))

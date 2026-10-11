@@ -62,7 +62,14 @@
 
 ### 2.3 新账号
 
-- 注册即送 10,000 金币，0 点券，0 K币；领取新手礼包（第 4 节）后才可进入游戏。
+- 注册赠送在账号的钱包建立时入账（流水原因 `starter`、关联 `signup`，每种货币一行）：默认 20,000 点券、20,000 金币（`KART_STARTING_LUCCI`）、20,000 K币（`KART_STARTING_COUPON`/`KART_STARTING_KOIN`）；管理后台“经济设置”保存后以后台为准（2.4）。领取新手礼包（第 4 节）后才可进入游戏。
+- 管理后台账号列表里还没有钱包行的账号按注册赠送显示余额。
+
+### 2.4 后台可设的赠送（schema v15 `app_settings`，管理页面“经济设置”）
+
+- `GET`/`PUT /api/admin/economy`：`{register{coupon,lucci,koin}, race{coupon,lucci,koin}}`，每项 0–1,000,000,000 的整数（否则 400 `INVALID_ECONOMY_SETTINGS`）；返回当前生效值、`updatedAt`/`updatedBy` 与 `defaults`（环境变量给出的默认值：注册 `KART_STARTING_COUPON`/`KART_STARTING_LUCCI`/`KART_STARTING_KOIN`，每场比赛 `KART_RACE_COUPON`，默认 100 点券、0 金币、0 K币）。没有保存过时用默认值。
+- 每场比赛赠送：数据服务在结算事务里给结算条目标了 `finished: true` 的车手（游戏节点按 2.1 的完赛判定计奖的车手；挡人模式人人算完赛；未完赛、中途离开、超过 24 小时的结算不发）按当时的设置入账，流水原因 `racebonus`、关联 = raceId，**不计**每日上限，也不乘倍率。
+- 显示：数据服务在心跳响应里带 `raceBonus{coupon,lucci,koin}`，游戏节点保存最新值（越界值忽略），把它加进完赛者的 `race.rewards`（`lucci` 加上金币赠送，另带 `coupon`/`koin` 字段，为 0 时省略），所以玩家看到的仍等于入账值（改设置后一个心跳内生效）。客户端结算栏第二行显示“+金币 +点券 +K币”。
 
 ## 3. 商店数据
 
@@ -223,6 +230,7 @@ timeattack_bests(account_id, track_id, best_ms, updated_at, PK(account_id, track
 daily_rewards(account_id, day CHAR(10), kind VARCHAR(16), count INT, exp BIGINT, lucci BIGINT, PK(account_id, day, kind))
 -- v2 另有：timeattack_runs（已奖励跑次的幂等记录）、purchases.result_json（重放原响应）、两本流水的 note 列
 -- v3：admin_grants(admin, request_id → account, currency, amount)、timeattack_state（每账号最近一次跑次，用于节奏限制与重试）
+-- v15：app_settings(name PK, json, updated_at, updated_by) —— 后台设置（目前只有 economy，见 2.4）
 ```
 
 - 所有余额/库存变更在单个事务内 `SELECT … FOR UPDATE` 钱包行后进行；流水唯一键保证幂等。
@@ -250,6 +258,7 @@ daily_rewards(account_id, day CHAR(10), kind VARCHAR(16), count INT, exp BIGINT,
 | `GET /multiplayer/admin` | 管理后台（单页应用，登录后调用 `/api/admin/*`，见 `ADMIN.md`） |
 | `POST /api/admin/grant` | 管理员给账号加/减货币或经验 `{username, currency, amount, note, requestId?}`（currency 为 coupon/lucci/koin/exp），写流水；余额不能为负（409 `INSUFFICIENT_FUNDS`/`INSUFFICIENT_EXP`），也不能超过 10^12（409 `BALANCE_LIMIT`） |
 | `GET /api/admin/accounts` | 查询账号（等级、余额、物品数等；分页，参数与字段见 `ADMIN.md` 第 3–5 节） |
+| `GET`/`PUT /api/admin/economy` | 注册赠送与每场比赛赠送（2.4） |
 | `POST /multiplayer/admin/invites` | 保留 |
 
 内部（游戏节点）：
@@ -261,6 +270,7 @@ daily_rewards(account_id, day CHAR(10), kind VARCHAR(16), count INT, exp BIGINT,
 | `PathRaces`（已有） | `RaceSettlement.Rewards` 列出每位车手倍率前的基础经验与金币（道具赛另带赛中金币 `bonusLucci`，见 2.1）；数据服务按账号入账、处理升级、写流水、应用每日上限。道具赛另带 `consumed:[{playerId, accountId, category:7, itemId:1\|2, count}]`（本局用掉的道具换位卡/道具变更卡，使用券不计）：数据服务在同一事务、按 raceId 幂等地从库存扣除（不低于 0；结算超过 24 小时只存记录不发奖励时也照样扣除），其他分类或 itemId、`count` 不在 1–10,000 的结算整个拒绝（400 `INVALID_SETTLEMENT`）。结果行 `results[].titles` 是道具赛结算称号（只随快照保存） |
 | 心跳响应 `Conflicts` | 昵称占用已被其他节点接管的玩家 ID，游戏节点须断开这些连接 |
 | 心跳响应 `expRate`/`lucciRate` | 数据服务的 `KART_EXP_RATE`/`KART_LUCCI_RATE`；游戏节点保存最新值，把快照 `race.rewards` 显示为 `rewards.ApplyRate(基础值, 倍率)`，结算仍发送基础值 |
+| 心跳响应 `raceBonus{coupon,lucci,koin}` | 后台设置的每场比赛赠送（2.4）；游戏节点加进完赛者的 `race.rewards`，结算条目用 `finished: true` 标出完赛者，数据服务按自己的设置入账 |
 
 ## 7. 前端
 

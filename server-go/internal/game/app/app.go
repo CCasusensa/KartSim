@@ -101,6 +101,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		MaxRooms:    cfg.MaxRooms,
 		Busy:        memory.busy,
 		Rates:       agent.Rates,
+		RaceBonus:   agent.RaceBonus,
 		Logger:      log,
 		ItemMode:    items,
 		// A development switch (KART_ITEM_TEST_GRANTS): cube requests may

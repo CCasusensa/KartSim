@@ -23,7 +23,9 @@
 #   KART_BOOTSTRAP_INVITE 引导邀请码（可选）：未设置或已被使用时数据服务随机生成并写入日志
 #   KART_ALLOW_GUESTS     默认 false（必须登录）；true 恢复游客票据（数据服务与游戏节点都会读取）
 #   KART_TRUSTED_PROXIES  信任其 X-Forwarded-For 的代理，默认回环地址（本机的 Vite 代理与测试脚本）
-#   KART_EXP_RATE / KART_LUCCI_RATE / KART_STARTING_LUCCI  奖励倍率与新账号初始金币（默认 1 / 1 / 10000；
+#   KART_EXP_RATE / KART_LUCCI_RATE / KART_STARTING_LUCCI  奖励倍率与新账号初始金币（默认 1 / 1 / 20000；
+#                         另有 KART_STARTING_COUPON / KART_STARTING_KOIN（默认 20000）与 KART_RACE_COUPON（默认 100），
+#                         管理后台“经济设置”保存后以后台为准；
 #                         由数据服务读取，游戏节点经心跳响应得到倍率）
 #
 # 只用 bash 3.2 语法（macOS 自带的 /bin/bash）。

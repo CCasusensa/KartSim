@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"io/fs"
 	"net/http"
@@ -153,7 +154,7 @@ func TestAdminEndpointsNeedAnAdmin(t *testing.T) {
 		"/api/admin/online", "/api/admin/nodes", "/api/admin/ledger", "/api/admin/grants", "/api/admin/races",
 		"/api/admin/purchases", "/api/admin/lottery-draws", "/api/admin/box-openings", "/api/admin/clubs",
 		"/api/admin/accounts/" + player + "/game", "/api/admin/clubs/1/members", "/api/admin/invites",
-		"/api/admin/reward-box"} {
+		"/api/admin/reward-box", "/api/admin/economy"} {
 		h.get(path, nil).expect(t, http.StatusUnauthorized, "LOGIN_REQUIRED")
 		h.get(path, bearerHeader(token)).expect(t, http.StatusForbidden, "ADMIN_REQUIRED")
 	}
@@ -202,7 +203,7 @@ func TestAdminAccountListAndLoginRecords(t *testing.T) {
 	row := list.Items[0]
 	if row.ID != id || row.Nickname != "记录"+u || row.RegisterIP != "203.0.113.9" || row.LastLoginIP != "2001:db8::7" ||
 		row.LastLoginAt == nil || *row.LastLoginAt < row.CreatedAt || row.Banned || row.BannedUntil != nil ||
-		row.Online != nil || row.Level != 1 || row.Lucci != store.DefaultStartingLucci {
+		row.Online != nil || row.Level != 1 || row.Lucci != harnessStartingLucci {
 		t.Fatalf("row %+v", row)
 	}
 	// q also matches addresses (LIKE metacharacters stay literal).
@@ -851,5 +852,63 @@ func TestAdminOnlineAndNodes(t *testing.T) {
 	h.adminGet("/api/admin/overview", &overview)
 	if overview.Online != nil || overview.Nodes != nil {
 		t.Fatalf("overview without Redis %+v", overview)
+	}
+}
+
+// 经济设置 (ECONOMY.md 2.3/2.4): the defaults are reported until an admin
+// saves the grants; out-of-range amounts are refused; a saved setting names
+// who changed it and is what new wallets and settlements use.
+func TestAdminEconomySettings(t *testing.T) {
+	h := newAdminHarness(t, harnessOptions{})
+	t.Cleanup(func() { h.cleanup("DELETE FROM app_settings WHERE name = 'economy'") })
+	h.cleanup("DELETE FROM app_settings WHERE name = 'economy'")
+	var got economySettingsJSON
+	h.adminGet("/api/admin/economy", &got)
+	defaults := h.api.store.DefaultEconomySettings()
+	if got.Register != defaults.Register || got.Race != defaults.Race || got.UpdatedAt != 0 || got.UpdatedBy != "" ||
+		got.Defaults.Register != defaults.Register || got.Defaults.Race != defaults.Race {
+		t.Fatalf("defaults %+v", got)
+	}
+	for _, body := range []map[string]any{
+		{"register": map[string]any{"coupon": -1, "lucci": 0, "koin": 0}, "race": map[string]any{}},
+		{"register": map[string]any{}, "race": map[string]any{"koin": store.MaxGrantAmount + 1}},
+		{"register": map[string]any{"coupon": 1.5}},
+	} {
+		h.put("/api/admin/economy", body, h.adminHeader).expect(t, http.StatusBadRequest, "")
+	}
+	saved := h.put("/api/admin/economy", map[string]any{
+		"register": map[string]any{"coupon": 1, "lucci": 2, "koin": 3},
+		"race":     map[string]any{"coupon": 4, "lucci": 5, "koin": 6},
+	}, h.adminHeader).expect(t, http.StatusOK, "")
+	saved.json(t, &got)
+	want := store.CurrencyGrant{Coupon: 1, Lucci: 2, Koin: 3}
+	if got.Register != want || got.Race != (store.CurrencyGrant{Coupon: 4, Lucci: 5, Koin: 6}) ||
+		got.UpdatedBy != h.adminName || got.UpdatedAt == 0 {
+		t.Fatalf("saved %+v", got)
+	}
+	h.adminGet("/api/admin/economy", &got)
+	if got.Register != want || got.UpdatedBy != h.adminName {
+		t.Fatalf("reloaded %+v", got)
+	}
+	// A new account's wallet is the registration grant.
+	player := h.account("economy_"+h.u, "经济"+h.u, password, false)
+	var detail map[string]any
+	h.get("/api/admin/accounts/"+player, h.adminHeader).expect(t, http.StatusOK, "").json(t, &detail)
+	wallet, _ := detail["account"].(map[string]any)
+	if wallet["coupon"] != 1.0 || wallet["lucci"] != 2.0 || wallet["koin"] != 3.0 {
+		t.Fatalf("wallet before any transaction %v", detail)
+	}
+	ctx := context.Background()
+	if _, _, err := h.api.store.SaveSettlement(ctx, store.Settlement{RaceID: "race-economy-" + h.u, RoomID: "room-" + h.u,
+		Gameplay: "ordinary", TrackID: "forest_I01", Snapshot: "{}", CreatedAt: h.api.nowMillis(), RewardDay: "2026-10-11",
+		Results: []store.SettledResult{{PlayerID: "p0", AccountID: player, Name: "a", Rank: 1, ElapsedMs: new(int)}},
+		Rewards: []store.SettledReward{{AccountID: player, Exp: 10, Lucci: 20, Finished: true}}}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { h.cleanup("DELETE FROM race_outcomes WHERE race_id = ?", "race-economy-"+h.u) })
+	h.get("/api/admin/accounts/"+player, h.adminHeader).expect(t, http.StatusOK, "").json(t, &detail)
+	wallet, _ = detail["account"].(map[string]any)
+	if wallet["coupon"] != 5.0 || wallet["lucci"] != 27.0 || wallet["koin"] != 9.0 {
+		t.Fatalf("wallet after a finished race %v", wallet)
 	}
 }

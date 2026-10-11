@@ -528,15 +528,14 @@ test("搜索：搜索按钮打开输入框（最多 10 个字），回车查找�
   }
 });
 
-test("赠送、充值、兑奖券与精品记录照原版显示，点击提示暂未开放", async () => {
+test("赠送、兑奖券与精品记录照原版显示并提示暂未开放，充值按钮隐藏", async () => {
   const shop = await openTestShop([], [], { taskbarHeight: SHOP_TASKBAR_HEIGHT });
   try {
     assert.equal(shop.root.querySelector(".ks-shop")!.style.getPropertyValue("--ks-shop-taskbar"), "79px");
     shop.card("3:10").querySelector("[data-name=giveGift]")!.click();
     assert.equal(shop.toast(), "赠送暂未开放");
     assert.equal(shop.root.querySelectorAll("[data-name=shopGCoinCharge]").length, 1, "only the big 充值 button");
-    shop.root.querySelectorAll("[data-name=shopGCoinCharge]")[0]!.click();
-    assert.equal(shop.toast(), "商城充值暂未开放");
+    assert.equal(shop.root.querySelectorAll("[data-name=shopGCoinCharge]")[0]!.hidden, true, "充值 is not offered");
     shop.named("shopCoupon").click();
     assert.equal(shop.toast(), "兑奖券暂未开放");
     shop.named("gachaOpenResult").click();

@@ -763,6 +763,17 @@ var migrations = []migration{
 			KEY idx_anti_cheat_events_account (account_id, at)
 		) ` + tableTail,
 	}},
+	// v15: admin-set economy settings (registration and per-race grants,
+	// ECONOMY.md 2.3/2.4), one JSON row per setting name.
+	{version: 15, statements: []string{
+		`CREATE TABLE IF NOT EXISTS app_settings (
+			name VARCHAR(32) ` + idColumn + ` NOT NULL,
+			json TEXT NOT NULL,
+			updated_at BIGINT NOT NULL,
+			updated_by VARCHAR(64) NOT NULL DEFAULT '',
+			PRIMARY KEY (name)
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

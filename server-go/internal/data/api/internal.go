@@ -173,8 +173,18 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 			"conflicts", len(result.Conflicts), "players", result.Conflicts[:min(len(result.Conflicts), maxLoggedConflicts)])
 	}
 	expRate, lucciRate := a.rates.Exp, a.rates.Lucci
-	return writeJSON(w, http.StatusOK, contract.HeartbeatResponse{Accepted: true, DataNode: a.dataNode, ServerTime: now,
-		Conflicts: result.Conflicts, ExpRate: &expRate, LucciRate: &lucciRate})
+	resp := contract.HeartbeatResponse{Accepted: true, DataNode: a.dataNode, ServerTime: now,
+		Conflicts: result.Conflicts, ExpRate: &expRate, LucciRate: &lucciRate}
+	if a.store != nil {
+		// The admin-set per-race grant (ECONOMY.md 2.4), shown by the node.
+		settings, err := a.store.EconomySettings(r.Context())
+		if err != nil {
+			return err
+		}
+		bonus := contract.CurrencyAmounts(settings.Race)
+		resp.RaceBonus = &bonus
+	}
+	return writeJSON(w, http.StatusOK, resp)
 }
 
 func (a *API) nodeLeave(w http.ResponseWriter, r *http.Request) error {
@@ -516,7 +526,8 @@ func (a *API) saveRace(w http.ResponseWriter, r *http.Request) error {
 		a.cache.BumpHistory(r.Context())
 		for _, entry := range credited {
 			a.log.Debug("race reward credited", "race", settlement.RaceID, "account", entry.AccountID,
-				"exp", entry.Exp, "lucci", entry.Lucci, "levelUps", len(entry.LevelUps))
+				"exp", entry.Exp, "lucci", entry.Lucci, "coupon", entry.Coupon, "koin", entry.Koin,
+				"levelUps", len(entry.LevelUps))
 		}
 	}
 	return writeJSON(w, http.StatusOK, contract.RaceSettlementResponse{Stored: true, Duplicate: duplicate})
@@ -560,7 +571,8 @@ func (a *API) raceRewards(request contract.RaceSettlement) []store.SettledReward
 			AccountID: reward.AccountID,
 			Exp:       rewards.ApplyRate(int64(reward.Exp), expRate),
 			// The bonus is credited as earned, without the rate.
-			Lucci: rewards.ApplyRate(int64(reward.Lucci), lucciRate) + int64(bonus),
+			Lucci:    rewards.ApplyRate(int64(reward.Lucci), lucciRate) + int64(bonus),
+			Finished: reward.Finished,
 		})
 	}
 	return credits

@@ -52,6 +52,9 @@ type SettledReward struct {
 	AccountID string
 	Exp       int64
 	Lucci     int64
+	// Finished says the node rewarded the racer as a finisher: the admin-set
+	// per-race grant (EconomySettings.Race) is added for it.
+	Finished bool
 }
 
 // CreditedReward is what a race reward actually added to an account after
@@ -59,8 +62,11 @@ type SettledReward struct {
 type CreditedReward struct {
 	AccountID string
 	Exp       int64
-	Lucci     int64
-	LevelUps  []economy.LevelReward
+	// Lucci includes the per-race grant; Coupon and Koin are the grant alone.
+	Lucci    int64
+	Coupon   int64
+	Koin     int64
+	LevelUps []economy.LevelReward
 }
 
 // SettledResult is one ranked racer; AccountID is empty for guests.
@@ -236,6 +242,13 @@ func (s *Store) creditRaceRewards(ctx context.Context, tx *sql.Tx, in Settlement
 	}
 	slices.Sort(ids)
 	var credited []CreditedReward
+	if len(ids) == 0 {
+		return credited, nil
+	}
+	settings, err := s.economySettings(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
 	for _, id := range ids {
 		reward := byAccount[id]
 		l, err := s.lockLedger(ctx, tx, id, in.CreatedAt)
@@ -254,11 +267,23 @@ func (s *Store) creditRaceRewards(ctx context.Context, tx *sql.Tx, in Settlement
 		if entry.Exp, _, err = l.addExp(exp, ReasonRace, in.RaceID, ""); err != nil {
 			return nil, err
 		}
-		before := l.wallet.Lucci
+		before := l.wallet
 		if _, err := l.add(economy.Lucci, lucci, ReasonRace, in.RaceID, ""); err != nil {
 			return nil, err
 		}
-		entry.Lucci = l.wallet.Lucci - before
+		if reward.Finished {
+			// The admin-set per-race grant (ECONOMY.md 2.4), outside the daily caps.
+			for _, currency := range economy.Currencies {
+				if amount := settings.Race.Amount(currency); amount > 0 {
+					if _, err := l.add(currency, amount, ReasonRaceBonus, in.RaceID, ""); err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
+		entry.Coupon = l.wallet.Coupon - before.Coupon
+		entry.Lucci = l.wallet.Lucci - before.Lucci
+		entry.Koin = l.wallet.Koin - before.Koin
 		if err := l.addDaily(in.RewardDay, DailyRace, exp, lucci); err != nil {
 			return nil, err
 		}

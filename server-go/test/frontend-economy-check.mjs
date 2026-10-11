@@ -221,6 +221,7 @@ await runLocalCluster("frontend-economy-check", {
     KART_REGISTRATION: "open", KART_ALLOW_GUESTS: "false", KART_ADMIN_USERNAMES: adminUsername,
     KART_BOOTSTRAP_INVITE: bootstrapInvite,
     KART_EXP_RATE: String(rates.exp), KART_LUCCI_RATE: String(rates.lucci), KART_STARTING_LUCCI: "10000",
+    KART_STARTING_COUPON: "0", KART_STARTING_KOIN: "0", KART_RACE_COUPON: "0",
   },
   // Its racers finish without driving the track, which the anti-cheat
   // would kick (ANTICHEAT.md): it only records here.

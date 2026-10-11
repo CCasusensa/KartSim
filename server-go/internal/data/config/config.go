@@ -28,7 +28,12 @@ const (
 
 // Economy defaults (ECONOMY.md 2 and 2.3).
 const (
-	DefaultStartingLucci = 10_000
+	DefaultStartingLucci = 20_000
+	// The other defaults of the admin-set grants (ECONOMY.md 2.3/2.4): what
+	// a new account receives and the 点券 a finished online race adds.
+	DefaultStartingCoupon = 20_000
+	DefaultStartingKoin   = 20_000
+	DefaultRaceCoupon     = 100
 	// maxStartingLucci and maxRate keep a typo from minting absurd amounts.
 	maxStartingLucci = 1_000_000_000
 	maxRate          = 100
@@ -76,6 +81,9 @@ type Config struct {
 	ExpRate        float64        // KART_EXP_RATE
 	LucciRate      float64        // KART_LUCCI_RATE
 	StartingLucci  int64          // KART_STARTING_LUCCI
+	StartingCoupon int64          // KART_STARTING_COUPON
+	StartingKoin   int64          // KART_STARTING_KOIN
+	RaceCoupon     int64          // KART_RACE_COUPON
 	TrustedProxies []netip.Prefix // KART_TRUSTED_PROXIES; their X-Forwarded-For names the client
 
 	// Friends and private chat (DESIGN.md 9).
@@ -231,11 +239,23 @@ func readEconomy(cfg *Config, first func(...string) string) []error {
 		problems = append(problems, fmt.Errorf("KART_LUCCI_RATE: %w", err))
 	}
 
-	cfg.StartingLucci = DefaultStartingLucci
-	if value := first("KART_STARTING_LUCCI"); value != "" {
-		cfg.StartingLucci, err = strconv.ParseInt(value, 10, 64)
-		if err != nil || cfg.StartingLucci < 0 || cfg.StartingLucci > maxStartingLucci {
-			problems = append(problems, fmt.Errorf("KART_STARTING_LUCCI must be an integer from 0 to %d", maxStartingLucci))
+	// The defaults of the admin-set grants; the console's 经济设置 overrides them.
+	for _, grant := range []struct {
+		name  string
+		value *int64
+		def   int64
+	}{
+		{"KART_STARTING_LUCCI", &cfg.StartingLucci, DefaultStartingLucci},
+		{"KART_STARTING_COUPON", &cfg.StartingCoupon, DefaultStartingCoupon},
+		{"KART_STARTING_KOIN", &cfg.StartingKoin, DefaultStartingKoin},
+		{"KART_RACE_COUPON", &cfg.RaceCoupon, DefaultRaceCoupon},
+	} {
+		*grant.value = grant.def
+		if value := first(grant.name); value != "" {
+			*grant.value, err = strconv.ParseInt(value, 10, 64)
+			if err != nil || *grant.value < 0 || *grant.value > maxStartingLucci {
+				problems = append(problems, fmt.Errorf("%s must be an integer from 0 to %d", grant.name, maxStartingLucci))
+			}
 		}
 	}
 

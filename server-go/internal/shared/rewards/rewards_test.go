@@ -45,63 +45,63 @@ func TestRaceRewards(t *testing.T) {
 		// rank 4: p = 4/7, exp (30 + 28.57 + 30) x 1.1 = 97.43, lucci 145.71.
 		name: "8 racers, Combine channel",
 		in:   RaceInput{Channel: "speedIndiCombine", Mode: ModeIndividual, Racers: eight, Rates: DefaultRates()},
-		want: []Reward{{121, 180}, {113, 169}, {105, 157}, {97, 146}, {90, 134}, {82, 123}, {74, 111}, {66, 100}},
+		want: []Reward{{Exp: 121, Lucci: 180}, {Exp: 113, Lucci: 169}, {Exp: 105, Lucci: 157}, {Exp: 97, Lucci: 146}, {Exp: 90, Lucci: 134}, {Exp: 82, Lucci: 123}, {Exp: 74, Lucci: 111}, {Exp: 66, Lucci: 100}},
 	}, {
 		name: "8 racers, Infinit channel has no exp bonus",
 		in:   RaceInput{Channel: "speedIndiInfinit", Mode: ModeIndividual, Racers: eight, Rates: DefaultRates()},
-		want: []Reward{{110, 180}, {103, 169}, {96, 157}, {89, 146}, {81, 134}, {74, 123}, {67, 111}, {60, 100}},
+		want: []Reward{{Exp: 110, Lucci: 180}, {Exp: 103, Lucci: 169}, {Exp: 96, Lucci: 157}, {Exp: 89, Lucci: 146}, {Exp: 81, Lucci: 134}, {Exp: 74, Lucci: 123}, {Exp: 67, Lucci: 111}, {Exp: 60, Lucci: 100}},
 	}, {
 		name: "unfinished racer gets 10/10 (exp x1.1 in Combine)",
 		in:   RaceInput{Channel: "speedIndiCombine", Mode: ModeIndividual, Racers: eightWithDNF, Rates: DefaultRates()},
-		want: []Reward{{121, 180}, {113, 169}, {105, 157}, {97, 146}, {90, 134}, {82, 123}, {74, 111}, {11, 10}},
+		want: []Reward{{Exp: 121, Lucci: 180}, {Exp: 113, Lucci: 169}, {Exp: 105, Lucci: 157}, {Exp: 97, Lucci: 146}, {Exp: 90, Lucci: 134}, {Exp: 82, Lucci: 123}, {Exp: 74, Lucci: 111}, {Exp: 11, Lucci: 10}},
 	}, {
 		name: "2 racers",
 		in:   RaceInput{Channel: "speedIndiInfinit", Mode: ModeIndividual, Racers: ranked(2), Rates: DefaultRates()},
-		want: []Reward{{80, 120}, {30, 40}},
+		want: []Reward{{Exp: 80, Lucci: 120}, {Exp: 30, Lucci: 40}},
 	}, {
 		name: "lone loaded racer counts as winner",
 		in:   RaceInput{Channel: "speedIndiCombine", Mode: ModeIndividual, Racers: ranked(1), Rates: DefaultRates()},
-		want: []Reward{{88, 120}},
+		want: []Reward{{Exp: 88, Lucci: 120}},
 	}, {
 		// N = 4: a (team 1, p = 1) 90 x 1.1 x 1.2 = 118.8 exp, 140 x 1.2 = 168 lucci;
 		// c (team 1, p = 1/3) 56.67 x 1.32 = 74.8, 86.67 x 1.2 = 104.
 		name: "team mode, team 1 wins",
 		in: RaceInput{Channel: "speedTeamCombine", Mode: ModeTeam, WinningTeam: 1, Racers: team,
 			Rates: DefaultRates()},
-		want: []Reward{{119, 168}, {81, 113}, {75, 104}, {11, 10}},
+		want: []Reward{{Exp: 119, Lucci: 168}, {Exp: 81, Lucci: 113}, {Exp: 75, Lucci: 104}, {Exp: 11, Lucci: 10}},
 	}, {
 		name: "team bonus needs team mode",
 		in: RaceInput{Channel: "speedTeamCombine", Mode: ModeIndividual, WinningTeam: 1, Racers: team,
 			Rates: DefaultRates()},
-		want: []Reward{{99, 140}, {81, 113}, {62, 87}, {11, 10}},
+		want: []Reward{{Exp: 99, Lucci: 140}, {Exp: 81, Lucci: 113}, {Exp: 62, Lucci: 87}, {Exp: 11, Lucci: 10}},
 	}, {
 		// Runner 1st: 95 x 1.1 = 104.5 -> 105; blockers rank 2.5 of 5, p = 0.625:
 		// exp (30 + 31.25 + 15) x 1.1 = 83.875 -> 84, lucci 40 + 50 + 30 = 120.
 		name: "roadblock, runner wins",
 		in: RaceInput{Channel: "speedIndiCombine", Mode: ModeIndividual, Racers: five,
 			Roadblock: &Roadblock{RunnerID: "runner", RunnerWon: true}, Rates: DefaultRates()},
-		want: []Reward{{105, 150}, {84, 120}, {84, 120}, {84, 120}, {84, 120}},
+		want: []Reward{{Exp: 105, Lucci: 150}, {Exp: 84, Lucci: 120}, {Exp: 84, Lucci: 120}, {Exp: 84, Lucci: 120}, {Exp: 84, Lucci: 120}},
 	}, {
 		// Blockers 1st; runner last: 45 x 1.1 = 49.5 -> 50, lucci 70.
 		name: "roadblock, blockers win",
 		in: RaceInput{Channel: "speedIndiCombine", Mode: ModeIndividual, Racers: five,
 			Roadblock: &Roadblock{RunnerID: "runner", RunnerWon: false}, Rates: DefaultRates()},
-		want: []Reward{{50, 70}, {105, 150}, {105, 150}, {105, 150}, {105, 150}},
+		want: []Reward{{Exp: 50, Lucci: 70}, {Exp: 105, Lucci: 150}, {Exp: 105, Lucci: 150}, {Exp: 105, Lucci: 150}, {Exp: 105, Lucci: 150}},
 	}, {
 		name: "rates scale after bonuses",
 		in: RaceInput{Channel: "speedIndiCombine", Mode: ModeIndividual, Racers: ranked(8)[:1:1],
 			Rates: Rates{Exp: 2, Lucci: 0.5}},
-		want: []Reward{{88 * 2, 60}},
+		want: []Reward{{Exp: 88 * 2, Lucci: 60}},
 	}, {
 		name: "invalid rates grant nothing",
 		in: RaceInput{Channel: "speedIndiCombine", Mode: ModeIndividual, Racers: ranked(2),
 			Rates: Rates{Exp: math.NaN(), Lucci: -1}},
-		want: []Reward{{0, 0}, {0, 0}},
+		want: []Reward{{Exp: 0, Lucci: 0}, {Exp: 0, Lucci: 0}},
 	}, {
 		name: "rank outside 1..N counts as last",
 		in: RaceInput{Channel: "speedIndiInfinit", Mode: ModeIndividual, Rates: DefaultRates(),
 			Racers: []Racer{{PlayerID: "x", Rank: 0, Finished: true}, {PlayerID: "y", Rank: 9, Finished: true}}},
-		want: []Reward{{30, 40}, {30, 40}},
+		want: []Reward{{Exp: 30, Lucci: 40}, {Exp: 30, Lucci: 40}},
 	}} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := RaceRewards(tc.in)
@@ -136,11 +136,11 @@ func TestTimeAttackRewards(t *testing.T) {
 		rates     Rates
 		want      Reward
 	}{
-		{false, DefaultRates(), Reward{10, 20}},
-		{true, DefaultRates(), Reward{30, 70}},
-		{false, Rates{Exp: 1.5, Lucci: 2}, Reward{15, 40}},
-		{true, Rates{Exp: 1.5, Lucci: 2}, Reward{45, 140}},
-		{true, Rates{}, Reward{0, 0}},
+		{false, DefaultRates(), Reward{Exp: 10, Lucci: 20}},
+		{true, DefaultRates(), Reward{Exp: 30, Lucci: 70}},
+		{false, Rates{Exp: 1.5, Lucci: 2}, Reward{Exp: 15, Lucci: 40}},
+		{true, Rates{Exp: 1.5, Lucci: 2}, Reward{Exp: 45, Lucci: 140}},
+		{true, Rates{}, Reward{Exp: 0, Lucci: 0}},
 	} {
 		if got := TimeAttackRewards(tc.newRecord, tc.rates); got != tc.want {
 			t.Errorf("TimeAttackRewards(%v, %+v) = %+v, want %+v", tc.newRecord, tc.rates, got, tc.want)

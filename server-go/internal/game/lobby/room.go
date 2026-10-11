@@ -454,7 +454,15 @@ func (r *race) snapshot() obj {
 func (r *race) rewardsObj() obj {
 	value := make(obj, len(r.shownRewards))
 	for i, reward := range r.shownRewards {
-		value[i] = field{reward.PlayerID, obj{{"exp", reward.Exp}, {"lucci", reward.Lucci}}}
+		entry := obj{{"exp", reward.Exp}, {"lucci", reward.Lucci}}
+		// The admin-set per-race grant (ECONOMY.md 2.4) of a finisher.
+		if reward.Coupon > 0 {
+			entry = append(entry, field{"coupon", reward.Coupon})
+		}
+		if reward.Koin > 0 {
+			entry = append(entry, field{"koin", reward.Koin})
+		}
+		value[i] = field{reward.PlayerID, entry}
 	}
 	return value
 }

@@ -22,6 +22,7 @@ export const TABS: TabDefinition[] = [
   { name: 'draws', label: '抽奖与开箱' },
   { name: 'clubs', label: '俱乐部' },
   { name: 'lottery', label: '抽奖活动' },
+  { name: 'economy', label: '经济设置' },
   { name: 'reward-box', label: '奖励箱' },
   { name: 'notices', label: '公告' },
   { name: 'invites', label: '邀请码' },

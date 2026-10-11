@@ -32,19 +32,15 @@ export interface LobbyAccountInfo {
   wallet: LobbyWallet;
 }
 
-export type LobbyChargeCurrency = "coupon" | "koin";
-
 export interface LobbyTopBarOptions {
   riderName: string;
   /** The account level; Lv.1 before one is known. */
   level?: number;
   wallet?: Partial<LobbyWallet>;
   experience?: LobbyExperience;
-  /** The "+" beside 点券 and K币; without it they give onNotice 商城充值暂未开放. */
-  onCharge?(currency: LobbyChargeCurrency): void;
   /** Clicking the rider glove, level or name (the account panel); without it they are not a button. */
   onAccount?(): void;
-  /** A short notice of the bar's own (the "+" without onCharge). */
+  /** A short notice of the bar's own. */
   onNotice?(message: string): void;
   onHover?(): void;
   onActivate?(): void;
@@ -134,7 +130,6 @@ export class LobbyTopBar {
   readonly element = element("header", "ks-lobby-top");
   /** Status bar icon slots; release art replaces the drawn fallbacks. */
   private readonly icons = new Map<"level" | "cash" | "lucci" | "koin", HTMLElement>();
-  private readonly chargeButtons: HTMLButtonElement[] = [];
   private readonly levelText = element("span", "ks-lobby-level");
   private readonly nameText = element("span", "ks-lobby-name");
   private readonly experience = element("span", "ks-lobby-exp");
@@ -164,13 +159,6 @@ export class LobbyTopBar {
     replace("cash", art.cash);
     replace("lucci", art.lucci);
     replace("koin", art.koin);
-    if (art.charge?.length === 4) {
-      for (const button of this.chargeButtons) {
-        art.charge.forEach((state, index) =>
-          button.style.setProperty(`--ks-charge-${index + 1}`, `url("${state}")`));
-        button.classList.add("ks-art");
-      }
-    }
   }
 
   /** Update the rider name, level, glove, experience bar and wallet in place. */
@@ -240,31 +228,19 @@ export class LobbyTopBar {
     player.append(icon("level", ICONS.rider), this.levelText, this.nameText, this.experience);
     const wallet = element("div", "ks-lobby-wallet");
     const coin = (slot: "cash" | "lucci" | "koin", currency: keyof LobbyWallet, markup: string,
-      label: string, value: number | undefined, plus: boolean): HTMLElement => {
+      label: string, value: number | undefined): HTMLElement => {
       const entry = element("div", "ks-lobby-coin");
       entry.setAttribute("aria-label", `${label} ${formatAmount(value)}`);
       const amount = element("span", undefined, formatAmount(value));
       entry.append(icon(slot, markup), amount);
       this.coins.set(currency, { entry, value: amount, label });
-      if (plus) {
-        const button = element("button", "ks-lobby-plus", "+");
-        button.type = "button";
-        button.setAttribute("aria-label", this.options.onCharge ? `打开商店（${label}）` : `充值${label}`);
-        this.chargeButtons.push(button);
-        this.bindSound(button);
-        button.addEventListener("click", () => {
-          this.options.onActivate?.();
-          if (this.options.onCharge) this.options.onCharge(currency as LobbyChargeCurrency);
-          else this.options.onNotice?.("商城充值暂未开放");
-        });
-        entry.append(button);
-      }
       return entry;
     };
     const money = this.options.wallet ?? {};
-    wallet.append(coin("cash", "coupon", ICONS.coupon, "点券", money.coupon, true),
-      coin("lucci", "lucci", ICONS.lucci, "金币", money.lucci, false),
-      coin("koin", "koin", ICONS.koin, "K币", money.koin, true));
+    // 充值 is not offered: the release's "+" beside 点券 and K币 is left out.
+    wallet.append(coin("cash", "coupon", ICONS.coupon, "点券", money.coupon),
+      coin("lucci", "lucci", ICONS.lucci, "金币", money.lucci),
+      coin("koin", "koin", ICONS.koin, "K币", money.koin));
     bar.append(player, wallet);
   }
 }

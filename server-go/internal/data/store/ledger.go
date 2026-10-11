@@ -14,7 +14,7 @@ import (
 )
 
 // DefaultStartingLucci is what a new account receives (ECONOMY.md 2.3).
-const DefaultStartingLucci = 10_000
+const DefaultStartingLucci = 20_000
 
 // MaxBalance bounds every wallet balance. Rewards stop at it; an admin
 // grant past it is refused. It keeps sums far from int64 overflow.
@@ -25,6 +25,7 @@ const MaxBalance = 1_000_000_000_000
 const (
 	ReasonStarter    = "starter"    // starting lucci; ref "signup"
 	ReasonRace       = "race"       // online race reward; ref = raceId
+	ReasonRaceBonus  = "racebonus"  // admin-set per-race grant (ECONOMY.md 2.4); ref = raceId
 	ReasonLevelUp    = "levelup"    // level-up reward; ref = "L<level>"
 	ReasonTimeAttack = "timeattack" // time-attack reward; ref = requestId
 	ReasonPurchase   = "purchase"   // shop purchase; ref = requestId
@@ -47,11 +48,15 @@ var (
 	errAccountNotFound   = apierr.New(http.StatusNotFound, "ACCOUNT_NOT_FOUND")
 )
 
-// EconomyRules are the configured economy settings.
+// EconomyRules are the configured economy settings. The starting amounts
+// and RaceCoupon are the defaults of the admin-set grants (EconomySettings).
 type EconomyRules struct {
-	Data          *economy.Data
-	StartingLucci int64
-	Rates         rewards.Rates // applied to race and time-attack rewards
+	Data           *economy.Data
+	StartingLucci  int64
+	StartingCoupon int64
+	StartingKoin   int64
+	RaceCoupon     int64
+	Rates          rewards.Rates // applied to race and time-attack rewards
 }
 
 var errNoEconomyData = errors.New("economy data unavailable")
@@ -152,9 +157,18 @@ func (s *Store) lockLedger(ctx context.Context, tx *sql.Tx, accountID string, no
 		accountID).Scan(&l.exp); err != nil {
 		return nil, err
 	}
-	if created && s.rules.StartingLucci > 0 {
-		if _, err := l.add(economy.Lucci, s.rules.StartingLucci, ReasonStarter, signupRef, ""); err != nil {
+	if created {
+		// The admin-set registration grant (ECONOMY.md 2.3).
+		settings, err := s.economySettings(ctx, tx)
+		if err != nil {
 			return nil, err
+		}
+		for _, currency := range economy.Currencies {
+			if amount := settings.Register.Amount(currency); amount > 0 {
+				if _, err := l.add(currency, amount, ReasonStarter, signupRef, ""); err != nil {
+					return nil, err
+				}
+			}
 		}
 	}
 	return l, nil

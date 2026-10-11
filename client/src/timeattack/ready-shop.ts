@@ -265,11 +265,9 @@ export async function openReadyShop(controller: ReadyShopController, initialTab?
     } else {
       try { backdrop = lobbyShopBackdrop() ?? lobbyHomeBackdrop(); } catch { backdrop = undefined; }
     }
-    const topBar: ShopOpenOptions["topBar"] = (host, actions) => mountLobbyTopBar(host, {
+    const topBar: ShopOpenOptions["topBar"] = host => mountLobbyTopBar(host, {
       session, fontFamily: MAIN_MENU_FONT_FAMILY,
       ...(isTopBarLibrary(library) ? { library } : {}),
-      // The "+" buttons in the shop: charging is not open yet.
-      onCharge: () => actions.notice("商城充值暂未开放"),
     });
     const opened = await open({
       root: controller.host.root, library, session,

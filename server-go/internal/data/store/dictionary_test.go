@@ -52,8 +52,10 @@ func TestDictionaryRewardConcurrentClaims(t *testing.T) {
 		len(state.Collected[3]) != 2 || len(state.Collected[27]) != 1 {
 		t.Fatalf("state %+v %v", state, err)
 	}
+	// On top of the registration grant (ECONOMY.md 2.3).
 	var koin int64
-	if err := db.QueryRow("SELECT koin FROM wallets WHERE account_id = ?", id).Scan(&koin); err != nil || koin != 3 {
-		t.Fatalf("koin %d %v", koin, err)
+	granted := st.DefaultEconomySettings().Register.Koin
+	if err := db.QueryRow("SELECT koin FROM wallets WHERE account_id = ?", id).Scan(&koin); err != nil || koin != 3+granted {
+		t.Fatalf("koin %d (granted %d) %v", koin, granted, err)
 	}
 }

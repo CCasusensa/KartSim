@@ -5,7 +5,8 @@
 import { parseAccountSummary } from "./account-api";
 import type { AccountSummary } from "./account-session";
 
-export interface RaceReward { exp: number; lucci: number }
+/** Coupon and koin are the admin-set per-race grant of a finisher (ECONOMY.md 2.4). */
+export interface RaceReward { exp: number; lucci: number; coupon?: number; koin?: number }
 
 function record(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -16,7 +17,7 @@ function amount(value: unknown): number | undefined {
     value <= 1_000_000_000 ? value : undefined;
 }
 
-/** `race.rewards` ({playerId: {exp, lucci}}); malformed entries are skipped. */
+/** `race.rewards` ({playerId: {exp, lucci, coupon?, koin?}}); malformed entries are skipped. */
 export function parseRaceRewards(value: unknown): Map<string, RaceReward> {
   const rewards = new Map<string, RaceReward>();
   if (!record(value)) return rewards;
@@ -24,8 +25,10 @@ export function parseRaceRewards(value: unknown): Map<string, RaceReward> {
     if (!record(entry)) continue;
     const exp = amount(entry.exp);
     const lucci = amount(entry.lucci);
-    if (exp === undefined || lucci === undefined) continue;
-    rewards.set(playerId, { exp, lucci });
+    const coupon = entry.coupon === undefined ? 0 : amount(entry.coupon);
+    const koin = entry.koin === undefined ? 0 : amount(entry.koin);
+    if (exp === undefined || lucci === undefined || coupon === undefined || koin === undefined) continue;
+    rewards.set(playerId, { exp, lucci, ...(coupon ? { coupon } : {}), ...(koin ? { koin } : {}) });
   }
   return rewards;
 }
@@ -35,9 +38,12 @@ export function formatRaceReward(reward: RaceReward): string {
   return formatRaceRewardLines(reward).join(" ");
 }
 
-/** ["+85经验", "+120金币"]: the reward on two lines. */
+/** ["+85经验", "+120金币 +100点券"]: the reward on two lines; the per-race grant joins the second. */
 export function formatRaceRewardLines(reward: RaceReward): [string, string] {
-  return [`+${reward.exp}经验`, `+${reward.lucci}金币`];
+  const money = [`+${reward.lucci}金币`];
+  if (reward.coupon) money.push(`+${reward.coupon}点券`);
+  if (reward.koin) money.push(`+${reward.koin}K币`);
+  return [`+${reward.exp}经验`, money.join(" ")];
 }
 
 export interface TimeAttackSettlement {

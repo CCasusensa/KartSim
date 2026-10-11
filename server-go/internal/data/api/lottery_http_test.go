@@ -216,7 +216,7 @@ func TestGachaAPI(t *testing.T) {
 	}
 	h.post("/api/lottery/packs/buy", map[string]any{"requestId": newUUID(), "stockId": 22779}, auth).
 		expect(t, http.StatusOK, "").json(t, &pack)
-	if pack.Wallet.Lucci != store.DefaultStartingLucci-10 || pack.Items[0].Count != 100 {
+	if pack.Wallet.Lucci != harnessStartingLucci-10 || pack.Items[0].Count != 100 {
 		t.Fatalf("tire pack %+v", pack)
 	}
 	h.post("/api/lottery/packs/buy", map[string]any{"requestId": newUUID(), "stockId": 1}, auth).

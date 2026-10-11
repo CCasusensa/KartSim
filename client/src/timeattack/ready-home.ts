@@ -202,8 +202,7 @@ export async function openReadyHome(controller: ReadyHomeController,
         riderName: summary?.account.nickname ?? localRiderName(),
         ...(summary ? lobbyAccountInfo(summary) : {}),
         ...(account ? {
-          // The "+" buttons and the rider open the shop and the account panel.
-          onCharge: () => openShopUnlessRacing(controller as unknown as ReadyShopController),
+          // The rider opens the account panel.
           onAccount: () => openHomeAccountPanel(controller),
         } : {}),
         banners: assets.banners,

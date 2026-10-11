@@ -111,6 +111,12 @@ type Options struct {
 	// (rewards.ApplyRate) so players see what is credited. Called with the
 	// lobby lock held; must not block.
 	Rates func() rewards.Rates
+	// RaceBonus returns the admin-set grant every finished online race adds
+	// (ECONOMY.md 2.4), from the latest heartbeat (nil: none). It is shown
+	// in race.rewards for the racers rewarded as finishers and credited by
+	// the data service from its own settings. Called with the lobby lock
+	// held; must not block.
+	RaceBonus func() contract.CurrencyAmounts
 	// ItemMode is the item race data (nil: the embedded itemmode.json).
 	ItemMode *itemmode.Data
 	// ItemRandom returns the random source of one item race's draws and
@@ -180,6 +186,7 @@ type Lobby struct {
 	maxRooms    int
 	busy        func() bool
 	rates       func() rewards.Rates
+	raceBonus   func() contract.CurrencyAmounts
 	log         *slog.Logger
 	items       *itemmode.Data
 	itemRandom  func() itemmode.Random
@@ -229,6 +236,7 @@ func New(opts Options) *Lobby {
 		maxRooms:     opts.MaxRooms,
 		busy:         opts.Busy,
 		rates:        opts.Rates,
+		raceBonus:    opts.RaceBonus,
 		log:          opts.Logger,
 		items:        opts.ItemMode,
 		itemRandom:   opts.ItemRandom,
@@ -260,6 +268,9 @@ func New(opts Options) *Lobby {
 	}
 	if l.rates == nil {
 		l.rates = rewards.DefaultRates
+	}
+	if l.raceBonus == nil {
+		l.raceBonus = func() contract.CurrencyAmounts { return contract.CurrencyAmounts{} }
 	}
 	if l.items == nil {
 		// Item rooms are refused without it; the node's app loads it at
@@ -1931,7 +1942,7 @@ func (l *Lobby) saveResults(r *room) {
 		// Guests have no account ID: shown their reward, never credited.
 		granted = append(granted, contract.RaceReward{PlayerID: reward.PlayerID,
 			AccountID: rc.rosterAccounts[reward.PlayerID], Exp: int(reward.Exp), Lucci: int(reward.Lucci),
-			BonusLucci: rc.bonusLucci[reward.PlayerID]})
+			BonusLucci: rc.bonusLucci[reward.PlayerID], Finished: reward.Finished})
 	}
 	l.recorder.SaveRace(contract.RaceSettlement{
 		NodeID:     l.nodeID,
@@ -2060,9 +2071,17 @@ func (l *Lobby) setRewards(r *room, in rewards.RaceInput, excluded []string) {
 	// What the players are shown: the same rates, applied the same way, as
 	// of the latest heartbeat.
 	rc.rates = l.rates()
+	bonus := l.raceBonus()
 	rc.shownRewards = make([]rewards.RacerReward, len(rc.rewards))
 	for i, reward := range rc.rewards {
-		rc.shownRewards[i] = rewards.RacerReward{PlayerID: reward.PlayerID, Reward: rc.rates.Apply(reward.Reward)}
+		shown := rc.rates.Apply(reward.Reward)
+		if reward.Finished {
+			// The admin-set per-race grant (ECONOMY.md 2.4), credited unscaled.
+			shown.Coupon += bonus.Coupon
+			shown.Lucci += bonus.Lucci
+			shown.Koin += bonus.Koin
+		}
+		rc.shownRewards[i] = rewards.RacerReward{PlayerID: reward.PlayerID, Finished: reward.Finished, Reward: shown}
 	}
 	// An item race's in-race lucci (ITEM_MODE.md C.8) adds to what the
 	// rewarded racers are shown, unscaled; it is settled apart (bonusLucci).

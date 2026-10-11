@@ -71,7 +71,7 @@
 | 游客 | 默认取消（`KART_ALLOW_GUESTS=false`，数据服务与游戏节点都读取）：不带 Bearer 的票据请求 401 `LOGIN_REQUIRED`，游客票据的 `hello` 也被拒绝 |
 | 新手礼包 | 注册后 `onboarded=false`，必须先 `POST /api/account/starter` 领取：练习车（category 3、itemId 0、`systemKey` `practiceKart`）+ 角色皮蛋(2)/黑妞(3) 二选一 + 喷漆、染色各从 6/4/5/7 中选一，全部永久；领取前票据 403 `ONBOARDING_REQUIRED`。重复领取不再发放（幂等） |
 | 等级 | 原版 `leveltable@cn.xml` 127 级，经验叫 `exp`；升级逐级发放金币 `100×等级`、原版 K币表、每 10 级 50 点券 |
-| 货币 | 点券 `coupon`、金币 `lucci`、K币 `koin`；新账号送 `KART_STARTING_LUCCI`（默认 10000）金币；余额永不为负，每笔变动写 `wallet_ledger` 流水 |
+| 货币 | 点券 `coupon`、金币 `lucci`、K币 `koin`；新账号送注册赠送（默认各 20000，`KART_STARTING_COUPON`/`KART_STARTING_LUCCI`/`KART_STARTING_KOIN`，管理后台“经济设置”可改），每场跑完的联机比赛另送后台设置的赠送（默认 `KART_RACE_COUPON` 100 点券）；余额永不为负，每笔变动写 `wallet_ledger` 流水；客户端不提供充值 |
 | 库存 | 车库能装备的物品按（分类、itemId、systemKey）记录；限时物品带 `expiresAt`，过期后不再返回，已装备的过期物品自动换回练习车/新手角色/新手颜色/卸下 |
 | 商店 | 6,032 件可装备物品，加上道具赛的道具变更卡使用券、道具换位卡使用券（原版卡片价 1/7/30 天 10/45/140 点券，ECONOMY.md 3.2），按原版货币与期限标价（原版没有价格的按分类估价）；`requestId` 保证购买幂等；请求可带商店显示的 `expectedPrice`/`expectedCurrency`，与当前报价不符时 409 `PRICE_CHANGED`、不扣款；已拥有永久物品 409 `ALREADY_OWNED`；限时物品续期从原到期时间顺延 |
 | 奖励 | 联机比赛：游戏节点按 ECONOMY.md 2.1 计算基础值发给数据服务，数据服务入账时乘 `KART_EXP_RATE`/`KART_LUCCI_RATE`（快照 `race.rewards` 显示的是同样乘过倍率的值，倍率由心跳响应告诉游戏节点，结算也带上显示时用的倍率），并按**数据服务收到结算时**的北京时间自然日套每日上限（经验 20,000、金币 30,000）；完成时间早于 24 小时前的结算只保存赛果、不发奖励。只有服务器观察到的比赛时长 ≥ 10 秒且客户端成绩不比它短 3 秒以上的完赛才按完赛计奖。计时赛：`POST /api/timeattack/settle`，每次经验 10/金币 20，刷新个人最佳再加 20/50，成绩小于 10 秒无效，赛道须在导出的赛道表中，两次结算至少间隔 10 秒且不短于本次成绩 − 3 秒，每日 50 次有奖励 |
@@ -94,7 +94,7 @@
 
 ### 管理页面与发放货币
 
-管理后台是数据服务提供的单页应用 `<数据服务 origin>/multiplayer/admin`（本机默认 <http://127.0.0.1:8787/multiplayer/admin>，`run-lan.sh` 下也可经前端代理访问 `https://<IP>:8780/multiplayer/admin`；启动脚本会打印地址）。它用 Vue 3 + Element Plus 写在 [`admin-ui/`](admin-ui)，`npm run build` 的产物提交在 `internal/data/api/adminui/` 并嵌入 kart-data（`go build` 不需要 Node，但产物必须存在才能编译；改了 `admin-ui/` 后重新构建并提交产物）。用 `KART_ADMIN_USERNAMES` 中的账号登录（token 只保存在页面内存中），可以查看概览统计、搜索与编辑账号（昵称、管理员、封禁、重置密码）、踢下线、查看账号的游戏数据（战绩、驾照、计时赛、任务、好友、俱乐部）、登录记录、在线玩家、游戏节点（含 24 小时内离线的节点）与数据服务状态、货币流水、发放记录、比赛、购买、抽奖与开箱记录、俱乐部及其成员、邀请码与奖励箱记录，给账号增加或扣除点券、金币、K币或经验并填写备注。`KART_ADMIN_USERNAMES` 中的账号只能由自己修改，其他管理员编辑或踢它们得到 409 `PROTECTED_ADMIN`。所有发放都写流水（原因 `admin`），余额与经验不会被扣成负数。管理页面还可以设置抽奖活动、向玩家的奖励箱赠送道具或货币、发布迷你提示窗公告（见 [`MENUS.md`](MENUS.md)）。接口与返回字段见 [`ADMIN.md`](ADMIN.md)。
+管理后台是数据服务提供的单页应用 `<数据服务 origin>/multiplayer/admin`（本机默认 <http://127.0.0.1:8787/multiplayer/admin>，`run-lan.sh` 下也可经前端代理访问 `https://<IP>:8780/multiplayer/admin`；启动脚本会打印地址）。它用 Vue 3 + Element Plus 写在 [`admin-ui/`](admin-ui)，`npm run build` 的产物提交在 `internal/data/api/adminui/` 并嵌入 kart-data（`go build` 不需要 Node，但产物必须存在才能编译；改了 `admin-ui/` 后重新构建并提交产物）。用 `KART_ADMIN_USERNAMES` 中的账号登录（token 只保存在页面内存中），可以查看概览统计、搜索与编辑账号（昵称、管理员、封禁、重置密码）、踢下线、查看账号的游戏数据（战绩、驾照、计时赛、任务、好友、俱乐部）、登录记录、在线玩家、游戏节点（含 24 小时内离线的节点）与数据服务状态、货币流水、发放记录、比赛、购买、抽奖与开箱记录、俱乐部及其成员、邀请码与奖励箱记录，给账号增加或扣除点券、金币、K币或经验并填写备注。`KART_ADMIN_USERNAMES` 中的账号只能由自己修改，其他管理员编辑或踢它们得到 409 `PROTECTED_ADMIN`。所有发放都写流水（原因 `admin`），余额与经验不会被扣成负数。管理页面还可以设置抽奖活动、向玩家的奖励箱赠送道具或货币、发布迷你提示窗公告（见 [`MENUS.md`](MENUS.md)），以及注册赠送与每场比赛赠送的货币数额（“经济设置”，见 [`ECONOMY.md`](ECONOMY.md) 2.4）。接口与返回字段见 [`ADMIN.md`](ADMIN.md)。
 
 注册与每次成功登录都记录时间、客户端 IP（按“限流与反向代理”的可信代理规则取得）与浏览器 UA（`login_records`，保留 180 天）；游戏会记住令牌 30 天，所以每个账号每个北京日第一次用记住的令牌活动（当天没有注册或登录）时另记一条“自动登录”（`resume`），概览的“今日登录人数”包括它们。带令牌的成功请求还会更新账号的最后活跃时间与 IP（每个账号最多每 5 分钟写一次）。封禁的账号（封禁到期前）登录时，在密码正确之后返回 403 `ACCOUNT_BANNED`（另带 `until`、`reason`）；封禁、重置密码与踢下线都会作废该账号的所有会话（旧 token 得到 401 `LOGIN_REQUIRED`）、关闭好友聊天与小屋连接，并让游戏服在下一次心跳时断开它。
 
@@ -318,7 +318,9 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `KART_ALLOW_GUESTS` | `false` | 为 `true` 时不带 Bearer 也签发游客票据（游戏节点也要设置同样的值）；`auth/config.guests` 反映它 |
 | `KART_ADMIN_USERNAMES` | 空 | 管理员用户名，逗号分隔（`[A-Za-z0-9_]{3,24}`，不区分大小写）；不写入数据库，移出名单即失去权限。尚未注册的名单用户名在任何注册模式下都只能带有效邀请码注册（否则 400 `INVALID_INVITE`；启动日志报错并打印引导邀请码，见 `KART_BOOTSTRAP_INVITE`）。数据库中原有 `admin=1` 的账号保持管理员 |
 | `KART_EXP_RATE` / `KART_LUCCI_RATE` | `1` / `1` | 经验与金币奖励倍率（0–100），在入账时作用于联机比赛与计时赛奖励（ECONOMY.md 2）；心跳响应把它们告诉游戏节点，快照 `race.rewards` 因此显示乘过倍率的值。比赛结算携带游戏节点显示时用的倍率，数据服务在 [0, max(10, 当前配置)] 内采用它，所以改倍率前后结束的比赛显示值与入账值仍一致。只需在数据服务设置 |
-| `KART_STARTING_LUCCI` | `10000` | 新账号的初始金币（0–1,000,000,000，写入流水） |
+| `KART_STARTING_LUCCI` | `20000` | 新账号初始金币的默认值（0–1,000,000,000，写入流水）；管理后台“经济设置”保存后以后台为准 |
+| `KART_STARTING_COUPON`、`KART_STARTING_KOIN` | `20000` | 新账号初始点券、K币的默认值（同上） |
+| `KART_RACE_COUPON` | `100` | 每场跑完的联机比赛赠送点券的默认值（后台还可设金币与 K币；`ECONOMY.md` 2.4） |
 | `KART_TRUSTED_PROXIES` | 回环地址（`127.0.0.0/8`、`::1`） | 信任其 `X-Forwarded-For` 的反向代理，IP 或 CIDR，逗号分隔；`none` 表示不信任任何代理。用于按真实客户端 IP 限流（见“限流与反向代理”） |
 | `KART_MESSENGER_MAX_CONNECTIONS` | `5000` | 好友私聊 WebSocket 上限（含尚未 `hello` 的连接，1–1,000,000）；超出时升级前返回 HTTP 503 `SERVER_BUSY` |
 | `KART_MESSENGER_SEND_BUFFER_BYTES` | `262144` | 每个好友私聊连接待发送的字节上限（65536–67108864）；积压超过它的连接以 1008 断开 |
@@ -499,6 +501,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `POST /api/lottery/daily` | 领取当天的免费材料（`treasureHunt` / `gacha`） |
 | `GET /api/lottery/items` | 商店目录以外的道具名称 |
 | `GET`/`PUT /api/admin/lottery` | 管理员查看与设置活动开关、开放时段、每日免费道具（管理页面“抽奖活动”） |
+| `GET`/`PUT /api/admin/economy` | 管理员查看与设置注册赠送、每场比赛赠送的点券/金币/K币（管理页面“经济设置”，`ECONOMY.md` 2.4） |
 
 ### 驾照考试（车手学校）
 

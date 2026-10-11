@@ -6,6 +6,7 @@ import { logout, session } from '../session'
 import AntiCheatTab from './AntiCheatTab.vue'
 import ClubsTab from './ClubsTab.vue'
 import DrawsTab from './DrawsTab.vue'
+import EconomyTab from './EconomyTab.vue'
 import GrantsTab from './GrantsTab.vue'
 import InvitesTab from './InvitesTab.vue'
 import LedgerTab from './LedgerTab.vue'
@@ -37,6 +38,7 @@ const views: Record<string, Component> = {
   draws: DrawsTab,
   clubs: ClubsTab,
   lottery: LotteryTab,
+  economy: EconomyTab,
   'reward-box': RewardBoxTab,
   notices: NoticesTab,
   invites: InvitesTab,
@@ -126,7 +128,7 @@ async function signOut() {
   margin-bottom: 16px;
   background: var(--el-bg-color);
 }
-/* Tighter tabs so all 15 fit on one row from about 1280px. */
+/* Tighter tabs so all 17 fit on one row from about 1400px. */
 .console-tabs :deep(.el-tabs__header .el-tabs__item) {
   padding: 0 13px !important;
 }

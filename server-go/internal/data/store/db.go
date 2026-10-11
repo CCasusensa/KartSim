@@ -35,7 +35,8 @@ type Store struct {
 // New wraps an open database handle. The economy uses the embedded data
 // and the default starting lucci until WithEconomy says otherwise.
 func New(db *sql.DB) *Store {
-	s := &Store{db: db, recordQuota: DefaultRecordQuota, rules: EconomyRules{StartingLucci: DefaultStartingLucci}}
+	s := &Store{db: db, recordQuota: DefaultRecordQuota, rules: EconomyRules{StartingLucci: DefaultStartingLucci,
+		StartingCoupon: DefaultRegisterCoupon, StartingKoin: DefaultRegisterKoin, RaceCoupon: DefaultRaceCoupon}}
 	if data, err := economy.Default(); err == nil {
 		s.rules.Data = data
 	}

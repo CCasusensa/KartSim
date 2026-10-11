@@ -613,8 +613,8 @@ func TestEndToEnd(t *testing.T) {
 			t.Errorf("snapshot %s", s.Snapshot)
 		}
 		// Two racers in speedIndiCombine: 1st (30+50) x1.1 / 40+80, 2nd 30 x1.1 / 40.
-		want := []contract.RaceReward{{PlayerID: bobID, AccountID: "acc-bob", Exp: 88, Lucci: 120},
-			{PlayerID: aliceID, Exp: 33, Lucci: 40}}
+		want := []contract.RaceReward{{PlayerID: bobID, AccountID: "acc-bob", Exp: 88, Lucci: 120, Finished: true},
+			{PlayerID: aliceID, Exp: 33, Lucci: 40, Finished: true}}
 		if !slices.Equal(s.Rewards, want) {
 			t.Errorf("rewards %+v, want %+v", s.Rewards, want)
 		}

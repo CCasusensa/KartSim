@@ -496,3 +496,19 @@ export interface Notice {
   updatedBy?: string
   updatedAt?: number
 }
+
+/** GET/PUT /api/admin/economy: the registration and per-race grants (ECONOMY.md 2.3/2.4). */
+export interface CurrencyGrant {
+  coupon: number
+  lucci: number
+  koin: number
+}
+
+export interface EconomySettings {
+  register: CurrencyGrant
+  race: CurrencyGrant
+  updatedAt: number
+  updatedBy: string
+  defaults: { register: CurrencyGrant; race: CurrencyGrant }
+  serverTime: number
+}

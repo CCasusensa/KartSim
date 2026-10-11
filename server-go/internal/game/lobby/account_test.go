@@ -112,6 +112,8 @@ func TestOneSeatPerAccountInRaces(t *testing.T) {
 	raceID := raceOf(h.command(a1, start))["raceId"].(string)
 	h.lobby.mu.Lock()
 	h.lobby.rooms[roomID].race.rosterAccounts[a2.playerID] = "acc-1"
+	// The admin-set per-race grant (ECONOMY.md 2.4) from the latest heartbeat.
+	h.lobby.raceBonus = func() contract.CurrencyAmounts { return contract.CurrencyAmounts{Coupon: 7, Koin: 3} }
 	h.lobby.mu.Unlock()
 	for _, p := range players {
 		h.must(p, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
@@ -125,10 +127,14 @@ func TestOneSeatPerAccountInRaces(t *testing.T) {
 	// Results stay Java's: three ranked rows.
 	assertEqual(t, len(list(rc["results"])), 3)
 	// N = 2 (acc-1 and the guest): A2 (acc-1's best seat) is 1st, the guest
-	// 2nd; A1 earns nothing.
-	assertEqual(t, rc["rewards"], map[string]any{a2.playerID: reward(88, 120), guest.playerID: reward(33, 40)})
+	// 2nd; A1 earns nothing. Finishers are shown the per-race grant too,
+	// which the settlement leaves to the data service (finished: true).
+	granted := func(exp, lucci int) map[string]any {
+		return map[string]any{"exp": exp, "lucci": lucci, "coupon": 7, "koin": 3}
+	}
+	assertEqual(t, rc["rewards"], map[string]any{a2.playerID: granted(88, 120), guest.playerID: granted(33, 40)})
 	assertEqual(t, h.recorder.settlements()[0].Rewards, []contract.RaceReward{
-		{PlayerID: a2.playerID, AccountID: "acc-1", Exp: 88, Lucci: 120},
-		{PlayerID: guest.playerID, Exp: 33, Lucci: 40},
+		{PlayerID: a2.playerID, AccountID: "acc-1", Exp: 88, Lucci: 120, Finished: true},
+		{PlayerID: guest.playerID, Exp: 33, Lucci: 40, Finished: true},
 	})
 }

@@ -128,7 +128,7 @@ func inventoryRow(t *testing.T, db *sql.DB, accountID string, category, itemID i
 
 func TestTreasureHuntDraws(t *testing.T) {
 	db := datatest.MySQL(t)
-	st := store.New(db)
+	st := newGrantlessStore(db)
 	ctx := context.Background()
 	data := testLotteryData(t)
 	hunt := data.TreasureHunt()
@@ -209,7 +209,7 @@ func TestTreasureHuntDraws(t *testing.T) {
 
 func TestGachaDraws(t *testing.T) {
 	db := datatest.MySQL(t)
-	st := store.New(db)
+	st := newGrantlessStore(db)
 	ctx := context.Background()
 	data := testLotteryData(t)
 	ids, _ := messengerAccounts(t, db, 1)
@@ -278,7 +278,7 @@ func TestGachaDraws(t *testing.T) {
 
 func TestLotteryPackAndDaily(t *testing.T) {
 	db := datatest.MySQL(t)
-	st := store.New(db)
+	st := newGrantlessStore(db)
 	ctx := context.Background()
 	data := testLotteryData(t)
 	ids, _ := messengerAccounts(t, db, 1)
@@ -336,7 +336,7 @@ func TestLotteryPackAndDaily(t *testing.T) {
 
 func TestLotteryActivitySettings(t *testing.T) {
 	db := datatest.MySQL(t)
-	st := store.New(db)
+	st := newGrantlessStore(db)
 	ctx := context.Background()
 	activity := "lottery:" + datatest.Unique()
 	t.Cleanup(func() { datatest.Exec(t, db, "DELETE FROM lottery_activities WHERE activity = ?", activity) })

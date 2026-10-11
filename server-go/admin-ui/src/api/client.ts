@@ -45,6 +45,7 @@ const messages: Record<string, string> = {
   DATA_SERVICE_UNAVAILABLE: '数据服务暂时不可用',
   INTERNAL_ERROR: '服务器内部错误',
   INVALID_ACTIVITY: '活动无效',
+  INVALID_ECONOMY_SETTINGS: '数额无效（每项 0–1,000,000,000 的整数）',
   INVALID_REQUEST: '设置无效（结束时间须晚于开始时间，每日道具须为已知道具，数量 1–1000，最多 8 种）',
   INVALID_GIFT: '赠送无效（道具须为已知道具，数量 1–1000000，天数 0–3650，说明最多 60 字）',
   INVALID_NOTICE: '公告无效（标题 1–40 字，内容 1–400 字，结束时间须晚于开始时间）',

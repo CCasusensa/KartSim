@@ -23,9 +23,11 @@ func TestDefaults(t *testing.T) {
 		cfg.DataNodeID != "data-1" || cfg.PublicOrigin != "" || cfg.RedisDB != 0 {
 		t.Fatalf("unexpected defaults: %+v", cfg)
 	}
-	// ECONOMY.md 0: open registration, no guests, 1.0 rates, 10,000 starting lucci.
+	// ECONOMY.md 2.3/2.4: open registration, no guests, 1.0 rates, 20,000 of
+	// each currency for a new account, 100 点券 per finished race.
 	if cfg.Registration != RegistrationOpen || cfg.AllowGuests || len(cfg.AdminUsernames) != 0 ||
-		cfg.ExpRate != 1 || cfg.LucciRate != 1 || cfg.StartingLucci != 10_000 ||
+		cfg.ExpRate != 1 || cfg.LucciRate != 1 || cfg.StartingLucci != 20_000 ||
+		cfg.StartingCoupon != 20_000 || cfg.StartingKoin != 20_000 || cfg.RaceCoupon != 100 ||
 		!slices.Equal(cfg.TrustedProxies, DefaultTrustedProxies) {
 		t.Fatalf("unexpected economy defaults: %+v", cfg)
 	}
@@ -68,6 +70,9 @@ func TestEconomySettings(t *testing.T) {
 		"KART_EXP_RATE":        "1.5",
 		"KART_LUCCI_RATE":      "0",
 		"KART_STARTING_LUCCI":  "0",
+		"KART_STARTING_COUPON": "5",
+		"KART_STARTING_KOIN":   "6",
+		"KART_RACE_COUPON":     "7",
 		"KART_TRUSTED_PROXIES": "10.0.0.0/8, 192.168.1.10, ::ffff:172.16.0.1, fd00::/8",
 	}))
 	if err != nil {
@@ -77,7 +82,8 @@ func TestEconomySettings(t *testing.T) {
 		netip.MustParsePrefix("172.16.0.1/32"), netip.MustParsePrefix("fd00::/8")}
 	if cfg.Registration != RegistrationInvite || !cfg.AllowGuests ||
 		!slices.Equal(cfg.AdminUsernames, []string{"winde", "ops_2"}) || cfg.ExpRate != 1.5 || cfg.LucciRate != 0 ||
-		cfg.StartingLucci != 0 || !slices.Equal(cfg.TrustedProxies, want) {
+		cfg.StartingLucci != 0 || cfg.StartingCoupon != 5 || cfg.StartingKoin != 6 || cfg.RaceCoupon != 7 ||
+		!slices.Equal(cfg.TrustedProxies, want) {
 		t.Fatalf("unexpected config: %+v", cfg)
 	}
 	cfg, err = FromEnv(env(map[string]string{"KART_CLUSTER_SECRET": secret, "KART_TRUSTED_PROXIES": "none",
