@@ -29,6 +29,8 @@ export interface TrackMetadata {
   isOnlyItemTrack?: boolean;
   isOnlyRoadBlockTrack?: boolean;
   isOnlyTraining?: boolean;
+  /** Road collision extent in client units (the release grid is 2000). */
+  roadExtent?: number;
 }
 
 export interface TrackChoice {

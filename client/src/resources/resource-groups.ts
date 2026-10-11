@@ -81,6 +81,10 @@ const RULES: Rule[] = [
       "stage_gameReady", "stage_replay", "stage_replayReady", "dialog2_selectTrackEx", "dialog2_selectTrackSmall",
       "dialog2_timeAttack", "zeta_cn_ppl"],
   },
+  {
+    id: "city", title: "卡丁城", description: "开放世界城市：城市模型、贴图与小地图",
+    names: ["track_kartcity"],
+  },
   { id: "tracks", title: "赛道", description: "按主题下载：赛道模型、主题贴图与主题音乐" },
   {
     id: "karts", title: "车辆", description: "全部车辆模型与贴图（选车、比赛、车库、商城预览）",

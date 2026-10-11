@@ -220,7 +220,8 @@ function auxiliaryDirection(descriptor: RoadDescriptor, uvs: number[][],
 
 /** Walks each model node, inheriting the nearest road declaration and cull mode. */
 export function extractTrackRoads(root: RoadModelNode,
-  descriptorIssue: (descriptor: RoadDescriptor) => string | undefined): RoadExtraction {
+  descriptorIssue: (descriptor: RoadDescriptor) => string | undefined,
+  roadExtent = 2e3): RoadExtraction {
   const triangles: RoadCollisionTriangle[] = [];
   const deferredTriangles: RoadCollisionTriangle[] = [];
   const issues: RoadExtraction["issues"] = [];
@@ -283,8 +284,8 @@ export function extractTrackRoads(root: RoadModelNode,
         const c = positions[cIndex];
         if (!a || !b || !c)
           throw new Error(`${node.name} 的原版 road 索引越界。`);
-        if (![a, b, c].every(vertex => vertex[0] >= 0 && vertex[0] < 2e3
-          && vertex[1] >= 0 && vertex[1] < 2e3)) return;
+        if (![a, b, c].every(vertex => vertex[0] >= 0 && vertex[0] < roadExtent
+          && vertex[1] >= 0 && vertex[1] < roadExtent)) return;
         const normal = triangleNormal(a, b, c);
         if (!normal) return;
         const triangle: RoadCollisionTriangle = {

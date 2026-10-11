@@ -135,8 +135,8 @@ export async function buildCity({ library, formats, design }) {
   const ground = {
     grass: city.surface("grass", "F_tilegrass00", V, { road: { surface: "dirt" } }),
     sand: city.surface("sand", "bc_sand_01", B, { road: { sound: "모래바닥" } }),
-    snow: city.surface("snow", "ice_road_A", I, { road: { sound: "눈바닥" } }),
-    concrete: city.surface("concrete", "cement_00", V, { road: {} }),
+    snow: city.surface("snow", "road_snow_D", I, { road: { sound: "눈바닥" } }),
+    concrete: city.surface("concrete", "cement01", ["common"], { road: {} }),
     factory: city.surface("factory-floor", "fact_floor001", FA, { road: {} }),
     rock: city.surface("rock", "cliff_set", V, { road: {} }),
     seabed: city.surface("seabed", "bc_sand_01", B, { road: { sound: "물밟기", dust: "water" } }),
@@ -160,12 +160,12 @@ export async function buildCity({ library, formats, design }) {
 
   // Roads.
   const roadSurfaces = {
-    expressway: city.surface("road-expressway", "r_road00_j", K, { road: {} }),
-    avenue: city.surface("road-avenue", "db_cenroad_ss", W, { road: {} }),
-    street: city.surface("road-street", "cn_road04_j", CN, { road: {} }),
-    lane: city.surface("road-lane", "F_road02", V, { road: {} }),
+    expressway: city.surface("road-expressway", "bc_road04", B, { road: {} }),
+    avenue: city.surface("road-avenue", "cement08", ["common"], { road: {} }),
+    street: city.surface("road-street", "cement05", ["common"], { road: {} }),
+    lane: city.surface("road-lane", "cement04", ["common"], { road: {} }),
     circuit: city.surface("road-circuit", "f1_road_m00", K, { road: {} }),
-    tunnel: city.surface("road-tunnel", "war_road_cement00_j", M, { road: {} }),
+    tunnel: city.surface("road-tunnel", "war_road01_cj", M, { road: {} }),
   };
   const rail = city.surface("rail", "fence00", V, { road: {}, cull: 1 });
   const tunnelWall = city.surface("tunnel-wall", "war_road_wall01", M, { road: {}, cull: 1 });
@@ -251,18 +251,19 @@ async function main() {
   // Encode, pack and register (the writer modules are built in parallel; fail clearly when absent).
   const { encodeTrackModel } = await import("../../src/resources/track-binary-writer.ts");
   const { packRhoArchive } = await import("../../src/codecs/rho-writer.ts");
-  const folder = `track_/${TRACK_ID}`;
+  // The archive has no aaa.pk mount, so the browser mounts it at
+  // `track_kartcity/`; files sit at the archive root.
   const files = [];
-  files.push({ path: `${folder}/track.1s`, bytes: encodeTrackModel(built.model) });
+  files.push({ path: "track.1s", bytes: encodeTrackModel(built.model) });
   // Skydome: the village dome with our own texture name.
   const skySource = library.files.find(f => f.virtualPath.toLowerCase() === "track_/village_i11/skydome.1s");
   const sky = formats.y9(await skySource.bytes()).root;
   const skyStem = built.city.textures.theme("village_skydome", ["village"]);
   const renameSky = n => { for (const s of n.slots) if (s?.kind === "texture") s.name = skyStem; n.children.forEach(renameSky); };
   renameSky(sky);
-  files.push({ path: `${folder}/skydome.1s`, bytes: encodeTrackModel(sky) });
-  files.push({ path: `${folder}/xt_minimap.png`, bytes: built.minimapPng });
-  for (const entry of await built.city.textures.entries()) files.push({ path: `${folder}/${entry.path}`, bytes: entry.bytes });
+  files.push({ path: "skydome.1s", bytes: encodeTrackModel(sky) });
+  files.push({ path: "xt_minimap.png", bytes: built.minimapPng });
+  for (const entry of await built.city.textures.entries()) files.push({ path: entry.path, bytes: entry.bytes });
   mkdirSync(outDir, { recursive: true });
   let total = 0;
   for (const file of files) {
@@ -275,6 +276,12 @@ async function main() {
   const archivePath = path.join(outDir, `track_${TRACK_ID}.rho`);
   writeFileSync(archivePath, archive);
   console.log(`wrote ${files.length} files (${(total / 1e6).toFixed(1)} MB) and ${archivePath} (${(archive.length / 1e6).toFixed(1)} MB)`);
+  if (args.includes("--register")) {
+    const { registerContainer } = await import("./register-container.mjs");
+    const result = await registerContainer({ mirrorRoot: path.resolve(option("--register-into") ?? projectRoot), containerPath: archivePath });
+    for (const line of result.log ?? []) console.log(line);
+    if (result.problems?.length) { console.error(result.problems); process.exit(1); }
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

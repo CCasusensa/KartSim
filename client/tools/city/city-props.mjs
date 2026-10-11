@@ -57,7 +57,11 @@ export function pushBox(city, terrain, { x, z, w, d, h, wall, roof, tile = 8, ya
 
 export function buildBuildings(city, terrain, samples) {
   const design = city.design;
-  const roof = city.surface("roof", "wp_roof", P, { road: {}, colors: true });
+  const roofs = {
+    tile: city.surface("roof-tile", "cn_jaroof00_j", ["common"], { road: {}, colors: true }),
+    flat: city.surface("roof-flat", "cement_15", ["common"], { road: {}, colors: true }),
+    home: city.surface("roof-home", "wp_house_outroof_t", P, { road: {}, colors: true }),
+  };
   const placed = [];
   const keepOut = design.pois.map(poi => ({ at: poi.at, r: poi.kind === "landmark" || poi.kind === "function" ? 45 : 30 }));
   for (const district of design.districts) {
@@ -80,7 +84,7 @@ export function buildBuildings(city, terrain, samples) {
       if (keepOut.some(k => Math.hypot(k.at[0] - x, k.at[1] - z) < k.r + radius)) continue;
       if (placed.some(b => Math.hypot(b.x - x, b.z - z) < b.r + radius + 3)) continue;
       const h = style.height[0] + city.rng() * (style.height[1] - style.height[0]);
-      pushBox(city, terrain, { x, z, w, d, h, wall: wallSurfaces[Math.floor(city.rng() * wallSurfaces.length)], roof, tile: style.tile });
+      pushBox(city, terrain, { x, z, w, d, h, wall: wallSurfaces[Math.floor(city.rng() * wallSurfaces.length)], roof: district.buildings === "dense-low" ? roofs.tile : roofs.flat, tile: style.tile });
       placed.push({ x, z, r: radius });
       done++;
     }
@@ -101,7 +105,7 @@ export function buildBuildings(city, terrain, samples) {
           const x = px + nx * side * (sample.width / 2 + 11), z = pz + nz * side * (sample.width / 2 + 11);
           if (!clearOfRoads(samples, x, z, 9)) continue;
           if (keepOut.some(k => Math.hypot(k.at[0] - x, k.at[1] - z) < 24)) continue;
-          pushBox(city, terrain, { x, z, w: 11, d: 12, h: 6.5 + city.rng() * 2, wall: walls[Math.floor(city.rng() * walls.length)], roof, tile: style.tile });
+          pushBox(city, terrain, { x, z, w: 11, d: 12, h: 6.5 + city.rng() * 2, wall: walls[Math.floor(city.rng() * walls.length)], roof: roofs.home, tile: style.tile });
         }
       }
     }
@@ -127,13 +131,16 @@ function pushTree(city, terrain, surface, x, z, height, width) {
 export function buildTrees(city, terrain, samples) {
   const design = city.design;
   const kinds = [
-    city.surface("tree-a", "db_tree01", W, { test: true, cull: 1 }),
-    city.surface("tree-b", "db_tree02", W, { test: true, cull: 1 }),
-    city.surface("tree-c", "bc_tree01", B, { test: true, cull: 1 }),
-    city.surface("tree-d", "F_mtree00", F, { test: true, cull: 1 }),
+    city.surface("tree-a", "tree01_c01", ["china"], { test: true, cull: 1 }),
+    city.surface("tree-b", "tree02_c", ["china"], { test: true, cull: 1 }),
+    city.surface("tree-c", "tree_re09", ["common"], { test: true, cull: 1 }),
+    city.surface("tree-d", "tree_re09", V, { test: true, cull: 1 }),
   ];
+  const blossom = city.surface("tree-blossom", "tree_re09", ["china"], { test: true, cull: 1 });
+  const palm = city.surface("tree-palm", "T_tree_kaza01", V, { test: true, cull: 1 });
+  const xmas = city.surface("tree-xmas", "ch_tree_b", ["ice"], { test: true, cull: 1 });
   const pick = () => kinds[Math.floor(city.rng() * kinds.length)];
-  const scatter = (polygon, count, minHeight, maxHeight) => {
+  const scatter = (polygon, count, minHeight, maxHeight, kind = pick) => {
     const xs = polygon.map(p => p[0]), zs = polygon.map(p => p[1]);
     let done = 0, attempts = 0;
     while (done < count && attempts++ < count * 20) {
@@ -141,16 +148,17 @@ export function buildTrees(city, terrain, samples) {
       const z = Math.min(...zs) + city.rng() * (Math.max(...zs) - Math.min(...zs));
       if (!pointInPolygon2([x, z], polygon) || terrain.water(x, z) > -8 || !clearOfRoads(samples, x, z, 5)) continue;
       const h = minHeight + city.rng() * (maxHeight - minHeight);
-      pushTree(city, terrain, pick(), x, z, h, h * 0.8);
+      pushTree(city, terrain, kind(), x, z, h, h * 0.8);
       done++;
     }
   };
   for (const district of design.districts) {
     if (!district.polygon) continue;
     if (district.id === "forest") scatter(district.polygon, 260, 9, 15);
-    else if (district.id === "homes" || district.id === "oldtown" || district.id === "racepark") scatter(district.polygon, 40, 7, 11);
-    else if (district.id === "harbor") scatter(district.polygon, 25, 8, 12);
-    else if (district.id === "funpark") scatter(district.polygon, 30, 7, 11);
+    else if (district.id === "homes") scatter(district.polygon, 40, 7, 10, () => (city.rng() < 0.5 ? blossom : pick()));
+    else if (district.id === "oldtown" || district.id === "racepark") scatter(district.polygon, 40, 7, 11);
+    else if (district.id === "harbor") scatter(district.polygon, 30, 9, 13, () => palm);
+    else if (district.id === "funpark") scatter(district.polygon, 30, 7, 11, () => xmas);
   }
   // Avenue rows.
   for (const id of ["ave-ns", "ave-ew", "diag-ne", "diag-sw"]) {

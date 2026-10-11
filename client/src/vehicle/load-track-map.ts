@@ -122,6 +122,8 @@ export async function loadTrackMap(
     ? ops.dummySounds(model) : [];
   const road = ops.extractRoad(model, mode, {
     forceReverse: /_rvs$/i.test(trackId),
+    // 卡丁城 is wider than the release's 2 km road grid.
+    roadExtent: trackMetadataOverride(trackId)?.roadExtent,
   });
   // 驾照考试: the open course without a final gate (village_C005) ends at its last gate,
   // and the course's tutorial points name their hint scenes.
@@ -192,7 +194,7 @@ export async function loadTrackMap(
   const metadata = lte
     ? { id: trackId, cnTitle: trackId, laps: 1 }
     : await owner.assetHost.getLibrary()?.trackMetadata(trackId) ??
-      (mode === "time-attack" ? trackMetadataOverride(trackId) : undefined);
+      trackMetadataOverride(trackId);
   if (!metadata)
     throw new Error(`${trackId} 缺少权威 track@zz.bml metadata。`);
   const gameType = metadata.gameType ?? "speed";

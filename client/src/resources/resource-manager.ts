@@ -321,7 +321,11 @@ export class ResourceManager {
     const theme = trackThemeOf(id);
     let own: string[] = [];
     try {
-      own = this.library?.entriesUnderCanonicalPrefix(`track_/${id}`).map(entry => entry.sourceName) ?? [];
+      own = [
+        ...(this.library?.entriesUnderCanonicalPrefix(`track_/${id}`) ?? []),
+        // Archives without an aaa.pk mount (卡丁城) live at their own name.
+        ...(this.library?.entriesUnderCanonicalPrefix(`track_${id}`) ?? []),
+      ].map(entry => entry.sourceName);
     } catch { /* Unknown track: its theme and the basics still help. */ }
     const extras = (theme ? this.group(`track:${theme}`)?.containers ?? [] : [])
       .filter(name => /^(theme_|sound_bgm_)/i.test(name));
