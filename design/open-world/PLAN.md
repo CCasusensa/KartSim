@@ -236,3 +236,15 @@
 选广场时扫过全部赛道的平整度（路面面积、水平占比、高度分位）：village_B02 是中央深坑的倾斜碗形场地，不能做枢纽；village_C005/C106（驾校练习场）太大太空；village_B04 体育场平坦（96% 水平、高差 6 m）且尺寸合适（380 × 310 m）。
 
 **还没做（v2 缺口）**：连接道路两侧还没有摆房屋/树木/路灯（计划从官方赛道抠子树按原版间距摆放）；表情与喇叭表现层；传送门开房、车库/商店/俱乐部/小屋入口；城市金币；车与车碰撞（刻意关闭）；远端车插值；状态栏仍是 DOM 文本；管理后台城市页面。调试传送（`__kartcity.teleportLocal`）连续跨城区会触发服务端 CHEAT 踢出，正常驾驶不受影响。
+
+## 9. v3：Blender 建城 + Tripo AI 道具（2026-10-11 第三版）
+
+用户要求：按跑跑卡丁车的风格全部重新设计一张卡丁城，用 Blender 设计后导出；所有 3D 模型素材用 Tripo（文生 3D）生成，风格覆盖跑跑卡丁车的各种主题；要低模，不要太多三角面；城市、隧道、高楼这类也用它生成。
+
+**布局**（`client/tools/city/blender/kartcity.py`，Blender 5.2 无头运行）：圆形中央广场（r 90，喷泉 + 路灯 + 花坛 + 长椅，六座城门）；六条放射大道（0°/60°/…/300°，宽 14）从广场到 r 620 的环城高速（宽 16，路线图主环，每 100 m 一道门）；大道之间六个 60° 扇区，各一条 r 370 的环街（宽 10）和一条通向地标的支路：摩天城区（北，高楼、商场、车站、加油站、混凝土隧道）、冰河乐园（东北，冰城堡、冰屋、雪松、企鹅、冰洞）、阳光海滩（东南，灯塔、海滩小屋、棕榈、泻湖）、城镇小屋（南，小房子、风车、公交站）、金字塔沙漠（西南，金字塔、狮身人面像、仙人掌、方尖碑、沙漠集市、沙岩门）、森林公园（西北，松树、橡树、木屋、瞭望塔、蘑菇、树篱隧道）。环外是草地与树到 ±1200 的边界围栏。路面、路缘（b_side）、围栏、草地、沙地、冰面、海水都用官方主题贴图（按名字引用，转换时从镜像取原图）。
+
+**素材**（`assets.mjs`，66 个）：Tripo `P1-20260311` 文生 3D，`face_limit` 300–4000、无 PBR、`auto_size`，提示词统一带"KartRider ×× theme, cute cartoon, chunky low-poly, hand-painted"后缀与负面词；glb 存 `design/open-world/tripo/`（LFS，每个一份 `<id>.json` 记录提示词/任务号，生成不可复现所以永不重生成），key 在本机 `~/.config/kartsim/tripo.env`。Blender 导入后按设计尺寸缩放（隧道按三轴拉伸并下沉到路面）、超预算减面、贴图缩到 512，并给每个道具加不可见碰撞体（kr_collider：盒 / 圆柱 / 柱，贴全透明贴图 + alpha test，带路面属性）；隧道与桥不做碰撞（AI 内部结构不保证能开）。
+
+**转换**（`import-city.mjs`）：读 glb（`glb.mjs`）与 `kartcity-design.json`，材质自定义属性 kr_texture/kr_theme/kr_road/kr_alpha/kr_cull/kr_collider 决定贴图与碰撞，Tripo 材质的 baseColor 图直接进容器；按 240 m 分块合并网格；环城高速采样成路线记录；写小地图、track.xml、天空穹顶，打包注册 `track_kartcity.rho`（约 17 MB，57 万三角形、1.9 万碰撞三角形），并把设计 JSON 写到 design/、client/src/city、server-go。一键：`node tools/city/blender/blender-city.mjs all --mirror <主检出> --register-into <检出>`（分步：assets / props / build / import）。`kartcity.blend` 在 `client/build/blender/out/`（5 秒可重建，不入库），可直接用 Blender 打开修改。
+
+**已验证**：无头浏览器 60 fps；出生点（东南大道）开到广场被喷泉碰撞体挡住；六个城区状态栏正确；城市隧道可穿行；各城区截图外观符合卡丁车风格。**缺口**：道具两两之间只按包围圆避让；隧道/桥仅装饰；环街与大道交叉处的路面叠层用略高的路口圆垫遮盖；没有昼夜灯光的发光贴图；官方道具库（`export-props.mjs`，36 个 OBJ）暂未摆进城里。

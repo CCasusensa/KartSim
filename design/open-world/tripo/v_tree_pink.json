@@ -1,0 +1,15 @@
+{
+ "prompt": "a round cartoon cherry blossom tree with pink fluffy leaves, in the art style of the game KartRider (跑跑卡丁车) village theme: cute cartoon, chunky simplified shapes, bright saturated hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 900,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": null,
+ "bytes": 672116,
+ "recovered": true,
+ "generatedAt": "2026-10-11T17:24:08.672Z"
+}

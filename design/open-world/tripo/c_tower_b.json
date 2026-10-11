@@ -1,0 +1,15 @@
+{
+ "prompt": "a tall cartoon apartment tower with colorful balconies and a red roof, in the art style of the game KartRider (跑跑卡丁车) city theme: cute cartoon, chunky simplified low-poly shapes, bright clean colors, flat hand-painted textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1800,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": null,
+ "bytes": 804084,
+ "recovered": true,
+ "generatedAt": "2026-10-11T17:24:08.679Z"
+}

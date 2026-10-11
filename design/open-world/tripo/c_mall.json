@@ -1,0 +1,14 @@
+{
+ "prompt": "a cartoon shopping mall building with a big glass entrance, a dome and a round sign, in the art style of the game KartRider (跑跑卡丁车) city theme: cute cartoon, chunky simplified low-poly shapes, bright clean colors, flat hand-painted textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 2000,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "aa03f1a6-69ac-41fa-8ccc-2a3689968907",
+ "bytes": 798392,
+ "generatedAt": "2026-10-11T17:03:02.025Z"
+}

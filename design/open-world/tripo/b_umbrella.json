@@ -1,0 +1,15 @@
+{
+ "prompt": "a striped beach umbrella with a wooden lounge chair, in the art style of the game KartRider (跑跑卡丁车) beach theme: cute cartoon, chunky simplified shapes, bright tropical hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 700,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": null,
+ "bytes": 541304,
+ "recovered": true,
+ "generatedAt": "2026-10-11T17:24:08.678Z"
+}

@@ -1,0 +1,14 @@
+{
+ "prompt": "a small cartoon train station building with a big clock and a canopy, in the art style of the game KartRider (跑跑卡丁车) city theme: cute cartoon, chunky simplified low-poly shapes, bright clean colors, flat hand-painted textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 2000,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "67dbf261-71d0-45c4-b46a-7cd07238e3de",
+ "bytes": 779520,
+ "generatedAt": "2026-10-11T17:04:02.183Z"
+}

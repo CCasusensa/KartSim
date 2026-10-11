@@ -1,0 +1,14 @@
+{
+ "prompt": "a big blank billboard on two steel posts, in the art style of the game KartRider (跑跑卡丁车) city theme: cute cartoon, chunky simplified low-poly shapes, bright clean colors, flat hand-painted textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 400,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "5b298ec5-42ca-4e36-890b-142f130420a6",
+ "bytes": 601984,
+ "generatedAt": "2026-10-11T17:05:53.975Z"
+}

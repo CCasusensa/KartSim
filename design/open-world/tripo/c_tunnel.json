@@ -1,0 +1,14 @@
+{
+ "prompt": "a straight hollow road tunnel through a concrete hill: a rectangular archway open at both ends, you can see through it, flat road floor inside, in the art style of the game KartRider (跑跑卡丁车) city theme: cute cartoon, chunky simplified low-poly shapes, bright clean colors, flat hand-painted textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1200,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "2410f38a-7a69-42cb-a898-989bb83dae9d",
+ "bytes": 607708,
+ "generatedAt": "2026-10-11T17:08:40.266Z"
+}

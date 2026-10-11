@@ -1,0 +1,14 @@
+{
+ "prompt": "a small village bakery shop with a striped awning, a big display window and a round sign board, in the art style of the game KartRider (跑跑卡丁车) village theme: cute cartoon, chunky simplified shapes, bright saturated hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 2500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "f60e2b21-ee33-4a18-8c7c-e2acea3786b3",
+ "bytes": 911136,
+ "generatedAt": "2026-10-11T16:46:14.241Z"
+}

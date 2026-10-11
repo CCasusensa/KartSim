@@ -1,0 +1,14 @@
+{
+ "prompt": "a trimmed round street tree in a square concrete planter, in the art style of the game KartRider (跑跑卡丁车) city theme: cute cartoon, chunky simplified low-poly shapes, bright clean colors, flat hand-painted textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 700,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "9562e407-118f-4df2-9327-3f1498444123",
+ "bytes": 456796,
+ "generatedAt": "2026-10-11T17:06:47.776Z"
+}

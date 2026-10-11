@@ -1,0 +1,14 @@
+{
+ "prompt": "a straight hollow ice cave tunnel: a blue ice archway open at both ends, you can see through it, flat floor, in the art style of the game KartRider (跑跑卡丁车) ice theme: cute cartoon, chunky simplified shapes, cool blue and white hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1200,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "424b7808-ee69-460a-a62b-10da96201186",
+ "bytes": 747280,
+ "generatedAt": "2026-10-11T17:10:50.388Z"
+}

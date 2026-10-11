@@ -1,0 +1,14 @@
+{
+ "prompt": "a big old oak tree with a wide canopy and exposed roots, in the art style of the game KartRider (跑跑卡丁车) forest theme: cute cartoon, chunky simplified shapes, lush green hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1200,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "64b0b7b9-7eed-4139-a590-db55f6d10a74",
+ "bytes": 919544,
+ "generatedAt": "2026-10-11T16:54:08.368Z"
+}

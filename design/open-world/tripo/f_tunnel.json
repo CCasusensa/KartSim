@@ -1,0 +1,14 @@
+{
+ "prompt": "a straight hollow wooden log tunnel over a road: an archway of logs open at both ends, you can see through it, flat floor, in the art style of the game KartRider (跑跑卡丁车) forest theme: cute cartoon, chunky simplified shapes, lush green hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1200,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "2d454ced-922c-4ec8-831c-422c1e0733c8",
+ "bytes": 614088,
+ "generatedAt": "2026-10-11T17:09:36.881Z"
+}

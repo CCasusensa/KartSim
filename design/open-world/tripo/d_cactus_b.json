@@ -1,0 +1,15 @@
+{
+ "prompt": "a round barrel cactus with a pink flower on top, in the art style of the game KartRider (跑跑卡丁车) desert theme: cute cartoon, chunky simplified shapes, warm sand and terracotta hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": null,
+ "bytes": 502744,
+ "recovered": true,
+ "generatedAt": "2026-10-11T17:24:08.676Z"
+}

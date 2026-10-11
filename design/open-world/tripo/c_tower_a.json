@@ -1,0 +1,15 @@
+{
+ "prompt": "a tall cartoon office skyscraper with blue glass windows, a flat roof and a rooftop antenna, in the art style of the game KartRider (跑跑卡丁车) city theme: cute cartoon, chunky simplified low-poly shapes, bright clean colors, flat hand-painted textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": null,
+ "bytes": 847060,
+ "recovered": true,
+ "generatedAt": "2026-10-11T17:24:08.679Z"
+}

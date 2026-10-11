@@ -29,7 +29,7 @@ func TestDefaultMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.Name != "卡丁城" || len(m.Districts) != 5 || len(m.Spawns) != 6 {
+	if m.Name != "卡丁城" || len(m.Districts) != 7 || len(m.Spawns) != 7 {
 		t.Fatalf("name %q, %d districts, %d spawns", m.Name, len(m.Districts), len(m.Spawns))
 	}
 	// Rotation order: the main spawn first, then the district spawns the
@@ -41,15 +41,15 @@ func TestDefaultMap(t *testing.T) {
 			t.Fatalf("spawn %s heading %v", spawn.ID, spawn.Heading)
 		}
 	}
-	if strings.Join(order, ",") != "spawn-main,spawn-plaza,spawn-oldtown,spawn-homes,spawn-forest,spawn-funpark" || m.Spawns[0].Z != 30 {
+	if strings.Join(order, ",") != "spawn-main,spawn-city,spawn-ice,spawn-beach,spawn-village,spawn-desert,spawn-forest" || m.Spawns[0].X != 75 || m.Spawns[0].Z != 129.9 {
 		t.Fatalf("spawns %+v", m.Spawns)
 	}
 	// The map spans ±1200 m: the physics frame is shifted by that.
 	if m.OffsetX != 1200 || m.OffsetZ != 1200 {
 		t.Fatalf("offsets %v %v", m.OffsetX, m.OffsetZ)
 	}
-	if spawn, ok := m.Spawn("spawn-oldtown"); !ok || spawn.X != -723.7 || spawn.Z != -452.3 {
-		t.Fatalf("spawn-oldtown %+v %v", spawn, ok)
+	if spawn, ok := m.Spawn("spawn-forest"); !ok || spawn.X != -206.9 || spawn.Z != -306.7 || spawn.Heading != 236 {
+		t.Fatalf("spawn-forest %+v %v", spawn, ok)
 	}
 	if _, ok := m.Spawn("spawn-moon"); ok {
 		t.Fatal("spawn-moon exists")
@@ -58,16 +58,17 @@ func TestDefaultMap(t *testing.T) {
 		x, z float64
 		want string
 	}{
-		{0, 0, "plaza"},          // the plaza centre (village_B04's stadium field)
-		{0, 150, "plaza"},        // just inside its footprint (the rim)
-		{0, 215, Outside},        // 中央大道 south of the stands
-		{-620, -560, "oldtown"},  // village_I02
-		{600, -600, "homes"},     // village_I04
-		{-600, 580, "forest"},    // forest_I01
-		{620, 600, "funpark"},    // ice_I02
-		{0, -528.5, Outside},     // 北街 between the districts
-		{1150, -1150, Outside},   // a corner outside every district
-		{-5000, 0, Outside},      // off the map
+		{0, 0, "plaza"},            // the fountain
+		{0, 120, "plaza"},          // inside the plaza disc (r 125)
+		{0, 150, "village"},        // the 城镇小屋 sector (south, 240°–300°)
+		{0, -370, "city"},          // 摩天城区 (north)
+		{320.4, -185, "ice"},       // 冰河乐园 (north-east)
+		{320.4, 185, "beach"},      // 阳光海滩 (south-east)
+		{-320.4, 185, "desert"},    // 金字塔沙漠 (south-west)
+		{-320.4, -185, "forest"},   // 森林公园 (north-west)
+		{0, 700, Outside},          // beyond the ring expressway
+		{1150, -1150, Outside},     // a corner outside every district
+		{-5000, 0, Outside},        // off the map
 	} {
 		if got := m.DistrictAt(tc.x, tc.z); got != tc.want {
 			t.Errorf("DistrictAt(%v, %v) = %s, want %s", tc.x, tc.z, got, tc.want)

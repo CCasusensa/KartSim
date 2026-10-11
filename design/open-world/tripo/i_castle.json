@@ -1,0 +1,14 @@
+{
+ "prompt": "a small ice castle with blue crystal towers, a gate and snowy walls, in the art style of the game KartRider (跑跑卡丁车) ice theme: cute cartoon, chunky simplified shapes, cool blue and white hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 4000,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "93c7390f-8aa3-4016-8915-b56b28373cdf",
+ "bytes": 747224,
+ "generatedAt": "2026-10-11T16:59:37.446Z"
+}

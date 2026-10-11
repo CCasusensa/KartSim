@@ -1,0 +1,14 @@
+{
+ "prompt": "a giant red mushroom with white spots, in the art style of the game KartRider (跑跑卡丁车) forest theme: cute cartoon, chunky simplified shapes, lush green hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 700,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "b3944cf2-840b-4681-b6aa-33b5a2de50d6",
+ "bytes": 465552,
+ "generatedAt": "2026-10-11T16:55:44.598Z"
+}

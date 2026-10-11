@@ -1,0 +1,14 @@
+{
+ "prompt": "a tall cartoon pine tree with three layers of green foliage, in the art style of the game KartRider (跑跑卡丁车) forest theme: cute cartoon, chunky simplified shapes, lush green hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 900,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people"
+ },
+ "taskId": "f1eda071-529a-45da-a130-ef02f341a870",
+ "bytes": 468560,
+ "generatedAt": "2026-10-11T16:52:24.384Z"
+}
