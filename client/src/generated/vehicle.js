@@ -1,6 +1,7 @@
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
 // Stable minified names are retained for behavioral parity.
+import { isBrawlRaceRules, isBrawlTrack, roomSlotCount } from "../multiplayer/lobby-brawl-mode.ts"; // brawl(lobby)
 import { isItemRaceRules, sameItemRaceRules } from "../multiplayer/lobby-item-mode.ts"; // item-mode(lobby)
 import { itemTrackCatalog } from "../resources/track-catalog.ts"; // item-mode(lobby)
 
@@ -5900,7 +5901,7 @@ function w40(n, e) {
   )
     throw new Error("巨人比赛冻结身份或地图无效。");
   if (
-    (iL(e),
+    (iL(e, roomSlotCount(G2(n))), // brawl(lobby)
     G2(n) === "lte" &&
       (n.trackId !== void 0 ||
         n.randomTrackCode !== bI ||
@@ -5919,6 +5920,12 @@ function w40(n, e) {
       : e.item !== void 0
   )
     throw new Error("道具赛冻结参数无效。");
+  if ( // brawl(lobby)
+    G2(n) === "brawl"
+      ? !isBrawlRaceRules(e.brawl, e.roster) || !isBrawlTrack(e.trackId)
+      : e.brawl !== void 0
+  )
+    throw new Error("50人乱斗冻结参数无效。");
   if (
     G2(n) === "roadblock" &&
     (!e.roadblock ||
@@ -5942,7 +5949,7 @@ function w40(n, e) {
     n.race?.raceId !== e.raceId ||
     (n.randomTrackCode === void 0 && n.trackId !== e.trackId) ||
     e.roster.length < 2 ||
-    e.roster.length > 8
+    e.roster.length > roomSlotCount(G2(n)) // brawl(lobby)
   )
     throw new Error("多人实跑开放P3553国服标准或无限速度的个人与组队竞速。");
   const t = new Set(),
@@ -5957,7 +5964,7 @@ function w40(n, e) {
       i.has(r.slot) ||
       !Number.isInteger(r.slot) ||
       r.slot < 0 ||
-      r.slot > 7
+      r.slot > roomSlotCount(G2(n)) - 1 // brawl(lobby)
     )
       throw new Error("本局参赛名单或装备不完整。");
     return (

@@ -1,5 +1,7 @@
 /** Small room state projections shared by the lobby view. */
 
+import { isBrawl, roomSlotCount } from "./lobby-brawl-mode";
+
 export interface LobbyRoomMember {
   playerId: string;
   slot: number;
@@ -28,14 +30,15 @@ export function lobbyRiderSlots(room: LobbyRoomSnapshot,
   playerId: string): (LobbyRoomSlot | undefined)[] {
   const ownSlot = room.members.find(member => member.playerId === playerId)?.slot;
   if (ownSlot === undefined) return [];
-  const slots = Array.from({ length: 8 }, (_, slot) => ({
+  const slots = Array.from({ length: roomSlotCount(room.gameplay) }, (_, slot) => ({
     slot,
     member: room.members.find(member => member.slot === slot),
     open: (room.mode === "individual" ? slot < room.capacity
       : slot % 4 < room.capacity / 2) &&
       !room.closedSlots?.includes(slot),
   }));
-  return room.mode === "team" ? slots
+  // A 50人乱斗 room's seats stay in seat order (its grid shows them all).
+  return room.mode === "team" || isBrawl(room.gameplay) ? slots
     : [slots[ownSlot], ...slots.filter(value => value.slot !== ownSlot)];
 }
 

@@ -22,7 +22,7 @@ export interface RoomTemplateLoaderDependencies extends RoomTemplateDependencies
 }
 
 export async function loadLobbyRoomTemplate(library: unknown,
-  roadblock: boolean, dependencies: RoomTemplateLoaderDependencies):
+  roadblock: boolean, dependencies: RoomTemplateLoaderDependencies, brawl = false):
   Promise<RoomTemplateNode | undefined> {
   const [root, riderCard, teams, difficulty, talkBalloon] = await Promise.all([
     dependencies.loadDefinition(library, "stage_/mqReady", "stage_window@zz"),
@@ -32,7 +32,7 @@ export async function loadLobbyRoomTemplate(library: unknown,
     dependencies.loadDefinition(library, "stage_/mqReady", "talkBalloon@zz"),
   ]);
   return buildLobbyRoomTemplate(root, riderCard, teams, difficulty,
-    talkBalloon, roadblock, dependencies);
+    talkBalloon, roadblock, dependencies, brawl);
 }
 
 const slotPartNames = new Set([
@@ -49,7 +49,7 @@ export function buildLobbyRoomTemplate(
   root: RoomTemplateNode, riderCard: RoomTemplateNode,
   teams: TeamCardTemplate[] = [], difficulty?: RoomTemplateNode,
   talkBalloon?: RoomTemplateNode, roadblock = false,
-  dependencies?: RoomTemplateDependencies,
+  dependencies?: RoomTemplateDependencies, brawl = false,
 ): RoomTemplateNode | undefined {
   if (!dependencies) throw new Error("Lobby room template dependencies are required");
   const { attribute, clone } = dependencies;
@@ -98,6 +98,10 @@ export function buildLobbyRoomTemplate(
         resourceRoot: "gui_/windowTemplate",
       })));
       return { ...node, children: [...node.children, label] };
+    }
+    if (brawl && /^rider[0-7]$/.test(name)) {
+      // 50人乱斗: the eight cards' area holds all 50 seats (brawlSeats).
+      return name === "rider0" ? brawlSeats(node, riderCard, slotParts, { attribute, clone }) : undefined;
     }
     if (/^rider[0-7]$/.test(name)) {
       const prefix = `${name}/`;
@@ -200,6 +204,83 @@ export function addLobbyRandomTeamToggle(root: RoomTemplateNode,
       { name: "leftTopWH", value: "942 68 250 36" }], children: [] };
   const moved = move(root);
   return { ...moved, children: [...moved.children, toggle] };
+}
+
+/** Seat grid of a 50人乱斗 room: 10 × 5 cards at 40 % of the release's 251 × 313. */
+export const BRAWL_SEAT_GRID = { columns: 10, rows: 5, width: 100, height: 125,
+  stepX: 100.4, stepY: 125.2 } as const;
+
+/**
+ * The 50 seats of a 50人乱斗 room in place of the release's eight cards
+ * (rider0 at the top left of the 4 × 2 card area, 1004 × 626): each seat
+ * `rider<slot>` is a release card scaled to BRAWL_SEAT_GRID — its empty,
+ * taken and closed backgrounds, cover, 3D preview, name, host, ready and
+ * changing tags, own-rider frame and kick button — plus an "AI" hint for an
+ * open seat, which an AI racer takes at the start. Emblems, the info button
+ * and talk balloons do not fit and are left out.
+ */
+function brawlSeats(first: RoomTemplateNode, riderCard: RoomTemplateNode,
+  slotParts: RoomTemplateNode[], dependencies: RoomTemplateDependencies): RoomTemplateNode {
+  const { attribute, clone } = dependencies;
+  const grid = BRAWL_SEAT_GRID;
+  const part = (name: string) => slotParts.find(node => attribute(node, "name") === name);
+  // A part moved to rect: its own position and size attributes dropped.
+  const placed = (node: RoomTemplateNode, name: string, rect: string,
+    extra: Record<string, string> = {}): RoomTemplateNode => ({
+    ...node,
+    attributes: [
+      ...node.attributes.filter(field => !["name", "leftTopTex", "leftTopWH", "windowRect",
+        "clientRect", "align", "adjust", "riderRect", "autoMultiTexture"].includes(field.name)),
+      { name: "name", value: name }, { name: "leftTopWH", value: rect },
+      ...Object.entries(extra).map(([field, value]) => ({ name: field, value })),
+    ],
+    children: [],
+  });
+  const full = `0 0 ${grid.width} ${grid.height}`;
+  const seats = Array.from({ length: grid.columns * grid.rows }, (_, slot) => {
+    const prefix = `rider${slot}/`;
+    const background = (texture: string, hover = false) => placed(riderCard,
+      prefix + texture + (hover ? "Hover" : ""), full,
+      { texture: texture.replace(/_1$/, hover ? "_1" : "_2") });
+    const children: RoomTemplateNode[] = [
+      background("btn_singleEmptySlot1_1"), background("btn_singleEmptySlot1_1", true),
+      background("btn_singleSlot1_1"), background("btn_singleSlot1_1", true),
+      { name: "Panel", text: "", attributes: [{ name: "name", value: prefix + "preview" },
+        { name: "windowRect", value: `-2 0 ${grid.width - 2} ${grid.height - 2}` }], children: [] },
+      placed(riderCard, prefix + "singleCover", full, { texture: "btn_singleSlotCover" }),
+    ];
+    const closed = part("closed");
+    if (closed) {
+      const panel = { ...closed, name: "Panel",
+        attributes: closed.attributes.filter(field => field.name !== "autoLoadImage") };
+      children.push(placed(panel, prefix + "closed", full, { texture: "btn_slotClose_1" }),
+        placed(panel, prefix + "closedHover", full, { texture: "btn_slotClose_2" }));
+    }
+    for (const tag of ["bossTag_me", "bossTag_other", "ready", "changing"]) {
+      const node = part(tag);
+      if (node) children.push(placed(node, prefix + tag, `0 ${grid.height - 18} ${grid.width} 18`));
+    }
+    const frame = part("myRiderTag");
+    if (frame) children.push(placed(frame, prefix + "myRiderTag", full));
+    const label = part("riderNameLabel");
+    if (label) children.push(placed(label, prefix + "riderNameLabel", `0 1 ${grid.width} 15`,
+      { textRender: "outline12", marginRect: "0 0 0 0" }));
+    children.push({ name: "Label", text: "", attributes: [
+      { name: "name", value: prefix + "aiHint" },
+      { name: "leftTopWH", value: `0 ${grid.height / 2 - 12} ${grid.width} 24` },
+      { name: "text", value: "AI" }, { name: "textRender", value: "outline16" },
+      { name: "textColor", value: "255 150 168 196" }, { name: "textAlign", value: "center" },
+    ], children: [] });
+    // An ImageButton draws its icon unscaled, centred: bottom right of the preview.
+    const kick = part("kick");
+    if (kick) children.push(placed(kick, prefix + "kick", `${grid.width - 24} ${grid.height - 43} 24 24`));
+    return { name: "Container", text: "", attributes: [
+      { name: "name", value: `rider${slot}` },
+      { name: "leftTopWH", value: `${Math.round((slot % grid.columns) * grid.stepX)} ` +
+        `${Math.round(Math.floor(slot / grid.columns) * grid.stepY)} ${grid.width} ${grid.height}` },
+    ], children };
+  });
+  return clone(first, { name: "brawlSeats", leftTopWH: "0 0 1004 626" }, seats);
 }
 
 export function addLobbyEmotionWheel(root: RoomTemplateNode,

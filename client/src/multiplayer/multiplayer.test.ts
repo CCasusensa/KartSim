@@ -37,12 +37,15 @@ test("motion framing preserves slot, race tag, mask, kind, sequence and payload"
   });
   assert.equal(isNewerSequence(0, 0xffff_ffff), true);
   assert.equal(isNewerSequence(0xffff_ffff, 0), false);
-  assert.throws(() => encodeMotionFrame({ ...frame, slot: 8 }));
+  assert.throws(() => encodeMotionFrame({ ...frame, slot: 50 }));
   assert.throws(() => encodeMotionFrame({ ...frame, payload: new Uint8Array(164) }));
   assert.throws(() => decodeMotionFrame(bytes.subarray(0, 87)));
   assert.throws(() => decodeMotionFrame(new Uint8Array(172)));
+  const brawlSlot = bytes.slice();
+  brawlSlot[2] = 49; // a 50人乱斗 room's last seat
+  assert.equal(decodeMotionFrame(brawlSlot).slot, 49);
   const badSlot = bytes.slice();
-  badSlot[2] = 8;
+  badSlot[2] = 50;
   assert.throws(() => decodeMotionFrame(badSlot));
   bytes[0] = 0;
   assert.throws(() => decodeMotionFrame(bytes));

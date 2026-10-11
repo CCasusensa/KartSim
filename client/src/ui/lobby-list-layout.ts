@@ -8,7 +8,7 @@
 import { isItemChannel } from "../multiplayer/lobby-item-mode";
 
 export type LobbyGameplay = "ordinary" | "grip" | "shadow" | "roadblock" | "lte" | "giant" | "rp" |
-  "item";
+  "item" | "brawl";
 
 /** Room summary fields the list shows; the server sends these per room. */
 export interface LobbyListRoom {
@@ -90,6 +90,9 @@ export const LOBBY_TABS: readonly LobbyTab[] = [
       channel: "speedIndiCombine", channels: ["speedIndiCombine"] },
     { id: "rp", title: "RP竞速", subtitle: "个人/团体", gameplay: "rp",
       channel: "speedIndiCombine", channels: PAIR },
+    // 50人乱斗 (server-go/BRAWL.md): open seats race as AI.
+    { id: "brawl", title: "50人乱斗", subtitle: "个人/AI补位", gameplay: "brawl",
+      channel: "speedIndiCombine", channels: ["speedIndiCombine"] },
   ] },
 ];
 
@@ -215,7 +218,7 @@ export function visibleLobbyRooms(state: LobbyListUiState,
 
 const GAMEPLAY_NAMES: Record<string, string> = {
   grip: "抓地", shadow: "幽灵", roadblock: "挡人", giant: "巨人", rp: "RP", lte: "LTE",
-  item: "道具",
+  item: "道具", brawl: "乱斗",
 };
 
 /** 模式 column: 个人赛, 团体赛, 无限个人, 无限团体, or the special mode name. */

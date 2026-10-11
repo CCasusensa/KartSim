@@ -1,5 +1,7 @@
 /** Live race presenter commands shared by frame, room, and audio events. */
 
+import { brawlAiIds } from "./lobby-brawl-mode";
+
 export interface RacePresenterActionsHost {
   playerId: unknown;
   resultVisible: boolean;
@@ -121,15 +123,16 @@ export function capturePresenterRankProgress(host: RacePresenterActionsHost): vo
 }
 
 export function updatePresenterRoom(host: RacePresenterActionsHost,
-  room: { phase?: string; race?: { loadedIds?: readonly unknown[] };
+  room: { phase?: string; race?: { loadedIds?: readonly unknown[]; brawl?: { aiIds?: unknown } };
     members: Array<{ playerId: unknown }> }): void {
   if (host.resultVisible) return;
   // Not in the release: past loading, a racer who has not loaded was dropped
-  // by the server and is out like one who left the room.
+  // by the server and is out like one who left the room. A 50人乱斗 race's
+  // AI racers are never room members and never leave.
   const loaded = room.phase !== undefined && room.phase !== "loading"
     ? room.race?.loadedIds : undefined;
-  const present = new Set(room.members.map(member => member.playerId)
-    .filter(playerId => !loaded || loaded.includes(playerId)));
+  const present = new Set([...room.members.map(member => member.playerId)
+    .filter(playerId => !loaded || loaded.includes(playerId)), ...brawlAiIds(room.race)]);
   host.captureRankProgress();
   host.rankRoster.updatePresent(present);
 }

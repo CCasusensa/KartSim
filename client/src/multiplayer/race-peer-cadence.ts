@@ -1,13 +1,17 @@
+import { BRAWL_SLOTS, isBrawl } from "./lobby-brawl-mode";
 import type { RacePoint } from "./race-driving-scales";
 
 export interface CadenceParticipant {
   playerId: string;
   slot: number;
   equipment?: { itemIds: readonly number[] };
+  /** A 50人乱斗 AI racer: the game node drives it, it receives nothing. */
+  ai?: true;
 }
 
 export interface CadenceRace {
   raceId: string;
+  gameplay?: string;
   roster: readonly CadenceParticipant[];
 }
 
@@ -47,16 +51,23 @@ export class RacePeerCadence {
   disposed = false;
   raceId: string;
   special: boolean;
+  /**
+   * 50人乱斗: every 64 ms beat goes to the game node, which relays it to
+   * each racer by distance itself (a recipient mask names only slots 0–7).
+   */
+  broadcast: boolean;
 
   constructor(race: CadenceRace, localId: string, specialMode: boolean) {
     this.localId = localId;
     this.raceId = race.raceId;
     this.special = specialMode;
+    this.broadcast = isBrawl(race.gameplay);
     for (const participant of race.roster) {
       if (participant.playerId === localId) {
         this.localSlot = participant.slot;
         continue;
       }
+      if (participant.ai) continue;
       const itemId = participant.equipment?.itemIds[12];
       if (typeof itemId !== "number" || !Number.isInteger(itemId) ||
         itemId < 0 || itemId > 65_535 || this.peers.has(participant.playerId)) {
@@ -152,6 +163,7 @@ export class RacePeerCadence {
     this.previousMode = motionMode;
     this.previousSuspended = suspended;
     if (!level) return 0;
+    if (this.broadcast) return 0xff;
 
     let recipients = 0;
     for (const peer of this.peers.values()) {
@@ -210,7 +222,7 @@ export class CollisionFramerateHistory {
   constructor(enabled: boolean, opponentIds: readonly string[], counter: { fps: number }) {
     this.enabled = enabled;
     this.counter = counter;
-    if (opponentIds.length > 7 || new Set(opponentIds).size !== opponentIds.length) {
+    if (opponentIds.length > BRAWL_SLOTS - 1 || new Set(opponentIds).size !== opponentIds.length) {
       throw new Error("碰撞帧率历史缺少唯一的本局对手身份。");
     }
     for (const id of opponentIds) this.previous.set(id, false);

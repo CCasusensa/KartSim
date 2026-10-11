@@ -24,7 +24,7 @@
 | `ul` 全部资源装配方法 | `loadRaceCharacters`、`loadCharacterAsset`、`loadVehicleRuntime`、`loadVehicleAsset`、`loadTrackMap`，见对应 `load-*.ts` | 角色身份、车辆与赛道总装配、仪表/音效/特效、天气/事件/轨道、失败清理；发行版差分通过，已接入 |
 | `pv` 车辆音效 | `KartAudioRuntime`、`loadKartAudio`，`kart-audio-runtime.ts` | 引擎转速、碰撞/增压/漂移/路面音、资源回退和释放；发行版差分通过，已接入 |
 | `mv`、`wv` 滑流视听 | `SlipstreamVisual`、`SlipstreamAudio`，`slipstream-effects.ts` | 模型来源、启停、爆发动画、音频循环/结束回调和释放；发行版差分通过，已接入 |
-| `iL`、`rL` 多人起跑位 | `validateRaceStartGrid`、`raceStartPosition`，`race-start-slots.ts` | 0 至 7 号位唯一性、双列间距、路面投影及 float32 坐标；发行版差分通过，已接入 |
+| `iL`、`rL` 多人起跑位 | `validateRaceStartGrid`、`raceStartPosition`，`race-start-slots.ts` | 0 至 7 号位唯一性、双列间距、路面投影及 float32 坐标；发行版差分通过，已接入。50人乱斗另传位数与起跑朝向：8 至 49 号每 8 个一排向后 5 米（`server-go/BRAWL.md`） |
 | `vL`、`U40`、`yL` 比赛正常对象调度 | `LapTiming`、`NormalObjectCoordinator`、`NormalRaceCoordinator`，`normal-coordinator.ts`、`normal-race-coordinator.ts` | 圈速、赛道/车辆/障碍/事件/远端对象更新顺序、配对、路线标签与复位；发行版差分通过，已接入 |
 | `$40`、`DC` 车辆帧时钟 | `VehicleFrameClock`、`normalizeVehicleTime`，`frame-clock.ts` | 最大 500 ms 帧、2 ms 子步、节奏检查、时间同步和 uint32 回绕；发行版差分通过，已接入 |
 

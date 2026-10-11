@@ -133,7 +133,7 @@ test("invalid network payloads are rejected", () => {
   const bad = [valid.subarray(0, 40), valid.subarray(0, valid.length - 1), valid.slice(), valid.slice(),
     valid.slice()];
   bad[2]![0] = 255; // kind
-  bad[3]![2] = 8; // slot
+  bad[3]![2] = 50; // slot past a 50人乱斗 room
   bad[4]![0] = 3; // kind 3 needs a longer payload
   for (const packet of bad) assert.equal(new GameMotionDecoder().decode(packet), undefined);
   // The release's own frames do not parse as protocol 40.
@@ -159,7 +159,7 @@ test("encoder validation and malformed floats keep released behavior", () => {
   const packet = current.encode(kinematic, 3);
   new DataView(packet.buffer).setFloat32(MOTION_HEADER_BYTES + 4, Infinity, true);
   assert.equal(new GameMotionDecoder().decode(packet), undefined);
-  assert.throws(() => new GameMotionEncoder({ ...wire, slot: 8 }));
+  assert.throws(() => new GameMotionEncoder({ ...wire, slot: 50 }));
   assert.throws(() => new GameMotionEncoder({ ...wire, raceId: "race-1" }));
 });
 

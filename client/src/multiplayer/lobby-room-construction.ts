@@ -59,7 +59,7 @@ export interface LobbyRoomConstructionDependencies {
   loadRoleTeams(library: unknown): Promise<unknown[]>;
   loadEmotions(library: unknown): Promise<RoomEmotion[]>;
   loadCountdown(library: unknown): Promise<ConstructedLobbyRoom["countdown"]>;
-  loadDefinition(library: unknown, roadblock: boolean): Promise<unknown>;
+  loadDefinition(library: unknown, roadblock: boolean, brawl?: boolean): Promise<unknown>;
   withEmotions(definition: unknown, emotions: RoomEmotion[]): unknown;
   loadView(options: Record<string, unknown>): Promise<ConstructedLobbyRoom["view"]>;
   /** Paints the lobby scene under the room window, as the original stage does. */
@@ -85,6 +85,14 @@ export function initializeLobbyRoom(host: ConstructedLobbyRoom,
   host.lastChatSequence = room.chat?.at(-1)?.sequence ?? 0;
 }
 
+/** The room template: the roadblock or 50人乱斗 variant by the room's mode (asked once). */
+function loadRoomDefinition(library: unknown, room: RoomSnapshot,
+  dependencies: LobbyRoomConstructionDependencies): Promise<unknown> {
+  const mode = dependencies.mode(room);
+  return mode === "brawl" ? dependencies.loadDefinition(library, false, true)
+    : dependencies.loadDefinition(library, mode === "roadblock");
+}
+
 export async function loadLobbyRoom<T extends ConstructedLobbyRoom>(
   create: (room: RoomSnapshot, playerId: unknown, actions: unknown,
     library: unknown) => T,
@@ -103,8 +111,8 @@ export async function loadLobbyRoom<T extends ConstructedLobbyRoom>(
   try {
     host.view = await dependencies.loadView({
       library, root, preserveDisplayPixels: true, smoothImages: true,
-      definition: dependencies.withEmotions(await dependencies.loadDefinition(
-        library, dependencies.mode(room) === "roadblock"), host.emotions),
+      definition: dependencies.withEmotions(await loadRoomDefinition(library, room, dependencies),
+        host.emotions),
       roots: ["stage_/mqReady", "stage_/common", "stage_/gameReady",
         "gui_/windowTemplate"],
       label: "多人游戏房间",

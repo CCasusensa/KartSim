@@ -1,3 +1,5 @@
+import { roomSlotCount } from "./lobby-brawl-mode";
+
 /** 40 since motion frames name racers by room slot (motion.ts); the release is 39. */
 export const PROTOCOL_VERSION = 40;
 export const ROOM_RULESET = "launcher-room-v1";
@@ -206,14 +208,15 @@ function roomShape(value: unknown): value is RoomSnapshot {
       !safeInteger(value.revision, 1, Number.MAX_SAFE_INTEGER) ||
       !boundedString(value.name, 1, 18) ||
       !["open", "loading", "countdown", "racing", "finished"].includes(String(value.phase)) ||
-      !Array.isArray(value.members) || value.members.length < 1 || value.members.length > 8) return false;
+      !Array.isArray(value.members) || value.members.length < 1 ||
+      value.members.length > roomSlotCount(value.gameplay)) return false;
   if (value.race !== undefined && (!record(value.race) ||
       !boundedString(value.race.raceId, 1, 64) ||
       !Array.isArray(value.race.loadedIds) ||
       !value.race.loadedIds.every((id: unknown) => boundedString(id, 1, 64)))) return false;
   return value.members.every((member: unknown) => record(member) &&
     boundedString(member.playerId, 1, 64) && boundedString(member.name, 1, 18) &&
-    safeInteger(member.slot, 0, 7) && typeof member.ready === "boolean" &&
+    safeInteger(member.slot, 0, roomSlotCount(value.gameplay) - 1) && typeof member.ready === "boolean" &&
     (member.team === null || member.team === 1 || member.team === 2));
 }
 

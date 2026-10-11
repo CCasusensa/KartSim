@@ -19,8 +19,11 @@ export const MAX_MOTION_PAYLOAD_BYTES = 163;
 export const MAX_MOTION_BYTES = MOTION_HEADER_BYTES + MAX_MOTION_PAYLOAD_BYTES;
 /** Offset of the recipient mask, which the sender rewrites per route. */
 export const MOTION_MASK_OFFSET = 1;
-/** Room slots are 0–7, one recipient mask bit each. */
-export const MAX_MOTION_SLOT = 7;
+/**
+ * Room slots are 0–7, one recipient mask bit each, but for a 50人乱斗 room's
+ * 50 seats; its game node relays to every racer whatever the mask.
+ */
+export const MAX_MOTION_SLOT = 49;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** 1 is a driving sample; 2–10 are increasingly detailed kinematic samples. */

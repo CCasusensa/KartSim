@@ -1,5 +1,6 @@
 /** Gameplay channel names and the original room creation dropdown template. */
 
+import { BRAWL_LABEL } from "./lobby-brawl-mode";
 import { itemModeLabel } from "./lobby-item-mode";
 
 export interface RoomOptionNode {
@@ -23,6 +24,7 @@ export function roomChannelNames(mode: string,
     itemTeamCombine: itemModeLabel(true),
   };
   if (mode === "giant") return { speedIndiCombine: "巨人模式" };
+  if (mode === "brawl") return { speedIndiCombine: BRAWL_LABEL };
   if (mode === "rp") return rp;
   if (mode === "lte") return {
     speedIndiCombine: "个人LTE Web试玩",

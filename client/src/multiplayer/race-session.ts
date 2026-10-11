@@ -1,3 +1,4 @@
+import { brawlAiIds, isBrawl } from "./lobby-brawl-mode";
 import type { DecodedGameMotion } from "./payload";
 import { isValidItemRequest, type RoomMember, type RoomPhase } from "./protocol";
 import type { ItemServerEvent } from "./server-events";
@@ -26,9 +27,11 @@ export interface PodiumScope {
 export interface SessionRoom {
   roomId: string;
   phase: RoomPhase;
+  gameplay?: string;
   members: RoomMember[];
   race?: { raceId: string; loadedIds: string[]; results?: unknown;
-    roster?: Array<{ playerId: string }>; returnedIds?: string[] };
+    roster?: Array<{ playerId: string; slot?: number }>; returnedIds?: string[];
+    brawl?: { aiIds?: unknown } };
   raceError?: unknown;
 }
 
@@ -91,19 +94,29 @@ export function bindRaceScope(host: RaceSessionHost, room?: SessionRoom): void {
   const race = room.race;
   const enabled = (room.phase === "loading" && race.loadedIds.includes(playerId)) ||
     room.phase === "countdown" || room.phase === "racing";
+  // 50人乱斗: the AI racers send frames under their seats, and the node
+  // relays (and ranks) every frame whatever the mask, which cannot name
+  // seats past 7: it says "everyone" while anybody else races.
+  const ai = brawlAiIds(race);
+  const brawl = isBrawl(room.gameplay);
   let recipientMask = 0;
   for (const member of room.members) {
     if (member.playerId !== playerId && race.loadedIds.includes(member.playerId)) {
-      recipientMask |= 1 << member.slot;
+      recipientMask |= brawl ? 0xff : 1 << member.slot;
     }
   }
+  if (brawl && ai.size > 0) recipientMask = 0xff;
   const slot = room.members.find(member => member.playerId === playerId)!.slot;
   const players = new Map(room.members.map(member => [member.slot, member.playerId]));
+  for (const entry of race.roster ?? []) {
+    if (ai.has(entry.playerId) && entry.slot !== undefined) players.set(entry.slot, entry.playerId);
+  }
+  const memberIds = [...room.members.map(member => member.playerId), ...ai];
 
   const current = host.motionScope;
   if (current?.roomId === room.roomId && current.raceId === race.raceId) {
     current.enabled = enabled;
-    current.members = new Set(room.members.map(member => member.playerId));
+    current.members = new Set(memberIds);
     current.slot = slot;
     current.players = players;
     current.recipientMask = recipientMask;
@@ -113,7 +126,7 @@ export function bindRaceScope(host: RaceSessionHost, room?: SessionRoom): void {
   host.raceLatencies.clear();
   host.motionScope = {
     roomId: room.roomId, raceId: race.raceId,
-    members: new Set(room.members.map(member => member.playerId)),
+    members: new Set(memberIds),
     slot, players, sequence: 0, received: new Map(), enabled, recipientMask,
   };
 }

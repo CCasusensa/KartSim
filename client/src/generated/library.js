@@ -1,6 +1,7 @@
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
 // Stable minified names are retained for behavioral parity.
+import { BRAWL_GAME_TYPE, BRAWL_SLOTS } from "../multiplayer/lobby-brawl-mode.ts"; // brawl(lobby)
 import { itemTrackCatalog } from "../resources/track-catalog.ts"; // item-mode(lobby)
 
 import { RaceHudController } from "../ui/race-hud-controller.ts";
@@ -3314,7 +3315,7 @@ function LJ(n, e, t, i) {
           visibility: (f) => (T(f, "name") === "logout" ? !!s.out : void 0),
           text: (f) =>
             T(f, "name") === "rankStr"
-              ? s.rank > 9
+              ? s.rank > 99 // brawl(lobby)
                 ? "X"
                 : String(s.rank)
               : void 0,
@@ -3333,13 +3334,14 @@ function LJ(n, e, t, i) {
                 ]),
               ),
         h = dt(l, u, i);
-      for (const f of h) r.push(zJ(f, a.x, a.y));
+      for (const f of h)
+        r.push(zJ(f, a.x - (s.rank > 9 && f.kind === "char-panel" && T(f.node, "name") === "rankStr" ? 8 : 0), a.y)); // brawl(lobby)
       const d = PJ(
         s.disconnected ? `${s.name} [dis]` : s.name,
         s.finished && !s.local ? "#0000ff" : "black",
       );
       if (d) {
-        const f = a.x + n.nameRect.left,
+        const f = a.x + n.nameRect.left + (s.rank > 9 ? 4 : 0), // brawl(lobby)
           p = n.nameRect.bottom - n.nameRect.top,
           v = a.y + n.nameRect.top + (p - d.height) / 2;
         r.push({
@@ -3683,7 +3685,11 @@ function JJ(n, e, t, i, r, s) {
       right: c.left + l.right,
       bottom: c.top + l.bottom,
     };
-  return [...a, ...LJ(n.rows, e.rows, u, s)];
+  const wide = e.rank > 9 // brawl(lobby)
+    ? a.map((f) => !f.node ? f : f.node === n.rank ? zJ(f, -20, 0)
+      : f.node === n.suffix || f.node === n.riderCount || T(f.node, "texture") === "diagonal" ? zJ(f, 44, 0) : f)
+    : a;
+  return [...wide, ...LJ(n.rows, e.rows, u, s)];
 }
 
 function e00(n) {
@@ -4033,14 +4039,14 @@ const d2 = Math.fround,
   Gx = d2(d2(800) / d2(799));
 
 function Bx(n) {
-  if (!Number.isInteger(n) || n < 0 || n > 8)
-    throw new Error(`minimap marker participantIndex 必须为 0..8，实际 ${n}。`);
+  if (!Number.isInteger(n) || n < 0 || n > BRAWL_SLOTS - 1) // brawl(lobby)
+    throw new Error(`minimap marker participantIndex 必须为 0..49，实际 ${n}。`);
   return d2(d2(10) - d2(d2(n) * d2(0.1)));
 }
 
 function uh(n) {
-  if (!Number.isInteger(n) || n < 0 || n > 8)
-    throw new Error(`minimap marker participantIndex 必须为 0..8，实际 ${n}。`);
+  if (!Number.isInteger(n) || n < 0 || n > BRAWL_SLOTS - 1) // brawl(lobby)
+    throw new Error(`minimap marker participantIndex 必须为 0..49，实际 ${n}。`);
   return 9 - n;
 }
 
@@ -4995,6 +5001,8 @@ function vI(n) {
     case 2: // item-mode(lobby)
     case 4:
       return Object.freeze({ [Pn]: !0, modeId: n, kind: "item", team: n === 4 });
+    case BRAWL_GAME_TYPE: // brawl(lobby)
+      return Object.freeze({ [Pn]: !0, modeId: n, kind: "brawl", team: !1 });
     default:
       throw new Error(`竞速玩法 ${n} 尚未准入。`);
   }

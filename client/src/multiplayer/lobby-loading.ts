@@ -1,5 +1,6 @@
 import { formatMultiplayerError } from "./errors";
 import type { LobbyRoom } from "./lobby-actions";
+import { brawlAiIds } from "./lobby-brawl-mode";
 
 export interface RaceLoadingView {
   show(loadedCount: number, memberCount: number): void;
@@ -70,7 +71,9 @@ export function syncRaceLoadingView(host: LobbyLoadingHost,
   if (!host.disposed && host.connected && !host.raceVisible && bannerReady &&
       !host.startMission && !host.rpNotice && !host.randomTeamNotice &&
       (room?.phase === "loading" || room?.phase === "countdown")) {
-    overlay.show(room.race?.loadedIds.length ?? 0, room.members.length);
+    // 50人乱斗 AI racers are loaded from the start; count the players.
+    const ai = brawlAiIds(room.race);
+    overlay.show(room.race?.loadedIds.filter(id => !ai.has(id)).length ?? 0, room.members.length);
   } else {
     overlay.hide();
   }

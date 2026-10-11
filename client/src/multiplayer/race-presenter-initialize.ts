@@ -1,5 +1,7 @@
 /** Builds the multiplayer race scene from loaded participants and track owners. */
 
+import { brawlGridForward } from "./lobby-brawl-mode";
+
 interface Vec3 { x: number; y: number; z: number }
 interface SceneMount {
   clear(): void;
@@ -136,7 +138,7 @@ export interface RacePresenterInitializationDependencies {
   createGiantAppearance(local: boolean, vehicleBindings: unknown,
     characterBindings: unknown): unknown;
   startPosition(position: Vec3, right: unknown, slot: unknown,
-    ground: (from: unknown, to: unknown) => Vec3 | undefined): Vec3;
+    ground: (from: unknown, to: unknown) => Vec3 | undefined, forward?: Vec3): Vec3;
   createShadowPresentation(vehicleObject: unknown): unknown;
 }
 
@@ -255,7 +257,8 @@ export function initializeRacePresenter(host: RacePresenterInitializationHost,
       const startPose = runtime.local.startPose;
       const position = dependencies.startPosition(startPose.position,
         startPose.right, race.startSlots[participant.playerId],
-        (from, to) => track.rayQuery(from, to, false)?.point);
+        (from, to) => track.rayQuery(from, to, false)?.point,
+        assets.drivingMode?.kind === "brawl" ? brawlGridForward(startPose.forward as Vec3) : undefined);
       host.initialPoses.set(participant.playerId,
         { ...startPose, position });
       view.updatePose({

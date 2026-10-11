@@ -1838,15 +1838,15 @@
     },
     {
       "file": "formats.js",
-      "bytes": 154652,
-      "sha256": "b258b2ca461a48f4eb3e7336185e14e8b841d21ecef31c0846c8a8cf0a1ebe2a",
+      "bytes": 154982,
+      "sha256": "f82210d5e83cfd05db9faa46c287f51a4cad0f92ba56510408e052499cfd90a6",
       "imports": 71,
       "exports": 185
     },
     {
       "file": "library.js",
-      "bytes": 221844,
-      "sha256": "f193bf690ab45c0c659f16341134ce93d6a6be360ba4e6d259f32c0dddf0be13",
+      "bytes": 222525,
+      "sha256": "8cedcd79c1b2619669e9ef6d49f8dded3472b16c79bbad4035ba3bd7c7e30c8f",
       "imports": 128,
       "exports": 156
     },
@@ -1866,8 +1866,8 @@
     },
     {
       "file": "vehicle.js",
-      "bytes": 185684,
-      "sha256": "de3b64937e37d19f6680cc4aec9d21d6153349e383feac976f6827147bf4fb5d",
+      "bytes": 186118,
+      "sha256": "c405a9f1a348620018022cb473445c89714078801463a5f7cdfb6921813b8185",
       "imports": 183,
       "exports": 104
     },
@@ -1894,8 +1894,8 @@
     },
     {
       "file": "multiplayer.js",
-      "bytes": 37686,
-      "sha256": "4ae5ce34aa95fc4f7a667650322d526fe4c14cc5e6897e4a8b048444026a75c0",
+      "bytes": 37722,
+      "sha256": "38e2b25e32f6513d1270e46853c17b568ed5f8630cb03e5399d02a9ad357f120",
       "imports": 98,
       "exports": 18
     },

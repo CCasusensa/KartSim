@@ -1,7 +1,8 @@
+import { BRAWL_SLOTS, brawlGridForward } from "./lobby-brawl-mode";
 import { isItemRace, isItemRaceRules } from "./lobby-item-mode";
 
 export interface LocalRaceConstructionOps {
-  validateStartSlots(room: any): void;
+  validateStartSlots(room: any, slotCount?: number): void;
   hasLteMode(lte: any): boolean;
   validRpDraws(rp: any, playerIds: string[]): boolean;
   sameRp(left: any, right: any): boolean;
@@ -30,7 +31,8 @@ export function initializeLocalRace(
   if (assets.raceId !== room.raceId) {
     throw new Error("禁止使用上一局的比赛资源。");
   }
-  ops.validateStartSlots(room);
+  const brawl = assets.drivingMode?.kind === "brawl";
+  ops.validateStartSlots(room, brawl ? BRAWL_SLOTS : undefined);
   const localParticipant = assets.participants.find(
     (participant: any) => participant.playerId === localPlayerId);
   if (!localParticipant ||
@@ -99,6 +101,8 @@ export function initializeLocalRace(
     room.startSlots[localPlayerId],
     (point: any, direction: any) =>
       owner.track.rayQuery(point, direction, false)?.point,
+    // 50人乱斗: rows of eight behind the release's row.
+    brawl ? brawlGridForward(owner.physics.body.forward) : undefined,
   );
   owner.track.resetRouteState(owner.physics, owner.physics.body.position);
   owner.track.setLensFlareEnabled(

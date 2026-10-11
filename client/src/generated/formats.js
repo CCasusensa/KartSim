@@ -2,6 +2,7 @@ import { rhoAdler32 } from "../codecs/common.ts";
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
 // Stable minified names are retained for behavioral parity.
+import { BRAWL_GAME_TYPE, BRAWL_LABEL } from "../multiplayer/lobby-brawl-mode.ts"; // brawl(lobby)
 import { itemChannelMismatch, itemRoomLabel } from "../multiplayer/lobby-item-mode.ts"; // item-mode(lobby)
 
 import { isTrackPrs, createPrsRuntime, playPrs, setPrsCycleMode, stopPrs, validatePrs, defaultTrackTransform, applyTrackPrs, sampleTrackPrs } from "../resources/track-prs-animation.ts";
@@ -4730,6 +4731,7 @@ const xX = {
   giant: "巨人模式",
   rp: "RP竞速",
   item: "道具赛", // item-mode(lobby)
+  brawl: "50人乱斗", // brawl(lobby)
 };
 
 function cw(n) {
@@ -4741,7 +4743,8 @@ function cw(n) {
     n === "lte" ||
     n === "giant" ||
     n === "rp" ||
-    n === "item" // item-mode(lobby)
+    n === "item" || // item-mode(lobby)
+    n === "brawl" // brawl(lobby)
   );
 }
 
@@ -4755,7 +4758,7 @@ function To(n, e, t) {
   if (itemChannelMismatch(n, e)) return !1; // item-mode(lobby)
   return (n !== void 0 && !cw(n)) || !$6(e)
     ? !1
-    : n === "roadblock" || n === "giant"
+    : n === "roadblock" || n === "giant" || n === "brawl" // brawl(lobby)
       ? e === "speedIndiCombine" && (t === void 0 || t === "p3553")
       : n === "rp"
         ? t === void 0 || t === "p3553"
@@ -4787,6 +4790,8 @@ function SX(n) {
       return e ? 47 : 46;
     case "item": // item-mode(lobby)
       return e ? 4 : 2;
+    case "brawl": // brawl(lobby)
+      return BRAWL_GAME_TYPE;
   }
 }
 
@@ -4806,6 +4811,7 @@ const H6 = {
 function iR(n) {
   const e = G2(n);
   if (e === "item") return itemRoomLabel(n.channelName); // item-mode(lobby)
+  if (e === "brawl") return BRAWL_LABEL; // brawl(lobby)
   return e === "roadblock"
     ? "挡人模式"
     : e === "giant"

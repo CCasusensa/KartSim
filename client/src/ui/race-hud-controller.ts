@@ -1,6 +1,7 @@
 /** Owns the in-race HUD, its optional classic gauges and the draw command list. */
 import { personalBoostFrame, teamBoostFrame, type RaceHudBoostFrame } from "./race-hud-boost";
 import type { ItemSlotOverlay } from "./item-slot-hud";
+import { condenseRankRows, type StackedRankRow } from "./rank-board-condense";
 
 export interface RaceHudGauge {
   state: { full: boolean };
@@ -224,11 +225,13 @@ export class RaceHudController {
     this.minimap.update(tick, input.body, input.ghosts);
 
     const boostFrame = this.boostFrame(tick, input.boostRatio);
+    const rowHeight = (row: { local?: boolean }) => (row.local ? this.definition.rank.rows.local :
+      this.definition.rank.rows.other).height;
     const rank = input.rank && {
       ...input.rank,
-      rows: this.rankPresentation.update(input.rank.rows, tick,
-        row => (row.local ? this.definition.rank.rows.local :
-          this.definition.rank.rows.other).height),
+      // 50人乱斗: the leaders and the local racer only (rank-board-condense.ts).
+      rows: condenseRankRows(this.rankPresentation.update(input.rank.rows, tick, rowHeight) as StackedRankRow[],
+        rowHeight),
     };
     this.rankRows = rank?.rows;
     const reorder = input.slotReorderProgress ?? this.slotReorderProgress(tick);

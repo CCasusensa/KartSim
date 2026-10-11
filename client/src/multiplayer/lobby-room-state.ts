@@ -1,6 +1,7 @@
 /** Maps a room UI node to its live presentation and command state. */
 
 import { paintRandomTeamToggle } from "../ui/random-team-art";
+import { BRAWL_LABEL } from "./lobby-brawl-mode";
 import { itemModeLabel } from "./lobby-item-mode";
 
 interface RoomMember {
@@ -139,12 +140,12 @@ function emotionState(host: LobbyRoomStateHost, name: string): NodeState | undef
 function memberSlotState(host: LobbyRoomStateHost, name: string,
   disabled: boolean, isHost: boolean,
   dependencies: LobbyRoomStateDependencies): NodeState | undefined {
-  if (/^rider[0-7]$/.test(name)) {
+  if (/^rider\d+$/.test(name)) {
     const slot = dependencies.slots(host.room, host.playerId)[Number(name.slice(5))];
     return { hoverRegion: disabled ? undefined : name,
       hoverRegionSound: !disabled && !!slot && !slot.open };
   }
-  const match = /^rider([0-7])\/(.+)$/.exec(name);
+  const match = /^rider(\d+)\/(.+)$/.exec(name);
   if (!match) return undefined;
 
   const room = host.room;
@@ -243,6 +244,8 @@ function memberSlotState(host: LobbyRoomStateHost, name: string,
       action: slot && !member ? () => host.actions.slot(slot.slot, false) : undefined,
     };
     case "riderNameLabel": return { visible: !!member, text: member?.name ?? "" };
+    // 50人乱斗: an open seat nobody takes races as AI.
+    case "aiHint": return { visible: !member && !!slot?.open };
     case "bossTag_me": return { visible: !!member && roomHost && own };
     case "bossTag_other": return { visible: !!member && roomHost && !own };
     case "ready": return { visible: !!member && member.ready && !roomHost && !member.changing };
@@ -269,6 +272,7 @@ function roomDetailsState(host: LobbyRoomStateHost, name: string,
     case "gameType": return { text: mode === "rp"
       ? dependencies.rpChannelNames[room.channelName ?? ""]
       : mode === "roadblock" ? "挡人模式"
+        : mode === "brawl" ? BRAWL_LABEL
         : mode === "ordinary" ? room.mode === "team" ? "组队竞速赛" : "个人竞速赛"
           : mode === "item" ? itemModeLabel(room.mode === "team")
           : `${room.mode === "team" ? "组队" : "个人"}${mode === "grip" ? "抓地" : "幽灵"}${room.speed === 4 ? "无限加速" : "赛"}` };

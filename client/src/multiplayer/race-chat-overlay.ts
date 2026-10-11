@@ -1,5 +1,7 @@
 /** In-race chat overlay: room/race messages, input gates, drawing, and cleanup. */
 
+import { brawlAiIds } from "./lobby-brawl-mode";
+
 interface RaceChatMessage {
   sequence: number;
   playerId: unknown;
@@ -53,7 +55,7 @@ function enterKey(event: KeyboardEvent): boolean {
 
 function loadingLine(room: RaceChatRoom): string | undefined {
   return room.phase === "loading" && room.race
-    ? `已加载 ${room.race.loadedIds.length}/${room.members.length} 人，等待统一起跑`
+    ? `已加载 ${room.race.loadedIds.filter(id => !brawlAiIds(room.race).has(id as string)).length}/${room.members.length} 人，等待统一起跑`
     : undefined;
 }
 

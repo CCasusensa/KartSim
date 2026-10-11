@@ -1,11 +1,12 @@
 /** Validation of the full `room` server event payload (release function `bP`). */
 
+import { isBrawl, isBrawlRaceRules, isBrawlTrack, roomSlotCount } from "./lobby-brawl-mode";
 import { ITEM_CHANNELS, isItemChannel, isItemRaceRules, itemChannelMismatch } from "./lobby-item-mode";
 
 export type ResourceVersion = "p3528" | "p3543" | "p3553";
 export type RoomMode = "individual" | "team";
 export type Gameplay = "ordinary" | "grip" | "shadow" | "roadblock" | "lte" | "giant" | "rp" |
-  "item";
+  "item" | "brawl";
 export type RoomPhase = "open" | "loading" | "countdown" | "racing" | "finished";
 export type ChannelName = "speedIndiCombine" | "speedTeamCombine" |
   "speedIndiInfinit" | "speedTeamInfinit" | "itemIndiCombine" | "itemTeamCombine";
@@ -28,6 +29,8 @@ export interface RoomMember {
   changing?: boolean;
   initial?: string;
   equipment?: RoomEquipment;
+  /** A 50人乱斗 AI racer (race rosters only). */
+  ai?: true;
 }
 
 export interface ChatMessage {
@@ -102,6 +105,8 @@ export interface RaceSnapshot {
     endAt: number };
   /** Item race rules (ITEM_MODE.md 5); item rooms only. */
   item?: { ruleset: "web-item-v1"; table: "indi" | "team" };
+  /** 50人乱斗 rules and AI racers (server-go/BRAWL.md); brawl rooms only. */
+  brawl?: { ruleset: "web-brawl-v1"; aiIds: string[] };
   /** Account rewards after the race (ECONOMY.md 2.1); see account/rewards.ts. */
   rewards?: Record<string, { exp: number; lucci: number }>;
   /** 隊伍隨機分配 (not in the release): the teams of this race were dealt at the start. */
@@ -146,7 +151,7 @@ const channelRules: Record<ChannelName, { mode: RoomMode; speed: 4 | 7 }> = {
   itemTeamCombine: { mode: ITEM_CHANNELS.itemTeamCombine.mode, speed: 7 },
 };
 const gameplayNames = new Set<Gameplay>([
-  "ordinary", "grip", "shadow", "roadblock", "lte", "giant", "rp", "item",
+  "ordinary", "grip", "shadow", "roadblock", "lte", "giant", "rp", "item", "brawl",
 ]);
 const randomTrackCodes = new Set([0, 3, 4, 5, 6, 7, 8, 30, 40]);
 /** Item rooms draw the item hot 1-5, all, new and reverse pools; 40 is 竞速随机. */
@@ -204,7 +209,7 @@ function gameplayForChannel(gameplay: unknown, channelName: unknown,
   if ((gameplay !== undefined && !validGameplay(gameplay)) || !channel(channelName) ||
       itemChannelMismatch(gameplay, channelName)) return false;
   if (gameplay === "item") return version === undefined || version === "p3553";
-  if (gameplay === "roadblock" || gameplay === "giant") {
+  if (gameplay === "roadblock" || gameplay === "giant" || isBrawl(gameplay)) {
     return channelName === "speedIndiCombine" && (version === undefined || version === "p3553");
   }
   if (gameplay === "rp") return version === undefined || version === "p3553";
@@ -240,14 +245,15 @@ function validEquipment(value: unknown): value is RoomEquipment {
       (ids[3] === 0 && trackId(value.systemKartVariant)));
 }
 
-function validMembers(value: unknown, capacity: number, hostId: string):
-  { ids: Set<string>; slots: Set<number> } | undefined {
+function validMembers(value: unknown, capacity: number, hostId: string, slotCount = 8,
+  aiAllowed = false): { ids: Set<string>; slots: Set<number> } | undefined {
   if (!Array.isArray(value) || value.length < 1 || value.length > capacity) return undefined;
   const ids = new Set<string>();
   const slots = new Set<number>();
   for (const member of value) {
     if (!record(member) || !text(member.playerId, 1, 64) ||
-        !text(member.name, 1, 18) || !integer(member.slot, 0, 7) ||
+        !text(member.name, 1, 18) || !integer(member.slot, 0, slotCount - 1) ||
+        (member.ai !== undefined && (member.ai !== true || !aiAllowed)) ||
         typeof member.ready !== "boolean" ||
         (member.team !== null && member.team !== 1 && member.team !== 2) ||
         ids.has(member.playerId) || slots.has(member.slot) ||
@@ -261,13 +267,13 @@ function validMembers(value: unknown, capacity: number, hostId: string):
 }
 
 function validKickVote(value: unknown, memberIds: Set<string>, hostId: string,
-  phase: unknown): value is KickVote {
+  phase: unknown, slotCount = 8): value is KickVote {
   if (!record(value) || !text(value.voteId, 1, 64) ||
       !text(value.targetId, 1, 64) || !Array.isArray(value.eligibleIds) ||
       !Array.isArray(value.yesIds) || !Array.isArray(value.noIds) ||
       !finiteNonnegative(value.deadline)) return false;
   const eligible = new Set<unknown>(value.eligibleIds);
-  return eligible.size === value.eligibleIds.length && value.eligibleIds.length <= 7 &&
+  return eligible.size === value.eligibleIds.length && value.eligibleIds.length <= slotCount - 1 &&
     value.eligibleIds.every((id: unknown) => text(id, 1, 64)) &&
     value.yesIds.every((id: unknown) => eligible.has(id)) &&
     value.noIds.every((id: unknown) => eligible.has(id)) &&
@@ -300,6 +306,9 @@ function validModeData(race: Data, gameplay: Gameplay, rosterIds: Set<string>): 
   if (gameplay === "item" ?
       !isItemRaceRules(race.item, race.channelName === "itemTeamCombine") :
       race.item !== undefined) return false;
+  if (isBrawl(gameplay) ?
+      !(isBrawlRaceRules(race.brawl, race.roster as unknown[]) && isBrawlTrack(race.trackId)) :
+      race.brawl !== undefined) return false;
   return true;
 }
 
@@ -393,12 +402,15 @@ function firstFinisherTeamWon(race: Data, winningTeam: 1 | 2): boolean {
   return record(member) && member.team === winningTeam;
 }
 
+/** Marks the roster pass of isValidRoomSnapshot, where AI racers may appear. */
+const rosterCheck = Symbol("roster");
+
 /** Mirrors the released client's acceptance boundary for JSON room snapshots. */
 export function isValidRoomSnapshot(value: unknown): value is RoomSnapshot {
   if (!record(value) || !text(value.roomId, 1, 64) ||
       !integer(value.revision, 1, Number.MAX_SAFE_INTEGER) || !text(value.name, 1, 18) ||
       (value.mode !== "individual" && value.mode !== "team") ||
-      !integer(value.capacity, 2, 8) || value.speedVersion !== "国服" ||
+      !integer(value.capacity, 2, roomSlotCount(value.gameplay)) || value.speedVersion !== "国服" ||
       !channel(value.channelName) || channelRules[value.channelName].mode !== value.mode ||
       channelRules[value.channelName].speed !== value.speed ||
       !gameplayForChannel(value.gameplay, value.channelName, value.resourceVersion) ||
@@ -415,14 +427,18 @@ export function isValidRoomSnapshot(value: unknown): value is RoomSnapshot {
       (value.autoStartAt !== undefined &&
         (value.phase !== "open" || !finiteNonnegative(value.autoStartAt))) ||
       (value.closedSlots !== undefined &&
-        (!Array.isArray(value.closedSlots) || value.closedSlots.length > 8 ||
+        (!Array.isArray(value.closedSlots) || value.closedSlots.length > roomSlotCount(value.gameplay) ||
           new Set(value.closedSlots).size !== value.closedSlots.length ||
-          !value.closedSlots.every(slot => integer(slot, 0, 7))))) return false;
-  const members = validMembers(value.members, value.capacity, value.hostId);
+          !value.closedSlots.every(slot => integer(slot, 0, roomSlotCount(value.gameplay) - 1))))) return false;
+  // A race roster (validated as members below) carries a 50人乱斗 race's AI racers.
+  const members = validMembers(value.members, value.capacity, value.hostId,
+    roomSlotCount(value.gameplay),
+    isBrawl(value.gameplay) && (value as Record<symbol, unknown>)[rosterCheck] === true);
   if (!members || (value.locked !== undefined && typeof value.locked !== "boolean") ||
       (value.chat !== undefined && !validChatList(value.chat))) return false;
   if (value.kickVote !== undefined &&
-      !validKickVote(value.kickVote, members.ids, value.hostId, value.phase)) return false;
+      !validKickVote(value.kickVote, members.ids, value.hostId, value.phase,
+        roomSlotCount(value.gameplay))) return false;
   if (value.randomTeam !== undefined &&
       (typeof value.randomTeam !== "boolean" || value.mode !== "team")) return false;
   const capacity = value.capacity as number;
@@ -433,6 +449,9 @@ export function isValidRoomSnapshot(value: unknown): value is RoomSnapshot {
       (gameplay === "giant" &&
         (value.randomTrackCode !== undefined ? value.randomTrackCode !== 0 :
           !giantTracks.has(String(value.trackId ?? "")))) ||
+      (isBrawl(gameplay) &&
+        (value.randomTrackCode !== undefined ? value.randomTrackCode !== 0 :
+          !isBrawlTrack(value.trackId))) ||
       (Array.isArray(value.closedSlots) && value.closedSlots.some(slot =>
         members.slots.has(slot) ||
         (value.mode === "team" ? slot % 4 >= capacity / 2 : slot >= capacity))) ||
@@ -448,7 +467,8 @@ export function isValidRoomSnapshot(value: unknown): value is RoomSnapshot {
       (value.randomTrackCode === undefined && race.trackId !== value.trackId) ||
       !finiteNonnegative(race.loadingDeadline) ||
       !Array.isArray(race.roster) || !Array.isArray(race.loadedIds) ||
-      !isValidRoomSnapshot({ ...value, phase: "open", race: undefined, members: race.roster })) return false;
+      !isValidRoomSnapshot({ ...value, phase: "open", race: undefined, members: race.roster,
+        [rosterCheck]: true })) return false;
   if (race.randomTeam !== undefined &&
       (typeof race.randomTeam !== "boolean" || value.mode !== "team")) return false;
   const rosterIds = new Set<string>(race.roster.map((member: RoomMember) => member.playerId));

@@ -15,7 +15,7 @@ const OUT_WITHOUT_PROGRESS: RaceProgress = Object.freeze({ distance: -Number.MAX
 
 export interface RacePresenterHudHost {
   playerId: unknown;
-  race: { roster: Array<{ playerId: unknown; name: string }> };
+  race: { roster: Array<{ playerId: unknown; name: string }>; gameplay?: string };
   runtime: RacePresenterItemHudHost["runtime"] & {
     local: {
       lifecycle: { state: unknown };
@@ -100,8 +100,11 @@ export function finishRacePresenterFrame(host: RacePresenterHudHost,
   // keep the progress board from ever forming, so it ranks last there. It
   // stays on the board: the release board throws when its racers or slots
   // change during a race, which stopped the race for everyone still in it.
+  // 50人乱斗: one racer of 50 who has not reported yet (a slow or lost
+  // connection) ranks last instead of keeping the board in roster order.
+  const brawl = host.race.gameplay === "brawl";
   const progress = (id: unknown) => host.rankRoster.progress(id) ??
-    (remotes.hasDeparted(id) ? OUT_WITHOUT_PROGRESS : undefined);
+    (brawl || remotes.hasDeparted(id) ? OUT_WITHOUT_PROGRESS : undefined);
   const progressBoard = dependencies.rankByProgress(race.roster, playerId,
     progress, tints, runtime.finishSnapshot(), latency);
   physics.giant?.setRank(progressBoard === undefined

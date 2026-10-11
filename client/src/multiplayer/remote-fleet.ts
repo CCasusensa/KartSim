@@ -1,6 +1,7 @@
 import { MotionClockMapping, RemoteMotionPredictor,
   type RemoteMotionFrameOptions, type RemoteMotionSnapshot } from "./remote-motion";
 import type { RailMatrix } from "../driving/rail-frame";
+import { BRAWL_SLOTS, brawlAiIds } from "./lobby-brawl-mode";
 
 type Vector = [number, number, number];
 
@@ -78,6 +79,9 @@ interface RemotePeer {
   receivedAt?: number;
   resetStartedAt?: number;
   progress?: { finishElapsedMs?: number; [key: string]: unknown };
+  /** 50人乱斗: when (local ms) the progress was sampled and the speed then. */
+  progressAt?: number;
+  progressSpeed?: number;
   visualScale?: { x: number; y: number; z: number };
 }
 
@@ -108,6 +112,11 @@ export class RemoteFleet {
   disposed = false;
   readonly giants = new Map<string, GiantPresentation>();
   readonly giantSequences = new Map<string, number>();
+  /**
+   * 50人乱斗: the node sends far racers' frames only every 256–512 ms, so the
+   * rank board reads their progress extrapolated by their speed.
+   */
+  readonly extrapolateProgress: boolean;
   offGiant?: () => void;
   giantFinished = false;
 
@@ -119,13 +128,14 @@ export class RemoteFleet {
     this.now = now;
     this.onError = onError;
     this.cadence = cadence;
+    this.extrapolateProgress = assets.drivingMode?.kind === "brawl";
     if (assets.roomId !== connection.roomId || assets.raceId !== connection.raceId ||
         !assets.participants.some(player => player.playerId === connection.playerId)) {
       throw new Error("Remote fleet identity mismatch");
     }
     const slots = new Set<number>();
     for (const player of assets.participants) {
-      if (!Number.isInteger(player.slot) || player.slot < 0 || player.slot > 7 ||
+      if (!Number.isInteger(player.slot) || player.slot < 0 || player.slot > BRAWL_SLOTS - 1 ||
           slots.has(player.slot)) {
         throw new Error("Remote fleet requires unique frozen race slots");
       }
@@ -231,13 +241,16 @@ export class RemoteFleet {
       peer.resetStartedAt = packet.payload.kind === "kinematic" &&
         packet.payload.resetStartedAt !== undefined
         ? this.clock.decode(packet.payload.resetStartedAt, now) : undefined;
-      if (packet.payload.kind === "kinematic" && packet.payload.raceProgress)
+      if (packet.payload.kind === "kinematic" && packet.payload.raceProgress) {
         peer.progress = { ...packet.payload.raceProgress };
+        peer.progressAt = packetTick;
+        peer.progressSpeed = (packet.payload.presentation as { forwardSpeed?: number } | undefined)?.forwardSpeed;
+      }
     }
   }
 
   updateRoom(room: { roomId: string; phase?: string;
-    race?: { raceId: string; loadedIds?: readonly string[] };
+    race?: { raceId: string; loadedIds?: readonly string[]; brawl?: { aiIds?: unknown } };
     members: Array<{ playerId: string }> }): void {
     if (this.disposed) return;
     if (room.roomId !== this.connection.roomId ||
@@ -246,7 +259,8 @@ export class RemoteFleet {
       this.dispose();
       return;
     }
-    const members = new Set(room.members.map(member => member.playerId));
+    // 50人乱斗 AI racers are never room members.
+    const members = new Set([...room.members.map(member => member.playerId), ...brawlAiIds(room.race)]);
     // Not in the release: past loading, a racer who has not loaded was
     // dropped by the server and will never race.
     const loaded = room.phase !== undefined && room.phase !== "loading"
@@ -270,7 +284,13 @@ export class RemoteFleet {
   }
 
   raceProgress(playerId: string): RemotePeer["progress"] | undefined {
-    return this.disposed ? undefined : this.remotes.get(playerId)?.progress;
+    const peer = this.disposed ? undefined : this.remotes.get(playerId);
+    const progress = peer?.progress;
+    if (!this.extrapolateProgress || !progress || progress.finishElapsedMs !== undefined ||
+        typeof progress.distance !== "number" || !(peer!.progressSpeed! > 0) ||
+        peer!.progressAt === undefined) return progress;
+    const seconds = Math.min(1, Math.max(0, (this.now() - peer!.progressAt) / 1000));
+    return { ...progress, distance: progress.distance + peer!.progressSpeed! * seconds };
   }
 
   updateAndForEachFreshRacePeer(now: number, options: RemoteMotionFrameOptions,

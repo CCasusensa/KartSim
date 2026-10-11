@@ -112,6 +112,21 @@ const ITEM_TEAM_REWARD_LINES = [
 
 const folder = "stage_/mqGameFinal";
 
+/** Rows of a result page: the release's eight racers. */
+export const RESULT_PAGE_ROWS = 8;
+
+/**
+ * The results a page shows: all of them up to eight; for a 50人乱斗 race the
+ * first seven and the local racer's (the first eight when it is among them).
+ */
+export function resultRows<T extends { playerId: unknown }>(results: readonly T[],
+  localPlayerId: unknown): T[] {
+  if (results.length <= RESULT_PAGE_ROWS) return [...results];
+  const local = results.findIndex(result => result.playerId === localPlayerId);
+  return local < 0 || local < RESULT_PAGE_ROWS ? results.slice(0, RESULT_PAGE_ROWS)
+    : [...results.slice(0, RESULT_PAGE_ROWS - 1), results[local]!];
+}
+
 /**
  * Result layout: individual (`false`), speed team (`true`) or item team. 组队道具赛
  * is won by the team of the first finisher without points, like the original
@@ -147,6 +162,7 @@ export class MultiplayerResultView {
   nowMs = 0;
   shownAtMs = 0;
   private newPageClock!: ResultViewDependencies["newPageClock"];
+  private localPlayerId: unknown;
 
   static async load(library: unknown, root: unknown, race: ResultRace,
     localPlayerId: unknown, layout: ResultTeamMode = false,
@@ -179,7 +195,10 @@ export class MultiplayerResultView {
     const listMargin = deps.attribute(list, "listMargin")!.split(" ").map(Number);
 
     if (isItemResultRace(race)) screen.titles = await itemResultTitles(library, deps);
-    const rows = race.roster.map((_, index) => {
+    // 50人乱斗: the page holds eight rows, the leaders and the local racer
+    // (resultRows).
+    screen.localPlayerId = localPlayerId;
+    const rows = race.roster.slice(0, RESULT_PAGE_ROWS).map((_, index) => {
       const left = listMargin[0]!;
       const top = listMargin[1]! + index * rowHeight;
       const copy = withTitleIcons(prefixedCopy(rowTemplate, `row${index}/`, deps), index,
@@ -351,7 +370,7 @@ export class MultiplayerResultView {
     this.teamScores = outcome?.teamScores;
     this.winningTeam = outcome?.winningTeam;
     this.rewards = parseRaceRewards(outcome?.rewards);
-    this.results = results.map(result => ({ ...result,
+    this.results = resultRows(results, this.localPlayerId).map(result => ({ ...result,
       ...(Array.isArray(result.titles) ? { titles: result.titles.filter(title =>
         typeof title === "string") } : {}) }));
     this.page = this.newPageClock(time);

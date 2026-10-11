@@ -48,7 +48,9 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
   let roomName = `${nickname}的房间`.slice(0, 18);
   let password = "";
   let passwordEnabled = false;
-  let capacity = "8";
+  // 50人乱斗 rooms seat up to 50 (server-go/BRAWL.md), in steps of ten.
+  const brawlCapacities = ["10", "20", "30", "40", "50"];
+  let capacity = gameplay === "brawl" ? "50" : "8";
   let mode = initialMode;
   let channel = initialChannel;
   const folder = "dialog2_/createRoom";
@@ -78,6 +80,14 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
         textColor: "255 72 106 163", textRender: "bold16",
         textAlign: "right,vcenter",
       });
+    }
+    if (name === "joinNum" && gameplay === "brawl") {
+      return dependencies.clone(node, { comboListLength: String(26 * brawlCapacities.length) },
+        node.children.map(child => {
+          const row = child.name === "Skip" ? child.children[0] : undefined;
+          return row ? { ...child, children: brawlCapacities.map((count, index) =>
+            dependencies.clone(row, { name: `item${index + 1}`, text: `${count} #sb(people)` })) } : child;
+        }));
     }
     if (name === "joinNum" && gameplay === "roadblock") {
       return dependencies.clone(node, { comboListLength: "104" },
@@ -164,7 +174,8 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
           visible: name === (mode === "team" ? "joinTeamGame" : "joinNum"),
           disabled: dialog.busy, label: "房间人数",
           select: { value: capacity,
-            values: gameplay === "roadblock" ? ["5", "6", "7", "8"]
+            values: gameplay === "brawl" ? brawlCapacities
+              : gameplay === "roadblock" ? ["5", "6", "7", "8"]
               : mode === "team" ? ["2", "4", "6", "8"]
                 : ["2", "3", "4", "5", "6", "7", "8"],
             change: (value: string) => { capacity = value; } },

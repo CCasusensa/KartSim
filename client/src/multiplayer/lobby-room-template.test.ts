@@ -208,3 +208,23 @@ test("the 隊伍隨機分配 switch joins the header and 等待中 moves left fo
   assert.equal(root.children[0]!.children[0]!.attributes.find(entry => entry.name === "leftTopWH")?.value,
     "800 0 150 50");
 });
+
+test("a 50人乱斗 room template holds 50 small seats in place of the cards", () => {
+  const deps = dependencies();
+  const { root, card, teams, difficulty, balloon } = fixture(false);
+  const built = buildLobbyRoomTemplate(root, card, teams, difficulty, balloon, false, deps, true)!;
+  const names = (target: RoomTemplateNode): string[] => [deps.attribute(target, "name") ?? "",
+    ...target.children.flatMap(names)];
+  const all = names(built);
+  assert.equal(all.filter(name => /^rider\d+$/.test(name)).length, 50);
+  assert.ok(all.includes("brawlSeats") && all.includes("rider49/aiHint") &&
+    all.includes("rider0/riderNameLabel") && all.includes("rider12/closedHover"));
+  const seats = built.children.find(child => deps.attribute(child, "name") === "brawlSeats")!;
+  const rect = (index: number) => deps.attribute(seats.children[index]!, "leftTopWH");
+  assert.equal(rect(0), "0 0 100 125");
+  assert.equal(rect(11), "100 125 100 125");
+  assert.equal(rect(49), "904 501 100 125");
+  // Without the flag the release's cards stay.
+  const release = buildLobbyRoomTemplate(root, card, teams, difficulty, balloon, false, deps)!;
+  assert.ok(!names(release).includes("brawlSeats"));
+});

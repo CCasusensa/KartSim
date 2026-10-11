@@ -1,3 +1,4 @@
+import { roomSlotCount } from "./lobby-brawl-mode";
 import {
   ITEM_HIT_BLOCKERS, ITEM_HIT_VARIANTS, PROTOCOL_VERSION, ROOM_RULESET, validHitOutcome,
   type ItemBlocker, type ItemHitVariant,
@@ -120,7 +121,7 @@ export function parseServerEvent(value: unknown,
         event.rooms.every(item => record(item) && text(item.roomId, 1, 64) &&
           text(item.name, 1, 18) &&
           (item.mode === "individual" || item.mode === "team") &&
-          integer(item.capacity, 2, 8) && item.speedVersion === "国服" &&
+          integer(item.capacity, 2, roomSlotCount(item.gameplay)) && item.speedVersion === "国服" &&
           dependencies.validChannel(item.channelName, item.mode, item.speed) &&
           dependencies.validGameplay(item.gameplay, item.channelName, item.resourceVersion) &&
           integer(item.count, 0, Number(item.capacity)) &&

@@ -278,7 +278,7 @@ const lobbyDialogMethodOverrides = new Map([
   ["dispose", "  dispose() { return disposeLobbyDialog(this); }"],
 ]);
 const multiplayerPresentationFunctionOverrides = new Map([
-  ["Ll0", "async function Ll0(library, roadblock = false) { return loadLobbyRoomTemplate(library, roadblock, roomTemplateDependencies); }"],
+  ["Ll0", "async function Ll0(library, roadblock = false, brawl = false) { return loadLobbyRoomTemplate(library, roadblock, roomTemplateDependencies, brawl); }"],
   ["Pl0", "function Pl0(root, riderCard, teams = [], difficulty, talkBalloon, roadblock = false) { return buildLobbyRoomTemplate(root, riderCard, teams, difficulty, talkBalloon, roadblock, roomTemplateDependencies); }"],
   ["Fl0", "function Fl0(root, emotions) { return addLobbyEmotionWheel(root, emotions, roomTemplateDependencies); }"],
   ["_F", "function _F(node, width, height) { return rpSceneCameraMatrices(node, width, height, T); }"],
@@ -5233,7 +5233,7 @@ function awardPodiumLoadDependencies() { return {
     lines.push("const lobbyRoomTimingDependencies = { nowMs: () => performance.now(), requestFrame: callback => requestAnimationFrame(callback), cancelFrame: frameId => cancelAnimationFrame(frameId), toLocalStartAt: Y3 };");
     lines.push("const lobbyRoomLifecycleDependencies = { previewMembers: (room, teams) => DT(room, teams), parseChat: (chat, emotions) => Ng(chat, emotions), get chatBubbleDurationMs() { return Il0; }, nowMs: () => performance.now(), cancelFrame: frameId => cancelAnimationFrame(frameId), get keyboard() { return window; } };");
     lines.push("const lobbyRoomTrackDependencies = { randomTrack: code => X6(code), mode: room => G2(room), uiResource: (library, roots, token) => U1(library, roots, token), decodePng: bytes => p2(bytes), canvas: image => { const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height; canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(image.pixels), image.width, image.height), 0, 0); return canvas; }, roadblockTracks: library => Cw(library), theme: metadata => wa(metadata) };");
-    lines.push("const lobbyRoomConstructionDependencies = { mode: room => G2(room), loadRoleTeams: library => fa(library), loadEmotions: library => cP(library), loadCountdown: library => dy.load(library), loadDefinition: (library, roadblock) => Ll0(library, roadblock), withEmotions: (definition, emotions) => addLobbyRandomTeamToggle(Fl0(definition, emotions), roomTemplateDependencies), loadView: options => te.load(options), drawBackdrop: (context, area) => drawLobbyRoomBackdrop(context, area), attachTopBar: (element, mount) => attachLobbyRoomTopBar(element, mount), loadTrackChangeNotice: (...args) => fy.load(...args), createPreviews: (library, render, onError, emotions, audioContext) => new Tl0(library, render, onError, emotions, audioContext) };");
+    lines.push("const lobbyRoomConstructionDependencies = { mode: room => G2(room), loadRoleTeams: library => fa(library), loadEmotions: library => cP(library), loadCountdown: library => dy.load(library), loadDefinition: (library, roadblock, brawl) => Ll0(library, roadblock, brawl), withEmotions: (definition, emotions) => addLobbyRandomTeamToggle(Fl0(definition, emotions), roomTemplateDependencies), loadView: options => te.load(options), drawBackdrop: (context, area) => drawLobbyRoomBackdrop(context, area), attachTopBar: (element, mount) => attachLobbyRoomTopBar(element, mount), loadTrackChangeNotice: (...args) => fy.load(...args), createPreviews: (library, render, onError, emotions, audioContext) => new Tl0(library, render, onError, emotions, audioContext) };");
     lines.push("const lobbyRoomStateDependencies = { nodeName: node => T(node, 'name'), slots: (room, playerId) => FT(room, playerId), roadblockRunner: room => TF(room), gameplayMode: room => G2(room), decodeChat: (text, emotions) => Ng(text, emotions), wrapBubble: text => kl0(text), drawBubbleLine: (canvas, line, rect, options) => m9(canvas, line, rect, options), nowMs: () => performance.now(), get roadblockDefaults() { return tt; }, get rpChannelNames() { return lw; }, get colors() { return { redTeam: Rl0, blueTeam: Bl0, ownChat: _l0, otherChat: Gl0 }; } };");
     lines.push("const lobbyRoomControllerServices = { construction: lobbyRoomConstructionDependencies, lifecycle: lobbyRoomLifecycleDependencies, timing: lobbyRoomTimingDependencies, track: lobbyRoomTrackDependencies, state: lobbyRoomStateDependencies, documentBody: () => document.body };");
     lines.push("const raceLoadingScreenAssets = { imageBytes: (library, roots, name) => U1(library, roots, name).bytes(), decodeImage: bytes => p2(bytes) };");
@@ -5695,6 +5695,96 @@ function applyItemLobbyPatches(name, source) {
 }
 // ---- end item-mode(lobby) ------------------------------------------------
 
+// ---- brawl(lobby) ---------------------------------------------------------
+// 50人乱斗 (server-go/BRAWL.md): gameplay "brawl" on speedIndiCombine in the
+// generated mode tables, its game type (lobby-brawl-mode.ts BRAWL_GAME_TYPE,
+// driving mode kind "brawl", raced like an ordinary race), frozen rosters and
+// start slots of up to 50 and the frozen race.brawl check. Applied after the
+// item-mode(lobby) patches; each substitution must match exactly once.
+const brawlImports = new Map([
+  ["formats", ['import { BRAWL_GAME_TYPE, BRAWL_LABEL } from "../multiplayer/lobby-brawl-mode.ts"; // brawl(lobby)']],
+  ["library", ['import { BRAWL_GAME_TYPE, BRAWL_SLOTS } from "../multiplayer/lobby-brawl-mode.ts"; // brawl(lobby)']],
+  ["vehicle", ['import { isBrawlRaceRules, isBrawlTrack, roomSlotCount } from "../multiplayer/lobby-brawl-mode.ts"; // brawl(lobby)']],
+]);
+const brawlPatches = new Map([
+  ["formats", [
+    ['  item: "道具赛", // item-mode(lobby)\n};',
+      '  item: "道具赛", // item-mode(lobby)\n  brawl: "50人乱斗", // brawl(lobby)\n};'],
+    ['    n === "item" // item-mode(lobby)\n  );',
+      '    n === "item" || // item-mode(lobby)\n    n === "brawl" // brawl(lobby)\n  );'],
+    ['    : n === "roadblock" || n === "giant"\n      ? e === "speedIndiCombine"',
+      '    : n === "roadblock" || n === "giant" || n === "brawl" // brawl(lobby)\n      ? e === "speedIndiCombine"'],
+    ['    case "item": // item-mode(lobby)\n      return e ? 4 : 2;\n  }',
+      '    case "item": // item-mode(lobby)\n      return e ? 4 : 2;\n' +
+      '    case "brawl": // brawl(lobby)\n      return BRAWL_GAME_TYPE;\n  }'],
+    ['  if (e === "item") return itemRoomLabel(n.channelName); // item-mode(lobby)\n',
+      '  if (e === "item") return itemRoomLabel(n.channelName); // item-mode(lobby)\n' +
+      '  if (e === "brawl") return BRAWL_LABEL; // brawl(lobby)\n'],
+  ]],
+  ["library", [
+    // Rank board rows: a 50人乱斗 race has ranks past 9 (the release drew X).
+    ['            T(f, "name") === "rankStr"\n              ? s.rank > 9\n                ? "X"',
+      '            T(f, "name") === "rankStr"\n              ? s.rank > 99 // brawl(lobby)\n                ? "X"'],
+    // A two-digit rank is drawn 8 px left so both digits sit on the rank spot,
+    // and the name 4 px right of them.
+    ['      for (const f of h) r.push(zJ(f, a.x, a.y));',
+      '      for (const f of h)\n        r.push(zJ(f, a.x - (s.rank > 9 && f.kind === "char-panel" && T(f.node, "name") === "rankStr" ? 8 : 0), a.y)); // brawl(lobby)'],
+    ['        const f = a.x + n.nameRect.left,',
+      '        const f = a.x + n.nameRect.left + (s.rank > 9 ? 4 : 0), // brawl(lobby)'],
+    // A two-digit big rank: the number 20 px left, its suffix and the racer count 44 px right.
+    ['  return [...a, ...LJ(n.rows, e.rows, u, s)];',
+      '  const wide = e.rank > 9 // brawl(lobby)\n' +
+      '    ? a.map((f) => !f.node ? f : f.node === n.rank ? zJ(f, -20, 0)\n' +
+      '      : f.node === n.suffix || f.node === n.riderCount || T(f.node, "texture") === "diagonal" ? zJ(f, 44, 0) : f)\n' +
+      '    : a;\n' +
+      '  return [...wide, ...LJ(n.rows, e.rows, u, s)];'],
+    // Minimap markers: one per racer, up to 50 (the release stopped at 9).
+    ['  if (!Number.isInteger(n) || n < 0 || n > 8)\n    throw new Error(`minimap marker participantIndex 必须为 0..8，实际 ${n}。`);\n  return d2(',
+      '  if (!Number.isInteger(n) || n < 0 || n > BRAWL_SLOTS - 1) // brawl(lobby)\n    throw new Error(`minimap marker participantIndex 必须为 0..49，实际 ${n}。`);\n  return d2('],
+    ['  if (!Number.isInteger(n) || n < 0 || n > 8)\n    throw new Error(`minimap marker participantIndex 必须为 0..8，实际 ${n}。`);\n  return 9 - n;',
+      '  if (!Number.isInteger(n) || n < 0 || n > BRAWL_SLOTS - 1) // brawl(lobby)\n    throw new Error(`minimap marker participantIndex 必须为 0..49，实际 ${n}。`);\n  return 9 - n;'],
+    ['      return Object.freeze({ [Pn]: !0, modeId: n, kind: "item", team: n === 4 });\n',
+      '      return Object.freeze({ [Pn]: !0, modeId: n, kind: "item", team: n === 4 });\n' +
+      '    case BRAWL_GAME_TYPE: // brawl(lobby)\n' +
+      '      return Object.freeze({ [Pn]: !0, modeId: n, kind: "brawl", team: !1 });\n'],
+  ]],
+  ["vehicle", [
+    // w40: up to 50 racers and start slots, and the frozen race.brawl.
+    ['    (iL(e),\n    G2(n) === "lte" &&',
+      '    (iL(e, roomSlotCount(G2(n))), // brawl(lobby)\n    G2(n) === "lte" &&'],
+    ['    throw new Error("道具赛冻结参数无效。");\n',
+      '    throw new Error("道具赛冻结参数无效。");\n' +
+      '  if ( // brawl(lobby)\n' +
+      '    G2(n) === "brawl"\n' +
+      '      ? !isBrawlRaceRules(e.brawl, e.roster) || !isBrawlTrack(e.trackId)\n' +
+      '      : e.brawl !== void 0\n' +
+      '  )\n' +
+      '    throw new Error("50人乱斗冻结参数无效。");\n'],
+    ['    e.roster.length < 2 ||\n    e.roster.length > 8\n  )',
+      '    e.roster.length < 2 ||\n    e.roster.length > roomSlotCount(G2(n)) // brawl(lobby)\n  )'],
+    ['      r.slot < 0 ||\n      r.slot > 7\n    )',
+      '      r.slot < 0 ||\n      r.slot > roomSlotCount(G2(n)) - 1 // brawl(lobby)\n    )'],
+  ]],
+]);
+const appliedBrawlPatches = new Set();
+function applyBrawlPatches(name, source) {
+  for (const [before, after] of brawlPatches.get(name) ?? []) {
+    const first = source.indexOf(before);
+    assert(first >= 0 && source.indexOf(before, first + 1) < 0,
+      `brawl(lobby) patch target in ${name}.js is missing or ambiguous: ${before.slice(0, 60)}`);
+    source = source.replace(before, () => after);
+    appliedBrawlPatches.add(before);
+  }
+  const header = "// Stable minified names are retained for behavioral parity.\n";
+  const lines = brawlImports.get(name);
+  if (lines) {
+    assert(source.includes(header), `${name}.js lost its generated header.`);
+    source = source.replace(header, () => `${header}${lines.join("\n")}\n`);
+  }
+  return source;
+}
+// ---- end brawl(lobby) -----------------------------------------------------
+
 const generated = [];
 function addHouseShellState(source) {
   const substitutions = [
@@ -5715,6 +5805,7 @@ for (const name of order) {
   let text = pruneUnreferencedDeclarations(retireDuplicateArchiveCode(name, renderModule(name)));
   if (name === "world") text = addHouseShellState(text);
   text = applyItemLobbyPatches(name, text); // item-mode(lobby)
+  text = applyBrawlPatches(name, text); // brawl(lobby)
   const filename = `${name}.js`;
   await writeIfChanged(filename, text);
   generated.push({
@@ -5728,6 +5819,8 @@ for (const name of order) {
 
 assert(appliedItemLobbyPatches.size === [...itemLobbyPatches.values()].flat().length,
   "Not every item-mode(lobby) patch was applied."); // item-mode(lobby)
+assert(appliedBrawlPatches.size === [...brawlPatches.values()].flat().length,
+  "Not every brawl(lobby) patch was applied."); // brawl(lobby)
 const garage = await readFile(garageFile, "utf8");
 const oldImport = 'from "./index-DoW2rQpI.js";';
 assert(garage.includes(oldImport), "Garage chunk import path changed.");
