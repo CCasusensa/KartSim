@@ -1,5 +1,6 @@
 /** Maps a room UI node to its live presentation and command state. */
 
+import { paintRandomTeamToggle } from "../ui/random-team-art";
 import { itemModeLabel } from "./lobby-item-mode";
 
 interface RoomMember {
@@ -35,6 +36,8 @@ interface RoomSnapshot {
   locked?: boolean;
   autoStartAt?: number;
   kickVote?: { yesIds: unknown[]; eligibleIds: unknown[] };
+  /** 隊伍隨機分配 (team rooms): the server deals the teams when the race starts. */
+  randomTeam?: boolean;
   race?: { roadblock?: { noRunnerManualReset?: boolean; limitMs?: number } };
 }
 
@@ -80,6 +83,8 @@ export interface LobbyRoomStateHost {
     team(): unknown;
     garage?: () => unknown;
     track?: () => unknown;
+    /** 隊伍隨機分配 switch (host of a team room). */
+    randomTeam?: (enabled: boolean) => unknown;
   };
   toggleEmotionWheel(): void;
   closeEmotionWheel(): void;
@@ -375,6 +380,18 @@ function roomCommandState(host: LobbyRoomStateHost, name: string,
       return { disabled: disabled || host.countdownLocked || !isHost ||
         !host.actions.track,
       label: isHost ? "选择赛道" : "由房主选择赛道", action: host.actions.track };
+    }
+    case "randomTeam": {
+      // Not in the release: the header switch; members other than the host only see it.
+      const enabled = room.randomTeam === true;
+      const usable = isHost && !disabled && !!host.actions.randomTeam;
+      const hovered = usable && host.view?.hoveredRegionId === "randomTeam";
+      return { visible: room.mode === "team", hoverRegion: usable ? "randomTeam" : undefined,
+        disabled: !usable, checked: enabled,
+        label: `队伍随机分配 ${enabled ? "ON" : "OFF"}`,
+        action: usable ? () => host.actions.randomTeam?.(!enabled) : undefined,
+        paint: (canvas: PaintContext, rect: RoomRect) => paintRandomTeamToggle(
+          canvas as CanvasRenderingContext2D, rect, { enabled, hovered, disabled: !isHost || disabled }) };
     }
     default: return undefined;
   }

@@ -166,3 +166,33 @@ test("race presentation, scoped chat and return match release constructor", asyn
 test("roadblock and RP banners match release constructor sequence", async () => {
   assert.deepEqual(await run(false, true), await run(true, true));
 });
+
+test("隊伍隨機分配! shows before a dealt team race loads, then the loading screen follows", async () => {
+  const item = fixture(false);
+  const { host, deps, events } = item;
+  host.state.room = room("loading", { mode: "team", channelName: "speedTeamCombine",
+    race: race({ randomTeam: true }) });
+  const banner = { present: async () => { events.push(["randomTeam", "present"]); },
+    dispose: () => { events.push(["randomTeam", "dispose"]); } };
+  initializeLobbyRace(host, { ...deps, loadRandomTeam: async (library, root, race, playerId) => {
+    events.push(["randomTeam.load", library, root, race.randomTeam, playerId, host.randomTeamNotice]);
+    return banner;
+  } });
+  const coordinator = item.getCoordinatorOptions();
+  const inputRoom = host.state.room;
+  await coordinator.loader.prepare(inputRoom, inputRoom.race!, new AbortController().signal);
+  const start = events.indexOf("stage.prepare");
+  assert.ok(start > 0);
+  assert.deepEqual(events.slice(1, start), [
+    "loading.sync", ["randomTeam.load", "library", "root", true, "me", undefined], "loading.sync",
+    ["randomTeam", "present"], ["randomTeam", "dispose"], "loading.sync", "loading.sync", "raceConnection",
+  ]);
+  assert.equal(host.randomTeamNotice, undefined);
+  // Without the deal, or without the banner loader, nothing is shown.
+  const plain = fixture(false);
+  plain.host.state.room = room("loading", { mode: "team", race: race({ randomTeam: true }) });
+  initializeLobbyRace(plain.host, plain.deps);
+  await plain.getCoordinatorOptions().loader.prepare(plain.host.state.room, plain.host.state.room.race!,
+    new AbortController().signal);
+  assert.ok(!plain.events.some(event => Array.isArray(event) && event[0] === "randomTeam.load"));
+});

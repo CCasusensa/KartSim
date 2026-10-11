@@ -24,6 +24,8 @@ export interface RoomViewCallbacks {
   kick(player: RoomViewPlayer): void;
   slot(slot: number, closed: boolean): void;
   transfer(player: RoomViewPlayer): void;
+  /** 隊伍隨機分配 (team rooms, host): deal the teams at random when the race starts. */
+  randomTeam(enabled: boolean): void;
 }
 
 export interface RoomViewHost {
@@ -114,6 +116,11 @@ export async function showLobbyRoom(host: RoomViewHost, load: LoadRoomView): Pro
             if (current) void host.mutate({ type: "transfer-host", roomId: current.roomId,
               revision: current.revision, playerId: player.playerId });
           });
+        },
+        randomTeam: enabled => {
+          const current = host.state.room;
+          if (current) void host.mutate({ type: "random-team", roomId: current.roomId,
+            revision: current.revision, enabled });
         },
       }, host.options.audioContext?.());
     if (host.disposed || generation !== host.generation ||

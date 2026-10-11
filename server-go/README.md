@@ -799,6 +799,7 @@ server {
 | 新增数据 | — | `race_results.account_id`、`player_stats`、等级/钱包/流水/库存/购买等经济表 |
 | 注册与游客 | 邀请码注册，首个账号为管理员；可游客进入 | 默认开放注册（注册即登录，按 IP 限流），没有游客；管理员由 `KART_ADMIN_USERNAMES` 指定（`invite` 模式保留 Java 行为） |
 | 装备 | 只校验格式 | 账号只能使用库存中未过期的物品（`ITEM_NOT_OWNED`） |
+| 组队房 | 成员自己选队 | 房主可开“隊伍隨機分配”（`random-team`），开赛时服务端随机分成两队（`SERVER_PROTOCOL.md`） |
 | healthz | `protocolVersion/ruleset/transport` | 另含 `service` 与 `dataNode`/`nodeId` |
 | 配置名 | `KART_SERVER_PORT`、`SERVER_ADDRESS`、`KART_LANHOSTS` | `KART_DATA_PORT`、`KART_DATA_ADDR`/`KART_GAME_ADDR`、`KART_LAN_HOSTS`（旧名仍兼容） |
 

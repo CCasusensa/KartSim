@@ -10,6 +10,8 @@ import { cancelLobbyDialog, castLobbyKickVote, confirmLeaveLobbyRoom,
   lobbyDialogOptions, openLobbyDialog, syncKickVoteDialog,
   type LobbyDialogHost } from "./lobby-dialogs";
 import { receiveLobbyEvent, type LobbyEventHost } from "./lobby-events";
+import { kickVoteDialogFactory, type KickVoteDialogHost,
+  type KickVoteDialogLoader } from "./lobby-kick-vote";
 import { chooseLobbyGarage, confirmLobbyGarage,
   type LobbyGarageHost } from "./lobby-garage";
 import { bindLobbyClient, disposeLobby, handleRoomShortcut,
@@ -37,6 +39,8 @@ export interface MultiplayerLobbyServices {
   loadRoom: Parameters<typeof showLobbyRoom>[1];
   notice: Parameters<typeof mutateLobbyRoom>[2];
   confirm: Parameters<typeof confirmLeaveLobbyRoom>[2];
+  /** The 踢出投票 window; without it the vote uses the release's confirm box. */
+  kickVote?: KickVoteDialogLoader;
   garageView: Parameters<typeof chooseLobbyGarage>[1];
   normalizeEquipment: Parameters<typeof chooseLobbyGarage>[2];
   track: Parameters<typeof chooseLobbyTrack>[1];
@@ -112,8 +116,12 @@ export class MultiplayerLobbyController {
     allowDisconnected = false) { return openLobbyDialog(
       own<LobbyDialogHost>(this), factory, allowDisconnected); }
   dialogOptions() { return lobbyDialogOptions(own<LobbyDialogHost>(this)); }
-  syncKickVoteDialog() { return syncKickVoteDialog(
-    own<LobbyDialogHost>(this), services(this).confirm); }
+  syncKickVoteDialog() {
+    const voteWindow = services(this).kickVote;
+    return syncKickVoteDialog(own<LobbyDialogHost>(this), voteWindow
+      ? kickVoteDialogFactory(own<KickVoteDialogHost>(this), voteWindow)
+      : services(this).confirm);
+  }
   castKickVote(approve: boolean) { return castLobbyKickVote(
     own<LobbyDialogHost>(this), approve); }
 

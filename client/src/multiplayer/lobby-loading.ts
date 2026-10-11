@@ -30,6 +30,7 @@ export interface LobbyLoadingHost {
   raceVisible: boolean;
   startMission?: unknown;
   rpNotice?: unknown;
+  randomTeamNotice?: unknown;
   syncLoadingView(): void;
 }
 
@@ -63,11 +64,11 @@ export function syncRaceLoadingView(host: LobbyLoadingHost,
   host.roomView?.setStartPresentation?.(isPresenting);
   const overlay = host.loadingView;
   if (!overlay) return;
-  const bannerReady = !(room?.race?.rp || room?.race?.roadblock) || !!(
+  const bannerReady = !(room?.race?.rp || room?.race?.roadblock || room?.race?.randomTeam) || !!(
     presentation?.complete && !presentation.signal.aborted &&
     presentation.roomId === room?.roomId && presentation.raceId === room?.race?.raceId);
   if (!host.disposed && host.connected && !host.raceVisible && bannerReady &&
-      !host.startMission && !host.rpNotice &&
+      !host.startMission && !host.rpNotice && !host.randomTeamNotice &&
       (room?.phase === "loading" || room?.phase === "countdown")) {
     overlay.show(room.race?.loadedIds.length ?? 0, room.members.length);
   } else {

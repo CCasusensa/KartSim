@@ -82,6 +82,7 @@
 | `ready` / `start` | `roomId,revision,ready?` | 更新后的 `room`；开始时进入 `loading` | `client/src/multiplayer/lobby-room-view.ts:77-89` |
 | `team` / `slot` / `kick` / `kick-vote` / `transfer-host` | `roomId,revision` 与各自目标字段 | 更新后的 `room` | `client/src/multiplayer/lobby-actions.ts:229-237`；`client/src/multiplayer/lobby-room-view.ts:99-116`；`client/src/multiplayer/lobby-dialogs.ts:149-154` |
 | `track` / `random-track` | `roomId,revision,trackId` 或 `randomTrackCode` | 更新后的 `room` | `client/src/multiplayer/lobby-track.ts:164-170` |
+| `random-team`（**本地新增**） | `roomId,revision,enabled` | 更新后的 `room`：组队房房主开关“隊伍隨機分配”，开着时快照带 `randomTeam:true`（关闭则省略），`start` 时服务端把成员随机分成尽量平均的两队（人数奇数时红队多一人）、重新落座（红队 0–3 号、蓝队 4–7 号，被占的关闭座位重新开放），冻结的 `roster` 已是分好的队，`race` 带 `randomTeam:true`，浏览器在加载画面前播放“队伍随机分配!”横幅；个人房 `TEAM_REQUIRED`，非房主 `HOST_REQUIRED`。开着时 `start` 不再要求两队都有人 | `client/src/multiplayer/lobby-room-view.ts`；`client/src/multiplayer/lobby-room-state.ts`；`client/src/multiplayer/lobby-race-loader.ts` |
 | `equipment` / `changing` | `roomId,equipment` 或 `roomId,changing` | 更新后的 `room`；**本地新增**：装备含账号不拥有的物品时 `ITEM_NOT_OWNED` | `client/src/multiplayer/lobby-garage.ts:79,115-117` |
 | `get-room-settings` / `room-settings` | `roomId`；更新另带 `revision,name,password` | `room-settings` 或 `room` | `client/src/multiplayer/lobby-settings.ts:45-65`；`client/src/multiplayer/lobby-actions.ts:240-253` |
 | `chat` | `roomId,text` | `chat` 事件，内容带 `sequence,playerId,name,text` | `client/src/multiplayer/lobby-actions.ts:195-205`；`client/src/multiplayer/server-events.ts:22-25,94-95` |
@@ -112,6 +113,8 @@
   "members":[{"playerId":"玩家 ID","name":"Alice","slot":0,"ready":false,"team":null}]
 }
 ```
+
+**本地新增 `randomTeam`：**组队房开着“隊伍隨機分配”时快照带 `randomTeam:true`（`mode` 必须是 `team`），开赛后 `race.randomTeam:true` 表示本局队伍由服务端随机分配；浏览器只在组队房接受这两个字段。踢人投票（`kick` / `kick-vote`，原版命令）在浏览器里是带剩余时间、同意/反对人数的“踢出投票”窗口（`client/src/ui/kick-vote-window.ts`），投票规则不变：房主点座位上的 ✕ 发起，其余成员 20 秒内投票，过半同意即移出。
 
 **本地新增 `race.rewards`：**比赛有结果后（`finished` 阶段），快照的 `race` 末尾多一个字段 `rewards`，即 `{ "<playerId>": { "exp": 88, "lucci": 120 } }`，每位载入完成的车手一项，所有玩法都有（挡人模式没有名次结果，也按 `server-go/ECONOMY.md` 2.1 的规则折算）；`race.results` 保持原样。数值已乘数据服务的奖励倍率 `KART_EXP_RATE`/`KART_LUCCI_RATE`（游戏节点从心跳响应得到，用与入账相同的 `rewards.ApplyRate` 换算），结算发给数据服务的是倍率前的基础值（另带显示时用的倍率）；数据服务乘倍率、按收到结算时的北京时间自然日套每日上限后入账（按 `raceId` 与账号幂等；完成时间早于 24 小时前的结算不发奖励），实际入账以 `GET /api/account` 为准。防刷规则只影响 `rewards`：服务器观察到的比赛时长（`finish` 到达时间 − `startAt`）不足 10 秒，或客户端 `elapsedMs` 比它短 3 秒以上的完赛按未完赛计奖；挡人模式开跑 10 秒内结束时所有人按未完赛，中途离开房间的车手没有奖励项（名次赛中完赛后才离开的照常有）；组队平局时双方都没有胜方加成（`winningTeam` 仍按原样输出）。例如倍率为 1 时两人 `speedIndiCombine` 个人赛：第 1 名经验 88、金币 120，第 2 名经验 33、金币 40；经验倍率 1.5、金币倍率 2 时第 1 名显示经验 132、金币 240。
 

@@ -30,6 +30,8 @@ export interface LobbyRoom extends ActiveRoom {
     eligibleIds: string[];
     yesIds: string[];
     noIds: string[];
+    /** Room clock (server ms) when the vote closes. */
+    deadline?: number;
   };
 }
 

@@ -143,3 +143,27 @@ func sha256Hex(value string) string {
 	sum := sha256.Sum256([]byte(value))
 	return hex.EncodeToString(sum[:])
 }
+
+// dealRandomTeams (隊伍隨機分配, not in Java) shuffles the members and splits
+// them into two teams as even as possible: the first half joins team 1 and
+// takes slots 0…, the rest team 2 with slots 4…. Closed slots a dealt
+// member lands on open again.
+func dealRandomTeams(r *room) {
+	dealt := append([]*member(nil), r.members...)
+	rand.Shuffle(len(dealt), func(i, j int) { dealt[i], dealt[j] = dealt[j], dealt[i] })
+	first := (len(dealt) + 1) / 2
+	for i, m := range dealt {
+		if i < first {
+			m.team, m.slot = 1, i
+		} else {
+			m.team, m.slot = 2, 4+i-first
+		}
+	}
+	kept := r.closedSlots[:0]
+	for _, slot := range r.closedSlots {
+		if r.slotMember(slot) == nil {
+			kept = append(kept, slot)
+		}
+	}
+	r.closedSlots = kept
+}

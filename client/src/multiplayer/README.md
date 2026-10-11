@@ -50,6 +50,15 @@ bundle. It can be developed independently of the original minified code.
 - `lobby-events.ts`: readable room-event orchestration and UI state transitions.
 - `lobby-lifecycle.ts`, `lobby-dialogs.ts`: subscriptions, cleanup, room shortcuts,
   auto-ready and modal/vote behavior.
+- `lobby-kick-vote.ts`, `ui/kick-vote-window.ts`: the 踢出投票 window (not the
+  release's plain confirm box): the ballot box, the question, the time left
+  with its bar and the live 同意 / 反对 counts from the room snapshot, 同意
+  (Enter) and 反对 (Esc) through the release's `castKickVote` commands.
+- `ui/random-team-art.ts`, `ui/random-team-notice.ts`: 隊伍隨機分配 (not in the
+  release): the header switch of a team room (`randomTeam` node of
+  `lobby-room-state.ts`, the `random-team` command) and the 队伍随机分配!
+  banner `lobby-race-loader.ts` shows before a dealt race (`race.randomTeam`)
+  loads.
 - `lobby-loading.ts`, `lobby-open.ts`, `lobby-room-view.ts`: race overlay,
   lobby account connection and room interface loading.
 - `lobby-settings.ts`, `lobby-changing.ts`, `lobby-garage.ts`: room creation,

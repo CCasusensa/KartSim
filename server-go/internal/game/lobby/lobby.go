@@ -384,7 +384,8 @@ func (l *Lobby) dispatch(c *Client, typ string, in Request, check *ownershipChec
 	case "race-chat":
 		return l.chat(c, in, true)
 	case "ready", "team", "track", "random-track", "slot", "kick",
-		"kick-vote", "transfer-host", "equipment", "changing", "room-settings":
+		"kick-vote", "transfer-host", "equipment", "changing", "room-settings",
+		"random-team":
 		return l.mutate(c, typ, in, check)
 	case "start":
 		return l.start(c, in, check)
@@ -1233,6 +1234,20 @@ func (l *Lobby) applyMutation(r *room, m *member, c *Client, typ string, in Requ
 			r.password = *password
 		}
 		l.saveRules(r)
+	case "random-team":
+		// Not in Java: the host switches 隊伍隨機分配 on or off (team rooms).
+		if err := requireHost(r, c); err != nil {
+			return err
+		}
+		if r.mode != "team" {
+			return fail(http.StatusBadRequest, "TEAM_REQUIRED")
+		}
+		enabled, err := in.booleanField("enabled")
+		if err != nil {
+			return err
+		}
+		r.randomTeam = enabled
+		l.saveRules(r)
 	default:
 		return fail(http.StatusBadRequest, "UNSUPPORTED_COMMAND")
 	}
@@ -1319,7 +1334,8 @@ func (l *Lobby) start(c *Client, in Request, check *ownershipCheck) (obj, error)
 		}
 		hasTeam[m.team] = true
 	}
-	if r.mode == "team" && (!hasTeam[1] || !hasTeam[2]) {
+	// With 隊伍隨機分配 the deal below fills both teams.
+	if r.mode == "team" && !r.randomTeam && (!hasTeam[1] || !hasTeam[2]) {
 		return nil, fail(http.StatusBadRequest, "TEAM_REQUIRED")
 	}
 	// Not in Java: one seat per account (hello already refuses a second
@@ -1362,6 +1378,10 @@ func (l *Lobby) start(c *Client, in Request, check *ownershipCheck) (obj, error)
 		itemSequences:       map[string]int{},
 		perfectStart:        map[string]bool{},
 		lapTrailed:          map[string]bool{},
+	}
+	if r.mode == "team" && r.randomTeam {
+		dealRandomTeams(r)
+		rc.randomTeam = true
 	}
 	for _, m := range r.members {
 		rc.roster = append(rc.roster, m.snapshot())
@@ -2092,6 +2112,9 @@ func (l *Lobby) saveRules(r *room) {
 	}
 	if r.randomTrackCode != nil {
 		rules = append(rules, field{"randomTrackCode", *r.randomTrackCode})
+	}
+	if r.randomTeam {
+		rules = append(rules, field{"randomTeam", true})
 	}
 	l.recorder.SaveRules(contract.RoomRulesRequest{NodeID: l.nodeID, RoomID: r.id,
 		Rules: encode(rules), UpdatedAt: l.wall().UnixMilli()})

@@ -391,3 +391,25 @@ test("item race results may carry the known titles (ITEM_MODE.md C.9), nothing e
   speed.race.results[0].titles = ["perfectAim"];
   assert.equal(isValidRoomSnapshot(speed), false, "speed races have no titles");
 });
+
+test("隊伍隨機分配 is a boolean of team rooms, on the room and on its race", () => {
+  const team = room({ mode: "team" });
+  team.randomTeam = true;
+  assert.equal(isValidRoomSnapshot(team), true);
+  team.randomTeam = false;
+  assert.equal(isValidRoomSnapshot(team), true);
+  team.randomTeam = "yes";
+  assert.equal(isValidRoomSnapshot(team), false);
+  const solo = room();
+  solo.randomTeam = true;
+  assert.equal(isValidRoomSnapshot(solo), false);
+  const racing = room({ mode: "team", phase: "loading" });
+  racing.randomTeam = true;
+  racing.race.randomTeam = true;
+  assert.equal(isValidRoomSnapshot(racing), true);
+  racing.race.randomTeam = 1;
+  assert.equal(isValidRoomSnapshot(racing), false);
+  const soloRace = room({ phase: "loading" });
+  soloRace.race.randomTeam = true;
+  assert.equal(isValidRoomSnapshot(soloRace), false);
+});

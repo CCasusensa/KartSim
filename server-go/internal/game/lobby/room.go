@@ -29,10 +29,13 @@ type room struct {
 	raceError       string // "" is Java null
 	race            *race
 	kickVote        *kickVote
-	members         []*member
-	chat            []obj
-	chatSequence    int
-	closedSlots     []int
+	// randomTeam (team rooms, not in Java): the host lets the server deal
+	// the teams at random when the race starts (隊伍隨機分配).
+	randomTeam   bool
+	members      []*member
+	chat         []obj
+	chatSequence int
+	closedSlots  []int
 }
 
 func newRoom(id, name, password, mode, channelName, gameplay, resourceVersion string,
@@ -47,6 +50,16 @@ func newRoom(id, name, password, mode, channelName, gameplay, resourceVersion st
 func (r *room) member(playerID string) *member {
 	for _, m := range r.members {
 		if m.playerID == playerID {
+			return m
+		}
+	}
+	return nil
+}
+
+// slotMember is the member seated in slot, or nil.
+func (r *room) slotMember(slot int) *member {
+	for _, m := range r.members {
+		if m.slot == slot {
 			return m
 		}
 	}
@@ -110,6 +123,9 @@ func (r *room) snapshot() obj {
 		value = append(value, field{"randomTrackCode", *r.randomTrackCode})
 	}
 	value = append(value, field{"locked", r.password != ""})
+	if r.randomTeam {
+		value = append(value, field{"randomTeam", true})
+	}
 	members := make([]obj, len(r.members))
 	for i, m := range r.members {
 		members[i] = m.snapshot()
@@ -234,6 +250,8 @@ type race struct {
 	startSlots      []int          // slot of rosterIDs[i]
 	// rosterEquipment is the frozen equipment of rosterIDs[i].
 	rosterEquipment []json.RawMessage
+	// randomTeam: the teams of this race were dealt at random at the start.
+	randomTeam      bool
 	loadedIDs       []string
 	returnedIDs     []string
 	finishes        []finishRow
@@ -351,6 +369,9 @@ func (r *race) snapshot() obj {
 		{"roster", r.roster},
 		{"startSlots", r.startSlotsObj()},
 		{"loadedIds", append([]string{}, r.loadedIDs...)},
+	}
+	if r.randomTeam {
+		value = append(value, field{"randomTeam", true})
 	}
 	if r.startAt != nil {
 		value = append(value, field{"startAt", *r.startAt})

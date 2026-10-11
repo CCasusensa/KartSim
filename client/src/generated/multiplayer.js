@@ -18,6 +18,8 @@ import { RpScenePreview } from "../multiplayer/rp-scene-preview.ts";
 import { RpResultAudio } from "../multiplayer/rp-result-audio.ts";
 import { RpResultNotice } from "../multiplayer/rp-result-notice.ts";
 import { RoadblockMissionNotice } from "../multiplayer/roadblock-mission-notice.ts";
+import { RandomTeamNotice } from "../ui/random-team-notice.ts";
+import { showKickVoteWindow } from "../ui/kick-vote-window.ts";
 import { TrackChangeNotice } from "../multiplayer/track-change-notice.ts";
 import { LobbyCountdownMedia } from "../multiplayer/lobby-countdown-media.ts";
 import { LobbyEmotionAudio } from "../multiplayer/lobby-emotion-audio.ts";
@@ -36,7 +38,7 @@ import { chooseGameServer, requestGameServerEntry } from "../multiplayer/game-se
 import { showGameServerPicker } from "../multiplayer/game-server-dialog.ts";
 import { roomChannelNames, roomChannelKey, roomStyleDropdown } from "../multiplayer/lobby-room-options.ts";
 import { chooseSignedInAccount } from "../multiplayer/account-choice-dialog.ts";
-import { addLobbyEmotionWheel, buildLobbyRoomTemplate, loadLobbyRoomTemplate } from "../multiplayer/lobby-room-template.ts";
+import { addLobbyEmotionWheel, addLobbyRandomTeamToggle, buildLobbyRoomTemplate, loadLobbyRoomTemplate } from "../multiplayer/lobby-room-template.ts";
 import { configureRpSceneCamera, decorateRpResultTemplate, rpSceneCameraMatrices } from "../multiplayer/rp-scene-helpers.ts";
 import { preloadRpFlyingPet } from "../multiplayer/rp-pet-preload.ts";
 import { confirmLobbyMessage, noticeLobbyMessage, createLobbyRoomDialog, createOrdinaryRoomDialog, createGameplayRoomDialog } from "../multiplayer/lobby-dialog-facade.ts";
@@ -120,7 +122,7 @@ const readySettingsDependencies = {
 const lobbyRoomTimingDependencies = { nowMs: () => performance.now(), requestFrame: callback => requestAnimationFrame(callback), cancelFrame: frameId => cancelAnimationFrame(frameId), toLocalStartAt: Y3 };
 const lobbyRoomLifecycleDependencies = { previewMembers: (room, teams) => DT(room, teams), parseChat: (chat, emotions) => Ng(chat, emotions), get chatBubbleDurationMs() { return Il0; }, nowMs: () => performance.now(), cancelFrame: frameId => cancelAnimationFrame(frameId), get keyboard() { return window; } };
 const lobbyRoomTrackDependencies = { randomTrack: code => X6(code), mode: room => G2(room), uiResource: (library, roots, token) => U1(library, roots, token), decodePng: bytes => p2(bytes), canvas: image => { const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height; canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(image.pixels), image.width, image.height), 0, 0); return canvas; }, roadblockTracks: library => Cw(library), theme: metadata => wa(metadata) };
-const lobbyRoomConstructionDependencies = { mode: room => G2(room), loadRoleTeams: library => fa(library), loadEmotions: library => cP(library), loadCountdown: library => dy.load(library), loadDefinition: (library, roadblock) => Ll0(library, roadblock), withEmotions: (definition, emotions) => Fl0(definition, emotions), loadView: options => te.load(options), drawBackdrop: (context, area) => drawLobbyRoomBackdrop(context, area), attachTopBar: (element, mount) => attachLobbyRoomTopBar(element, mount), loadTrackChangeNotice: (...args) => fy.load(...args), createPreviews: (library, render, onError, emotions, audioContext) => new Tl0(library, render, onError, emotions, audioContext) };
+const lobbyRoomConstructionDependencies = { mode: room => G2(room), loadRoleTeams: library => fa(library), loadEmotions: library => cP(library), loadCountdown: library => dy.load(library), loadDefinition: (library, roadblock) => Ll0(library, roadblock), withEmotions: (definition, emotions) => addLobbyRandomTeamToggle(Fl0(definition, emotions), roomTemplateDependencies), loadView: options => te.load(options), drawBackdrop: (context, area) => drawLobbyRoomBackdrop(context, area), attachTopBar: (element, mount) => attachLobbyRoomTopBar(element, mount), loadTrackChangeNotice: (...args) => fy.load(...args), createPreviews: (library, render, onError, emotions, audioContext) => new Tl0(library, render, onError, emotions, audioContext) };
 const lobbyRoomStateDependencies = { nodeName: node => T(node, 'name'), slots: (room, playerId) => FT(room, playerId), roadblockRunner: room => TF(room), gameplayMode: room => G2(room), decodeChat: (text, emotions) => Ng(text, emotions), wrapBubble: text => kl0(text), drawBubbleLine: (canvas, line, rect, options) => m9(canvas, line, rect, options), nowMs: () => performance.now(), get roadblockDefaults() { return tt; }, get rpChannelNames() { return lw; }, get colors() { return { redTeam: Rl0, blueTeam: Bl0, ownChat: _l0, otherChat: Gl0 }; } };
 const lobbyRoomControllerServices = { construction: lobbyRoomConstructionDependencies, lifecycle: lobbyRoomLifecycleDependencies, timing: lobbyRoomTimingDependencies, track: lobbyRoomTrackDependencies, state: lobbyRoomStateDependencies, documentBody: () => document.body };
 const raceLoadingScreenAssets = { imageBytes: (library, roots, name) => U1(library, roots, name).bytes(), decodeImage: bytes => p2(bytes) };
@@ -172,6 +174,7 @@ const multiplayerLobbyServices = {
     createCoordinator: value => new ll0(value), preloadRpPet: Nl0,
     loadRoadblock: (library, root, race, playerId) => yy.load(library, root, race, playerId),
     loadRpNotice: (library, root, race, playerId, audio) => vy.load(library, root, race, playerId, audio),
+    loadRandomTeam: (library, root, race, playerId) => RandomTeamNotice.load(library, root, race, playerId),
   },
   open: {
     get protocolVersion() { return PROTOCOL_VERSION; }, pageUrl: () => window.location.href,
@@ -211,6 +214,7 @@ const multiplayerLobbyServices = {
     gameplay === "ordinary" ? b1.createOrdinary(options, channel, nickname, submit)
       : b1.createGameplay(options, gameplay, channel, nickname, submit),
   passwordDialog: (host, submit) => host.openDialog(() => b1.password(host.dialogOptions(), submit)),
+  kickVote: (options, status, vote) => showKickVoteWindow(options, status, vote),
   confirmAction: (options, heading, body, accept) => b1.confirm(options, heading, body, accept),
 };
 

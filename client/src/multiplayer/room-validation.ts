@@ -104,6 +104,8 @@ export interface RaceSnapshot {
   item?: { ruleset: "web-item-v1"; table: "indi" | "team" };
   /** Account rewards after the race (ECONOMY.md 2.1); see account/rewards.ts. */
   rewards?: Record<string, { exp: number; lucci: number }>;
+  /** 隊伍隨機分配 (not in the release): the teams of this race were dealt at the start. */
+  randomTeam?: boolean;
 }
 
 export interface RoomSnapshot {
@@ -126,6 +128,8 @@ export interface RoomSnapshot {
   closedSlots?: number[];
   kickVote?: KickVote;
   locked?: boolean;
+  /** 隊伍隨機分配 (team rooms, not in the release): the host lets the server deal the teams at the start. */
+  randomTeam?: boolean;
   chat?: ChatMessage[];
   raceError?: "LOAD_TIMEOUT" | "LOAD_FAILED" | "MEMBER_LEFT" | "HOST_CANCELLED";
   race?: RaceSnapshot;
@@ -419,6 +423,8 @@ export function isValidRoomSnapshot(value: unknown): value is RoomSnapshot {
       (value.chat !== undefined && !validChatList(value.chat))) return false;
   if (value.kickVote !== undefined &&
       !validKickVote(value.kickVote, members.ids, value.hostId, value.phase)) return false;
+  if (value.randomTeam !== undefined &&
+      (typeof value.randomTeam !== "boolean" || value.mode !== "team")) return false;
   const capacity = value.capacity as number;
   const gameplay: Gameplay = value.gameplay === undefined ? "ordinary" : value.gameplay as Gameplay;
   if ((gameplay === "roadblock" &&
@@ -443,6 +449,8 @@ export function isValidRoomSnapshot(value: unknown): value is RoomSnapshot {
       !finiteNonnegative(race.loadingDeadline) ||
       !Array.isArray(race.roster) || !Array.isArray(race.loadedIds) ||
       !isValidRoomSnapshot({ ...value, phase: "open", race: undefined, members: race.roster })) return false;
+  if (race.randomTeam !== undefined &&
+      (typeof race.randomTeam !== "boolean" || value.mode !== "team")) return false;
   const rosterIds = new Set<string>(race.roster.map((member: RoomMember) => member.playerId));
   if (race.roster.some((member: RoomMember) => !member.equipment) ||
       new Set(race.loadedIds).size !== race.loadedIds.length ||

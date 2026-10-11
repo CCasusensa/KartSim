@@ -183,3 +183,28 @@ test("root fullscreen untextured color panel (the dim over the lobby) is dropped
     child.attributes.find(field => field.name === "texture")?.value);
   assert.deepEqual(kept, ["img_mainSideBG", "shade", "rider0"]);
 });
+
+test("the 隊伍隨機分配 switch joins the header and 等待中 moves left for it", async () => {
+  const { addLobbyRandomTeamToggle } = await import("./lobby-room-template");
+  const deps = dependencies();
+  const root = node("Container", "root", [
+    node("Container", "header", [
+      node("Label", "sessionStateStr", [], { leftTopWH: "800 0 150 50", textColor: "yellow" }),
+      node("ImageButton", "changeRoomInfo", [], { leftTopTex: "1083 7" }),
+    ]),
+  ]);
+  const result = addLobbyRandomTeamToggle(root, deps);
+  const header = result.children[0]!;
+  const state = header.children[0]!;
+  assert.deepEqual(state.attributes.find(entry => entry.name === "leftTopWH"),
+    { name: "leftTopWH", value: "650 0 160 50" });
+  assert.ok(state.attributes.some(entry => entry.name === "textColor" && entry.value === "yellow"));
+  assert.deepEqual(header.children[1], root.children[0]!.children[1]);
+  const toggle = result.children.at(-1)!;
+  assert.equal(toggle.name, "Panel");
+  assert.deepEqual(toggle.attributes, [{ name: "name", value: "randomTeam" },
+    { name: "leftTopWH", value: "942 68 250 36" }]);
+  // The original tree is left alone.
+  assert.equal(root.children[0]!.children[0]!.attributes.find(entry => entry.name === "leftTopWH")?.value,
+    "800 0 150 50");
+});

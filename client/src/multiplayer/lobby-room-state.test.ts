@@ -229,3 +229,44 @@ test("道具赛 rooms name their game in the room header", () => {
     assert.deepEqual([track.disabled, track.label], [false, "选择赛道"]);
   }
 });
+
+test("the 隊伍隨機分配 switch shows in team rooms and only the host can flip it", () => {
+  const observe = (mode: string, hostId: string, randomTeam: boolean | undefined, hovered = false,
+    busy = false) => {
+    const events: unknown[] = [];
+    const host = {
+      room: { name: "组队房", speed: 7, mode, phase: "open", hostId, capacity: 8, members: [],
+        channelName: "speedTeamCombine", randomTeam },
+      playerId: "local", busy, connected: true, countdownLocked: false,
+      view: { hoveredRegionId: hovered ? "randomTeam" : undefined },
+      countdownState: () => ({ active: false, elapsed: 0, remaining: 0, cancelLocked: false }),
+      actions: { randomTeam: (enabled: boolean) => { events.push(["random-team", enabled]); } },
+    } as unknown as LobbyRoomStateHost;
+    const dependencies = {
+      nodeName: (node: unknown) => (node as { name: string }).name,
+      slots: () => [], roadblockRunner: () => undefined, gameplayMode: () => "ordinary",
+      decodeChat: (value: string) => ({ text: value }), wrapBubble: (value: string) => [value],
+      drawBubbleLine: () => {}, nowMs: () => 0,
+      roadblockDefaults: { noRunnerManualReset: true, limitMs: 180000 },
+      rpChannelNames: {},
+      colors: { redTeam: "red", blueTeam: "blue", ownChat: "own", otherChat: "other" },
+    } as unknown as LobbyRoomStateDependencies;
+    const state = lobbyRoomNodeState(host, { name: "randomTeam" }, dependencies);
+    (state.action as (() => void) | undefined)?.();
+    return { state, events };
+  };
+  const hostOff = observe("team", "local", undefined);
+  assert.deepEqual([hostOff.state.visible, hostOff.state.disabled, hostOff.state.checked, hostOff.state.label,
+    hostOff.state.hoverRegion, typeof hostOff.state.paint], [true, false, false, "队伍随机分配 OFF", "randomTeam", "function"]);
+  assert.deepEqual(hostOff.events, [["random-team", true]]);
+  const hostOn = observe("team", "local", true, true);
+  assert.deepEqual([hostOn.state.checked, hostOn.state.label, hostOn.events], [true, "队伍随机分配 ON", [["random-team", false]]]);
+  const guest = observe("team", "other", true);
+  assert.deepEqual([guest.state.visible, guest.state.disabled, guest.state.checked, guest.state.action,
+    guest.state.hoverRegion], [true, true, true, undefined, undefined]);
+  assert.deepEqual(guest.events, []);
+  const solo = observe("individual", "local", undefined);
+  assert.equal(solo.state.visible, false);
+  const busy = observe("team", "local", true, false, true);
+  assert.deepEqual([busy.state.disabled, busy.state.action, busy.events], [true, undefined, []]);
+});

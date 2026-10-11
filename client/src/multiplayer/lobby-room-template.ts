@@ -183,6 +183,25 @@ export function buildLobbyRoomTemplate(
   return transform(root);
 }
 
+/**
+ * 隊伍隨機分配 (not in the release): the switch beside 房间设置 in the
+ * header, painted by the room state (team rooms only); 等待中 moves left
+ * to make room for it. Stage coordinates, like the emotion wheel.
+ */
+export function addLobbyRandomTeamToggle(root: RoomTemplateNode,
+  dependencies: RoomTemplateDependencies): RoomTemplateNode {
+  const { attribute, clone } = dependencies;
+  const move = (node: RoomTemplateNode): RoomTemplateNode =>
+    attribute(node, "name") === "sessionStateStr"
+      ? clone(node, { leftTopWH: "650 0 160 50" })
+      : { ...node, children: node.children.map(move) };
+  const toggle: RoomTemplateNode = { name: "Panel", text: "",
+    attributes: [{ name: "name", value: "randomTeam" },
+      { name: "leftTopWH", value: "942 68 250 36" }], children: [] };
+  const moved = move(root);
+  return { ...moved, children: [...moved.children, toggle] };
+}
+
 export function addLobbyEmotionWheel(root: RoomTemplateNode,
   emotions: { label: string }[], dependencies: RoomTemplateDependencies):
   RoomTemplateNode {

@@ -57,6 +57,8 @@ export interface LobbyRaceHost {
   startCoordinator?: { releasePresentedRace(): void };
   startMission?: PresentationBanner;
   rpNotice?: PresentationBanner;
+  /** 隊伍隨機分配! shown before a dealt team race loads (not in the release). */
+  randomTeamNotice?: PresentationBanner;
   startPresentation?: { roomId: string; raceId: string;
     complete: boolean; signal: AbortSignal };
   playerId: string;
@@ -79,6 +81,9 @@ export interface LobbyRaceDependencies {
     playerId: string): Promise<PresentationBanner>;
   loadRpNotice(library: unknown, root: unknown, race: CoordinatedRace,
     playerId: string, audioContext: unknown): Promise<PresentationBanner>;
+  /** The 隊伍隨機分配! banner of a race with `randomTeam` (not in the release). */
+  loadRandomTeam?(library: unknown, root: unknown, race: CoordinatedRace,
+    playerId: string): Promise<PresentationBanner>;
 }
 
 /** Bind loading banners and the game renderer to one race coordinator. */
@@ -99,6 +104,22 @@ export function initializeLobbyRace(host: LobbyRaceHost,
             error => ({ ok: false as const, error }))
         : undefined;
 
+      if (race.randomTeam && deps.loadRandomTeam) {
+        const banner = await deps.loadRandomTeam(options.library, options.root,
+          race, host.playerId);
+        try {
+          if (signal.aborted || host.disposed) throw new Error("队伍随机分配展示已取消。");
+          host.randomTeamNotice = banner;
+          host.syncLoadingView();
+          await banner.present(signal);
+        } finally {
+          banner.dispose();
+          if (host.randomTeamNotice === banner) {
+            host.randomTeamNotice = undefined;
+            host.syncLoadingView();
+          }
+        }
+      }
       if (race.roadblock) {
         const banner = await deps.loadRoadblock(options.library, options.root,
           race, host.playerId);
