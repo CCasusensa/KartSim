@@ -1897,6 +1897,17 @@
       ],
       "heading": 270,
       "n": 37
+    },
+    {
+      "id": "spawn-forest",
+      "name": "森林出生点",
+      "kind": "spawn",
+      "at": [
+        -700,
+        540
+      ],
+      "heading": 180,
+      "n": 38
     }
   ],
   "boostPads": [

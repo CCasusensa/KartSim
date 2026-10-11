@@ -209,6 +209,7 @@ export const POIS = [
   { id: "spawn-homes", name: "小屋街出生点", kind: "spawn", at: [-700, 160], heading: 90 },
   { id: "spawn-garage", name: "老街出生点", kind: "spawn", at: [-40, -560], heading: 180 },
   { id: "spawn-beach", name: "海滩出生点", kind: "spawn", at: [820, 480], heading: 270 },
+  { id: "spawn-forest", name: "森林出生点", kind: "spawn", at: [-700, 540], heading: 180 },
 ];
 
 /** 环城高速直道上的加速带（x, z）。 */

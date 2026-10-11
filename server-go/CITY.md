@@ -72,7 +72,7 @@
 转发规则：
 
 1. 只接受在城市中、`state != "parked"` 以外也允许（停车时也可发一帧）、载荷长度与 kind 匹配的帧；每连接 200 帧/秒（突发 400），超出丢弃。
-2. 节点从载荷取位置（与反作弊相同的偏移），更新成员的最近位置与 `lastMotionTick`，并做合理性检查：相邻两帧速度超过 `KART_CITY_MAX_SPEED`（默认 150 m/s）或位移超过 200 m 且没有 `city-respawn` 声明 → 丢弃该帧并计数，10 秒内 20 次 → `city-kicked {reason:"CHEAT"}`。
+2. 节点从载荷取位置（与反作弊相同的偏移）。**帧内坐标 = 设计坐标 + 偏移**：载荷里的位置是赛道物理坐标的线框形式（x、−z、y），而城市赛道整体平移到了正坐标（客户端 x = 设计 x + offsetX，客户端 y = offsetZ − 设计 z，`offsetX = −meta.extent[0][0]`、`offsetZ = meta.extent[1][1]`，当前都是 1200），节点换算回 `city-map.json` 的设计坐标（x 东、z 南、y 上、原点喷泉）：设计 x = p[0] − offsetX，设计 y = p[2]，设计 z = offsetZ − p[1]；JSON 里的所有坐标（`pose`、`spawn`、`city-respawn` 的 `pose`）、雷达包与分区判定都用设计坐标。随后更新成员的最近位置与 `lastMotionTick`，并做合理性检查：相邻两帧速度超过 `KART_CITY_MAX_SPEED`（默认 150 m/s）或位移超过 200 m 且没有 `city-respawn` 声明 → 丢弃该帧并计数，10 秒内 20 次 → `city-kicked {reason:"CHEAT"}`。
 3. 接收者由节点决定：实例维护 100 m 网格；发送者 `KART_CITY_INTEREST_RADIUS`（默认 160 m）内的其他成员收到。60 m 内每帧都发；60–160 m 只发序号为偶数的帧。超出范围不发（他们靠雷达包知道位置）。
 4. 转发的帧原样（盖写 id 后）写入接收者的 `motion` 通道，与比赛帧一样不保证送达。
 

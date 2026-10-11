@@ -40,15 +40,20 @@ func startCity(t *testing.T) (*lobby.Lobby, *city.Service, string) {
 	return l, zone, "ws" + strings.TrimPrefix(server.URL, "http")
 }
 
-// cityFrame is a city motion frame of kind 2 at world x/z.
+// cityFrame is a city motion frame of kind 2 at design x/z: the payload
+// carries the shifted physics frame (x + OffsetX, OffsetZ - z, y).
 func cityFrame(sequence uint32, x, z float64) []byte {
+	m, err := city.Default()
+	if err != nil {
+		panic(err)
+	}
 	frame := make([]byte, 8+80)
 	frame[0] = city.FrameMotion
 	frame[1] = 2
 	binary.LittleEndian.PutUint32(frame[4:], sequence)
 	payload := frame[8:]
-	binary.LittleEndian.PutUint32(payload[4:], math.Float32bits(float32(x)))
-	binary.LittleEndian.PutUint32(payload[8:], math.Float32bits(float32(-z)))
+	binary.LittleEndian.PutUint32(payload[4:], math.Float32bits(float32(x+m.OffsetX)))
+	binary.LittleEndian.PutUint32(payload[8:], math.Float32bits(float32(m.OffsetZ-z)))
 	binary.LittleEndian.PutUint32(payload[16:], math.Float32bits(1)) // quaternion w
 	return frame
 }

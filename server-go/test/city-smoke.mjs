@@ -16,6 +16,7 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { createPlayer, discoverCluster, enterGame, readSettings } from "./lib/kart-client.mjs";
+import cityMap from "../internal/game/city/city-map.json" with { type: "json" };
 
 const settings = readSettings();
 const suffix = randomBytes(4).toString("hex");
@@ -60,10 +61,18 @@ class BinaryInbox {
   }
 }
 
+// The city track is built shifted into positive client coordinates
+// (client x = design x + offsetX, client y = offsetZ - design z; CITY.md 3):
+// the offsets come from the map's extent, like the node derives them.
+const [[minX], [, maxZ]] = cityMap.meta.extent;
+const offsetX = -minX;
+const offsetZ = maxZ;
+
 /**
- * A city motion frame of kind 2 (an 80-byte kinematic payload) at world
- * x/y/z: the wire position is (x, -z, y) of the browser's y-up world and
- * the quaternion is w, x, y, z (identity here: facing south).
+ * A city motion frame of kind 2 (an 80-byte kinematic payload) at design
+ * x/y/z: the wire position is (x, -z, y) of the browser's y-up world plus
+ * the track offset, and the quaternion is w, x, y, z (identity here:
+ * facing south).
  */
 function cityMotionFrame(sequence, { x, y, z }) {
   const frame = new Uint8Array(8 + 80);
@@ -73,8 +82,8 @@ function cityMotionFrame(sequence, { x, y, z }) {
   view.setUint16(2, 0, true);
   view.setUint32(4, sequence >>> 0, true);
   view.setUint32(8, Date.now() % 0xffff_ffff, true);
-  view.setFloat32(8 + 4, x, true);
-  view.setFloat32(8 + 8, -z, true);
+  view.setFloat32(8 + 4, x + offsetX, true);
+  view.setFloat32(8 + 8, offsetZ - z, true);
   view.setFloat32(8 + 12, y, true);
   view.setFloat32(8 + 16, 1, true);
   return frame;

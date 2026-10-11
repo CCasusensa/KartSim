@@ -24,6 +24,7 @@ import { alpha, backface, group, meshNode, texture, toMinimap, toRoad, trackCont
 import { WATER_LEVEL, buildGround, buildWater, createTerrain, districtAt } from "./city-terrain.mjs";
 import { buildRoadCeiling, buildRoadSurface, buildRoadWall, routeRecords, sampleRoad } from "./city-roads.mjs";
 import { buildBuildings, buildBoundary, buildTrees, importLandmarks } from "./city-props.mjs";
+import { SKY_TEXTURES } from "./city-sky.mjs";
 
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const projectRoot = path.resolve(clientDir, "..");
@@ -263,6 +264,7 @@ async function main() {
   renameSky(sky);
   files.push({ path: "skydome.1s", bytes: encodeTrackModel(sky) });
   files.push({ path: "xt_minimap.png", bytes: built.minimapPng });
+  for (const [stem, make] of Object.entries(SKY_TEXTURES)) files.push({ path: `${stem}.png`, bytes: make() });
   for (const entry of await built.city.textures.entries()) files.push({ path: entry.path, bytes: entry.bytes });
   mkdirSync(outDir, { recursive: true });
   let total = 0;

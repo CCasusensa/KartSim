@@ -264,8 +264,17 @@ func (h *harness) at(p *peer, x, y, z, heading float64) {
 		strconv.FormatFloat(heading, 'f', -1, 64)+`}}`)
 }
 
+// designMap is the embedded map (its wire offsets).
+var designMap = func() *Map {
+	m, err := Default()
+	if err != nil {
+		panic(err)
+	}
+	return m
+}()
+
 // motionFrame is a city frame of kind 2 (an 80-byte kinematic payload)
-// whose sender sits at world x/y/z facing heading.
+// whose sender sits at design x/y/z facing heading.
 func motionFrame(sequence uint32, x, y, z, heading float64) []byte {
 	frame := make([]byte, headerLength+80)
 	frame[0] = FrameMotion
@@ -275,9 +284,10 @@ func motionFrame(sequence uint32, x, y, z, heading float64) []byte {
 	put := func(offset int, value float64) {
 		binary.LittleEndian.PutUint32(payload[offset:], math.Float32bits(float32(value)))
 	}
-	// Wire space is (x, -z, y) of the browser's y-up world.
-	put(kinematicPositionOffset, x)
-	put(kinematicPositionOffset+4, -z)
+	// Wire space is (x, -z, y) of the browser's y-up world, shifted by the
+	// map's offsets (Map.OffsetX/OffsetZ).
+	put(kinematicPositionOffset, x+designMap.OffsetX)
+	put(kinematicPositionOffset+4, designMap.OffsetZ-z)
 	put(kinematicPositionOffset+8, y)
 	// A rotation about the browser's y (up) axis: forward (2(wz - xy), ·,
 	// 1 - 2(x² + z²)) = (sin h, ·, -cos h) for w = sin(h/2), z = cos(h/2).

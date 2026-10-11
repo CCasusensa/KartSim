@@ -294,6 +294,10 @@
 <circle cx="820" cy="480" r="22" fill="#16a34a" stroke="#ffffff" stroke-width="4"/>
 <text x="820" y="488" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">37</text>
 <text x="850" y="489" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">海滩出生点</text>
+<line x1="-700" y1="540" x2="-700" y2="590" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow)"/>
+<circle cx="-700" cy="540" r="22" fill="#16a34a" stroke="#ffffff" stroke-width="4"/>
+<text x="-700" y="548" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">38</text>
+<text x="-670" y="549" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">森林出生点</text>
 <text x="-1200" y="-1250" font-size="64" font-weight="bold" fill="#111827">卡丁城 · 开放世界城市地图</text>
 <text x="420" y="-1250" font-size="30" fill="#4b5563">2.4 km × 2.4 km · 原点 = 中央喷泉 · x 向东 z 向南 · 单位：米</text>
 <g transform="translate(1120,-1120)"><circle r="60" fill="#ffffff" stroke="#374151" stroke-width="3"/><path d="M0 -48 L16 10 L0 0 L-16 10 z" fill="#dc2626"/><text y="-62" font-size="30" text-anchor="middle" fill="#111827" font-weight="bold">北</text></g>
@@ -399,4 +403,6 @@
 <text x="476" y="1940" font-size="26" fill="#111827">36. 老街出生点 (-40, -560)</text>
 <circle cx="-1186" cy="1971" r="13" fill="#16a34a"/>
 <text x="-1164" y="1980" font-size="26" fill="#111827">37. 海滩出生点 (820, 480)</text>
+<circle cx="-366" cy="1971" r="13" fill="#16a34a"/>
+<text x="-344" y="1980" font-size="26" fill="#111827">38. 森林出生点 (-700, 540)</text>
 </svg>

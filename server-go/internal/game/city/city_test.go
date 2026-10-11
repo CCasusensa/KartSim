@@ -659,14 +659,49 @@ func TestHeadingOf(t *testing.T) {
 			t.Errorf("headingOf(%v) = %v, want %v", tc.q, got, tc.want)
 		}
 	}
-	// A driving (kind 1) payload carries its pose 3 bytes later.
+	// A driving (kind 1) payload carries its pose 3 bytes later; without
+	// an extent the wire and design frames coincide.
 	payload := make([]byte, 113)
 	binary.LittleEndian.PutUint32(payload[drivingPositionOffset:], math.Float32bits(5))
 	binary.LittleEndian.PutUint32(payload[drivingPositionOffset+4:], math.Float32bits(-7))
 	binary.LittleEndian.PutUint32(payload[drivingPositionOffset+8:], math.Float32bits(2))
 	binary.LittleEndian.PutUint32(payload[drivingQuaternionOffset+4:], math.Float32bits(1))
-	pose, ok := payloadPose(1, payload)
+	pose, ok := (&Map{}).payloadPose(1, payload)
 	if !ok || pose != (Pose{X: 5, Y: 2, Z: 7, Heading: 0}) {
 		t.Fatalf("driving pose %+v %v", pose, ok)
+	}
+}
+
+// The payload position is in the shifted physics frame of the city track
+// (client x = design x + 1200, client y = 1200 - design z, from
+// meta.extent); poses are design coordinates.
+func TestPayloadPoseAppliesTheMapOffset(t *testing.T) {
+	if designMap.OffsetX != 1200 || designMap.OffsetZ != 1200 {
+		t.Fatalf("offsets %v %v", designMap.OffsetX, designMap.OffsetZ)
+	}
+	payload := make([]byte, 80)
+	wire := func(p [3]float64) {
+		for i, v := range p {
+			binary.LittleEndian.PutUint32(payload[kinematicPositionOffset+4*i:], math.Float32bits(float32(v)))
+		}
+		binary.LittleEndian.PutUint32(payload[kinematicQuaternionOffset+4:], math.Float32bits(1)) // north
+	}
+	wire([3]float64{1200, 1200, 0})
+	if pose, ok := designMap.payloadPose(2, payload); !ok || pose != (Pose{}) {
+		t.Fatalf("the fountain: %+v %v", pose, ok)
+	}
+	// The beach spawn (820, 480) sits at client (2020, 720).
+	wire([3]float64{2020, 720, 3})
+	if pose, ok := designMap.payloadPose(2, payload); !ok || pose != (Pose{X: 820, Y: 3, Z: 480}) {
+		t.Fatalf("the beach: %+v %v", pose, ok)
+	}
+	// And a relayed frame at the fountain lands the member in the plaza.
+	h := newHarness(t, Options{Lines: 1})
+	alice := h.player("Alice")
+	h.join(alice, `{"type":"city-join"}`)
+	h.svc.RelayMotion(alice.c, motionFrame(1, 0, 0, 0, 0))
+	members, _ := h.svc.Members(1)
+	if members[0].Pose != (Pose{}) || members[0].District != "plaza" {
+		t.Fatalf("member %+v", members[0])
 	}
 }

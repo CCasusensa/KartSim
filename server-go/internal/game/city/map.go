@@ -28,6 +28,14 @@ type Map struct {
 	Spawns []Spawn
 	// Rules are the map's gameplay numbers (for the admin page).
 	Rules map[string]any
+	// OffsetX and OffsetZ relate the design coordinates of the map (x east,
+	// z south, y up, origin at the fountain; every JSON field, the radar
+	// packet and the district polygons) to the physics frame the motion
+	// payloads carry: the city track is built shifted into positive
+	// coordinates, client x = design x + OffsetX and client y = OffsetZ -
+	// design z (PLAN.md 3.1), with OffsetX = -extent[0][0] and OffsetZ =
+	// extent[1][1] from meta.extent (0 without one).
+	OffsetX, OffsetZ float64
 }
 
 // District is a named area: a polygon or a circle in world x/z meters.
@@ -51,7 +59,8 @@ const mainSpawn = "spawn-main"
 
 type rawMap struct {
 	Meta struct {
-		Name string `json:"name"`
+		Name   string      `json:"name"`
+		Extent [][]float64 `json:"extent"`
 	} `json:"meta"`
 	Districts []struct {
 		ID      string      `json:"id"`
@@ -78,6 +87,12 @@ func Load(data []byte) (*Map, error) {
 		return nil, fmt.Errorf("city-map.json: %w", err)
 	}
 	m := &Map{Name: raw.Meta.Name, Rules: raw.Rules}
+	if extent := raw.Meta.Extent; len(extent) > 0 {
+		if len(extent) != 2 || len(extent[0]) != 2 || len(extent[1]) != 2 {
+			return nil, errors.New("city-map.json: meta.extent must be [[minX, minZ], [maxX, maxZ]]")
+		}
+		m.OffsetX, m.OffsetZ = -extent[0][0], extent[1][1]
+	}
 	for _, d := range raw.Districts {
 		if d.ID == "" {
 			return nil, errors.New("city-map.json: a district has no id")

@@ -68,14 +68,22 @@ const (
 	drivingQuaternionOffset   = 19
 )
 
-// payloadPose reads a frame payload's pose in world coordinates. The wire
-// vectors are (x, -z, y) of the browser's y-up world (outgoing-race-
-// motion.ts wireVector), so world x = p[0], y = p[2], z = -p[1]. The
-// heading is where the wire quaternion points the kart's forward axis:
-// remote-fleet.ts webBasis takes the browser's forward from the rotation
-// matrix, which in terms of the quaternion is x = 2(wz - xy),
-// z = 1 - 2(x² + z²); 0 is north (-z), clockwise.
-func payloadPose(kind int, payload []byte) (Pose, bool) {
+// payloadPose reads a frame payload's pose in the map's design
+// coordinates. The wire vectors are (x, -z, y) of the browser's y-up
+// client world (outgoing-race-motion.ts wireVector), and the city track is
+// built shifted into positive client coordinates (client x = design x +
+// OffsetX, client y = OffsetZ - design z, Map.OffsetX/OffsetZ), so
+//
+//	design x = p[0] - OffsetX
+//	design y = p[2]
+//	design z = OffsetZ - p[1]
+//
+// (the frame holds 设计坐标 + 偏移). The heading is where the wire
+// quaternion points the kart's forward axis: remote-fleet.ts webBasis
+// takes the browser's forward from the rotation matrix, which in terms of
+// the quaternion is x = 2(wz - xy), z = 1 - 2(x² + z²); 0 is north (-z),
+// clockwise.
+func (m *Map) payloadPose(kind int, payload []byte) (Pose, bool) {
 	positionAt, quaternionAt := kinematicPositionOffset, kinematicQuaternionOffset
 	if kind == 1 {
 		positionAt, quaternionAt = drivingPositionOffset, drivingQuaternionOffset
@@ -96,7 +104,7 @@ func payloadPose(kind int, payload []byte) (Pose, bool) {
 			return Pose{}, false
 		}
 	}
-	pose := Pose{X: wire[0], Y: wire[2], Z: -wire[1]}
+	pose := Pose{X: wire[0] - m.OffsetX, Y: wire[2], Z: m.OffsetZ - wire[1]}
 	if math.Abs(pose.X) > maxCoordinate || math.Abs(pose.Y) > maxCoordinate || math.Abs(pose.Z) > maxCoordinate {
 		return Pose{}, false
 	}
@@ -131,7 +139,7 @@ func (inst *instance) relay(c *lobby.Client, frame []byte) {
 	if kind < 1 || kind > 10 || !lobby.ValidMotionPayload(kind, payload) {
 		return
 	}
-	pose, ok := payloadPose(kind, payload)
+	pose, ok := inst.svc.cityMap.payloadPose(kind, payload)
 	inst.mu.Lock()
 	defer inst.mu.Unlock()
 	m := inst.members[c]

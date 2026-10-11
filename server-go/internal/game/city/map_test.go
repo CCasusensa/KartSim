@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -28,12 +29,21 @@ func TestDefaultMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.Name != "卡丁城" || len(m.Districts) != 10 || len(m.Spawns) != 4 {
+	if m.Name != "卡丁城" || len(m.Districts) != 10 || len(m.Spawns) != 5 {
 		t.Fatalf("name %q, %d districts, %d spawns", m.Name, len(m.Districts), len(m.Spawns))
 	}
-	if m.Spawns[0].ID != mainSpawn || m.Spawns[0].Z != 95 || m.Spawns[3].ID != "spawn-beach" ||
-		m.Spawns[3].Heading != 270 {
+	// Rotation order: the main spawn first, then the others as listed.
+	var order []string
+	for _, spawn := range m.Spawns {
+		order = append(order, spawn.ID)
+	}
+	if strings.Join(order, ",") != "spawn-main,spawn-homes,spawn-garage,spawn-beach,spawn-forest" ||
+		m.Spawns[0].Z != 95 || m.Spawns[3].Heading != 270 || m.Spawns[4].X != -700 || m.Spawns[4].Z != 540 {
 		t.Fatalf("spawns %+v", m.Spawns)
+	}
+	// The map spans ±1200 m: the physics frame is shifted by that.
+	if m.OffsetX != 1200 || m.OffsetZ != 1200 {
+		t.Fatalf("offsets %v %v", m.OffsetX, m.OffsetZ)
 	}
 	if spawn, ok := m.Spawn("spawn-garage"); !ok || spawn.X != -40 || spawn.Z != -560 {
 		t.Fatalf("spawn-garage %+v %v", spawn, ok)
@@ -98,7 +108,11 @@ func TestLoadRefusesBrokenMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(m.Spawns) != 2 || m.Spawns[0].ID != "spawn-main" || m.Spawns[1].Heading != 45 {
-		t.Fatalf("spawns %+v", m.Spawns)
+	if len(m.Spawns) != 2 || m.Spawns[0].ID != "spawn-main" || m.Spawns[1].Heading != 45 ||
+		m.OffsetX != 0 || m.OffsetZ != 0 {
+		t.Fatalf("spawns %+v, offsets %v %v", m.Spawns, m.OffsetX, m.OffsetZ)
+	}
+	if _, err := Load([]byte(`{"meta":{"extent":[[0,0]]},"districts":[],"pois":[{"id":"s","kind":"spawn","at":[0,0]}]}`)); err == nil {
+		t.Error("a one-point extent was accepted")
 	}
 }
