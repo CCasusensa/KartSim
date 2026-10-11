@@ -1,0 +1,402 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1300 -1380 2600 3440" width="1300" height="1720" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+<title>卡丁城 · 开放世界城市地图</title>
+<defs>
+  <pattern id="mountain" width="60" height="60" patternUnits="userSpaceOnUse">
+    <path d="M0 50 L15 20 L30 50 M30 50 L45 25 L60 50" fill="none" stroke="#94a3b8" stroke-width="3"/>
+  </pattern>
+  <pattern id="trees" width="50" height="50" patternUnits="userSpaceOnUse">
+    <circle cx="12" cy="12" r="7" fill="#86efac"/><circle cx="37" cy="33" r="6" fill="#4ade80"/>
+  </pattern>
+  <pattern id="waves" width="80" height="40" patternUnits="userSpaceOnUse">
+    <path d="M0 20 Q20 5 40 20 T80 20" fill="none" stroke="#60a5fa" stroke-width="3"/>
+  </pattern>
+  <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="#16a34a"/>
+  </marker>
+</defs>
+<rect x="-1300" y="-1380" width="2600" height="3440" fill="#fbfaf6"/>
+<rect x="-1200" y="-1200" width="2400" height="2400" fill="#eef1e6" stroke="#9ca3af" stroke-width="3"/>
+<line x1="-1000" y1="-1200" x2="-1000" y2="1200" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<line x1="-1200" y1="-1000" x2="1200" y2="-1000" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<text x="-1000" y="-1215" font-size="30" fill="#6b7280" text-anchor="middle">x=-1000</text>
+<text x="-1215" y="-990" font-size="30" fill="#6b7280" text-anchor="end">z=-1000</text>
+<line x1="-500" y1="-1200" x2="-500" y2="1200" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<line x1="-1200" y1="-500" x2="1200" y2="-500" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<text x="-500" y="-1215" font-size="30" fill="#6b7280" text-anchor="middle">x=-500</text>
+<text x="-1215" y="-490" font-size="30" fill="#6b7280" text-anchor="end">z=-500</text>
+<line x1="0" y1="-1200" x2="0" y2="1200" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<line x1="-1200" y1="0" x2="1200" y2="0" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<text x="0" y="-1215" font-size="30" fill="#6b7280" text-anchor="middle">x=0</text>
+<text x="-1215" y="10" font-size="30" fill="#6b7280" text-anchor="end">z=0</text>
+<line x1="500" y1="-1200" x2="500" y2="1200" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<line x1="-1200" y1="500" x2="1200" y2="500" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<text x="500" y="-1215" font-size="30" fill="#6b7280" text-anchor="middle">x=500</text>
+<text x="-1215" y="510" font-size="30" fill="#6b7280" text-anchor="end">z=500</text>
+<line x1="1000" y1="-1200" x2="1000" y2="1200" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<line x1="-1200" y1="1000" x2="1200" y2="1000" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="12 12"/>
+<text x="1000" y="-1215" font-size="30" fill="#6b7280" text-anchor="middle">x=1000</text>
+<text x="-1215" y="1010" font-size="30" fill="#6b7280" text-anchor="end">z=1000</text>
+<circle cx="0" cy="0" r="230" fill="#fde68a" fill-opacity="0.8" stroke="#a16207" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="-400,-1000 400,-1000 400,-250 -400,-250" fill="#fecaca" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="400,-1000 1000,-1000 1000,-200 400,-200" fill="#c7d2fe" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="400,-200 1000,-200 1000,120 880,400 760,620 520,900 420,1000 400,1000" fill="#bae6fd" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="0,560 420,560 420,1000 0,1000" fill="#e5e7eb" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="-560,230 0,230 0,560 -560,1000 -560,1000" fill="#ddd6fe" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="-1000,230 -560,230 -560,1000 -1000,1000" fill="#bbf7d0" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="-1000,230 -560,230 -560,1000 -1000,1000" fill="url(#trees)" fill-opacity="0.6"/>
+<polygon points="-1000,-250 -400,-250 -400,230 -1000,230" fill="#fed7aa" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="-1000,-1000 -400,-1000 -400,-250 -1000,-250" fill="#e0f2fe" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="-1200,-1200 -700,-1200 -1000,-1000 -1200,-700" fill="#e2e8f0" fill-opacity="0.55" stroke="#9ca3af" stroke-width="3" stroke-dasharray="14 10"/>
+<polygon points="-1200,-1200 -700,-1200 -1000,-1000 -1200,-700" fill="url(#mountain)" fill-opacity="0.6"/>
+<polygon points="1300,120 1100,180 950,260 880,400 850,520 760,620 640,760 520,900 420,1050 330,1300 1300,1300" fill="#bfdbfe"/>
+<polygon points="1300,120 1100,180 950,260 880,400 850,520 760,620 640,760 520,900 420,1050 330,1300 1300,1300" fill="url(#waves)" fill-opacity="0.7"/>
+<polyline points="-330,-1200 -345,-1000 -360,-900 -420,-520 -380,-250 -330,0 -300,250 -150,420 100,520 350,600 560,680 720,700" fill="none" stroke="#bfdbfe" stroke-width="40" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-330,-1200 -345,-1000 -360,-900 -420,-520 -380,-250 -330,0 -300,250 -150,420 100,520 350,600 560,680 720,700" fill="none" stroke="#60a5fa" stroke-width="3" stroke-dasharray="20 14" stroke-linejoin="round"/>
+<circle cx="-720" cy="830" r="90" fill="#bfdbfe" stroke="#60a5fa" stroke-width="3"/>
+<circle cx="-720" cy="830" r="26" fill="#86efac" stroke="#15803d" stroke-width="2"/>
+<text x="1050" y="1080" font-size="54" fill="#1d4ed8" font-weight="bold" transform="rotate(-45 1050 1080)">卡丁湾</text>
+<text x="-470" y="-700" font-size="36" fill="#1d4ed8" transform="rotate(-80 -470 -700)">泡泡河</text>
+<polygon points="0,-1000 750,-1000 789.1,-996.9 827.3,-987.8 863.5,-972.8 896.9,-952.3 926.8,-926.8 952.3,-896.9 972.8,-863.5 987.8,-827.3 996.9,-789.1 1000,-750 1000,750 996.9,789.1 987.8,827.3 972.8,863.5 952.3,896.9 926.8,926.8 896.9,952.3 863.5,972.8 827.3,987.8 789.1,996.9 750,1000 -750,1000 -789.1,996.9 -827.3,987.8 -863.5,972.8 -896.9,952.3 -926.8,926.8 -952.3,896.9 -972.8,863.5 -987.8,827.3 -996.9,789.1 -1000,750 -1000,-750 -996.9,-789.1 -987.8,-827.3 -972.8,-863.5 -952.3,-896.9 -926.8,-926.8 -896.9,-952.3 -863.5,-972.8 -827.3,-987.8 -789.1,-996.9 -750,-1000 0,-1000" fill="none" stroke="#f8fafc" stroke-width="26" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="0,-500 380,-500 411.1,-495.9 440,-483.9 464.9,-464.9 483.9,-440 495.9,-411.1 500,-380 500,380 495.9,411.1 483.9,440 464.9,464.9 440,483.9 411.1,495.9 380,500 -380,500 -411.1,495.9 -440,483.9 -464.9,464.9 -483.9,440 -495.9,411.1 -500,380 -500,-380 -495.9,-411.1 -483.9,-440 -464.9,-464.9 -440,-483.9 -411.1,-495.9 -380,-500 0,-500" fill="none" stroke="#f8fafc" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="0,-1000 0,-230 0,230 0,1000" fill="none" stroke="#f8fafc" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-1000,0 -230,0 230,0 1000,0" fill="none" stroke="#f8fafc" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="0,-200 51.8,-193.2 100,-173.2 141.4,-141.4 173.2,-100 193.2,-51.8 200,0 193.2,51.8 173.2,100 141.4,141.4 100,173.2 51.8,193.2 0,200 -51.8,193.2 -100,173.2 -141.4,141.4 -173.2,100 -193.2,51.8 -200,0 -193.2,-51.8 -173.2,-100 -141.4,-141.4 -100,-173.2 -51.8,-193.2 0,-200" fill="none" stroke="#f8fafc" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="140,-140 500,-500 927,-927" fill="none" stroke="#f8fafc" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-140,140 -500,500 -927,927" fill="none" stroke="#f8fafc" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-300,400 -150,450 -80,600 -150,800 -350,900 -480,800 -520,600 -450,450 -300,400" fill="none" stroke="#f8fafc" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-1000,-600 -900,-700 -700,-900 -600,-1000" fill="none" stroke="#f8fafc" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="750,-1000 750,-500 750,0" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,-750 750,-750 1000,-750" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,-250 750,-250 1000,-250" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-350,-700 -200,-850 100,-900 300,-750 250,-600 0,-650 -250,-580 -350,-700" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="0,-500 0,-650" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1000,-200 900,200 800,450 650,650 500,850 400,1000" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="150,700 450,700 450,960 150,960 150,700" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="0,700 150,700" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-230,230 -300,400" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-950,-100 -520,-100" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-950,100 -520,100" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-520,-100 -520,100" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-600,-350 -900,-350 -950,-600 -800,-850 -600,-800 -550,-550 -600,-350" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-500,-350 -600,-350" fill="none" stroke="#f8fafc" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="900,200 960,300" fill="none" stroke="#f8fafc" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-560,560 -700,600 -850,700 -900,850 -820,960 -650,980 -540,900 -520,750 -560,560" fill="none" stroke="#f8fafc" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-900,-100 -900,100" fill="none" stroke="#f8fafc" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-700,-100 -700,100" fill="none" stroke="#f8fafc" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-1000,-700 -1060,-800 -1130,-900 -1090,-1010 -990,-1070 -1060,-1130 -1100,-1100" fill="none" stroke="#f8fafc" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="0,-1000 750,-1000 789.1,-996.9 827.3,-987.8 863.5,-972.8 896.9,-952.3 926.8,-926.8 952.3,-896.9 972.8,-863.5 987.8,-827.3 996.9,-789.1 1000,-750 1000,750 996.9,789.1 987.8,827.3 972.8,863.5 952.3,896.9 926.8,926.8 896.9,952.3 863.5,972.8 827.3,987.8 789.1,996.9 750,1000 -750,1000 -789.1,996.9 -827.3,987.8 -863.5,972.8 -896.9,952.3 -926.8,926.8 -952.3,896.9 -972.8,863.5 -987.8,827.3 -996.9,789.1 -1000,750 -1000,-750 -996.9,-789.1 -987.8,-827.3 -972.8,-863.5 -952.3,-896.9 -926.8,-926.8 -896.9,-952.3 -863.5,-972.8 -827.3,-987.8 -789.1,-996.9 -750,-1000 0,-1000" fill="none" stroke="#4b5563" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="0,-1000 750,-1000 789.1,-996.9 827.3,-987.8 863.5,-972.8 896.9,-952.3 926.8,-926.8 952.3,-896.9 972.8,-863.5 987.8,-827.3 996.9,-789.1 1000,-750 1000,750 996.9,789.1 987.8,827.3 972.8,863.5 952.3,896.9 926.8,926.8 896.9,952.3 863.5,972.8 827.3,987.8 789.1,996.9 750,1000 -750,1000 -789.1,996.9 -827.3,987.8 -863.5,972.8 -896.9,952.3 -926.8,926.8 -952.3,896.9 -972.8,863.5 -987.8,827.3 -996.9,789.1 -1000,750 -1000,-750 -996.9,-789.1 -987.8,-827.3 -972.8,-863.5 -952.3,-896.9 -926.8,-926.8 -896.9,-952.3 -863.5,-972.8 -827.3,-987.8 -789.1,-996.9 -750,-1000 0,-1000" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="26 18" stroke-linejoin="round"/>
+<polygon points="0,-500 380,-500 411.1,-495.9 440,-483.9 464.9,-464.9 483.9,-440 495.9,-411.1 500,-380 500,380 495.9,411.1 483.9,440 464.9,464.9 440,483.9 411.1,495.9 380,500 -380,500 -411.1,495.9 -440,483.9 -464.9,464.9 -483.9,440 -495.9,411.1 -500,380 -500,-380 -495.9,-411.1 -483.9,-440 -464.9,-464.9 -440,-483.9 -411.1,-495.9 -380,-500 0,-500" fill="none" stroke="#6b7280" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="0,-500 380,-500 411.1,-495.9 440,-483.9 464.9,-464.9 483.9,-440 495.9,-411.1 500,-380 500,380 495.9,411.1 483.9,440 464.9,464.9 440,483.9 411.1,495.9 380,500 -380,500 -411.1,495.9 -440,483.9 -464.9,464.9 -483.9,440 -495.9,411.1 -500,380 -500,-380 -495.9,-411.1 -483.9,-440 -464.9,-464.9 -440,-483.9 -411.1,-495.9 -380,-500 0,-500" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="26 18" stroke-linejoin="round"/>
+<polyline points="0,-1000 0,-230 0,230 0,1000" fill="none" stroke="#6b7280" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="0,-1000 0,-230 0,230 0,1000" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="26 18" stroke-linejoin="round"/>
+<polyline points="-1000,0 -230,0 230,0 1000,0" fill="none" stroke="#6b7280" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-1000,0 -230,0 230,0 1000,0" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="26 18" stroke-linejoin="round"/>
+<polygon points="0,-200 51.8,-193.2 100,-173.2 141.4,-141.4 173.2,-100 193.2,-51.8 200,0 193.2,51.8 173.2,100 141.4,141.4 100,173.2 51.8,193.2 0,200 -51.8,193.2 -100,173.2 -141.4,141.4 -173.2,100 -193.2,51.8 -200,0 -193.2,-51.8 -173.2,-100 -141.4,-141.4 -100,-173.2 -51.8,-193.2 0,-200" fill="none" stroke="#6b7280" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="0,-200 51.8,-193.2 100,-173.2 141.4,-141.4 173.2,-100 193.2,-51.8 200,0 193.2,51.8 173.2,100 141.4,141.4 100,173.2 51.8,193.2 0,200 -51.8,193.2 -100,173.2 -141.4,141.4 -173.2,100 -193.2,51.8 -200,0 -193.2,-51.8 -173.2,-100 -141.4,-141.4 -100,-173.2 -51.8,-193.2 0,-200" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="26 18" stroke-linejoin="round"/>
+<polyline points="140,-140 500,-500 927,-927" fill="none" stroke="#6b7280" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="140,-140 500,-500 927,-927" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="26 18" stroke-linejoin="round"/>
+<polyline points="-140,140 -500,500 -927,927" fill="none" stroke="#6b7280" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-140,140 -500,500 -927,927" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="26 18" stroke-linejoin="round"/>
+<polygon points="-300,400 -150,450 -80,600 -150,800 -350,900 -480,800 -520,600 -450,450 -300,400" fill="none" stroke="#7c3aed" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-300,400 -150,450 -80,600 -150,800 -350,900 -480,800 -520,600 -450,450 -300,400" fill="none" stroke="#f5f3ff" stroke-width="2" stroke-dasharray="10 10"/>
+<polyline points="-1000,-600 -900,-700 -700,-900 -600,-1000" fill="none" stroke="#374151" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="24 14"/>
+<polyline points="750,-1000 750,-500 750,0" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,-750 750,-750 1000,-750" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,-250 750,-250 1000,-250" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-350,-700 -200,-850 100,-900 300,-750 250,-600 0,-650 -250,-580 -350,-700" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="0,-500 0,-650" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1000,-200 900,200 800,450 650,650 500,850 400,1000" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="150,700 450,700 450,960 150,960 150,700" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="0,700 150,700" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-230,230 -300,400" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-950,-100 -520,-100" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-950,100 -520,100" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-520,-100 -520,100" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-600,-350 -900,-350 -950,-600 -800,-850 -600,-800 -550,-550 -600,-350" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-500,-350 -600,-350" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="900,200 960,300" fill="none" stroke="#b8bec7" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="-560,560 -700,600 -850,700 -900,850 -820,960 -650,980 -540,900 -520,750 -560,560" fill="none" stroke="#b8bec7" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-900,-100 -900,100" fill="none" stroke="#b8bec7" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-700,-100 -700,100" fill="none" stroke="#b8bec7" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="-1000,-700 -1060,-800 -1130,-900 -1090,-1010 -990,-1070 -1060,-1130 -1100,-1100" fill="none" stroke="#b8bec7" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="-440" y="-940" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 -440 -940)" paint-order="stroke" stroke="#ffffff" stroke-width="6">环城高速</text>
+<text x="40" y="-464" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 40 -464)" paint-order="stroke" stroke="#ffffff" stroke-width="6">二环路</text>
+<text x="16" y="-700" font-size="28" fill="#111827" font-weight="bold" transform="rotate(90 16 -700)" paint-order="stroke" stroke="#ffffff" stroke-width="6">中央大道</text>
+<text x="300" y="-18" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 300 -18)" paint-order="stroke" stroke="#ffffff" stroke-width="6">东西大道</text>
+<text x="520" y="-540" font-size="28" fill="#111827" font-weight="bold" transform="rotate(-45 520 -540)" paint-order="stroke" stroke="#ffffff" stroke-width="6">霓虹林荫道</text>
+<text x="-480" y="540" font-size="28" fill="#111827" font-weight="bold" transform="rotate(-45 -480 540)" paint-order="stroke" stroke="#ffffff" stroke-width="6">森林林荫道</text>
+<text x="766" y="-820" font-size="28" fill="#111827" font-weight="bold" transform="rotate(90 766 -820)" paint-order="stroke" stroke="#ffffff" stroke-width="6">霓虹街</text>
+<text x="520" y="-764" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 520 -764)" paint-order="stroke" stroke="#ffffff" stroke-width="6">商城路</text>
+<text x="520" y="-264" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 520 -264)" paint-order="stroke" stroke="#ffffff" stroke-width="6">寻宝街</text>
+<text x="-240" y="-880" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 -240 -880)" paint-order="stroke" stroke="#ffffff" stroke-width="6">老街环路</text>
+<text x="530" y="850" font-size="28" fill="#111827" font-weight="bold" transform="rotate(60 530 850)" paint-order="stroke" stroke="#ffffff" stroke-width="6">滨海公路</text>
+<text x="134" y="920" font-size="28" fill="#111827" font-weight="bold" transform="rotate(-90 134 920)" paint-order="stroke" stroke="#ffffff" stroke-width="6">集装箱环道</text>
+<text x="-64" y="600" font-size="28" fill="#111827" font-weight="bold" transform="rotate(90 -64 600)" paint-order="stroke" stroke="#ffffff" stroke-width="6">赛车公园计时环道</text>
+<text x="-910" y="686" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 -910 686)" paint-order="stroke" stroke="#ffffff" stroke-width="6">湖畔林道</text>
+<text x="-950" y="-114" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 -950 -114)" paint-order="stroke" stroke="#ffffff" stroke-width="6">小屋北街</text>
+<text x="-940" y="-364" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 -940 -364)" paint-order="stroke" stroke="#ffffff" stroke-width="6">游乐园环道</text>
+<text x="-1170" y="-800" font-size="28" fill="#111827" font-weight="bold" transform="rotate(0 -1170 -800)" paint-order="stroke" stroke="#ffffff" stroke-width="6">盘山公路</text>
+<text x="-676" y="-912" font-size="28" fill="#111827" font-weight="bold" transform="rotate(-45 -676 -912)" paint-order="stroke" stroke="#ffffff" stroke-width="6">穿山隧道</text>
+<text x="0" y="150" font-size="44" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">中央广场</text>
+<text x="0" y="190" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：common</text>
+<text x="0" y="-765" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">城镇老街</text>
+<text x="0" y="-725" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：village</text>
+<text x="600" y="-880" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">霓虹商业区</text>
+<text x="600" y="-840" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：world</text>
+<text x="640" y="280" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">滨海港区</text>
+<text x="640" y="320" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：beach</text>
+<text x="210" y="640" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">集装箱工业区</text>
+<text x="210" y="680" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：factory</text>
+<text x="-320" y="695" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">赛车公园</text>
+<text x="-320" y="735" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：wkc</text>
+<text x="-780" y="475" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">森林公园</text>
+<text x="-780" y="515" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：forest</text>
+<text x="-700" y="-150" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">小屋街</text>
+<text x="-700" y="-110" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：village</text>
+<text x="-720" y="-485" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">冰雪游乐园</text>
+<text x="-720" y="-445" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：ice</text>
+<text x="-990" y="-1030" font-size="54" font-weight="bold" fill="#1f2937" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="10" opacity="0.95">雪山</text>
+<text x="-990" y="-990" font-size="26" fill="#4b5563" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="6">主题素材：ice</text>
+<polygon points="386,-988 400,-1012 414,-988" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="-414,-988 -400,-1012 -386,-988" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="386,1012 400,988 414,1012" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="-414,1012 -400,988 -386,1012" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="986,412 1000,388 1014,412" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="986,-388 1000,-412 1014,-388" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="-1014,412 -1000,388 -986,412" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="-1014,-388 -1000,-412 -986,-388" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<polygon points="-814,-788 -800,-812 -786,-788" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<circle cx="-720" cy="830" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="-1100" cy="-1090" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="960" cy="310" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="410" cy="910" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="-880" cy="-790" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="-150" cy="800" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="760" cy="-740" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="-250" cy="-840" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="-760" cy="610" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="1000" cy="90" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="820" cy="820" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="-800" cy="-800" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<circle cx="0" cy="0" r="22" fill="#db2777" stroke="#ffffff" stroke-width="4"/>
+<text x="0" y="8" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">1</text>
+<text x="30" y="9" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">中央喷泉</text>
+<line x1="0" y1="95" x2="3.061616997868383e-15" y2="45" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow)"/>
+<circle cx="0" cy="95" r="22" fill="#16a34a" stroke="#ffffff" stroke-width="4"/>
+<text x="0" y="103" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">2</text>
+<text x="30" y="104" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">中央停车场（出生点）</text>
+<circle cx="0" cy="-150" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="0" y="-142" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">3</text>
+<text x="30" y="-141" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">传送门广场</text>
+<circle cx="-120" cy="-60" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-120" y="-52" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">4</text>
+<text x="-90" y="-51" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">排行榜大屏</text>
+<circle cx="120" cy="-60" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="120" y="-52" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">5</text>
+<text x="150" y="-51" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">公告栏</text>
+<circle cx="70" cy="20" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="70" y="28" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">6</text>
+<text x="100" y="29" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">每日任务 NPC</text>
+<circle cx="-100" cy="-620" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="-100" y="-612" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">7</text>
+<text x="-70" y="-611" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">车库</text>
+<circle cx="120" cy="-640" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="120" y="-632" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">8</text>
+<text x="150" y="-631" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">改装店</text>
+<circle cx="760" cy="-560" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="760" y="-552" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">9</text>
+<text x="790" y="-551" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">商城</text>
+<circle cx="850" cy="-700" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="850" y="-692" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">10</text>
+<text x="880" y="-691" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">寻宝屋 / 精品道具场</text>
+<circle cx="-640" cy="0" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="-640" y="8" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">11</text>
+<text x="-610" y="9" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">俱乐部会馆</text>
+<circle cx="-760" cy="0" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="-760" y="8" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">12</text>
+<text x="-730" y="9" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">玩家小屋</text>
+<circle cx="-160" cy="330" r="22" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+<text x="-160" y="338" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">13</text>
+<text x="-130" y="339" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">驾照考场</text>
+<circle cx="-300" cy="400" r="22" fill="#ea580c" stroke="#ffffff" stroke-width="4"/>
+<text x="-300" y="408" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">14</text>
+<text x="-270" y="409" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">计时环道起点</text>
+<circle cx="300" cy="830" r="22" fill="#ea580c" stroke="#ffffff" stroke-width="4"/>
+<text x="300" y="838" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">15</text>
+<text x="330" y="839" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">漂移练习场</text>
+<circle cx="400" cy="900" r="22" fill="#ea580c" stroke="#ffffff" stroke-width="4"/>
+<text x="400" y="908" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">16</text>
+<text x="430" y="909" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">特技跳台</text>
+<circle cx="960" cy="300" r="22" fill="#db2777" stroke="#ffffff" stroke-width="4"/>
+<text x="960" y="308" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">17</text>
+<text x="990" y="309" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">码头 / 游艇</text>
+<circle cx="700" cy="420" r="22" fill="#db2777" stroke="#ffffff" stroke-width="4"/>
+<text x="700" y="428" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">18</text>
+<text x="730" y="429" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">海滩舞台</text>
+<circle cx="1000" cy="80" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="1000" y="88" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">19</text>
+<text x="1030" y="89" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">灯塔</text>
+<circle cx="-760" cy="620" r="22" fill="#db2777" stroke="#ffffff" stroke-width="4"/>
+<text x="-760" y="628" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">20</text>
+<text x="-730" y="629" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">露营地篝火</text>
+<circle cx="-720" cy="830" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-720" y="838" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">21</text>
+<text x="-690" y="839" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">湖心岛</text>
+<circle cx="-700" cy="-650" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-700" y="-642" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">22</text>
+<text x="-670" y="-641" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">摩天轮</text>
+<circle cx="-880" cy="-800" r="22" fill="#ea580c" stroke="#ffffff" stroke-width="4"/>
+<text x="-880" y="-792" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">23</text>
+<text x="-850" y="-791" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">冰雪滑道</text>
+<circle cx="-1100" cy="-1100" r="22" fill="#db2777" stroke="#ffffff" stroke-width="4"/>
+<text x="-1100" y="-1092" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">24</text>
+<text x="-1070" y="-1091" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">观景台</text>
+<circle cx="-1000" cy="-600" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-1000" y="-592" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">25</text>
+<text x="-970" y="-591" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">隧道西口</text>
+<circle cx="-600" cy="-1000" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-600" y="-992" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">26</text>
+<text x="-570" y="-991" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">隧道北口</text>
+<circle cx="820" cy="820" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="820" y="828" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">27</text>
+<text x="850" y="829" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">跨海大桥</text>
+<circle cx="0" cy="500" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="0" y="508" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">28</text>
+<text x="30" y="509" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">中央大桥</text>
+<circle cx="-330" cy="0" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-330" y="8" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">29</text>
+<text x="-300" y="9" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">西桥</text>
+<circle cx="-300" cy="300" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-300" y="308" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">30</text>
+<text x="-270" y="309" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">林荫桥</text>
+<circle cx="520" cy="40" r="22" fill="#ea580c" stroke="#ffffff" stroke-width="4"/>
+<text x="520" y="48" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">31</text>
+<text x="550" y="49" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">加油站（氮气补给）</text>
+<circle cx="-520" cy="-40" r="22" fill="#ea580c" stroke="#ffffff" stroke-width="4"/>
+<text x="-520" y="-32" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">32</text>
+<text x="-490" y="-31" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">加油站（氮气补给）</text>
+<circle cx="40" cy="540" r="22" fill="#ea580c" stroke="#ffffff" stroke-width="4"/>
+<text x="40" y="548" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">33</text>
+<text x="70" y="549" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">加油站（氮气补给）</text>
+<circle cx="-200" cy="-980" r="22" fill="#475569" stroke="#ffffff" stroke-width="4"/>
+<text x="-200" y="-972" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">34</text>
+<text x="-170" y="-971" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">广播塔</text>
+<line x1="-700" y1="160" x2="-650" y2="160" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow)"/>
+<circle cx="-700" cy="160" r="22" fill="#16a34a" stroke="#ffffff" stroke-width="4"/>
+<text x="-700" y="168" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">35</text>
+<text x="-670" y="169" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">小屋街出生点</text>
+<line x1="-40" y1="-560" x2="-40" y2="-510" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow)"/>
+<circle cx="-40" cy="-560" r="22" fill="#16a34a" stroke="#ffffff" stroke-width="4"/>
+<text x="-40" y="-552" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">36</text>
+<text x="-10" y="-551" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">老街出生点</text>
+<line x1="820" y1="480" x2="770" y2="480" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow)"/>
+<circle cx="820" cy="480" r="22" fill="#16a34a" stroke="#ffffff" stroke-width="4"/>
+<text x="820" y="488" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">37</text>
+<text x="850" y="489" font-size="26" fill="#111827" paint-order="stroke" stroke="#ffffff" stroke-width="6">海滩出生点</text>
+<text x="-1200" y="-1250" font-size="64" font-weight="bold" fill="#111827">卡丁城 · 开放世界城市地图</text>
+<text x="420" y="-1250" font-size="30" fill="#4b5563">2.4 km × 2.4 km · 原点 = 中央喷泉 · x 向东 z 向南 · 单位：米</text>
+<g transform="translate(1120,-1120)"><circle r="60" fill="#ffffff" stroke="#374151" stroke-width="3"/><path d="M0 -48 L16 10 L0 0 L-16 10 z" fill="#dc2626"/><text y="-62" font-size="30" text-anchor="middle" fill="#111827" font-weight="bold">北</text></g>
+<g transform="translate(700,1240)"><rect width="500" height="16" fill="#111827"/><rect x="250" width="250" height="16" fill="#ffffff" stroke="#111827" stroke-width="2"/><text y="46" font-size="28" fill="#111827">0</text><text x="250" y="46" font-size="28" fill="#111827" text-anchor="middle">250</text><text x="500" y="46" font-size="28" fill="#111827" text-anchor="end">500 m</text></g>
+<text x="-1200" y="1330" font-size="40" font-weight="bold" fill="#111827">图例</text>
+<line x1="-1200" y1="1380" x2="-1110" y2="1380" stroke="#4b5563" stroke-width="18" stroke-linecap="round"/>
+<text x="-1096" y="1390" font-size="28" fill="#111827">环城高速 18 m</text>
+<line x1="-780" y1="1380" x2="-690" y2="1380" stroke="#6b7280" stroke-width="14" stroke-linecap="round"/>
+<text x="-676" y="1390" font-size="28" fill="#111827">主干道 14 m</text>
+<line x1="-360" y1="1380" x2="-270" y2="1380" stroke="#9ca3af" stroke-width="10" stroke-linecap="round"/>
+<text x="-256" y="1390" font-size="28" fill="#111827">街区道路 10 m</text>
+<line x1="60" y1="1380" x2="150" y2="1380" stroke="#b8bec7" stroke-width="8" stroke-linecap="round"/>
+<text x="164" y="1390" font-size="28" fill="#111827">小路/林道 7 m</text>
+<line x1="480" y1="1380" x2="570" y2="1380" stroke="#7c3aed" stroke-width="12" stroke-linecap="round"/>
+<text x="584" y="1390" font-size="28" fill="#111827">赛道环道 12 m</text>
+<line x1="900" y1="1380" x2="990" y2="1380" stroke="#374151" stroke-width="12" stroke-linecap="round" stroke-dasharray="16 10"/>
+<text x="1004" y="1390" font-size="28" fill="#111827">隧道 12 m</text>
+<circle cx="-1180" cy="1440" r="18" fill="#2563eb" stroke="#ffffff" stroke-width="3"/>
+<text x="-1148" y="1450" font-size="28" fill="#111827">功能点（打开界面/传送）</text>
+<circle cx="-760" cy="1440" r="18" fill="#db2777" stroke="#ffffff" stroke-width="3"/>
+<text x="-728" y="1450" font-size="28" fill="#111827">聊天热区</text>
+<circle cx="-340" cy="1440" r="18" fill="#ea580c" stroke="#ffffff" stroke-width="3"/>
+<text x="-308" y="1450" font-size="28" fill="#111827">玩法点</text>
+<circle cx="80" cy="1440" r="18" fill="#475569" stroke="#ffffff" stroke-width="3"/>
+<text x="112" y="1450" font-size="28" fill="#111827">地标</text>
+<circle cx="500" cy="1440" r="18" fill="#16a34a" stroke="#ffffff" stroke-width="3"/>
+<text x="532" y="1450" font-size="28" fill="#111827">出生点</text>
+<polygon points="906,1452 920,1428 934,1452" fill="#f97316" stroke="#7c2d12" stroke-width="2"/>
+<text x="952" y="1450" font-size="28" fill="#111827">加速带</text>
+<circle cx="1100" cy="1440" r="9" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+<text x="1122" y="1450" font-size="28" fill="#111827">隐藏金币</text>
+<circle cx="-1186" cy="1491" r="13" fill="#db2777"/>
+<text x="-1164" y="1500" font-size="26" fill="#111827">1. 中央喷泉 (0, 0)</text>
+<circle cx="-366" cy="1491" r="13" fill="#16a34a"/>
+<text x="-344" y="1500" font-size="26" fill="#111827">2. 中央停车场（出生点） (0, 95)</text>
+<circle cx="454" cy="1491" r="13" fill="#2563eb"/>
+<text x="476" y="1500" font-size="26" fill="#111827">3. 传送门广场 (0, -150)</text>
+<circle cx="-1186" cy="1531" r="13" fill="#475569"/>
+<text x="-1164" y="1540" font-size="26" fill="#111827">4. 排行榜大屏 (-120, -60)</text>
+<circle cx="-366" cy="1531" r="13" fill="#475569"/>
+<text x="-344" y="1540" font-size="26" fill="#111827">5. 公告栏 (120, -60)</text>
+<circle cx="454" cy="1531" r="13" fill="#2563eb"/>
+<text x="476" y="1540" font-size="26" fill="#111827">6. 每日任务 NPC (70, 20)</text>
+<circle cx="-1186" cy="1571" r="13" fill="#2563eb"/>
+<text x="-1164" y="1580" font-size="26" fill="#111827">7. 车库 (-100, -620)</text>
+<circle cx="-366" cy="1571" r="13" fill="#2563eb"/>
+<text x="-344" y="1580" font-size="26" fill="#111827">8. 改装店 (120, -640)</text>
+<circle cx="454" cy="1571" r="13" fill="#2563eb"/>
+<text x="476" y="1580" font-size="26" fill="#111827">9. 商城 (760, -560)</text>
+<circle cx="-1186" cy="1611" r="13" fill="#2563eb"/>
+<text x="-1164" y="1620" font-size="26" fill="#111827">10. 寻宝屋 / 精品道具场 (850, -700)</text>
+<circle cx="-366" cy="1611" r="13" fill="#2563eb"/>
+<text x="-344" y="1620" font-size="26" fill="#111827">11. 俱乐部会馆 (-640, 0)</text>
+<circle cx="454" cy="1611" r="13" fill="#2563eb"/>
+<text x="476" y="1620" font-size="26" fill="#111827">12. 玩家小屋 (-760, 0)</text>
+<circle cx="-1186" cy="1651" r="13" fill="#2563eb"/>
+<text x="-1164" y="1660" font-size="26" fill="#111827">13. 驾照考场 (-160, 330)</text>
+<circle cx="-366" cy="1651" r="13" fill="#ea580c"/>
+<text x="-344" y="1660" font-size="26" fill="#111827">14. 计时环道起点 (-300, 400)</text>
+<circle cx="454" cy="1651" r="13" fill="#ea580c"/>
+<text x="476" y="1660" font-size="26" fill="#111827">15. 漂移练习场 (300, 830)</text>
+<circle cx="-1186" cy="1691" r="13" fill="#ea580c"/>
+<text x="-1164" y="1700" font-size="26" fill="#111827">16. 特技跳台 (400, 900)</text>
+<circle cx="-366" cy="1691" r="13" fill="#db2777"/>
+<text x="-344" y="1700" font-size="26" fill="#111827">17. 码头 / 游艇 (960, 300)</text>
+<circle cx="454" cy="1691" r="13" fill="#db2777"/>
+<text x="476" y="1700" font-size="26" fill="#111827">18. 海滩舞台 (700, 420)</text>
+<circle cx="-1186" cy="1731" r="13" fill="#475569"/>
+<text x="-1164" y="1740" font-size="26" fill="#111827">19. 灯塔 (1000, 80)</text>
+<circle cx="-366" cy="1731" r="13" fill="#db2777"/>
+<text x="-344" y="1740" font-size="26" fill="#111827">20. 露营地篝火 (-760, 620)</text>
+<circle cx="454" cy="1731" r="13" fill="#475569"/>
+<text x="476" y="1740" font-size="26" fill="#111827">21. 湖心岛 (-720, 830)</text>
+<circle cx="-1186" cy="1771" r="13" fill="#475569"/>
+<text x="-1164" y="1780" font-size="26" fill="#111827">22. 摩天轮 (-700, -650)</text>
+<circle cx="-366" cy="1771" r="13" fill="#ea580c"/>
+<text x="-344" y="1780" font-size="26" fill="#111827">23. 冰雪滑道 (-880, -800)</text>
+<circle cx="454" cy="1771" r="13" fill="#db2777"/>
+<text x="476" y="1780" font-size="26" fill="#111827">24. 观景台 (-1100, -1100)</text>
+<circle cx="-1186" cy="1811" r="13" fill="#475569"/>
+<text x="-1164" y="1820" font-size="26" fill="#111827">25. 隧道西口 (-1000, -600)</text>
+<circle cx="-366" cy="1811" r="13" fill="#475569"/>
+<text x="-344" y="1820" font-size="26" fill="#111827">26. 隧道北口 (-600, -1000)</text>
+<circle cx="454" cy="1811" r="13" fill="#475569"/>
+<text x="476" y="1820" font-size="26" fill="#111827">27. 跨海大桥 (820, 820)</text>
+<circle cx="-1186" cy="1851" r="13" fill="#475569"/>
+<text x="-1164" y="1860" font-size="26" fill="#111827">28. 中央大桥 (0, 500)</text>
+<circle cx="-366" cy="1851" r="13" fill="#475569"/>
+<text x="-344" y="1860" font-size="26" fill="#111827">29. 西桥 (-330, 0)</text>
+<circle cx="454" cy="1851" r="13" fill="#475569"/>
+<text x="476" y="1860" font-size="26" fill="#111827">30. 林荫桥 (-300, 300)</text>
+<circle cx="-1186" cy="1891" r="13" fill="#ea580c"/>
+<text x="-1164" y="1900" font-size="26" fill="#111827">31. 加油站（氮气补给） (520, 40)</text>
+<circle cx="-366" cy="1891" r="13" fill="#ea580c"/>
+<text x="-344" y="1900" font-size="26" fill="#111827">32. 加油站（氮气补给） (-520, -40)</text>
+<circle cx="454" cy="1891" r="13" fill="#ea580c"/>
+<text x="476" y="1900" font-size="26" fill="#111827">33. 加油站（氮气补给） (40, 540)</text>
+<circle cx="-1186" cy="1931" r="13" fill="#475569"/>
+<text x="-1164" y="1940" font-size="26" fill="#111827">34. 广播塔 (-200, -980)</text>
+<circle cx="-366" cy="1931" r="13" fill="#16a34a"/>
+<text x="-344" y="1940" font-size="26" fill="#111827">35. 小屋街出生点 (-700, 160)</text>
+<circle cx="454" cy="1931" r="13" fill="#16a34a"/>
+<text x="476" y="1940" font-size="26" fill="#111827">36. 老街出生点 (-40, -560)</text>
+<circle cx="-1186" cy="1971" r="13" fill="#16a34a"/>
+<text x="-1164" y="1980" font-size="26" fill="#111827">37. 海滩出生点 (820, 480)</text>
+</svg>
