@@ -198,3 +198,8 @@ func validDriving(b []byte) bool {
 	offset += 2 + 1 + 4 + 4
 	return finiteAll(b, offset, 2)
 }
+
+// ValidMotionPayload reports whether the browsers decode a motion payload of
+// kind (validPayload), for the city zone's frames, which carry the race
+// payloads (CITY.md 3).
+func ValidMotionPayload(kind int, payload []byte) bool { return validPayload(kind, payload) }

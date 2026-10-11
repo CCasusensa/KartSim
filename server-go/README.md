@@ -259,8 +259,9 @@ KART_TEST_MYSQL_DSN='kart:kart@tcp(127.0.0.1:3306)/kartsim_test?charset=utf8mb4&
 | `node test/economy-smoke.mjs` | `KART_SMOKE_MYSQL_ADMIN`，Redis | 自行启动开放注册的 kart-data（测试管理员与 `KART_BOOTSTRAP_INVITE`、倍率 1、初始金币 10000）与两个 kart-game，验证：注册返回 token、密码 8–128、首位注册者不是管理员、按 IP 限流 429；管理员用户名不带邀请码（或大小写不同、邀请码错误）400 `INVALID_INVITE`，日志打印引导邀请码，用它注册后成为管理员、邀请码不能再用；`auth/config` 字段；游客票据与游客 `hello` 被拒；领取礼包前 403；礼包白名单（400）、幂等与库存；`/api/account` 钱包与 Lv.1；目录 ETag/304/gzip；`INSUFFICIENT_FUNDS` → 管理员发放 → 过期的 `expectedPrice`/`expectedCurrency` 409 `PRICE_CHANGED`（不扣款）→ 购买 → `ALREADY_OWNED`、`EXP_REQUIRED`、`OFFER_NOT_FOUND`、限时购买与续期、`requestId` 重放、换商品 409 `REQUEST_ID_CONFLICT`；账号档案 409 `ITEM_NOT_OWNED`；`hello`/`create`/`join`/`equipment` 的不拥有装备；一个账号一个会话（同节点 `NICKNAME_TAKEN`，另一节点及改名后 `ACCOUNT_ONLINE`）；两局比赛：立即完赛双方只得未完赛奖励，等满 10 秒服务器时间后完赛者得名次奖励、上报时间比服务器观察短 3 秒以上者按未完赛（`race.results` 名次不变），入账、升级奖励、战绩，重复投递不重复入账；结算携带的倍率（`expRate`/`lucciRate`）、超过 24 小时与超过单条上限的结算只记赛果不发奖励；MySQL 流水与余额一致；计时赛奖励、个人最佳、400 `INVALID_ELAPSED_MS`/`INVALID_TRACK`、节奏限制 429 `TOO_MANY_ATTEMPTS`、`requestId` 重放与 409 `REQUEST_ID_CONFLICT`；管理页面、账号搜索、发放与扣除、非管理员被拒、发放 `requestId` 重放 `duplicate:true`、换参数 409 `REQUEST_ID_CONFLICT`；`KART_REGISTRATION=closed` 重启后注册 403 而余额与库存保留；任何退出路径（含 Ctrl-C）都清理。比赛与计时赛要等真实时间，约 1 分钟 |
 | `node ../server-smoke.mjs` | 集群已运行 | 在上述规则基础上用真实前端校验器检查大厅、房间、个人赛与组队赛快照及 `race.rewards`（个人赛开跑 10 秒内完成，双方奖励相同，即未完赛奖励）（需要 `client/node_modules`，没有时跳过校验器；已安装但校验器加载失败时直接失败，设置 `KART_SMOKE_ALLOW_NO_VALIDATORS=1` 才降级为警告） |
 | `node ../server-special-smoke.mjs` | 集群已运行、`client/node_modules` | 注册五个账号，检查挡人、巨人、RP、LTE 四种模式的房间、赛程、广播、`race.rewards`（都在开跑 10 秒内结束，所有人得相同的未完赛奖励）与结算；再用四个账号跑个人道具赛与组队道具赛：道具频道与玩法、道具赛道与随机码规则（有 `mirror/p3553` 时还核对浏览器的道具赛道目录）、用浏览器编码器发送带名次进度的运动帧、按名次组抽取（刷箱、满槽、三槽）、开赛时的道具槽推送（带换位/变更卡数）、换位与变更（集群给了使用券时成功、没有卡时 `ITEM_CHANGER_UNAVAILABLE`）、`transform@zz` 变换后的道具（组队赛固定在等级 2 的反向赛道）、各类道具的目标、放置、命中/格挡、香蕉移除、赛道危险物、透视镜（`Use` 之后生效）、道具锁、完赛（`perfectStart`，组队按最先冲线者的队伍获胜）、结算称号、结算与道具赛成就；所有道具请求都过浏览器的请求校验、所有事件都过浏览器的事件校验（会变成 `INVALID_ITEM_EVENT` 的道具事件算失败）。道具来自真实抽取，脚本会刷箱直到拿到需要的道具（`KART_SMOKE_ITEM_BUDGET_MS`，默认每种 90 秒）；`KART_SMOKE_ITEM_ONLY=1` 只跑道具赛；约 1 分钟 |
+| `node test/city-smoke.mjs` | 集群已运行、节点开着 `KART_CITY` | 注册两个账号进入同一节点，`city-join` 进同一条线路：快照（时钟、出生点、成员与装备）、`city-joined`、城市里 `create` 返回 `IN_CITY`、`city-respawn`、`near` 聊天、表情与 `city-state` 事件、发送 `0xC1` 运动帧并在邻居处收到盖写了成员 id 的同一帧、`0xC2` 雷达包里的两名成员与位置、`city-leave`/`city-left`、离开后建房与房间里 `city-join` 返回 `IN_ROOM`；几秒钟 |
 | `node test/item-bot-check.mjs` | `KART_SMOKE_MYSQL_ADMIN`，Redis，`client/node_modules`，`mirror/p3553` | 自行启动打开 `KART_ITEM_TEST_GRANTS`（道具换位卡按库存：机器人没有卡时先用掉槽 0 的道具）的临时集群，由脚本扮演玩家建道具房间，启动测试机器人 `test/item-bot.mjs`：它登录、找到房间、准备、载入，沿赛道路线行驶（运动帧用浏览器编解码器核对）、按时使用导弹和香蕉、上报玩家的导弹与大魔王命中（被导弹炸飞时停下）、跑完 3 圈完赛、`--once` 后离开且不打印密码；约 1 分钟 |
-| `node test/run-cluster-smokes.mjs [smoke] [server-smoke] [special]` | `KART_SMOKE_MYSQL_ADMIN`，Redis | 自行启动临时集群（开放注册、两个游戏节点），依次对它运行上面三个“集群已运行”的脚本，结束后清理；不想把测试数据写进开发集群时用它 |
+| `node test/run-cluster-smokes.mjs [smoke] [city] [server-smoke] [special]` | `KART_SMOKE_MYSQL_ADMIN`，Redis | 自行启动临时集群（开放注册、两个游戏节点），依次对它运行上面四个“集群已运行”的脚本，结束后清理；不想把测试数据写进开发集群时用它 |
 | `node test/frontend-economy-check.mjs` | `KART_SMOKE_MYSQL_ADMIN`，Redis，`client/node_modules` | 自行启动临时集群（倍率经验 1.5、金币 2，两个游戏节点），用 tsx 直接运行浏览器的真实模块（`client/src/account/*`、`shop-api.ts`/`shop-model.ts`、`game-servers.ts`、`client-websocket.ts` 与严格的事件/房间校验器、`timeattack-settle.ts`）：登录门注册（开放注册折叠的“有邀请码？”；管理员用户名不带邀请码 `INVALID_INVITE`，用引导邀请码注册）→ 首次登录迁移偏好与 404 `PROFILE_NOT_FOUND` → 新手礼包（`source:"starter"`、重复领取）→ 车库拥有过滤 → 档案保存与 409 `ITEM_NOT_OWNED` 修复 → 商店目录 ETag/304 → `ShopPurchaser` 余额不足 → 管理员发放 → 旧价格 `PRICE_CHANGED`（中文提示、不扣款）→ 购买与租用 → 票据与进入游戏服（练习车、买来的车、免费槽位）→ 同一账号在另一节点 `ACCOUNT_ONLINE` → 两个账号比赛（等满 10 秒服务器时间再完赛）→ 解析 `race.rewards`（显示值 = 倍率后的入账值）→ 刷新账号与升级提示 → 计时赛结算（间隔 10 秒以上；过于频繁的 `TOO_MANY_ATTEMPTS` 与无效赛道 `INVALID_TRACK` 静默无奖励）与升级 → 过期租用在档案读取与 `hello`（`ITEM_NOT_OWNED` 后修复重进）时回退；约 1 分钟 |
 
 自带集群的脚本都以 `KART_ANTICHEAT=log` 启动游戏节点（它们的比赛不开车就完赛，会被反作弊踢出；`item-bot-check` 里只有沿路线行驶的测试机器人，不应产生任何反作弊记录）。worktree 没有 `mirror/p3553` 时，`server-special-smoke.mjs` 与 `test/item-bot.mjs` 可用 `KART_MIRROR_ROOT=<带 mirror 的检出>` 读另一个检出的资源（`client/tools/export-*.mjs` 的同类参数是 `--mirror`）。
@@ -355,6 +356,16 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `KART_WEBRTC_UDP_PORT` | `0` | 所有 WebRTC 连接共用的 UDP 端口（防火墙与容器发布它）；0 表示每个连接随机端口。端口被占用时节点照常启动，只提供 WebSocket（日志报错） |
 | `KART_WEBRTC_PUBLIC_IPS` | 空 | 逗号分隔的 IP，替换 ICE 候选中的网卡地址（1:1 NAT、云主机、容器发布端口时填浏览器访问本机所用的地址） |
 | `KART_WEBRTC_LOOPBACK` | `true` | 是否也提供 127.0.0.1 候选（浏览器与节点在同一台机器时可用）；容器内应设 `false` |
+| `KART_CITY` | `true` | 是否开放卡丁城（[`CITY.md`](CITY.md)）；为 `false` 时 `city-join` 返回 503 `CITY_DISABLED` |
+| `KART_CITY_LINES` | `2` | 卡丁城线路数（1–32），实例 `city-<n>` 常驻 |
+| `KART_CITY_LINE_PLAYERS` | `60` | 每条线路的人数上限（2–200）；指定的线路满员 `CITY_LINE_FULL`，全部满员 `CITY_FULL` |
+| `KART_CITY_INTEREST_RADIUS` | `160` | 运动帧与表情的同步半径（米）：60 米内每帧都转发，60 米到该半径只转发偶数序号的帧 |
+| `KART_CITY_CHAT_RADIUS` | `60` | `near` 频道的聊天半径（米） |
+| `KART_CITY_AFK_MINUTES` | `10` | 没有运动帧且未 `parked` 的成员这么久后置为 `afk`，再过同样时长仍无动静则 `city-kicked` 并关闭连接 |
+| `KART_CITY_MAX_SPEED` | `150` | 相邻两帧的合理速度上限（米/秒）；超速或位移超过 200 米的帧丢弃并计数，10 秒内 20 次 `city-kicked CHEAT` |
+| `KART_CITY_DAY_MINUTES` | `48` | 城市一天的真实分钟数（1–1440） |
+| `KART_CITY_WEATHER` | `true` | 天气状态机开关；`false` 时恒为 `clear` |
+| `KART_CITY_RAIN_PERCENT` / `KART_CITY_SNOW_PERCENT` | `20` / `10` | 晴天段结束后进入雨、雪的概率（百分比，二者之和 ≤ 100）；每段 5–15 分钟 |
 
 ### 启动脚本（`run-full-local.sh` / `run-lan.sh`）
 
@@ -541,6 +552,10 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 - 端口：默认每个连接随机一个 UDP 端口；生产环境设 `KART_WEBRTC_UDP_PORT`，所有连接共用这一个 UDP 端口，防火墙放行它即可（TCP 的 HTTP 端口照常经反向代理）。
 - 地址：节点在网卡地址上收发 UDP；在 NAT、云主机或容器后面时用 `KART_WEBRTC_PUBLIC_IPS` 写浏览器能访问到的地址（它替换候选地址）。UDP 不经过 Nginx，浏览器直连节点。
 - 浏览器在 8 秒内打不开数据通道时自动改用 WebSocket，所以 UDP 被挡的网络照常能玩，只是运动帧回到 TCP。前端可用 `VITE_MULTIPLAYER_TRANSPORT=websocket` 强制只用 WebSocket（`webrtc` 只用 WebRTC，默认 `auto`）。
+
+#### 卡丁城（开放世界自由驾驶）
+
+游戏节点另带常驻的城市实例"线路"（`internal/game/city`，约定见 [`CITY.md`](CITY.md)，地图与计划见 `../design/open-world/`）。玩家 `hello` 之后用 `city-join` 进入（不带 `line` 时进人最少的线路），没有倒计时、完赛与奖励；在房间里不能进城（`IN_ROOM`），在城里不能建房、进房（`IN_CITY`），`city-leave` 或断线即离开。JSON 命令 `city-join`/`city-leave`/`city-chat`（`near`、`district`、`city` 三个频道，每秒 1 条、突发 5，超出禁言 10 秒 `CHAT_MUTED`）/`city-emote`/`city-state`/`city-respawn` 走同一条控制通道与同样的限流；运动帧与比赛帧共用 `motion` 通道，首字节 `0xC1` 的是城市帧（8 字节头：标记、载荷种类、节点盖写的成员 id、序号，之后是与比赛帧相同的载荷），节点按 100 米网格只转发给 `KART_CITY_INTEREST_RADIUS` 内的成员（60 米内每帧、更远只转发偶数序号），并做速度与瞬移校验；`0xC2` 雷达包每秒发给全线路（成员 id、x/z 的 0.25 米整数、朝向）。每条线路有自己的昼夜时钟与天气状态机（快照 `clock` 与每 30 秒一次的 `city-clock`）。分区判定与出生点来自 `internal/game/city/city-map.json`（`design/open-world/city-map.json` 的副本，`go test ./internal/game/city` 校验二者一致，**不要手改**）。心跳里城市玩家的 `room` 为 `"city:<n>"`。管理接口（按线路列成员、踢人、禁言、强制天气与时刻、关闭线路）目前只有 Go 方法（`city.Service`），管理后台页面后做。
 
 ### 内部 API（`KART_INTERNAL_LISTEN`，只给游戏节点）
 
@@ -825,9 +840,10 @@ server {
 | `internal/game/config`、`internal/game/app` | 游戏节点配置与组装 |
 | `internal/game/lobby` | 房间、赛程与特殊模式（移植自 `LobbyService`/`Room`/`GameModes`）；道具赛的房间、赛道与 `item` 请求在 `item_mode.go` |
 | `internal/game/itemmode` | 道具赛规则（纯函数，可注入随机源）：名次组、按权重抽取与获得上限、道具槽、目标选择与 `etaMs`、道具锁、透视、刷箱检查、`useId` 与命中记录；第 3 阶段：冻结装备的特性与共享确定性掷骰（`roll.go`）、按车辆的变换与获得表、迅引擎开局道具、49 种特殊道具规则、双发导弹、黄金盾牌、命中后的道具锁、只解除飞碟减速的电磁波、换位/变更卡、赛中金币与结算称号；`itemmode.json` 由 `client/tools/export-item-mode-data.mjs` 生成 |
-| `internal/game/ws` | WebSocket 读写协程、请求 ID 回复、运动帧中继 |
+| `internal/game/ws` | WebSocket 读写协程、请求 ID 回复、运动帧中继（首字节 `0xC1` 的城市帧交给 `city`） |
+| `internal/game/city` | 卡丁城线路实例（[`CITY.md`](CITY.md)）：成员 id、100 米兴趣网格与运动帧转发、雷达包、聊天频道与禁言、速度/瞬移校验、AFK、昼夜与天气、管理方法；`city-map.json` 为 `design/open-world/city-map.json` 的副本 |
 | `internal/game/admission` | `hello` 票据校验与 nonce 记忆 |
 | `internal/game/cluster` | 心跳、昵称占用与释放 |
 | `internal/game/outbox` | 结算发件箱 |
 | `scripts/` | MySQL 初始化脚本、开发依赖 compose |
-| `test/` | Node 端到端脚本：`smoke.mjs`、`auth-smoke.mjs`、`economy-smoke.mjs`、`frontend-economy-check.mjs`、`run-cluster-smokes.mjs`、道具赛测试机器人 `item-bot.mjs` 与它的检查 `item-bot-check.mjs`，以及 `launcher.test.mjs`（`run-full-local.sh` 的配置检查）；`test/lib/` 为共用客户端（`kart-client.mjs`）、自带集群（`local-cluster.mjs`）、奖励与等级规则（`economy.mjs`）、道具赛脚本共用部分（`item-race.mjs`、`item-bot-lib.mjs`）和 Redis 小客户端 |
+| `test/` | Node 端到端脚本：`smoke.mjs`、`city-smoke.mjs`、`auth-smoke.mjs`、`economy-smoke.mjs`、`frontend-economy-check.mjs`、`run-cluster-smokes.mjs`、道具赛测试机器人 `item-bot.mjs` 与它的检查 `item-bot-check.mjs`，以及 `launcher.test.mjs`（`run-full-local.sh` 的配置检查）；`test/lib/` 为共用客户端（`kart-client.mjs`）、自带集群（`local-cluster.mjs`）、奖励与等级规则（`economy.mjs`）、道具赛脚本共用部分（`item-race.mjs`、`item-bot-lib.mjs`）和 Redis 小客户端 |

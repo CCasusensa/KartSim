@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Runs the end-to-end scripts that need an already running cluster
-// (test/smoke.mjs, ../server-smoke.mjs, ../server-special-smoke.mjs) against
+// (test/smoke.mjs, test/city-smoke.mjs, ../server-smoke.mjs,
+// ../server-special-smoke.mjs) against
 // a temporary local cluster: one kart-data (open registration,
 // KART_TRUSTED_PROXIES=127.0.0.1/32) and two kart-game nodes started by
 // lib/local-cluster.mjs with a temporary MySQL database and user and a
@@ -8,8 +9,8 @@
 // Use it instead of pointing the scripts at a development cluster.
 //
 //   KART_SMOKE_MYSQL_ADMIN='-h127.0.0.1 -P3307 -uroot' KART_SMOKE_REDIS_ADDR=127.0.0.1:6380 \
-//     node test/run-cluster-smokes.mjs                 # all three
-//   … node test/run-cluster-smokes.mjs smoke special   # a subset: smoke, server-smoke, special
+//     node test/run-cluster-smokes.mjs                 # all four
+//   … node test/run-cluster-smokes.mjs smoke special   # a subset: smoke, city, server-smoke, special
 //
 // Environment: see lib/local-cluster.mjs (KART_SMOKE_MYSQL_ADMIN is required,
 // otherwise everything is skipped; KART_BIN_DIR, KART_SMOKE_SKIP_BUILD=1,
@@ -25,6 +26,7 @@ import { runLocalCluster, serverDir } from "./lib/local-cluster.mjs";
 const root = resolve(serverDir, "..");
 const scripts = {
   smoke: join(serverDir, "test/smoke.mjs"),
+  city: join(serverDir, "test/city-smoke.mjs"),
   "server-smoke": join(root, "server-smoke.mjs"),
   special: join(root, "server-special-smoke.mjs"),
 };

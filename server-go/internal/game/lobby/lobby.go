@@ -17,6 +17,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"kartsim/internal/game/brawl"
@@ -147,6 +148,9 @@ type Client struct {
 	ownership sessionOwnership
 	// kicked: the anti-cheat kicked the session; its connection is closing.
 	kicked bool
+	// city is the city line the connection is in (0: none), written by the
+	// city service without the lobby lock (city.go).
+	city atomic.Int32
 }
 
 // NewClient returns a connection that has not said hello yet.
@@ -295,6 +299,8 @@ func (l *Lobby) Online() ([]contract.OnlinePlayer, int) {
 		player := contract.OnlinePlayer{PlayerID: c.playerID, Name: c.name, AccountID: c.accountID}
 		if r := l.rooms[c.roomID]; r != nil {
 			player.Room = r.name
+		} else if line := c.CityLine(); line != 0 {
+			player.Room = cityRoom(line)
 		}
 		players = append(players, player)
 	}
@@ -705,6 +711,9 @@ func (l *Lobby) create(c *Client, in Request, check *ownershipCheck) (obj, error
 	if c.roomID != "" {
 		return nil, fail(http.StatusBadRequest, "ALREADY_IN_ROOM")
 	}
+	if c.CityLine() != 0 {
+		return nil, errInCity()
+	}
 	channel, err := in.text("channelName", 1, 40)
 	if err != nil {
 		return nil, err
@@ -800,6 +809,9 @@ func (l *Lobby) create(c *Client, in Request, check *ownershipCheck) (obj, error
 func (l *Lobby) join(c *Client, in Request, check *ownershipCheck) (obj, error) {
 	if c.roomID != "" {
 		return nil, fail(http.StatusBadRequest, "ALREADY_IN_ROOM")
+	}
+	if c.CityLine() != 0 {
+		return nil, errInCity()
 	}
 	id, err := in.text("roomId", 1, 64)
 	if err != nil {

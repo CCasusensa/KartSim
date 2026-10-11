@@ -45,10 +45,30 @@ func (o obj) MarshalJSON() ([]byte, error) { return appendJSON(nil, o), nil }
 // "5.0" and 1e20 is "1.0E20".
 type jdouble float64
 
+// Object, Field and JDouble let other packages build replies and events
+// with the same ordered encoding (the city zone, internal/game/city).
+type (
+	Object  = obj
+	Field   = field
+	JDouble = jdouble
+)
+
 // Reply is the answer to one command, encoded on demand.
 type Reply struct {
 	body obj
 }
+
+// F is one member of an Object built outside this package.
+func F(key string, value any) Field { return Field{key, value} }
+
+// Set returns a copy of o with key set to value (with).
+func (o Object) Set(key string, value any) Object { return o.with(key, value) }
+
+// NewReply wraps a command's answer.
+func NewReply(body Object) Reply { return Reply{body} }
+
+// Encode renders an event (a message without requestId).
+func Encode(value Object) []byte { return encode(value) }
 
 // Encode returns the reply as JSON, adding requestId when non-empty (the
 // Java envelope copies the reply and puts requestId last).

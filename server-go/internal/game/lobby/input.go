@@ -275,3 +275,43 @@ func fail(status int, code string) error { return apierr.New(status, code) }
 func invalid(key string) error {
 	return apierr.New(http.StatusBadRequest, "INVALID_"+strings.ToUpper(key))
 }
+
+// Exported accessors for the commands other packages handle with the same
+// Jackson semantics (the city zone, internal/game/city).
+
+// Text is text: a JSON string of min..max code points without ISO control
+// characters, else INVALID_<KEY>.
+func (r Request) Text(key string, min, max int) (string, error) { return r.text(key, min, max) }
+
+// OptionalText is optionalText: nil when the key is absent or null.
+func (r Request) OptionalText(key string, max int) (*string, error) { return r.optionalText(key, max) }
+
+// Integer is integer: an integral JSON literal in min..max, else INVALID_<KEY>.
+func (r Request) Integer(key string, min, max int) (int, error) { return r.integer(key, min, max) }
+
+// Number is number: any JSON number as a double (false when absent or not
+// a number).
+func (r Request) Number(key string) (float64, bool) { return r.number(key) }
+
+// HasNonNull is hasNonNull: the key is present and not null.
+func (r Request) HasNonNull(key string) bool { return r.hasNonNull(key) }
+
+// Object returns the key's value as a nested Request when it is a JSON
+// object (false otherwise), for nested fields validated the same way.
+func (r Request) Object(key string) (Request, bool) {
+	raw, ok := r.fields[key]
+	if !ok || kindOf(raw) != kindObject {
+		return Request{}, false
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return Request{}, false
+	}
+	return Request{fields: fields}, true
+}
+
+// Invalid is the INVALID_<KEY> refusal of a field.
+func Invalid(key string) error { return invalid(key) }
+
+// Blank mirrors String.isBlank for validated text.
+func Blank(value string) bool { return javaIsBlank(value) }

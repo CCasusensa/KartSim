@@ -234,3 +234,46 @@ func TestWebRTCSettings(t *testing.T) {
 		}
 	}
 }
+
+func TestCityDefaultsAndOverrides(t *testing.T) {
+	cfg, err := FromEnv(env(map[string]string{"KART_CLUSTER_SECRET": secret}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.City || cfg.CityLines != 2 || cfg.CityLinePlayers != 60 || cfg.CityInterestRadius != 160 ||
+		cfg.CityChatRadius != 60 || cfg.CityAFKMinutes != 10 || cfg.CityMaxSpeed != 150 || cfg.CityDayMinutes != 48 ||
+		!cfg.CityWeather || cfg.CityRainPercent != 20 || cfg.CitySnowPercent != 10 {
+		t.Fatalf("city defaults %+v", cfg)
+	}
+	cfg, err = FromEnv(env(map[string]string{"KART_CLUSTER_SECRET": secret, "KART_CITY": "false",
+		"KART_CITY_LINES": "4", "KART_CITY_LINE_PLAYERS": "30", "KART_CITY_INTEREST_RADIUS": "200.5",
+		"KART_CITY_CHAT_RADIUS": "40", "KART_CITY_AFK_MINUTES": "5", "KART_CITY_MAX_SPEED": "120",
+		"KART_CITY_DAY_MINUTES": "24", "KART_CITY_WEATHER": "off", "KART_CITY_RAIN_PERCENT": "50",
+		"KART_CITY_SNOW_PERCENT": "50"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.City || cfg.CityLines != 4 || cfg.CityLinePlayers != 30 || cfg.CityInterestRadius != 200.5 ||
+		cfg.CityChatRadius != 40 || cfg.CityAFKMinutes != 5 || cfg.CityMaxSpeed != 120 || cfg.CityDayMinutes != 24 ||
+		cfg.CityWeather || cfg.CityRainPercent != 50 || cfg.CitySnowPercent != 50 {
+		t.Fatalf("city overrides %+v", cfg)
+	}
+	for name, values := range map[string]map[string]string{
+		"KART_CITY":                 {"KART_CITY": "maybe"},
+		"KART_CITY_LINES":           {"KART_CITY_LINES": "33"},
+		"KART_CITY_LINE_PLAYERS":    {"KART_CITY_LINE_PLAYERS": "1"},
+		"KART_CITY_INTEREST_RADIUS": {"KART_CITY_INTEREST_RADIUS": "far"},
+		"KART_CITY_CHAT_RADIUS":     {"KART_CITY_CHAT_RADIUS": "0"},
+		"KART_CITY_AFK_MINUTES":     {"KART_CITY_AFK_MINUTES": "0"},
+		"KART_CITY_MAX_SPEED":       {"KART_CITY_MAX_SPEED": "-1"},
+		"KART_CITY_DAY_MINUTES":     {"KART_CITY_DAY_MINUTES": "1441"},
+		"KART_CITY_WEATHER":         {"KART_CITY_WEATHER": "sunny"},
+		"KART_CITY_RAIN_PERCENT":    {"KART_CITY_RAIN_PERCENT": "101"},
+		"KART_CITY_SNOW_PERCENT":    {"KART_CITY_RAIN_PERCENT": "60", "KART_CITY_SNOW_PERCENT": "41"},
+	} {
+		values["KART_CLUSTER_SECRET"] = secret
+		if _, err := FromEnv(env(values)); err == nil || !strings.Contains(err.Error(), name) {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+}

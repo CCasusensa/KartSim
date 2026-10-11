@@ -254,7 +254,7 @@ loop:
 		}
 	}
 	c.terminate()
-	s.lobby.Disconnect(c.client)
+	s.disconnect(c)
 	s.mu.Lock()
 	delete(s.conns, c)
 	s.mu.Unlock()

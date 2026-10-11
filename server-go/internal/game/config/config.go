@@ -81,6 +81,25 @@ type Config struct {
 	WebRTCUDPPort   int
 	WebRTCPublicIPs []string
 	WebRTCLoopback  bool
+
+	// The city zone (CITY.md 6, internal/game/city): KART_CITY (default
+	// true; off answers city-join CITY_DISABLED), KART_CITY_LINES (2),
+	// KART_CITY_LINE_PLAYERS (60), KART_CITY_INTEREST_RADIUS (160 m),
+	// KART_CITY_CHAT_RADIUS (60 m), KART_CITY_AFK_MINUTES (10),
+	// KART_CITY_MAX_SPEED (150 m/s), KART_CITY_DAY_MINUTES (48),
+	// KART_CITY_WEATHER (true), KART_CITY_RAIN_PERCENT (20) and
+	// KART_CITY_SNOW_PERCENT (10).
+	City               bool
+	CityLines          int
+	CityLinePlayers    int
+	CityInterestRadius float64
+	CityChatRadius     float64
+	CityAFKMinutes     int
+	CityMaxSpeed       float64
+	CityDayMinutes     int
+	CityWeather        bool
+	CityRainPercent    int
+	CitySnowPercent    int
 }
 
 // ListenAddr is the host:port the HTTP server binds.
@@ -227,6 +246,43 @@ func FromEnv(getenv func(string) string) (Config, error) {
 		problems = append(problems, errors.New("KART_WEBRTC_LOOPBACK 必须是 true 或 false"))
 	}
 	cfg.WebRTCLoopback = loopback
+
+	city, ok := parseBool(env("KART_CITY", "true"))
+	if !ok {
+		problems = append(problems, errors.New("KART_CITY 必须是 true 或 false"))
+	}
+	cfg.City = city
+	within := func(name, fallback string, minimum, maximum int) int {
+		value, err := strconv.Atoi(env(name, fallback))
+		if err != nil || value < minimum || value > maximum {
+			problems = append(problems, fmt.Errorf("%s 必须是 %d–%d 的整数", name, minimum, maximum))
+		}
+		return value
+	}
+	meters := func(name, fallback string, minimum, maximum float64) float64 {
+		value, err := strconv.ParseFloat(env(name, fallback), 64)
+		if err != nil || value < minimum || value > maximum {
+			problems = append(problems, fmt.Errorf("%s 必须是 %g–%g 的数", name, minimum, maximum))
+		}
+		return value
+	}
+	cfg.CityLines = within("KART_CITY_LINES", "2", 1, 32)
+	cfg.CityLinePlayers = within("KART_CITY_LINE_PLAYERS", "60", 2, 200)
+	cfg.CityInterestRadius = meters("KART_CITY_INTEREST_RADIUS", "160", 10, 5000)
+	cfg.CityChatRadius = meters("KART_CITY_CHAT_RADIUS", "60", 1, 5000)
+	cfg.CityAFKMinutes = within("KART_CITY_AFK_MINUTES", "10", 1, 1440)
+	cfg.CityMaxSpeed = meters("KART_CITY_MAX_SPEED", "150", 1, 10000)
+	cfg.CityDayMinutes = within("KART_CITY_DAY_MINUTES", "48", 1, 1440)
+	weather, ok := parseBool(env("KART_CITY_WEATHER", "true"))
+	if !ok {
+		problems = append(problems, errors.New("KART_CITY_WEATHER 必须是 true 或 false"))
+	}
+	cfg.CityWeather = weather
+	cfg.CityRainPercent = within("KART_CITY_RAIN_PERCENT", "20", 0, 100)
+	cfg.CitySnowPercent = within("KART_CITY_SNOW_PERCENT", "10", 0, 100)
+	if cfg.CityRainPercent+cfg.CitySnowPercent > 100 {
+		problems = append(problems, errors.New("KART_CITY_RAIN_PERCENT 与 KART_CITY_SNOW_PERCENT 之和不能超过 100"))
+	}
 
 	lanHosts := getenv("KART_LAN_HOSTS")
 	if lanHosts == "" {

@@ -18,6 +18,7 @@ import (
 	"kartsim/internal/game/admission"
 	"kartsim/internal/game/cheat"
 	"kartsim/internal/game/cheat/plugin"
+	"kartsim/internal/game/city"
 	"kartsim/internal/game/cluster"
 	"kartsim/internal/game/config"
 	"kartsim/internal/game/itemmode"
@@ -44,6 +45,7 @@ type App struct {
 	agent   *cluster.Agent
 	outbox  *outbox.Outbox
 	lobby   *lobby.Lobby
+	city    *city.Service
 	ws      *ws.Server
 	memory  *memoryGuard
 	handler http.Handler
@@ -136,6 +138,28 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 	if !cfg.WSCompression {
 		opts.WS.DisableCompression = true
 	}
+	// The city zone (CITY.md) runs beside the rooms; off, it only answers
+	// city-join CITY_DISABLED.
+	zone, err := city.New(city.Options{
+		Disabled:       !cfg.City,
+		Lines:          cfg.CityLines,
+		LinePlayers:    cfg.CityLinePlayers,
+		InterestRadius: cfg.CityInterestRadius,
+		ChatRadius:     cfg.CityChatRadius,
+		AFKTimeout:     time.Duration(cfg.CityAFKMinutes) * time.Minute,
+		MaxSpeed:       cfg.CityMaxSpeed,
+		DayLength:      time.Duration(cfg.CityDayMinutes) * time.Minute,
+		WeatherOff:     !cfg.CityWeather,
+		RainPercent:    cfg.CityRainPercent,
+		SnowPercent:    cfg.CitySnowPercent,
+		Clock:          opts.Clock,
+		Profiles:       rooms,
+		Logger:         log,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("city zone: %w", err)
+	}
+	opts.WS.City = zone
 	sockets := ws.NewServer(rooms, cfg.Network, opts.WS)
 	// The heartbeat's load figures for the admin console's node page.
 	agent.SetStats(func() *contract.NodeStats {
@@ -151,7 +175,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 	}
 
 	a := &App{cfg: cfg, log: log, data: data, agent: agent, outbox: box,
-		lobby: rooms, ws: sockets, memory: memory, cheat: cheatPlugin}
+		lobby: rooms, city: zone, ws: sockets, memory: memory, cheat: cheatPlugin}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /multiplayer/healthz", a.health)
 	mux.Handle("GET /multiplayer/ws", sockets)
@@ -168,6 +192,9 @@ func (a *App) Handler() http.Handler { return a.handler }
 
 // Lobby exposes the room authority (tests).
 func (a *App) Lobby() *lobby.Lobby { return a.lobby }
+
+// City exposes the city zone (its admin methods, tests).
+func (a *App) City() *city.Service { return a.city }
 
 // health reports the Java healthz fields plus load figures for monitoring
 // (DESIGN.md 4.5): open sockets, hello'd players, rooms, the live heap, the
@@ -216,6 +243,7 @@ func (a *App) Start() {
 		a.agent.Run(ctx)
 	}()
 	a.outbox.Start()
+	a.city.Start()
 }
 
 // Shutdown closes every WebSocket with 1001, leaves the cluster and flushes
@@ -233,6 +261,7 @@ func (a *App) shutdown(ctx context.Context) error {
 		errs = append(errs, fmt.Errorf("close WebSockets: %w", err))
 	}
 	cancel()
+	a.city.Close()
 	a.lobby.Close()
 	if a.agentCancel != nil {
 		a.agentCancel()
@@ -292,7 +321,8 @@ func (a *App) Run(ctx context.Context) error {
 		"origin", a.cfg.PublicOrigin, "data", a.cfg.DataInternalURL, "capacity", a.cfg.MaxPlayers,
 		"maxConnections", a.cfg.MaxConnections, "maxRooms", a.cfg.MaxRooms,
 		"memoryLimitMB", a.cfg.MemoryLimitMB, "allowGuests", a.cfg.AllowGuests,
-		"webrtc", a.ws.WebRTCEnabled(), "webrtcUDPPort", a.cfg.WebRTCUDPPort)
+		"webrtc", a.ws.WebRTCEnabled(), "webrtcUDPPort", a.cfg.WebRTCUDPPort,
+		"city", a.cfg.City, "cityLines", a.cfg.CityLines, "cityLinePlayers", a.cfg.CityLinePlayers)
 	served := make(chan error, 1)
 	go func() { served <- server.Serve(listener) }()
 

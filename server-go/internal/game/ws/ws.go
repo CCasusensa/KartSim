@@ -24,6 +24,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v4"
 
+	"kartsim/internal/game/city"
 	"kartsim/internal/game/lobby"
 	"kartsim/internal/shared/apierr"
 	"kartsim/internal/shared/netcfg"
@@ -61,6 +62,11 @@ type Options struct {
 	TextRate, RulesRate, MotionRate    float64
 	TextBurst, RulesBurst, MotionBurst int
 	Logger                             *slog.Logger
+	// City is the city zone (CITY.md): the city-* commands go to it, and
+	// so do the binary frames that start with its marker (city.FrameMotion)
+	// instead of a race payload kind. Nil: those commands are unsupported
+	// and those frames are dropped.
+	City *city.Service
 }
 
 // Strikes: messages refused by a rate limit draw on this bucket; once it is
@@ -197,10 +203,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	go c.writeLoop()
 	s.readLoop(c)
 	c.terminate()
-	s.lobby.Disconnect(c.client)
+	s.disconnect(c)
 	s.mu.Lock()
 	delete(s.conns, c)
 	s.mu.Unlock()
+}
+
+// disconnect releases a closed connection's player: its city line first
+// (a disconnect is a city-leave), then its room and live name.
+func (s *Server) disconnect(c *conn) {
+	if s.opts.City != nil {
+		s.opts.City.Disconnect(c.client)
+	}
+	s.lobby.Disconnect(c.client)
 }
 
 // Connections reports how many sockets are open.
@@ -410,6 +425,9 @@ func (s *Server) handle(c *conn, req lobby.Request) (reply lobby.Reply, err erro
 			err = fmt.Errorf("panic: %v\n%s", p, debug.Stack())
 		}
 	}()
+	if s.opts.City != nil && city.Handles(req.Type()) {
+		return s.opts.City.Handle(c.client, req)
+	}
 	return s.lobby.Handle(s.ctx, c.client, req)
 }
 
@@ -419,6 +437,12 @@ func (s *Server) relay(c *conn, frame []byte) {
 			s.log.Error("motion relay failed", "panic", p, "stack", string(debug.Stack()))
 		}
 	}()
+	if len(frame) > 0 && frame[0] == city.FrameMotion {
+		if s.opts.City != nil {
+			s.opts.City.RelayMotion(c.client, frame)
+		}
+		return
+	}
 	s.lobby.RelayMotion(c.client, frame)
 }
 
