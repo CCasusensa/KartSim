@@ -146,6 +146,10 @@ export class CitySession {
     this.fleet.bindClock(this.clockMapping ?? { offsetMs: 0 });
     runtime.remotes?.dispose?.();
     runtime.remotes = this.fleet;
+    // The race sender routes by the roster's distance cadence, which has no
+    // peers here; without routing it sends every bucket to the node, which
+    // fans out by its own interest radius (CITY.md §3).
+    if (runtime.sender) runtime.sender.routing = undefined;
     for (const member of snapshot.members) this.fleet.add(member);
 
     this.labels = new CityLabels({
@@ -198,16 +202,40 @@ export class CitySession {
     };
   }
 
+  private statusLine?: HTMLDivElement;
+
   private frame(now: number): void {
     this.atmosphere?.update(now);
     this.labels?.draw(now);
-    if (now - this.lastStatus > 15000) {
+    if (now - this.lastStatus > 1000) {
       this.lastStatus = now;
       const state = this.atmosphere?.state;
       const design = this.localDesignPose();
       const district = design ? districtAt(design.x, design.z) : undefined;
-      if (state) this.host.options.status(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${state.weather === "rain" ? " · 雨" : state.weather === "snow" ? " · 雪" : ""} · 在线 ${(this.fleet?.peers.size ?? 0) + 1}`);
+      if (state) {
+        const weather = state.weather === "rain" ? " · 雨" : state.weather === "snow" ? " · 雪" : "";
+        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1}`);
+      }
     }
+  }
+
+  private showStatus(text: string): void {
+    const root = this.stage?.host?.renderer?.domElement?.parentElement as HTMLElement | undefined;
+    if (!root) return;
+    if (!this.statusLine) {
+      const line = document.createElement("div");
+      line.className = "kartcity-status";
+      line.setAttribute("aria-label", "卡丁城状态");
+      Object.assign(line.style, {
+        position: "absolute", left: "50%", top: "12px", transform: "translateX(-50%)",
+        padding: "4px 14px", borderRadius: "14px", background: "rgba(10, 20, 40, 0.55)",
+        color: "#ffffff", font: "bold 15px 'PingFang SC', 'Microsoft YaHei', sans-serif",
+        letterSpacing: "0.5px", pointerEvents: "none", zIndex: "4", whiteSpace: "nowrap",
+      });
+      root.append(line);
+      this.statusLine = line;
+    }
+    if (this.statusLine.textContent !== text) this.statusLine.textContent = text;
   }
 
   private localDesignPose(): CityPose | undefined {
@@ -260,7 +288,7 @@ export class CitySession {
         break;
       case "city-chat": {
         const mine = event.playerId === this.host.playerId;
-        this.pushChat(`${event.name}: ${event.text}`, event.playerId, event.name);
+        this.pushChat(event.text, event.playerId, event.name);
         this.labels?.say(mine ? this.host.playerId : event.playerId, event.text, now);
         break;
       }
@@ -301,6 +329,8 @@ export class CitySession {
     this.abort.abort();
     this.labels?.dispose();
     this.atmosphere?.dispose();
+    this.statusLine?.remove();
+    this.statusLine = undefined;
     const stage = this.stage;
     this.stage = undefined;
     try { stage?.dispose(); } catch (error) { console.warn("城市会话释放失败", error); }

@@ -28,13 +28,11 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 	if alice.c.CityLine() != 1 {
 		t.Fatalf("line %d", alice.c.CityLine())
 	}
-	// Without a line the emptier line is chosen; with one, that line.
-	if snapshot := h.join(bob, `{"type":"city-join"}`); snapshot["line"] != 2.0 || bob.id != 1 {
+	// Without a line the fuller open line is chosen (players gather until a
+	// line fills); with one, that line.
+	snapshot = h.join(bob, `{"type":"city-join"}`)
+	if snapshot["line"] != 1.0 || bob.id != 2 {
 		t.Fatalf("bob %v %d", snapshot, bob.id)
-	}
-	snapshot = h.join(carol, `{"type":"city-join","line":1}`)
-	if snapshot["line"] != 1.0 || carol.id != 2 {
-		t.Fatalf("carol %v %d", snapshot, carol.id)
 	}
 	// The second spawn of line 1 rotates past the main one; the roster is
 	// sorted by id and carries the hello equipment.
@@ -51,18 +49,23 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 	if pose := first["pose"].(map[string]any); pose["z"] != 95.0 || pose["heading"] != 0.0 {
 		t.Fatalf("alice's pose %v", pose)
 	}
-	// Alice heard Carol come in; line 2's Bob did not.
+	// Line 1 is full, so Carol lands on line 2; Alice heard Bob come in, Carol hears nothing.
+	if snapshot := h.join(carol, `{"type":"city-join"}`); snapshot["line"] != 2.0 || carol.id != 1 {
+		t.Fatalf("carol %v %d", snapshot, carol.id)
+	}
 	joined := ofType(alice.sink.events(t), "city-joined")
-	if len(joined) != 1 || joined[0]["member"].(map[string]any)["name"] != "Carol" {
+	if len(joined) != 1 || joined[0]["member"].(map[string]any)["name"] != "Bob" {
 		t.Fatalf("alice's events %v", joined)
 	}
-	if events := bob.sink.events(t); len(events) != 0 {
-		t.Fatalf("bob's events %v", events)
+	if events := carol.sink.events(t); len(events) != 0 {
+		t.Fatalf("carol's events %v", events)
 	}
 	// Line 1 is full; so is the only other line once Dave takes it.
 	dave := h.player("Dave")
 	h.refused(dave, `{"type":"city-join","line":1}`, "CITY_LINE_FULL")
-	h.join(dave, `{"type":"city-join"}`)
+	if snapshot := h.join(dave, `{"type":"city-join"}`); snapshot["line"] != 2.0 {
+		t.Fatalf("dave %v", snapshot)
+	}
 	h.refused(h.player("Eve"), `{"type":"city-join"}`, "CITY_FULL")
 	h.refused(h.player("Eve"), `{"type":"city-join","line":3}`, "INVALID_LINE")
 
@@ -74,9 +77,9 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 	if alice.c.CityLine() != 0 {
 		t.Fatal("alice still in the city")
 	}
-	left := ofType(carol.sink.events(t), "city-left")
+	left := ofType(bob.sink.events(t), "city-left")
 	if len(left) != 1 || left[0]["id"] != 1.0 || left[0]["playerId"] != "player-1" {
-		t.Fatalf("carol's events %v", left)
+		t.Fatalf("bob's events %v", left)
 	}
 	h.refused(alice, `{"type":"city-leave"}`, "NOT_IN_CITY")
 	h.refused(alice, `{"type":"city-chat","text":"hi","channel":"city"}`, "NOT_IN_CITY")
@@ -86,7 +89,7 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 	}
 	// A disconnect is a leave.
 	h.svc.Disconnect(eve.c)
-	if eve.c.CityLine() != 0 || len(ofType(carol.sink.events(t), "city-left")) != 1 {
+	if eve.c.CityLine() != 0 || len(ofType(bob.sink.events(t), "city-left")) != 1 {
 		t.Fatal("disconnect did not leave")
 	}
 }

@@ -5,7 +5,7 @@
 ## 1. 实例与线路
 
 - 节点启动时建立 `KART_CITY_LINES`（默认 2）条线路，实例 ID `city-<n>`，名称"卡丁城 线路 n"。实例常驻，空了也不销毁；节点重启后由浏览器自动重连重进。
-- 每条线路最多 `KART_CITY_LINE_PLAYERS`（默认 60）人。`city-join` 不带 `line` 时进人最少且未满的线路；指定满员线路 `CITY_LINE_FULL`；所有线路满员 `CITY_FULL`。
+- 每条线路最多 `KART_CITY_LINE_PLAYERS`（默认 60）人。`city-join` 不带 `line` 时进人最多且未满的线路（先把一条线路聚满）；指定满员线路 `CITY_LINE_FULL`；所有线路满员 `CITY_FULL`。
 - 一个连接同一时刻只能在城市或房间之一：在房间内（任何阶段）`city-join` 返回 `IN_ROOM`；在城市内 `create`/`join` 返回 `IN_CITY`。`city-leave` 之后可以照常建房/进房（传送门就是这样开房）。断开连接等同 `city-leave`。
 - 每个实例一把自己的锁，不占大厅锁。节点总人数仍受 `KART_MAX_PLAYERS` 约束；节点心跳里城市玩家的 `room` 字段报 `"city:<n>"`，供管理后台在线页显示。
 - 成员编号 `id` 是实例内唯一的 uint16（1–65535，回收复用），运动帧与雷达包用它标识发送者；JSON 里同时带 `playerId`。

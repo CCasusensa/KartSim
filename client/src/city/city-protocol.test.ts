@@ -51,7 +51,7 @@ test("the clock extrapolates and the sky curve is dark at night", () => {
   assert.equal(daylightAt(0), 0);
   const night = skyStateAt(clock, 50);
   const noon = skyStateAt({ ...clock, timeOfDay: 0.5 }, 0);
-  assert.ok(night.lightFactor < 0.4 && noon.lightFactor === 1);
+  assert.ok(night.lightFactor < 0.5 && noon.lightFactor === 1);
   assert.ok(night.skyColor[2] < noon.skyColor[2]);
   const rain = skyStateAt({ ...clock, timeOfDay: 0.5, weather: "rain", weatherUntilTick: 100000 }, 20000);
   assert.equal(rain.precipitation, 1);

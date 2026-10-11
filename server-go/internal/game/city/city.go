@@ -236,8 +236,9 @@ func (s *Service) lineOf(c *lobby.Client) *instance {
 	return s.lines[line-1]
 }
 
-// join is city-join: the requested line, or the least populated open line
-// with room. A member of another line switches lines.
+// join is city-join: the requested line, or the most populated open line
+// with room (players gather on one line until it fills; a social city is no
+// fun when everyone is spread out). A member of another line switches lines.
 func (s *Service) join(c *lobby.Client, profile lobby.Profile, in lobby.Request) (lobby.Reply, error) {
 	if s.opts.Disabled {
 		return lobby.Reply{}, fail(http.StatusServiceUnavailable, "CITY_DISABLED")
@@ -263,7 +264,7 @@ func (s *Service) join(c *lobby.Client, profile lobby.Profile, in lobby.Request)
 				loads = append(loads, load{inst, count})
 			}
 		}
-		slices.SortStableFunc(loads, func(a, b load) int { return a.count - b.count })
+		slices.SortStableFunc(loads, func(a, b load) int { return b.count - a.count })
 		for _, l := range loads {
 			candidates = append(candidates, l.inst)
 		}

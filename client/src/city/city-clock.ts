@@ -65,7 +65,8 @@ export function skyStateAt(clock: CityClock, serverTick: number, weatherFade = 8
   const precipitation = clock.weather === "clear" ? 0
     : clamp01(Math.min((serverTick - clock.serverTick + weatherFade) / weatherFade, untilMs / weatherFade));
   if (precipitation > 0) fogColor = mix(fogColor, mix(RAIN_FOG, NIGHT_FOG, 1 - daylight), precipitation * 0.7);
-  const lightFactor = 0.28 + 0.72 * daylight - 0.15 * precipitation * daylight;
+  // Nights stay readable (street lights come later): never below 0.42.
+  const lightFactor = 0.42 + 0.58 * daylight - 0.15 * precipitation * daylight;
   return { timeOfDay, daylight, sunElevation, skyColor, fogColor, lightFactor, weather: clock.weather, precipitation };
 }
 
