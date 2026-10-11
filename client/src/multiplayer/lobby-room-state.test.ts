@@ -161,10 +161,47 @@ test("room controls, member slots, chat and track state match the release", () =
     "countdown", "hovered", "busy", "disconnected", "loading"];
   for (const variant of variants) {
     for (const name of names) {
+      // Web addition: the status line names the phase of a room whose race is
+      // on (the release says 等待中 there); see the test below.
+      if (name === "sessionStateStr" && variant === "loading") continue;
       assert.deepEqual(observe(true, name, variant), observe(false, name, variant),
         `${variant}:${name}`);
     }
   }
+});
+
+test("the status line tells a player who joined during a race that it is on", () => {
+  const states = (phase: string, overrides: Partial<LobbyRoomStateHost> = {}) => {
+    const host = {
+      room: { name: "房", speed: 7, mode: "individual", phase, hostId: "other", capacity: 8,
+        members: [{ playerId: "other", name: "对手", ready: true, slot: 0 },
+          { playerId: "local", name: "我", ready: false, slot: 1 }],
+        channelName: "speedIndiCombine", gameplay: "ordinary" },
+      playerId: "local", busy: false, connected: true, countdownLocked: false,
+      countdownState: () => ({ active: false, elapsed: 0, remaining: 0, cancelLocked: false }),
+      actions: { ready() {}, leave() {} }, ...overrides,
+    } as unknown as LobbyRoomStateHost;
+    const dependencies = {
+      nodeName: (node: unknown) => (node as { name: string }).name,
+      slots: () => [], roadblockRunner: () => undefined, gameplayMode: () => "ordinary",
+      decodeChat: (value: string) => ({ text: value }), wrapBubble: (value: string) => [value],
+      drawBubbleLine: () => {}, nowMs: () => 0,
+      roadblockDefaults: { noRunnerManualReset: true, limitMs: 180000 },
+      rpChannelNames: {},
+      colors: { redTeam: "red", blueTeam: "blue", ownChat: "own", otherChat: "other" },
+    } as unknown as LobbyRoomStateDependencies;
+    const state = (name: string) => lobbyRoomNodeState(host, { name }, dependencies);
+    return { status: state("sessionStateStr").text, ready: state("ready").disabled,
+      leave: state("goBackButton").disabled };
+  };
+  assert.deepEqual(states("open"), { status: "等待中", ready: false, leave: false });
+  for (const phase of ["loading", "countdown", "racing"]) {
+    assert.deepEqual(states(phase), { status: "比赛进行中，请稍候", ready: true, leave: false }, phase);
+  }
+  assert.deepEqual(states("finished"), { status: "比赛结算中，请稍候", ready: true, leave: false });
+  // Being busy or disconnected still comes first.
+  assert.equal(states("racing", { busy: true }).status, "正在处理…");
+  assert.equal(states("racing", { connected: false }).status, "连接已断开");
 });
 
 test("道具赛 rooms name their game in the room header", () => {

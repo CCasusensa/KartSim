@@ -269,8 +269,13 @@ function roomDetailsState(host: LobbyRoomStateHost, name: string,
           : `${room.mode === "team" ? "组队" : "个人"}${mode === "grip" ? "抓地" : "幽灵"}${room.speed === 4 ? "无限加速" : "赛"}` };
     case "changeRoomInfoNotPassword": return { visible: room.locked === false };
     case "changeRoomInfoPassword": return { visible: room.locked === true };
+    // Web addition: the release says 等待中 whatever the phase, so a player who
+    // joins a room during its race (allowed, they wait for the next one) sees
+    // 等待中 beside controls that stay disabled, as if the window had hung.
     case "sessionStateStr": return { text: host.connected
       ? host.busy ? "正在处理…"
+        : room.phase === "finished" ? "比赛结算中，请稍候"
+        : room.phase !== "open" ? "比赛进行中，请稍候"
         : room.autoStartAt !== undefined
           ? `自动开始倒数 ${host.countdownState().remaining}`
           : room.kickVote
