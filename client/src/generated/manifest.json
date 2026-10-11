@@ -1894,8 +1894,8 @@
     },
     {
       "file": "multiplayer.js",
-      "bytes": 37006,
-      "sha256": "e8577cd3f48d860fde9fe81ed855e910871e35d0c1d7114f4b8965abc3ab7722",
+      "bytes": 37147,
+      "sha256": "6e9a3b06dd6986cd9d962aad7017adb43f4e588725c45a1a061d12ca406b48ed",
       "imports": 98,
       "exports": 18
     },

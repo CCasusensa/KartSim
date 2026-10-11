@@ -103,6 +103,7 @@ async function observeLoad(rewritten: boolean, variant: LoadVariant) {
       onError(new Error("preview warning"));
       return { id: "previews" };
     },
+    drawBackdrop() {},
   };
   const classDeps = {
     G2: dependencies.mode, fa: dependencies.loadRoleTeams,
@@ -222,4 +223,30 @@ test("room keyboard emotion and Enter gates match release", () => {
     "combo-enter", "composing", "hidden"] as const) {
     assert.deepEqual(observeKeyboard(true, variant), observeKeyboard(false, variant), variant);
   }
+});
+
+test("房间窗口拿到大厅背景绘制器，原版舞台在窗口底下保留大厅场景", async () => {
+  let viewOptions: Record<string, unknown> | undefined;
+  const view = { element: { contains: () => false, addEventListener() {}, hidden: false },
+    dispose() {}, focus() {}, render() {} };
+  const dependencies: LobbyRoomConstructionDependencies = {
+    mode: () => "ordinary",
+    loadRoleTeams: async () => [],
+    loadEmotions: async () => [],
+    loadCountdown: async () => ({ dispose() {}, reset() {} }),
+    loadDefinition: async () => ({ id: "definition" }),
+    withEmotions: definition => definition,
+    async loadView(options) { viewOptions = options; return view; },
+    drawBackdrop() {},
+    loadTrackChangeNotice: async () => ({ dispose() {} }),
+    createPreviews: () => ({}),
+  };
+  const host = {
+    installRoomKeyboard() {}, updateCountdown() {},
+    onEmotionKey() {}, onRoomKey() {},
+  } as unknown as ConstructedLobbyRoom;
+  await loadLobbyRoom(() => host, {}, {}, { phase: "open" }, "player", {},
+    undefined, dependencies);
+  assert.equal(viewOptions?.backdrop, dependencies.drawBackdrop);
+  assert.equal(viewOptions?.label, "多人游戏房间");
 });

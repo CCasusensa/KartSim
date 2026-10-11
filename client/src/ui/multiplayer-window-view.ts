@@ -8,6 +8,9 @@ export interface MultiplayerWindowViewOptions {
   label: string;
   modal?: boolean;
   preserveDisplayPixels?: boolean;
+  /** Painted under the definition, in its 1600×900 design space. */
+  backdrop?(context: CanvasRenderingContext2D,
+    area: { x: number; y: number; width: number; height: number }): void;
   onCancel?(): void;
   onConfirm?(): void;
   state(node: WindowNode): {

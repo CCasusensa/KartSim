@@ -17,6 +17,7 @@ export interface MultiplayerWindowRenderHost {
     root: { getBoundingClientRect(): { width: number; height: number } };
     definition: WindowNode;
     smoothImages?: boolean;
+    backdrop?(context: CanvasRenderingContext2D, area: WindowRect): void;
     state(node: WindowNode): { select?: { values: string[]; value: string } };
   };
   canvas: HTMLCanvasElement;
@@ -61,6 +62,9 @@ export function renderMultiplayerWindow(host: MultiplayerWindowRenderHost,
   host.buttons = [];
   host.comboRects.clear();
   host.hoverRegions.length = 0;
+  // The original stage keeps its scene under the window; paint it before
+  // the definition so the window's own dim panel darkens it.
+  host.options.backdrop?.(host.context, { x: 0, y: 0, width: 1600, height: 900 });
   host.draw(host.options.definition,
     { x: 0, y: 0, width: 1600, height: 900 }, visibleControls);
   for (const [node, control] of host.controls) {

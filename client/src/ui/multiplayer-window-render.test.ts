@@ -112,3 +112,44 @@ test("多人窗口画布、可访问组合选项与仅重绘模式和发行版�
     globalThis.HTMLInputElement = previousInput;
   }
 });
+
+test("窗口的 backdrop 钩子在缩放变换之后、定义绘制之前以 1600×900 设计区域调用", () => {
+  const previousWindow = globalThis.window;
+  globalThis.window = { devicePixelRatio: 1 } as Window & typeof globalThis;
+  try {
+    const events: unknown[][] = [];
+    const context = {
+      setTransform: (...values: number[]) => events.push(["transform", ...values]),
+      clearRect: () => events.push(["clear"]),
+      imageSmoothingEnabled: false,
+    } as unknown as CanvasRenderingContext2D;
+    const host = {
+      disposed: false, paintingOnly: true, font: {},
+      options: {
+        root: { getBoundingClientRect: () => ({ width: 800, height: 450 }) },
+        definition: { name: "Window", children: [] }, smoothImages: true,
+        backdrop: (target: CanvasRenderingContext2D, area: unknown) =>
+          events.push(["backdrop", target === context, area]),
+        state: () => ({}),
+      },
+      canvas: { width: 0, height: 0 }, context,
+      controls: new Map(), buttons: [], comboRects: new Map(), hoverRegions: [],
+      popup: { hidden: true }, comboIndex: 0,
+      buttonLayer: { update() {}, control() { throw new Error("unused"); } },
+      draw: () => events.push(["draw"]),
+      drawComboPopup: () => events.push(["popup"]),
+    } as unknown as MultiplayerWindowRenderHost;
+    renderMultiplayerWindow(host, (width, height, ratio) => ({
+      width: width * ratio, height: height * ratio,
+      scaleX: width * ratio / 1600, scaleY: height * ratio / 900,
+    }));
+    assert.deepEqual(events, [
+      ["transform", 1, 0, 0, 1, 0, 0], ["clear"],
+      ["transform", 0.5, 0, 0, 0.5, 0, 0],
+      ["backdrop", true, { x: 0, y: 0, width: 1600, height: 900 }],
+      ["draw"], ["popup"],
+    ]);
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});

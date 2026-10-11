@@ -57,6 +57,9 @@ export interface LobbyRoomConstructionDependencies {
   loadDefinition(library: unknown, roadblock: boolean): Promise<unknown>;
   withEmotions(definition: unknown, emotions: RoomEmotion[]): unknown;
   loadView(options: Record<string, unknown>): Promise<ConstructedLobbyRoom["view"]>;
+  /** Paints the lobby scene under the room window, as the original stage does. */
+  drawBackdrop(context: CanvasRenderingContext2D,
+    area: { x: number; y: number; width: number; height: number }): void;
   loadTrackChangeNotice(library: unknown, root: unknown, room: RoomSnapshot,
     playerId: unknown): Promise<ConstructedLobbyRoom["trackChangeNotice"]>;
   createPreviews(library: unknown, render: () => void,
@@ -96,6 +99,7 @@ export async function loadLobbyRoom<T extends ConstructedLobbyRoom>(
       roots: ["stage_/mqReady", "stage_/common", "stage_/gameReady",
         "gui_/windowTemplate"],
       label: "多人游戏房间",
+      backdrop: dependencies.drawBackdrop,
       state: (node: unknown) => (host as T & { state(node: unknown): unknown }).state(node),
       onActivate: actions.onActivate, onHover: actions.onHover,
     });
