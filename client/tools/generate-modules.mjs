@@ -5738,6 +5738,17 @@ const brawlPatches = new Map([
       '      : f.node === n.suffix || f.node === n.riderCount || T(f.node, "texture") === "diagonal" ? zJ(f, 44, 0) : f)\n' +
       '    : a;\n' +
       '  return [...wide, ...LJ(n.rows, e.rows, u, s)];'],
+    // A kart's render scene can skip its Toon outlines (50人乱斗 karts far
+    // from the camera, race-presenter-participants.ts): each outline drops
+    // its frame instead of being rebuilt on the CPU.
+    ['  return (\n    l.add(I),\n    q(G),\n',
+      '  let outlinesSkipped = !1; // brawl(lobby)\n  return (\n    l.add(I),\n    q(G),\n'],
+    ['      setCoatingProjection: k,',
+      '      setCoatingProjection: k,\n      setOutlinesSkipped: (U) => { outlinesSkipped = U; }, // brawl(lobby)'],
+    ['        ((X.visible = j), (Y.object.visible = j && !Y.isBatched()));',
+      '        ((X.visible = j), (Y.object.visible = j && !Y.isBatched() && !outlinesSkipped)); // brawl(lobby)'],
+    ['    p.forEach(({ outline: Y, body: X }) => Y.update(X, U, O, F, void 0, z));',
+      '    p.forEach(({ outline: Y, body: X }) =>\n      outlinesSkipped ? Y.dropFrame() : Y.update(X, U, O, F, void 0, z)); // brawl(lobby)'],
     // Minimap markers: one per racer, up to 50 (the release stopped at 9).
     ['  if (!Number.isInteger(n) || n < 0 || n > 8)\n    throw new Error(`minimap marker participantIndex 必须为 0..8，实际 ${n}。`);\n  return d2(',
       '  if (!Number.isInteger(n) || n < 0 || n > BRAWL_SLOTS - 1) // brawl(lobby)\n    throw new Error(`minimap marker participantIndex 必须为 0..49，实际 ${n}。`);\n  return d2('],

@@ -22,6 +22,8 @@ export async function buildCharacterScene(model, bodyBytes, faceSources,
   ]);
   const faceTextures = new Map(faceEntries);
   const outlineBatch = options.outlineBatch;
+  // Whether the outlines were drawn last frame (update's lod).
+  let outlinesWereShown = true;
   const faceTexture = name => faceTextures.get(name) ?? bodyTexture;
   const initialFaceTexture = faceTexture(animation.face());
   const scene = new Group();
@@ -130,19 +132,27 @@ export async function buildCharacterScene(model, bodyBytes, faceSources,
     return group;
   }
 
-  function update(time, camera, width, height, context) {
-    const pose = animation.update(time, context);
-    currentPose = pose;
-    const activeFaceTexture = faceTexture(animation.face());
-    for (const material of faceMaterials)
-      material.uniforms.baseMap.value = activeFaceTexture;
-    const boneMatrices = mainSkin.updatePose(pose);
-    for (let index = 1; index < skins.length; index++)
-      skins[index].skin.updatePose(pose);
-    for (const { object, bone, local } of attachments) {
-      if (!object) continue;
-      const boneMatrix = poseMatrix(boneMatrices[bone]);
-      object.matrix.copy(local ? boneMatrix.multiply(local) : boneMatrix);
+  /**
+   * lod (50人乱斗 karts away from the camera, race-presenter-participants.ts):
+   * `animate: false` keeps the last pose and skin this frame, `outlines:
+   * false` drops the Toon outlines instead of rebuilding them.
+   */
+  function update(time, camera, width, height, context, lod) {
+    const animate = lod?.animate !== false;
+    if (animate) {
+      const pose = animation.update(time, context);
+      currentPose = pose;
+      const activeFaceTexture = faceTexture(animation.face());
+      for (const material of faceMaterials)
+        material.uniforms.baseMap.value = activeFaceTexture;
+      const boneMatrices = mainSkin.updatePose(pose);
+      for (let index = 1; index < skins.length; index++)
+        skins[index].skin.updatePose(pose);
+      for (const { object, bone, local } of attachments) {
+        if (!object) continue;
+        const boneMatrix = poseMatrix(boneMatrices[bone]);
+        object.matrix.copy(local ? boneMatrix.multiply(local) : boneMatrix);
+      }
     }
     if (!(camera instanceof PerspectiveCamera))
       throw new Error("P3528 ReCharacter hierarchy culling 需要 perspective camera。");
@@ -152,8 +162,10 @@ export async function buildCharacterScene(model, bodyBytes, faceSources,
       for (const { outline } of outlines) outline.dropFrame();
       return;
     }
-    for (const { skin, object } of skins)
-      if (isVisible(object)) skin.updateVertices();
+    if (animate) {
+      for (const { skin, object } of skins)
+        if (isVisible(object)) skin.updateVertices();
+    }
     viewer.set(camera.position.x, -camera.position.z, camera.position.y);
     for (const { mesh, material } of meshes) {
       if (!isVisible(mesh)) continue;
@@ -162,8 +174,14 @@ export async function buildCharacterScene(model, bodyBytes, faceSources,
       configureToonUniforms(material, environment, stageBinding,
         modelToClient, clientToModel, viewer);
     }
-    for (const { outline, mesh } of outlines)
-      outline.update(mesh, camera, width, height);
+    const outlinesShown = lod?.outlines !== false;
+    for (const { outline, mesh } of outlines) {
+      if (outlinesShown !== outlinesWereShown)
+        outline.object.visible = outlinesShown && !outline.isBatched();
+      if (outlinesShown) outline.update(mesh, camera, width, height);
+      else outline.dropFrame();
+    }
+    outlinesWereShown = outlinesShown;
   }
 
   function dispose() {

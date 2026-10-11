@@ -99,6 +99,9 @@ function webBasis(matrix: RailMatrix) {
 const vector = (value: Vector) => ({ x: value[0], y: value[1], z: value[2] });
 
 /** Peer roster, packet admission, prediction and collision projection for a race. */
+/** Meters within which a remote kart can touch the local one in a 50人乱斗 physics step. */
+export const COLLISION_RANGE = 25;
+
 export class RemoteFleet {
   readonly connection: RemoteFleetConnection;
   readonly now: () => number;
@@ -117,6 +120,11 @@ export class RemoteFleet {
    * rank board reads their progress extrapolated by their speed.
    */
   readonly extrapolateProgress: boolean;
+  /**
+   * 50人乱斗: where the local kart is; remote karts further than
+   * COLLISION_RANGE from it are left out of its collision tests.
+   */
+  collisionCenter?: () => { x: number; y: number; z: number };
   offGiant?: () => void;
   giantFinished = false;
 
@@ -323,8 +331,10 @@ export class RemoteFleet {
       if (this.departed.has(playerId)) continue;
       const peer = this.remotes.get(playerId)!;
       const collision = peer.motion.collisionState();
+      if (!collision) continue;
+      if (this.collisionCenter && !peer.motion.within(this.collisionCenter(), COLLISION_RANGE)) continue;
       const pose = peer.motion.copyPose();
-      if (!collision || !pose) continue;
+      if (!pose) continue;
       const giant = this.giants.get(playerId);
       callback({
         ...peer.parameters,

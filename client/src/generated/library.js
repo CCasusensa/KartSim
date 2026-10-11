@@ -7395,6 +7395,7 @@ async function qI(n, e, t, i, r, s, o = !1) {
     children: [],
     enabled: a.nodeEnabled !== 0,
   };
+  let outlinesSkipped = !1; // brawl(lobby)
   return (
     l.add(I),
     q(G),
@@ -7406,6 +7407,7 @@ async function qI(n, e, t, i, r, s, o = !1) {
       rootMaterialBindings: S,
       update: e0,
       setCoatingProjection: k,
+      setOutlinesSkipped: (U) => { outlinesSkipped = U; }, // brawl(lobby)
       dispose: Q,
     }
   );
@@ -7578,7 +7580,7 @@ async function qI(n, e, t, i, r, s, o = !1) {
       for (const { outline: Y, body: X, source: l0 } of p) {
         const r0 = w.get(l0)?.bodyVisibilitySource,
           j = !v || !r0 || h.get(r0).visible;
-        ((X.visible = j), (Y.object.visible = j && !Y.isBatched()));
+        ((X.visible = j), (Y.object.visible = j && !Y.isBatched() && !outlinesSkipped)); // brawl(lobby)
       }
     if ((JG([L], U), !lS(I))) {
       for (const { outline: Y } of p) Y.dropFrame();
@@ -7591,7 +7593,8 @@ async function qI(n, e, t, i, r, s, o = !1) {
         (g.makeRotationX(Math.PI / 2).multiply(Y.matrixWorld),
         y.copy(g).invert(),
         xo(X, i, r, g, y, b));
-    p.forEach(({ outline: Y, body: X }) => Y.update(X, U, O, F, void 0, z));
+    p.forEach(({ outline: Y, body: X }) =>
+      outlinesSkipped ? Y.dropFrame() : Y.update(X, U, O, F, void 0, z)); // brawl(lobby)
   }
   function Q() {
     (p.forEach(({ outline: U }) => U.dispose()),

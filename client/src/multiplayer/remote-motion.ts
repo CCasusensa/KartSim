@@ -208,10 +208,19 @@ export class RemoteMotionPredictor {
     overwriteMatrix(this.rotation, matrixFromQuaternion({ w, x, y, z }));
   }
 
+  /** Whether the predicted kart is within range meters of a web-space point. */
+  within(point: { x: number; y: number; z: number }, range: number): boolean {
+    if (this.previousTick === undefined) return false;
+    const [x, y, z] = this.position;
+    const dx = x! - point.x, dy = y! - point.y, dz = z! - point.z;
+    return dx * dx + dy * dy + dz * dz <= range * range;
+  }
+
   copyPose(): { position: Vector; rotation: RailMatrix; velocity: Vector;
     angularVelocity: Vector } | undefined {
     if (this.previousTick === undefined) return undefined;
-    return { position: [...this.position], rotation: structuredClone(this.rotation),
+    return { position: [...this.position],
+      rotation: this.rotation.map(row => ({ x: row.x, y: row.y, z: row.z })) as RailMatrix,
       velocity: [...this.velocity], angularVelocity: [...this.angular] };
   }
 

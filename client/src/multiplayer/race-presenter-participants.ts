@@ -1,6 +1,6 @@
 /** Updates each racer presentation after the multiplayer camera is positioned. */
 import { drivenPose, type KartPoseVectors } from "../item/item-kart-motion";
-import type { Object3D } from "three";
+import { Frustum, Matrix4, Object3D, Sphere, Vector3, type Camera } from "three";
 import { applyItemKartPresentation } from "../item/item-kart-presentation";
 import { updateRacePresenterItems, type RacePresenterItemsHost } from "./race-presenter-items";
 
@@ -18,6 +18,8 @@ interface RacerPresentation {
   rearLamp: unknown;
 }
 interface SceneUpdater {
+  /** 50人乱斗 karts away from the camera skip their Toon outlines (library.js brawl patch). */
+  setOutlinesSkipped?(skip: boolean): void;
   update(...args: unknown[]): void;
 }
 interface VehicleAsset {
@@ -159,7 +161,16 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
 
   const finishes = runtime.finishSnapshot();
   const remotePoses: Array<{ playerId: unknown; pose: RacePose }> = [];
-  for (const racer of assets.participants) {
+  const inView = assets.participants.length > CULL_MIN_RACERS
+    ? remoteRacerCulling(camera as Camera) : undefined;
+  lodFrame = (lodFrame + 1) % 0x10000;
+  // Thresholds from last frame's distances: the nearest few karts keep full
+  // detail, and only the nearest MAX_DRAWN_REMOTES are drawn at all.
+  const fullDetailWithin = Math.min(LOD_NEAR, nthSmallest(lastDistances, FULL_DETAIL_KARTS));
+  const drawnWithin = nthSmallest(lastDistances, MAX_DRAWN_REMOTES);
+  lastDistances.length = 0;
+  for (const [index, racer] of assets.participants.entries()) {
+    let lod: RiderLod | undefined;
     const view = host.views.get(racer.playerId);
     if (!view) continue;
     const isLocal = racer.playerId === host.playerId;
@@ -192,6 +203,16 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
           String(racer.playerId), nowMs)?.opacity === 0;
         if (!runtime.remotes.hasDeparted(racer.playerId) && !unseen)
           remotePoses.push({ playerId: racer.playerId, pose });
+        const distance = inView?.(pose.position);
+        if (distance !== undefined) lastDistances.push(distance);
+        if (inView && (distance === undefined || distance > drawnWithin)) {
+          // 50人乱斗: a kart off screen or far away is neither drawn nor animated.
+          cullRemoteRacer(racer, view, nowMs, camera, width, height);
+          continue;
+        }
+        if (distance !== undefined) lod = riderLod(distance, lodFrame + index, fullDetailWithin);
+        const trails = racer.vehicle.trails.object;
+        if (trails && culledTrails.delete(trails)) trails.visible = true;
         const drawn = hitMotion ? { ...pose, ...drivenPose(pose as unknown as KartPoseVectors, hitMotion) } : pose;
         const projectedPose = {
           x: drawn.position.x,
@@ -224,9 +245,14 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
     const linked = host.linkedPresentations.get(racer.playerId);
     const linkedMotion = motion
       ? linked?.updateSpeedRace(motion.boosterState, nowMs) : undefined;
-    view.root.updateMatrixWorld(true);
+    // 50人乱斗: only the drawn part of the kart (most of its tree is hidden
+    // booster effects); what its effects show this frame is placed below.
+    if (inView) updateVisibleWorldMatrices(view.root as unknown as Object3D);
+    else view.root.updateMatrixWorld(true);
     const giant = isLocal ? physics.giant : runtime.remotes.giant(racer.playerId);
     if (giant) host.giantAppearances.get(racer.playerId)?.update(giant.main, giant.extra);
+    racer.vehicle.imported.renderScene?.setOutlinesSkipped?.(lod ? !lod.outlines : false);
+    if (inView && !isLocal) setSmallPartsDrawn(view.root as unknown as Object3D, lod?.minimumPartRadius ?? 0);
     racer.vehicle.imported.renderScene?.update(camera, width, height);
     racer.draftEffect?.update(nowMs,
       view.root.visible && runtime.draftPresentationVisible(racer.playerId),
@@ -249,7 +275,9 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
         }
       : motion ? { ...motion, linkedPresentationMotion: linkedMotion } : undefined;
     (racer.characters.linked ?? racer.characters.ordinary)?.scene.update(
-      nowMs, camera, width, height, characterMotion);
+      nowMs, camera, width, height, characterMotion,
+      // A finish (or retirement) motion arrives once: never skip its frame.
+      lod && characterMotion && "finishMotion" in characterMotion ? { ...lod, animate: true } : lod);
 
     if (presentation) {
       racer.vehicle.lampFlares.setInputPair("front", presentation.frontLamp);
@@ -258,7 +286,8 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
     const imported = racer.vehicle.imported.renderScene !== undefined;
     racer.vehicle.lampFlares.update(nowMs, camera, imported);
     if (!isLocal && presentation) {
-      if (presentation.animation) {
+      // 50人乱斗: a kart away from the camera moves its effects with its rider's frames.
+      if (presentation.animation && (!lod || lod.animate)) {
         dependencies.updateRemoteVehicleEffects(racer.vehicle, view, camera,
           nowMs, presentation.animation,
           presentation.motion.instantAccelerationActive, width, height);
@@ -278,6 +307,156 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
         linked?.simpleShadowEnabled() ?? true);
     }
     racer.vehicle.decoration?.scene.update(nowMs, camera, width, height);
+    if (inView) updateVisibleWorldMatrices(view.root as unknown as Object3D);
   }
   return remotePoses;
+}
+
+/**
+ * 50人乱斗 (server-go/BRAWL.md): with more racers than a release room holds,
+ * a remote kart outside the camera's view or further than
+ * BRAWL_DRAW_DISTANCE is hidden and its per-frame presentation (world
+ * matrices, character animation, effects) skipped: with 49 AI racers that
+ * work, not drawing, held the frame rate down. Its pose still reaches the
+ * minimap and the rank board.
+ */
+const CULL_MIN_RACERS = 8;
+/** Meters from the camera beyond which a remote kart is not drawn. */
+export const BRAWL_DRAW_DISTANCE = 180;
+/** A kart with its rider and effects fits in this radius (m) around its position. */
+const KART_RADIUS = 6;
+const cullScratch = {
+  frustum: new Frustum(), matrix: new Matrix4(),
+  sphere: new Sphere(new Vector3(), KART_RADIUS), camera: new Vector3(),
+};
+const culledTrails = new WeakSet<object>();
+
+/** A drawn remote kart's distance from the camera this frame, undefined when it is not drawn. */
+export function remoteRacerCulling(camera: Camera): (position: Vec3) => number | undefined {
+  // The race camera writes its matrices directly (no position/quaternion),
+  // so they are read as they are.
+  const { frustum, matrix, sphere, camera: eye } = cullScratch;
+  frustum.setFromProjectionMatrix(matrix.multiplyMatrices(camera.projectionMatrix,
+    camera.matrixWorldInverse));
+  eye.setFromMatrixPosition(camera.matrixWorld);
+  return position => {
+    sphere.center.set(position.x, position.y, position.z);
+    const squared = sphere.center.distanceToSquared(eye);
+    return squared <= BRAWL_DRAW_DISTANCE * BRAWL_DRAW_DISTANCE && frustum.intersectsSphere(sphere)
+      ? Math.sqrt(squared) : undefined;
+  };
+}
+
+/** How much of a drawn remote kart's presentation is updated this frame. */
+export interface RiderLod {
+  /** Toon outlines of the kart and its rider. */
+  outlines: boolean;
+  /** The rider's animation and skin, and the kart's booster effects. */
+  animate: boolean;
+  /** Parts of the kart and rider smaller than this radius (m) are not drawn. */
+  minimumPartRadius: number;
+}
+
+/**
+ * The radius (m) per meter of distance below which a part covers less than
+ * about two and a half pixels of a 900 px high, 60° view: not drawn on a kart
+ * away from the camera (a wheel nut, a lamp), one draw call each.
+ */
+export const SMALL_PART_RATIO = 0.003;
+const partRadii = new WeakMap<Object3D, Array<{ mesh: Object3D; radius: number }>>();
+
+/**
+ * Leaves a kart's parts smaller than `minimumRadius` out of the camera's
+ * layer (0) and puts the rest back: its own visibility rules are untouched.
+ * The parts are the meshes drawn the first time, with their world radius.
+ */
+export function setSmallPartsDrawn(root: Object3D, minimumRadius: number): void {
+  let parts = partRadii.get(root);
+  if (!parts) {
+    if (minimumRadius <= 0) return;
+    parts = [];
+    const scale = new Vector3();
+    root.traverseVisible(object => {
+      const mesh = object as Object3D & { isMesh?: boolean;
+        geometry?: { attributes?: Record<string, unknown>; boundingSphere?: { radius: number } | null;
+          computeBoundingSphere?(): void } };
+      if (!mesh.isMesh || !mesh.geometry || mesh.geometry.attributes?.positionD3D) return;
+      if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere?.();
+      scale.setFromMatrixScale(mesh.matrixWorld);
+      parts!.push({ mesh, radius: (mesh.geometry.boundingSphere?.radius ?? Infinity) *
+        Math.max(scale.x, scale.y, scale.z) });
+    });
+    partRadii.set(root, parts);
+  }
+  for (const { mesh, radius } of parts) {
+    if (radius < minimumRadius) mesh.layers.disable(0);
+    else mesh.layers.enable(0);
+  }
+}
+
+/** Meters from the camera beyond which a kart has no outlines and a slower rider. */
+export const LOD_NEAR = 45;
+/** How many of the nearest remote karts keep full detail within LOD_NEAR. */
+export const FULL_DETAIL_KARTS = 6;
+/** How many remote karts are drawn at most, the nearest ones. */
+export const MAX_DRAWN_REMOTES = 32;
+const lastDistances: number[] = [];
+
+/** The n-th smallest of values (1-based), Infinity when there are fewer. */
+export function nthSmallest(values: readonly number[], n: number): number {
+  if (values.length < n) return Infinity;
+  return [...values].sort((a, b) => a - b)[n - 1]!;
+}
+/** Meters beyond which the rider animates every fourth frame instead of every second. */
+export const LOD_FAR = 100;
+let lodFrame = 0;
+
+/**
+ * The detail of a remote kart `distance` meters away: everything up to
+ * fullDetailWithin (LOD_NEAR, or nearer when more than FULL_DETAIL_KARTS
+ * karts are that close); then no outlines (a pixel or two wide there) and
+ * the rider animated every second frame, every fourth beyond LOD_FAR.
+ * `turn` staggers the karts over the frames.
+ */
+export function riderLod(distance: number, turn: number,
+  fullDetailWithin = LOD_NEAR): RiderLod | undefined {
+  if (distance <= fullDetailWithin) return undefined;
+  const every = distance < LOD_FAR ? 2 : 4;
+  return { outlines: false, animate: turn % every === 0,
+    minimumPartRadius: distance * SMALL_PART_RATIO };
+}
+
+function cullRemoteRacer(racer: RacerAsset, view: RacerView, nowMs: number,
+  camera: unknown, width: number, height: number): void {
+  view.root.visible = false;
+  // The trail ribbon hangs from the scene, not the kart: hide it too, or a
+  // stale ribbon would stay where the kart was.
+  const trails = racer.vehicle.trails.object;
+  if (trails?.visible) {
+    trails.visible = false;
+    culledTrails.add(trails);
+  }
+  racer.draftEffect?.update(nowMs, false, false, camera, width, height);
+}
+
+const baseUpdateMatrixWorld = Object3D.prototype.updateMatrixWorld;
+
+/**
+ * updateMatrixWorld(true) for the visible part of a tree only: a kart's tree
+ * holds dozens of hidden booster effect scenes (about 3,500 of its 4,000
+ * nodes), which nothing draws or reads while hidden. An object with its own
+ * updateMatrixWorld (a camera, a skinned mesh) is updated the usual way.
+ */
+export function updateVisibleWorldMatrices(object: Object3D): void {
+  if (object.updateMatrixWorld !== baseUpdateMatrixWorld) {
+    object.updateMatrixWorld(true);
+    return;
+  }
+  if (object.matrixAutoUpdate) object.updateMatrix();
+  if (object.matrixWorldAutoUpdate) {
+    if (object.parent) object.matrixWorld.multiplyMatrices(object.parent.matrixWorld, object.matrix);
+    else object.matrixWorld.copy(object.matrix);
+  }
+  object.matrixWorldNeedsUpdate = false;
+  for (const child of object.children) if (child.visible) updateVisibleWorldMatrices(child);
 }

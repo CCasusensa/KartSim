@@ -35,6 +35,12 @@
 - 名单与槽位上限（`w40`、小地图标记、远端车队、碰撞帧率历史、房间与名单校验）在乱斗中放宽到 50。AI 车手不是房间成员，但算在场：不会被当成离开（不显示 OUT、不隐藏）。
 - 排名板最多 8 行：前 7 名加自己（自己在前 8 时显示前 8），两位数名次的数字左移、名字右移；大号名次两位数时后缀和总人数右移。远处车手的帧每 0.5 秒才到一次，乱斗里排名用帧里的速度把它们的路线距离外推到当前时刻；还没报过进度的车手排在最后，而不是让排名退回名单顺序。
 - 结果页最多 8 行：前 7 名加自己。领奖台照常显示前三名（可能是 AI）。载入提示只数玩家。
+- **帧率**（场上超过 8 辆车时；原版房间不变）。50 辆车时每帧的大头不是绘制，而是每辆车约 4,000 个节点（其中约 3,500 个是隐藏的氮气特效）的世界矩阵、角色动画与描边，以及 49×49 的尾流检查。所以：
+  - 远端车辆只在视锥内且离相机 180 米内时绘制，最多画最近的 32 辆（`race-presenter-participants.ts`）；不画的车隐藏车身、拖尾和尾流特效，位置照常进小地图和排名板。
+  - 世界矩阵只更新可见部分（`updateVisibleWorldMatrices`，结果与 `updateMatrixWorld(true)` 相同）。
+  - 细节分级（`riderLod`）：最近的 6 辆、且 45 米内保持完整；更远的车不画描边，角色动画每 2 帧更新一次（100 米外每 4 帧，各车错开），半径小于距离×0.003 米的小零件（约 2.5 像素）移出相机图层。描边开关是生成代码 render-scene 的补丁 `setOutlinesSkipped`（`generate-modules.mjs` `brawl(lobby)`）和 `character-scene-render.js` 的 `lod` 参数。
+  - 远端尾流只跟踪本车 60 米内的车，每辆只和自己 60 米内的车比较，分 3 帧轮流更新（`remote-slipstream.ts`）；碰撞只检查本车 25 米内的远端车（`remote-fleet.ts` `collisionCenter`）。
+  - 实测（M2 Max，1 名玩家 + 49 名 AI，城镇高速公路）：起跑后整团车在镜头前时最差约 44–50 帧（原来 11–18 帧），其余时间 60 帧。
 
 ## 6. 奖励
 
@@ -43,4 +49,4 @@ AI 没有奖励，也不进成就。玩家的奖励按 8 人房间折算（`braw
 ## 7. 本地测试
 
 - 服务端：`go test ./internal/game/brawl ./internal/game/lobby -run Brawl`（AI 在 24 条赛道上都能跑完、帧有效、按距离降频、开赛补位、结果与奖励、全员离开即停止、50 名玩家满座）。
-- 浏览器：`client/src/multiplayer/lobby-brawl-mode.test.ts`、`lobby-room-template.test.ts`、`src/ui/rank-board-condense.test.ts`。
+- 浏览器：`client/src/multiplayer/lobby-brawl-mode.test.ts`、`lobby-room-template.test.ts`、`race-presenter-lod.test.ts`（剔除、细节分级、可见矩阵、小零件、尾流筛选）、`src/ui/rank-board-condense.test.ts`。

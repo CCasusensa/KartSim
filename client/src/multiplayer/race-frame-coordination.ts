@@ -1,4 +1,6 @@
+import { RELEASE_SLOTS } from "./lobby-brawl-mode";
 import { teamGaugeEnabled } from "./lobby-item-mode";
+import { nearbySlipstreamPeers, SLIPSTREAM_TURNS, slipstreamCandidates } from "./remote-slipstream";
 import { chargerDurationScale, computeCatchupScales, SlipstreamBoost,
   type RacePoint, type SlipstreamPeer } from "./race-driving-scales";
 
@@ -81,6 +83,8 @@ export interface RaceFrameHost {
   itemRace?: { update(nowMs: number): void; readonly perfectStart?: boolean };
   slipstream: SlipstreamBoost;
   remoteSlipstreams: Map<string, SlipstreamBoost>;
+  /** 50人乱斗: which third of the nearby karts updates its slipstream this frame. */
+  slipstreamTurn?: number;
   room?: { phase: string; race?: { loadedIds: readonly string[] } };
   presentation: { capture(motion: unknown, frame: unknown,
     animation: unknown): RaceFramePresentation };
@@ -157,11 +161,19 @@ export function updateActiveRaceFrame(host: RaceFrameHost, nowMs: number,
         forward: physics.body.forward,
         progress: host.local.raceProgress(),
       };
-      const currentIds = new Set(peers.map(peer => peer.playerId));
+      // 50人乱斗: the other karts' slipstream only decides how their draft
+      // looks, so it is followed for karts near the local one, against the
+      // karts near each, a third of them per frame (remote-slipstream.ts).
+      const crowd = peers.length > RELEASE_SLOTS;
+      const tracked = crowd ? nearbySlipstreamPeers(peers, physics.body.position) : peers;
+      const currentIds = new Set(tracked.map(peer => peer.playerId));
       for (const id of host.remoteSlipstreams.keys()) {
         if (!currentIds.has(id)) host.remoteSlipstreams.delete(id);
       }
-      for (const peer of peers) {
+      host.slipstreamTurn = ((host.slipstreamTurn ?? 0) + 1) % SLIPSTREAM_TURNS;
+      for (const [index, peer] of tracked.entries()) {
+        if (crowd && index % SLIPSTREAM_TURNS !== host.slipstreamTurn &&
+          host.remoteSlipstreams.has(peer.playerId)) continue;
         let slipstream = host.remoteSlipstreams.get(peer.playerId);
         if (!slipstream) {
           slipstream = new SlipstreamBoost();
@@ -172,7 +184,8 @@ export function updateActiveRaceFrame(host: RaceFrameHost, nowMs: number,
         )!.vehicle.physicsParams;
         slipstream.update(
           nowMs, peer.position, remoteSpeeds.get(peer.playerId)!,
-          [localPeer, ...peers.filter(other => other.playerId !== peer.playerId)],
+          crowd ? [localPeer, ...slipstreamCandidates(peers, peer)]
+            : [localPeer, ...peers.filter(other => other.playerId !== peer.playerId)],
           parameters.draftTick ?? 0, parameters.draftMulAccelFactor ?? 1,
         );
       }

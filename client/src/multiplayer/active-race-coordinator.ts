@@ -108,6 +108,10 @@ export class ActiveRaceCoordinator {
         try { onError(error); }
         finally { this.dispose(); }
       }, this.cadence);
+      // 50人乱斗: only nearby karts are collision candidates (remote-fleet.ts).
+      if (assets.drivingMode?.kind === "brawl") {
+        this.remotes.collisionCenter = () => this.local.physics.body.position;
+      }
       this.itemRace = createActiveItemRace(this, room, now);
       const balance = assets.participants.find((player: any) =>
         player.playerId === connection.playerId).collisionBalance;
