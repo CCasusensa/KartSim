@@ -54,6 +54,7 @@ npm run verify
 | `src/codecs/` | Rho/Rho5 索引扫描、挂载、解码及二进制 XML/BML 解码 | 手写 TypeScript；`Sw.load` 静态方法已接入游戏 |
 | `src/physics/` | 车辆物理参数、可编辑 CSV/JSON 和查找规则 | 手写 TypeScript；`data.js` 现转发可编辑数据，表解析与车型查询已接入游戏，其他范围见模块文档 |
 | `src/multiplayer/` | HTTP、WebRTC、WebSocket、协议、房间、大厅与本地/远端赛况 | 手写 TypeScript；本地比赛 `Ci0` 整类已接入；游戏客户端默认接仓库中的 Go 数据服务与游戏服务；其余视图仍需兼容层 |
+| `src/city/`、`tools/city/` | 卡丁城（开放世界自由驾驶）：城市会话（复用多人比赛管线）、动态车队、协议编解码、昼夜与天气、坐标与最近道路复位；建城脚本从 `design/open-world/city-map.json` 生成 `track_kartcity.rho` | 手写 TypeScript；服务端约定见 `server-go/CITY.md`，计划与状态见 `design/open-world/PLAN.md` |
 | `src/account/` | 账号会话（登录门、token、摘要与库存、`owns()`、带 Bearer 的请求）、账号档案与迁移、库存过滤与过期回退、比赛奖励与计时赛结算 | 手写 TypeScript；对外接口见 `account-session.ts` |
 | `src/ui/profile-sync.ts`、`src/game/ghost-summary-sync.ts` | 档案与成绩摘要的数据服务存储同步 | 手写 TypeScript；登录后档案改为账号绑定（服务端为准），成绩摘要仍按本机 ID 同步 |
 | `src/generated/` | 从 v39.11 发行包按语法边界拆出的兼容模块 | 自动生成，仍有压缩名称；不要直接编辑 |

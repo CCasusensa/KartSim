@@ -151,7 +151,7 @@ test("真实 p3553 Rho/Rho5 索引的规范路径与资源查询逐项等同 rel
     sourceKind: "rho5", containerId: `rho5:${archive.name.toLowerCase()}`,
     absenceAuthoritative: true,
   })));
-  assert.equal(files.length, 137609);
+  assert.equal(files.length, 137693); // 137609 release files + 84 in the generated track_kartcity.rho
   const setup = input(files, mounts);
   const original = new ReleaseLibrary(setup);
   const authored = new AuthoredLibrary(setup);

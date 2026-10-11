@@ -9,7 +9,7 @@ import { downloadRaceTrack } from "../resources/resource-manager";
 import { CityAtmosphere } from "./city-atmosphere";
 import { skyStateAt, clockLabel } from "./city-clock";
 import { CityNetwork, createCityRaceConnection, type CityClient } from "./city-connection";
-import { designHeading, designToWorld, districtAt, nearestRoadPoint, physicsHeading, worldToDesign } from "./city-coordinates";
+import { designHeading, designToWorld, districtAt, nearestRoadPoint, physicsHeading, worldToDesign, type RoadSample } from "./city-coordinates";
 import { CityFleet } from "./city-fleet";
 import { CityLabels } from "./city-labels";
 import type { CityEvent, CityPose, CitySnapshot } from "./city-protocol";
@@ -66,6 +66,29 @@ export function fabricateCityRace(snapshot: CitySnapshot, playerId: string, name
   return { room, race };
 }
 
+/**
+ * Surface height under a world column for a pose whose own height is only a
+ * hint (spawns and road points are stored without elevation): the lowest
+ * surface at or above `hintY - 2` (a tunnel floor beats the hill over it, a
+ * bridge deck beats the bay under it), else the highest surface found; the
+ * rays start above the 150 m mountain. Undefined when nothing is below.
+ */
+export function groundHeightAt(track: { rayQuery(origin: { x: number; y: number; z: number },
+  movement: { x: number; y: number; z: number }, includeWalls: boolean): { point: { y: number } } | undefined },
+x: number, z: number, hintY: number): number | undefined {
+  const hits: number[] = [];
+  let y = 420;
+  for (let i = 0; i < 8 && y > -40; i++) {
+    const hit = track.rayQuery({ x, y, z }, { x: 0, y: -(y + 40), z: 0 }, false)?.point;
+    if (!hit) break;
+    hits.push(hit.y);
+    y = hit.y - 0.05;
+  }
+  if (hits.length === 0) return undefined;
+  const above = hits.filter(h => h >= hintY - 2);
+  return above.length > 0 ? Math.min(...above) : Math.max(...hits);
+}
+
 export class CitySession {
   network?: CityNetwork;
   stage?: any;
@@ -120,7 +143,7 @@ export class CitySession {
     });
     const stage = await loader.prepare(room, race, this.abort.signal, connection);
     this.stage = stage;
-    if (host.disposed || this.disposed) { stage.dispose(); return; }
+    if (host.disposed || this.disposed) { await this.cleanup(); return; }
     this.clockMapping = (host.client.captureClock() as { offsetMs: number } | undefined) ?? { offsetMs: 0 };
     stage.bindClock(this.clockMapping);
     stage.updateRoom(room);
@@ -273,8 +296,7 @@ export class CitySession {
     if (!runtime) return;
     const { physics, track } = runtime.local;
     const world = designToWorld(pose.x, pose.y, pose.z);
-    const hit = track.rayQuery({ x: world.x, y: world.y + 40, z: world.z }, { x: 0, y: -120, z: 0 }, false)?.point;
-    const ground = hit ? hit.y : world.y;
+    const ground = groundHeightAt(track, world.x, world.z, world.y) ?? world.y;
     physics.reset(world.x, ground + 0.4, world.z, physicsHeading(pose.heading));
     runtime.local.coordinator?.synchronizePositionAnchor?.();
     track.resetRouteState(physics, physics.body.position);
@@ -286,14 +308,20 @@ export class CitySession {
     const runtime = this.stage?.runtime;
     if (!runtime) return;
     const physics = runtime.local.physics;
-    const fell = physics.body.position.y < -6;
     const requested = physics.consumeAutomaticResetRequest?.() ?? false;
+    // Below −6 m is the bay (bed at −8 m) unless the nearest road is itself low
+    // (the tunnel floor is at −12 m), so measure the fall from that road.
+    let road: RoadSample | undefined;
+    let design: { x: number; z: number } | undefined;
+    if (physics.body.position.y < -6 || requested) {
+      design = this.localDesignPose();
+      if (design) road = nearestRoadPoint(design.x, design.z);
+    }
+    if (!road) return;
+    const fell = physics.body.position.y < road.y - 6;
     if (!fell && !requested) return;
-    const design = this.localDesignPose();
-    if (!design) return;
-    const road = nearestRoadPoint(design.x, design.z);
     const heading = ((Math.atan2(road.tx, -road.tz) * 180) / Math.PI + 360) % 360;
-    this.teleportLocal({ x: road.x, y: 0, z: road.z, heading });
+    this.teleportLocal({ x: road.x, y: road.y, z: road.z, heading });
     this.host.options.status("已复位到最近的道路。");
   }
 

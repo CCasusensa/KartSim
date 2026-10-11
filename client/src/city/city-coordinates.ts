@@ -30,7 +30,8 @@ export function designHeading(forward: { x: number; z: number }): number {
   return ((degrees % 360) + 360) % 360;
 }
 
-interface RoadSample { x: number; z: number; tx: number; tz: number }
+/** A road centre-line sample: design x/z, elevation hint y (0 unless the road stores one) and unit tangent. */
+export interface RoadSample { x: number; z: number; y: number; tx: number; tz: number }
 let roadSamples: RoadSample[] | undefined;
 
 /** Road centre-line samples (design coordinates) for "reset to the nearest road". */
@@ -43,11 +44,12 @@ export function roadSamplePoints(): RoadSample[] {
     for (let i = 0; i < count; i++) {
       const a = points[i]!, b = points[(i + 1) % points.length]!;
       const dx = (b[0] ?? 0) - (a[0] ?? 0), dz = (b[1] ?? 0) - (a[1] ?? 0);
+      const ay = a[2] ?? 0, dy = (b[2] ?? 0) - ay; // the tunnel and the mountain lane store elevation
       const length = Math.hypot(dx, dz) || 1;
       const steps = Math.max(1, Math.ceil(length / 10));
       for (let k = 0; k < steps; k++) {
         const t = k / steps;
-        samples.push({ x: (a[0] ?? 0) + dx * t, z: (a[1] ?? 0) + dz * t, tx: dx / length, tz: dz / length });
+        samples.push({ x: (a[0] ?? 0) + dx * t, z: (a[1] ?? 0) + dz * t, y: ay + dy * t, tx: dx / length, tz: dz / length });
       }
     }
   }

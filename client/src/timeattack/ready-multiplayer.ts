@@ -248,8 +248,9 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
     // 卡丁城 has no room list: leaving the city closes the lobby and returns to 首页.
     onCityExit: () => {
       if (controller.multiplayer !== lobby || controller.disposed) return;
+      // The lobby only carried the connection; close it outright and show home.
       void goReadyHome(controller as unknown as ReadyHomeController,
-        () => controller.returnMultiplayerToSinglePlayer());
+        () => { if (controller.multiplayer === lobby) controller.closeMultiplayer(false, true); });
     },
   });
   controller.multiplayer = lobby;
@@ -258,8 +259,8 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
   try {
     await lobby.open();
     if (controller.multiplayer !== lobby || controller.disposed) return;
-    // A home quick entry opens straight onto its room list.
-    if (channel) await lobby.list?.(channel, 0, false, gameplay);
+    // A home quick entry opens straight onto its room list; 卡丁城 has none.
+    if (channel && gameplay !== "city") await lobby.list?.(channel, 0, false, gameplay);
   } catch (error) {
     if (controller.multiplayer !== lobby) return;
     const cancelled = error instanceof Error && error.message === "ACCOUNT_CANCELLED";

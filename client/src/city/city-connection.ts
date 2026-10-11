@@ -43,6 +43,7 @@ export class CityNetwork {
     this.previousInterceptor = client.binaryInterceptor;
     client.binaryInterceptor = bytes => this.intercept(bytes);
     this.unsubscribe = client.subscribe(message => {
+      if (message.requestId !== undefined) return; // replies resolve their own requests
       try {
         const event = parseCityEvent(message);
         if (event) handlers.onEvent(event);
