@@ -70,13 +70,39 @@ func (l *Lobby) itemCheat(r *room, c *Client, e cheat.ItemEvent) bool {
 	return l.cheated(r, c, rc.cheat.Item(e))
 }
 
-// racerKart is the kart a racer brought to the race (its frozen
-// equipment; 0, the practice kart, without one).
+// racerKart is the kart a racer races: in an RP race the one the node
+// drew for it, otherwise the one it brought (its frozen equipment; 0, the
+// practice kart, without one).
 func racerKart(rc *race, playerID string) int {
+	if kart, ok := rpKart(rc, playerID); ok {
+		return kart
+	}
 	if i := slices.Index(rc.rosterIDs, playerID); i >= 0 && i < len(rc.rosterEquipment) {
 		return equipmentOf(rc.rosterEquipment[i]).Kart
 	}
 	return 0
+}
+
+// rpKart is the kart an RP race drew for playerID (rpDraws).
+func rpKart(rc *race, playerID string) (int, bool) {
+	for _, f := range rc.rp {
+		if f.key != "draws" {
+			continue
+		}
+		draws, _ := f.value.(obj)
+		for _, draw := range draws {
+			if draw.key != playerID {
+				continue
+			}
+			fields, _ := draw.value.(obj)
+			for _, x := range fields {
+				if kart, ok := x.value.(int); ok && x.key == "kartId" {
+					return kart, true
+				}
+			}
+		}
+	}
+	return 0, false
 }
 
 // othersRacing reports whether a racer other than playerID is still in the
@@ -122,6 +148,26 @@ func (l *Lobby) cheated(r *room, c *Client, v *cheat.Violation) bool {
 		l.log.Warn("cannot close a kicked session", "player", c.playerID)
 	}
 	return true
+}
+
+// cheatFinish has the plugin check c's finish (f with the node's own
+// timing, progress and frame expectation filled in) and logs its stats; it
+// reports whether c was kicked.
+func (l *Lobby) cheatFinish(r *room, c *Client, f cheat.Finish) bool {
+	g := l.guard(r, c.playerID)
+	if g == nil {
+		return false
+	}
+	rc := r.race
+	f.RacedMs = l.clock.Now() - *rc.startAt
+	f.Progress = rc.progress[c.playerID]
+	f.ExpectFrames = othersRacing(rc, c.playerID)
+	v, stats := g.Finish(f)
+	if l.cheated(r, c, v) {
+		return true
+	}
+	l.logCheatStats(r, c, stats)
+	return false
 }
 
 // logCheatStats logs the fields the plugin returned with a finish (its

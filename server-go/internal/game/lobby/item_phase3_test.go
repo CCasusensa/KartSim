@@ -53,7 +53,7 @@ func TestItemStartChangersAndConsumption(t *testing.T) {
 	h := newHarness(t)
 	o := withOwnership(h)
 	o.changers = map[string]itemmode.Changers{"acc-xun": {Slot: 3, Item: itemmode.Infinite}}
-	xun := h.connectGeared("Xun", "acc-xun", map[int]int{3: 1513})
+	xun := h.connectGeared("Xun", "acc-xun", map[int]int{3: 1513}) // a three-slot kart
 	plain := h.connectGeared("Plain", "acc-plain", nil)
 	guest := h.connect("Guest")
 	players := []*Client{xun, plain, guest}
@@ -94,7 +94,7 @@ func TestItemStartChangersAndConsumption(t *testing.T) {
 		return out
 	}
 	assertEqual(t, startPushes(t, h, xun), []map[string]any{with(map[string]any{
-		"slots": []int{itemmode.Cloud, -1}, "changers": changers(3, -1, true), "reason": "start", "itemId": itemmode.Cloud})})
+		"slots": []int{itemmode.Cloud, -1, -1}, "changers": changers(3, -1, true), "reason": "start", "itemId": itemmode.Cloud})})
 	assertEqual(t, startPushes(t, h, plain), []map[string]any{with(map[string]any{
 		"slots": []int{-1, -1}, "changers": changers(0, 0, false)})})
 	assertEqual(t, startPushes(t, h, guest), []map[string]any{with(map[string]any{
@@ -105,7 +105,7 @@ func TestItemStartChangersAndConsumption(t *testing.T) {
 	random.values = []int{pickFor(t, itemmode.TableIndiChanger, itemmode.GroupTop, itemmode.Shield)}
 	changed := ir.send(xun, "change", nil)
 	assertEqual(t, []any{changed["action"], changed["slots"], changed["changers"]},
-		[]any{"slots", []int{itemmode.Shield, -1}, changers(3, -1, false)})
+		[]any{"slots", []int{itemmode.Shield, -1, -1}, changers(3, -1, false)})
 	assertEqual(t, ir.reject(xun, "change", nil), "ITEM_CHANGER_USED")
 	assertEqual(t, ir.reject(plain, "change", nil), "ITEM_CHANGER_UNAVAILABLE")
 	// A cube re-arms it; a swap uses a card.
@@ -113,7 +113,7 @@ func TestItemStartChangersAndConsumption(t *testing.T) {
 	grant := ir.send(xun, "cube", map[string]any{"cubeId": 1, "capacity": 2, "testItemId": itemmode.Booster})
 	assertEqual(t, grant["changers"], changers(3, -1, true))
 	swapped := ir.send(xun, "swap", nil)
-	assertEqual(t, []any{swapped["slots"], swapped["changers"]}, []any{[]int{itemmode.Booster, itemmode.Shield}, changers(2, -1, true)})
+	assertEqual(t, []any{swapped["slots"], swapped["changers"]}, []any{[]int{itemmode.Booster, itemmode.Shield, -1}, changers(2, -1, true)})
 	ir.send(xun, "swap", nil)
 	// Settled: the two cards used, not the voucher's changes.
 	h.clock.Advance(20 * time.Second)

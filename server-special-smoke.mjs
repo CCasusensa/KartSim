@@ -721,7 +721,7 @@ async function itemRace(team) {
         `${room.race.trackId} is not in the browser's item track catalog (本局赛道不在当前资源目录中。)`);
     }
     racers.push(...ordered.map((peer, index) => new ItemRacer(peer, { roomId, raceId,
-      base: ITEM_RACE_BASES[index], capacity: index === 0 ? 3 : 2, race: motionRace(room) })));
+      base: ITEM_RACE_BASES[index], capacity: 2, race: motionRace(room) })));
     const [first, second, third, fourth] = racers;
     // Not loaded yet: refused before the sequence check.
     await second.items.expectError("cube", { cubeId: 1, capacity: 2 }, "RACE_NOT_RUNNING", { consumed: false });
@@ -775,10 +775,11 @@ async function itemRace(team) {
     assert.equal(fourth.inbox.unresolved, 0, "relayed motion frames named no racer of this race");
     console.log(`✓ ${label}: room, item tracks and random tracks, loading and motion frames on ${room.race.trackId}`);
 
-    // Grants: the first cube fixes the slot count (3 here), the same cube
-    // again is abusing, full slots get nothing; swap, change, wrong item.
+    // Grants: the slots are the kart's (the starter practice kart holds two,
+    // whatever a cube claims), the same cube again is abusing, full slots get
+    // nothing; swap, change, wrong item.
     const opening = await drawCube(race, first);
-    assert.equal(opening.slots.length, 3);
+    assert.equal(opening.slots.length, 2);
     const abusing = await first.items.request("cube", { cubeId: first.cube, capacity: 3 });
     assert.deepEqual([abusing.itemId, abusing.reason, abusing.slots], [null, "abusing", opening.slots]);
     await drawCube(race, second);
@@ -809,7 +810,7 @@ async function itemRace(team) {
     const resync = await second.items.request("slots");
     assert.deepEqual([resync.action, resync.slots], ["slots", current]);
     await third.items.expectError("swap", {}, "INVALID_SEQUENCE", { sequence: third.items.sequence + 5 });
-    console.log(`  ✓ start push, grants by rank group, abusing, full slots, 3 slots, ` +
+    console.log(`  ✓ start push, grants by rank group, abusing, full slots, the kart's slot count, ` +
       `${vouchers ? "swap and change with vouchers" : "no changer without cards"}, slots and wrong items refused`);
 
     if (team) await teamItems(race);

@@ -518,8 +518,8 @@ func TestItemCubeAbuseAndFullSlots(t *testing.T) {
 	assertEqual(t, []any{full["itemId"], full["reason"], full["slots"]}, []any{nil, "full", []int{8, 8}})
 	h.clock.Advance(10 * time.Second)
 	assertEqual(t, ir.send(p0, "cube", map[string]any{"cubeId": 7, "capacity": 2})["reason"], "full")
-	// A kart with three slots reports it with its first cube.
-	assertEqual(t, len(list(ir.send(p1, "cube", map[string]any{"cubeId": 1, "capacity": 3})["slots"])), 3)
+	// The slots are the kart's (kart 1: two), whatever a cube claims.
+	assertEqual(t, len(list(ir.send(p1, "cube", map[string]any{"cubeId": 1, "capacity": 3})["slots"])), 2)
 }
 
 func TestItemUseTargetsHitsAndBroadcasts(t *testing.T) {

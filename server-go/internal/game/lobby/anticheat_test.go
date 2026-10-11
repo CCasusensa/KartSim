@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"log/slog"
 	"math"
+	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -47,6 +49,7 @@ type fakeRacer struct {
 	frames   []fakeFrame
 	items    []int
 	cubes    []int
+	slots    [][2]int // claimed and real item slots, by cube
 	charges  []float64
 	finishes []cheat.Finish
 }
@@ -92,8 +95,9 @@ func (x *fakeRacer) Finish(f cheat.Finish) (*cheat.Violation, map[string]any) {
 
 func (x *fakeRacer) ItemUse(itemID int) { x.items = append(x.items, itemID) }
 
-func (x *fakeRacer) Cube(cubeID int, _ int64) *cheat.Violation {
+func (x *fakeRacer) Cube(cubeID, claimed, slots int, _ int64) *cheat.Violation {
 	x.cubes = append(x.cubes, cubeID)
+	x.slots = append(x.slots, [2]int{claimed, slots})
 	if x.race.g.cube == nil {
 		return nil
 	}
@@ -253,13 +257,69 @@ func TestPluginHearsItemRaces(t *testing.T) {
 		if x == nil || len(x.cubes) != 1 || x.cubes[0] != 1 {
 			t.Fatalf("cubes %+v", x)
 		}
+		// The claimed slots go to the plugin beside the kart's own (kart 1: 2).
+		ir.rawReply(a, "cube", map[string]any{"cubeId": 2, "capacity": 3})
+		if len(x.slots) != 2 || x.slots[0] != [2]int{2, 2} || x.slots[1] != [2]int{3, 2} {
+			t.Fatalf("slots %v", x.slots)
+		}
 		slots := ir.send(a, "slots", nil)["slots"].([]any)
+		if len(slots) != 2 {
+			t.Fatalf("a kart 1 racer holds %d slots", len(slots))
+		}
 		if item := int(slots[0].(float64)); item >= 0 {
 			ir.send(a, "use", map[string]any{"itemId": item, "point": map[string]any{"x": 1, "y": 2, "z": 3}})
 			if len(x.items) != 1 || x.items[0] != item {
 				t.Fatalf("item uses %v, want [%d]", x.items, item)
 			}
 		}
+		h.must(a, map[string]any{"type": "finish", "roomId": ir.roomID, "raceId": ir.raceID, "elapsedMs": 10_000,
+			"perfectStart": true})
+		if len(x.finishes) != 1 || !x.finishes[0].PerfectStart || x.finishes[0].RacedMs <= 0 {
+			t.Fatalf("finishes %+v", x.finishes)
+		}
+	}
+}
+
+// The roadblock runner's finish wins the race, so the plugin checks it; a
+// kick ends the race as the runner leaving (the blockers win).
+func TestPluginChecksTheRoadblockRunnersFinish(t *testing.T) {
+	g := &fakeGuard{finish: func(x *fakeRacer, f cheat.Finish) (*cheat.Violation, map[string]any) {
+		return &cheat.Violation{Code: "EARLY", Detail: "早", Action: cheat.ActionKick}, nil
+	}}
+	h, _ := cheatHarness(t, g, nil)
+	players := make([]*Client, 5)
+	for i := range players {
+		players[i], _ = h.connectClosing("P" + strconv.Itoa(i))
+	}
+	roomID, raceID := h.startRace(players, "roadblock", "speedIndiCombine", 5)
+	h.clock.Advance(10 * time.Second)
+	if code := h.errorCode(players[0], map[string]any{"type": "finish", "roomId": roomID, "raceId": raceID,
+		"elapsedMs": 10_000}); code != "CHEAT_DETECTED" {
+		t.Fatalf("runner finish: %s", code)
+	}
+	runner := g.races[0].racers[players[0].playerID]
+	if runner == nil || len(runner.finishes) != 1 || runner.finishes[0].ElapsedMs != 10_000 || runner.finishes[0].RacedMs <= 0 {
+		t.Fatalf("runner checks %+v", runner)
+	}
+	room := object(h.sink(players[1]).last(t)["room"])
+	outcome := object(raceOf(room)["roadblockOutcome"])
+	if room["phase"] != "finished" || outcome["runnerWon"] != false || outcome["reason"] != "runner-left" {
+		t.Fatalf("outcome %v (%v)", outcome, room["phase"])
+	}
+}
+
+// In an RP race the plugin judges the kart the node drew, not the racer's own.
+func TestPluginJudgesTheRpKart(t *testing.T) {
+	g := &fakeGuard{}
+	h, _ := cheatHarness(t, g, nil)
+	a, _ := h.connectClosing("A")
+	b, _ := h.connectClosing("B")
+	_, raceID := h.startRace([]*Client{a, b}, "rp", "speedIndiInfinit", 2)
+	h.lobby.RelayMotion(a, h.kartFrame(raceID, 0, 10, 1))
+	x := g.races[0].racers[a.playerID]
+	drawn, ok := rpKart(h.lobby.rooms[h.lobby.clients[a.playerID].roomID].race, a.playerID)
+	if x == nil || !ok || x.kart != drawn || !slices.Contains(rpKarts, drawn) {
+		t.Fatalf("racer %+v, drawn %d %v", x, drawn, ok)
 	}
 }
 

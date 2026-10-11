@@ -56,7 +56,7 @@
 
 | action | 字段 | 服务器处理 | 回包（只给发送者） | 广播（其他人） |
 |---|---|---|---|---|
-| `cube` | `cubeId`(1..4096)、`capacity`(2/3) | 刷箱检查、满槽检查、按名次抽取 | `{action:"grant", cubeId, itemId:int\|null, reason?:"full"\|"abusing", slots}` | 无（扫描期间给扫描方发 `scan`） |
+| `cube` | `cubeId`(1..4096)、`capacity`(2/3，服务器按车定槽数，只用于核对) | 刷箱检查、满槽检查、按名次抽取 | `{action:"grant", cubeId, itemId:int\|null, reason?:"full"\|"abusing", slots}` | 无（扫描期间给扫描方发 `scan`） |
 | `use` | `itemId`、可选 `targetId`（瞄准类）、可选 `point:{x,y,z}`（投掷/放置点，客户端坐标） | 校验 slot0==itemId、未被锁（天使除外）；按附录 B 决定 `targets`；分配 `useId`；`startAt`=服务器当前毫秒；对追踪类按名次距离差算 `etaMs` | `{action:"used", …, slots}` | `{action:"used", playerId, useId, itemId, targets, startAt, etaMs, point?}` |
 | `place` | `useId`、`point` | 路障（被锁定的第 1 名客户端计算落点）、定时水炸弹（使用者计算爆点）；只接受该 useId 规定的上报者 | 同广播 | `{action:"placed", useId, itemId, playerId, point}` |
 | `hit` | `useId`（预置赛道危险物为 0）、`itemId`、`result:"hit"\|"blocked"`、可选 `by:"shield"\|"angel"\|"escape"\|"kart"\|"pet"\|"eat"`（只配 blocked）、可选 `variant`（只配 hit，附录 C.7）、可选 `shot`、可选 `hazardId` | 受害者自报；校验 useId 存活（60 秒内）、该受害者未报过、受害者是目标或区域/放置类；香蕉被首次命中即移除 | 同广播 | `{action:"hit", playerId:受害者, useId, itemId, userId, result, by?, removed?}` |

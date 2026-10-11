@@ -274,13 +274,13 @@ func TestGrantTransforms(t *testing.T) {
 	// transformByKart: kart 44 turns a banana into a mine (100 %).
 	r := equippedRace(t, TableIndividual, &picks{}, "forest_I01",
 		Member{ID: "p1", Equipment: Equipment{Kart: 44}}, Member{ID: "p2"})
-	if grant, _, _ := r.Cube("p1", 1, 2, 0, standings); grant.ItemID != Mine || grant.Icon != 0 {
+	if grant, _, _ := r.Cube("p1", 1, 0, standings); grant.ItemID != Mine || grant.Icon != 0 {
 		t.Fatalf("kart 44 grant %+v", grant)
 	}
 	// animalBooster: kart 250's booster is the dragon special booster.
 	r = equippedRace(t, TableIndividual, &picks{values: []int{pickIn(t, TableIndividual, GroupLow, Booster)}},
 		"forest_I01", Member{ID: "p1"}, Member{ID: "p2", Equipment: Equipment{Kart: 250}})
-	grant, _, _ := r.Cube("p2", 1, 2, 0, order("p1", "p3", "p4", "p2"))
+	grant, _, _ := r.Cube("p2", 1, 0, order("p1", "p3", "p4", "p2"))
 	if grant.ItemID != AnimalBoost || grant.Icon != 241 || !slices.Equal(grant.Icons, []int{241, 0}) {
 		t.Fatalf("kart 250 grant %+v", grant)
 	}
@@ -289,7 +289,7 @@ func TestGrantTransforms(t *testing.T) {
 	r = equippedRace(t, TableIndividual,
 		&picks{values: []int{pickIn(t, TableIndividual, GroupHigh, WaterBomb), 5}}, "forest_I01",
 		Member{ID: "p1"}, Member{ID: "p2", Equipment: Equipment{Kart: 1489}})
-	if grant, _, _ := r.Cube("p2", 1, 2, 0, order("p1", "p2")); grant.ItemID != Thunderbolt ||
+	if grant, _, _ := r.Cube("p2", 1, 0, order("p1", "p2")); grant.ItemID != Thunderbolt ||
 		r.racers["p2"].obtained[Thunderbolt] != 1 || r.racers["p2"].obtained[WaterBomb] != 1 {
 		t.Fatalf("kart 1489 grant %+v, obtained %v", grant, r.racers["p2"].obtained)
 	}
@@ -329,6 +329,15 @@ func TestGrantTransforms(t *testing.T) {
 	}
 }
 
+// heldOnly is id's slots holding items, the rest of its kart's slots empty.
+func heldOnly(r *Race, id string, items ...int) []int {
+	slots := slices.Clone(items)
+	for len(slots) < r.Capacity(id) {
+		slots = append(slots, Empty)
+	}
+	return slots
+}
+
 func TestPerKartGains(t *testing.T) {
 	standings := order("u", "v", "w")
 	r := equippedRace(t, TableIndividual, &picks{}, "forest_I01",
@@ -338,14 +347,14 @@ func TestPerKartGains(t *testing.T) {
 	give(r, "u", Magnet)
 	result, err := r.UseItem(UseRequest{PlayerID: "u", ItemID: Magnet, TargetID: "v", Now: 1_000, Standings: standings})
 	if err != nil || len(result.Gains) != 1 || result.Gains[0].PlayerID != "u" || result.Gains[0].ItemID != Shield ||
-		result.Gains[0].Reason != ReasonGain || !slices.Equal(result.Slots, []int{Shield, Empty}) {
+		result.Gains[0].Reason != ReasonGain || !slices.Equal(result.Slots, heldOnly(r, "u", Shield)) {
 		t.Fatalf("firing gain %+v %v", result, err)
 	}
 	// fired2Gain: kart 31 hit by a UFO gains a shield; not when it blocks it.
 	give(r, "w", UFO)
 	ufo, _ := r.UseItem(UseRequest{PlayerID: "w", ItemID: UFO, Now: 1_000, Standings: order("v", "u", "w")})
 	hit, fresh, err := r.Hit(HitRequest{VictimID: "v", UseID: ufo.Use.ID, ItemID: UFO, Result: ResultHit, Now: 2_000})
-	if err != nil || !fresh || hit.Gain == nil || hit.Gain.ItemID != Shield || !slices.Equal(hit.Gain.Slots, []int{Shield, Empty}) {
+	if err != nil || !fresh || hit.Gain == nil || hit.Gain.ItemID != Shield || !slices.Equal(hit.Gain.Slots, heldOnly(r, "v", Shield)) {
 		t.Fatalf("fired gain %+v %v", hit, err)
 	}
 	if again, fresh, _ := r.Hit(HitRequest{VictimID: "v", UseID: ufo.Use.ID, ItemID: UFO, Result: ResultHit, Now: 2_100}); fresh ||
@@ -577,8 +586,8 @@ func TestLucciIsCappedPerRace(t *testing.T) {
 	}
 	// lucciItemCube: 10 % of cubes, a server roll.
 	r = equippedRace(t, TableIndividual, &picks{values: []int{0, 9, 0, 10}}, "forest_I01", Member{ID: "p1", Equipment: Equipment{Kart: 273}})
-	first, _, _ := r.Cube("p1", 1, 3, 0, order("p1"))
-	second, _, _ := r.Cube("p1", 2, 3, 0, order("p1"))
+	first, _, _ := r.Cube("p1", 1, 0, order("p1"))
+	second, _, _ := r.Cube("p1", 2, 0, order("p1"))
 	if first.Lucci != LucciAmount || second.Lucci != 0 {
 		t.Fatalf("cube lucci %d %d", first.Lucci, second.Lucci)
 	}
@@ -804,7 +813,7 @@ func TestChangerCards(t *testing.T) {
 	// A cube re-arms it; a change redraws slot 0 from the changer table by
 	// rank group and disarms it until the next new item.
 	r.racers["p1"].slots = NewSlots(2)
-	grant, _, _ := r.Cube("p1", 1, 2, 0, standings)
+	grant, _, _ := r.Cube("p1", 1, 0, standings)
 	if r.Changers("p1") != (ChangerState{Slot: 0, Item: 2, ItemArmed: true}) || grant.ItemID != Banana {
 		t.Fatalf("after a cube %+v %+v", r.Changers("p1"), grant)
 	}
@@ -823,7 +832,7 @@ func TestChangerCards(t *testing.T) {
 	}
 	// Not under a slot lock (the swap still works).
 	r.racers["p2"].slots = NewSlots(2)
-	r.Cube("p2", 1, 2, 0, standings)
+	r.Cube("p2", 1, 0, standings)
 	r.racers["p2"].locks = []window{{0, 10_000}}
 	_, _, _, err = r.Change("p2", 0, standings)
 	wantErr(t, err, ErrLocked)

@@ -329,13 +329,16 @@ func (l *Lobby) itemCube(r *room, c *Client, in Request, sequence int, now int64
 	if err != nil {
 		return nil, err
 	}
-	// Clamped to 2..3 by the race; the first report fixes it.
+	// The slots the browser says its kart holds: the race already knows them
+	// from the kart (itemmode ItemSlots), so the claim only goes to the
+	// anti-cheat.
 	capacity, err := in.integer("capacity", 0, 255)
 	if err != nil {
 		return nil, err
 	}
 	// Test grants (a development switch) let bots eat cubes at any rate.
-	if g := l.guard(r, c.playerID); g != nil && !l.itemTests && l.cheated(r, c, g.Cube(cubeID, now)) {
+	if g := l.guard(r, c.playerID); g != nil && !l.itemTests &&
+		l.cheated(r, c, g.Cube(cubeID, capacity, r.race.items.Capacity(c.playerID), now)) {
 		return nil, errCheatDetected()
 	}
 	var grant itemmode.Grant
@@ -350,11 +353,11 @@ func (l *Lobby) itemCube(r *room, c *Client, in Request, sequence int, now int64
 		if err != nil {
 			return nil, err
 		}
-		grant, notices, err = r.race.items.TestCube(c.playerID, cubeID, capacity, testItem, now, itemStandings(r.race))
+		grant, notices, err = r.race.items.TestCube(c.playerID, cubeID, testItem, now, itemStandings(r.race))
 		if err != nil {
 			return nil, itemFailure(err)
 		}
-	} else if grant, notices, err = r.race.items.Cube(c.playerID, cubeID, capacity, now, itemStandings(r.race)); err != nil {
+	} else if grant, notices, err = r.race.items.Cube(c.playerID, cubeID, now, itemStandings(r.race)); err != nil {
 		return nil, itemFailure(err)
 	}
 	var itemID any

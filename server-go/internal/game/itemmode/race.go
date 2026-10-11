@@ -225,13 +225,12 @@ type hazardKey struct {
 
 // racer is one racer's item state.
 type racer struct {
-	slots         Slots
-	capacityFixed bool
-	obtained      map[int]int
-	lastCube      int
-	lastCubeAt    int64
-	locks         []window
-	equipment     Equipment
+	slots      Slots
+	obtained   map[int]int
+	lastCube   int
+	lastCubeAt int64
+	locks      []window
+	equipment  Equipment
 	// Changer cards left (Infinite: voucher), those used, and whether the
 	// item changer may act on slot 0.
 	slotCards, itemCards       int
@@ -297,7 +296,7 @@ func NewRace(data *Data, kind string, members []Member, random Random, opts Opti
 		scans: map[string]int64{}, hazards: map[hazardKey]Hit{}}
 	for _, m := range members {
 		r.teams[m.ID] = m.Team
-		r.racers[m.ID] = &racer{slots: NewSlots(MinCapacity), obtained: map[int]int{}, equipment: m.Equipment,
+		r.racers[m.ID] = &racer{slots: NewSlots(data.ItemSlots(m.Equipment.Kart)), obtained: map[int]int{}, equipment: m.Equipment,
 			slotCards: cards(m.Changers.Slot), itemCards: cards(m.Changers.Item), uses: map[int]int{}}
 	}
 	return r, nil
@@ -324,6 +323,15 @@ func (r *Race) teammates(a, b string) bool {
 }
 
 // Slots returns a racer's slots, one value per slot (Empty when empty).
+// Capacity returns how many item slots playerID's kart holds (0 for one not
+// in the race).
+func (r *Race) Capacity(playerID string) int {
+	if p := r.racers[playerID]; p != nil {
+		return p.slots.Capacity()
+	}
+	return 0
+}
+
 func (r *Race) Slots(playerID string) []int {
 	if p := r.racers[playerID]; p != nil {
 		return p.slots.Values()
@@ -458,15 +466,15 @@ func (r *Race) Start(ids []string) []SlotsNotice {
 	return notices
 }
 
-// Cube handles a racer eating cube cubeID (ITEM_MODE.md 3, 4). The first
-// report fixes the racer's slot capacity (clamped to 2..3). Eating the same
+// Cube handles a racer eating cube cubeID (ITEM_MODE.md 3, 4); its slots are
+// its kart's (ItemSlots, set at the race start). Eating the same
 // cube again within CubeAbuseWindowMs with no other cube in between, or
 // eating with full slots, grants nothing; otherwise an item is drawn by the
 // racer's rank group, leaving out the items it already got as often as
 // their cap allows, and passed through the grant transforms. A kart with
 // lucciItemCube earns lucci at any cube but an abusing one.
-func (r *Race) Cube(playerID string, cubeID, capacity int, now int64, standings []Racer) (Grant, []ScanNotice, error) {
-	return r.cube(playerID, cubeID, capacity, NoItem, now, standings)
+func (r *Race) Cube(playerID string, cubeID int, now int64, standings []Racer) (Grant, []ScanNotice, error) {
+	return r.cube(playerID, cubeID, NoItem, now, standings)
 }
 
 // TestCube is Cube with the granted item named instead of drawn (a test
@@ -474,22 +482,18 @@ func (r *Race) Cube(playerID string, cubeID, capacity int, now int64, standings 
 // same abuse and full-slot rules apply, the per-race caps and the
 // transforms do not (the item still counts toward the caps). The item must
 // be a race item: a table item or a special item.
-func (r *Race) TestCube(playerID string, cubeID, capacity, itemID int, now int64, standings []Racer) (Grant, []ScanNotice, error) {
+func (r *Race) TestCube(playerID string, cubeID, itemID int, now int64, standings []Racer) (Grant, []ScanNotice, error) {
 	if !r.data.raceItem(itemID) {
 		return Grant{}, nil, ErrInvalidTestItem
 	}
-	return r.cube(playerID, cubeID, capacity, itemID, now, standings)
+	return r.cube(playerID, cubeID, itemID, now, standings)
 }
 
 // cube grants a cube's item: forced when it is not NoItem, otherwise drawn.
-func (r *Race) cube(playerID string, cubeID, capacity, forced int, now int64, standings []Racer) (Grant, []ScanNotice, error) {
+func (r *Race) cube(playerID string, cubeID, forced int, now int64, standings []Racer) (Grant, []ScanNotice, error) {
 	p := r.racing(playerID, standings)
 	if p == nil || cubeID < 1 || cubeID > MaxCubeID {
 		return Grant{}, nil, ErrInvalidUse
-	}
-	if !p.capacityFixed {
-		p.slots.SetCapacity(capacity)
-		p.capacityFixed = true
 	}
 	grant := Grant{CubeID: cubeID, ItemID: NoItem}
 	abusing := p.lastCube == cubeID && now-p.lastCubeAt < CubeAbuseWindowMs

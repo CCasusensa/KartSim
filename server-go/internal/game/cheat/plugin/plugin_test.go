@@ -58,7 +58,7 @@ func TestPluginCalls(t *testing.T) {
 		t.Fatalf("progress cap %v %v", limit, ok)
 	}
 	for i, want := range []string{"", "", "CUBES"} {
-		v := racer.Cube(i+1, 2000)
+		v := racer.Cube(i+1, 3, 2, 2000)
 		if (v == nil) != (want == "") || (v != nil && v.Code != want) {
 			t.Fatalf("cube %d: %+v", i+1, v)
 		}

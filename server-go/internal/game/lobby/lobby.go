@@ -1608,30 +1608,32 @@ func (l *Lobby) finish(c *Client, in Request) (obj, error) {
 		}
 		if l.clock.Now() >= *rc.finishDeadline {
 			l.endRoadblock(r, "timeout", *rc.finishDeadline)
-		} else {
-			l.endRoadblock(r, "finish", l.clock.Now())
+			return roomReply(r), nil
 		}
+		// The runner's finish wins the race: the anti-cheat checks it like
+		// any finish (a kick ends the race as the runner leaving).
+		if l.cheatFinish(r, c, cheat.Finish{ElapsedMs: elapsed}) {
+			return nil, errCheatDetected()
+		}
+		l.endRoadblock(r, "finish", l.clock.Now())
 		return roomReply(r), nil
 	}
 	if rc.hasFinished(c.playerID) {
 		return nil, fail(http.StatusBadRequest, "ALREADY_FINISHED")
 	}
-	if g := l.guard(r, c.playerID); g != nil {
-		v, stats := g.Finish(cheat.Finish{ElapsedMs: elapsed, RacedMs: l.clock.Now() - *rc.startAt,
-			Progress: rc.progress[c.playerID], ExpectFrames: othersRacing(rc, c.playerID)})
-		if l.cheated(r, c, v) {
-			return nil, errCheatDetected()
-		}
-		l.logCheatStats(r, c, stats)
-	}
+	perfectStart := false
 	if r.gameplay == "item" && in.hasNonNull("perfectStart") {
 		// Not in Java: an item race finish says whether the start boost
 		// succeeded (the 完美起步 title, ITEM_MODE.md C.9).
-		perfect, err := in.booleanField("perfectStart")
-		if err != nil {
+		if perfectStart, err = in.booleanField("perfectStart"); err != nil {
 			return nil, err
 		}
-		rc.perfectStart[c.playerID] = perfect
+	}
+	if l.cheatFinish(r, c, cheat.Finish{ElapsedMs: elapsed, PerfectStart: perfectStart}) {
+		return nil, errCheatDetected()
+	}
+	if r.gameplay == "item" && in.hasNonNull("perfectStart") {
+		rc.perfectStart[c.playerID] = perfectStart
 	}
 	rc.finishes = append(rc.finishes, finishRow{playerID: c.playerID, elapsedMs: elapsed,
 		serverAt: l.clock.Now()})

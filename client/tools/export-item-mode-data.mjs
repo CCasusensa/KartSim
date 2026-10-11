@@ -186,7 +186,33 @@ for (const [id, kart] of itemTable.get("kart") ?? []) {
   }
 }
 const xunKarts = xunItemKarts(params, await parseXmlAt(SOURCES.exceed), problem);
+// The item slots a kart holds (the cube request's capacity): the browser's own
+// vehicle spec at speed 7 (src/physics/catalog.ts, physics.itemSlotCapacity) for
+// the practice kart and every kart the shop sells; the node gives 2 to the rest.
+const threeSlotKarts = await itemSlotKarts(problem);
 const titles = titleRows(await parseBmlAt(SOURCES.titles), index, problem);
+
+async function itemSlotKarts(problem) {
+  const physics = path.join(projectRoot, "client/src/physics");
+  const { VehicleSpecCatalog } = await import(pathToFileURL(path.join(physics, "catalog.ts")).href);
+  const read = name => readFileSync(path.join(physics, "data", name), "utf8");
+  const catalog = new VehicleSpecCatalog(read("vehicle-physics-h10.csv"), read("vehicle-physics-d10.csv"),
+    JSON.parse(read("vehicle-physics-overrides.json")));
+  const shop = JSON.parse(readFileSync(path.join(projectRoot, "server-go/internal/data/economy/catalog.json"), "utf8"));
+  const slots = new Map([[0, catalog.createVehicleParameters({ itemId: 0, systemKey: "legacyPractice" }, 7).spec
+    .itemSlotCapacity]]);
+  for (const item of shop.items) {
+    if (item.category !== 3 || item.itemId === 0) continue;
+    try {
+      slots.set(item.itemId, catalog.lookup(item.itemId, 7).spec.itemSlotCapacity);
+    } catch {
+      // The browser cannot build this kart either: a race with it fails.
+    }
+  }
+  for (const [id, count] of slots)
+    if (count !== 2 && count !== 3) problem(`kart ${id}: itemSlotCapacity ${count}`);
+  return [...slots].filter(([, count]) => count === 3).map(([id]) => id).sort((a, b) => a - b);
+}
 
 /* ---------- tracks ---------- */
 
@@ -234,9 +260,11 @@ const document = formatDocument({
     `${SOURCES.trackTransforms}; passives: the item-race chance (first number, -1 = 0) of ${SOURCES.itemTable} ` +
     `overlaid by ${SOURCES.itemTableRegion}; enchantKeys: the EnchanterShield items of ${SOURCES.enchant}; ` +
     `xunKarts: engine-12 item karts whose default exceed type has chargerSystemboosterUseCount 0 (${SOURCES.exceed}); ` +
+    "threeSlotKarts: the practice kart and shop karts whose speed-7 vehicle spec (client/src/physics/catalog.ts) " +
+    "holds 3 item slots; " +
     `titles from ${SOURCES.titles}. Do not edit by hand.`,
   tables, restrictions, items, tracks, randomPools: pools, defaultTrack: fallbackTrack,
-  kartTables, trackTransforms, passives, enchantKeys, xunKarts, titles,
+  kartTables, trackTransforms, passives, enchantKeys, xunKarts, threeSlotKarts, titles,
 });
 const file = path.join(outDir, "itemmode.json");
 if (checkOnly) {
@@ -253,7 +281,7 @@ console.log(`phase 3: ${SPECIAL_ITEMS.length} special items, kart tables transfo
   `(${transforms.dropped} dead sources) / fired ${fired.rows.length} / firing ${firing.rows.length} / animal ` +
   `${animalBooster.length}, ${trackTransforms.length} track transforms, passives ` +
   Object.entries(passives).map(([tag, rows]) => `${tag} ${Object.keys(rows).length}`).join(" ") +
-  `, ${xunKarts.length} 迅 item karts, ${titles.length} titles`);
+  `, ${xunKarts.length} 迅 item karts, ${threeSlotKarts.length} three-slot karts, ${titles.length} titles`);
 console.log(`tables indi ${tables.indi.items.length} / team ${tables.team.items.length} items, ` +
   `caps ${restrictions.caps.length}, item states ${items.length}, tracks ${tracks.length} ` +
   `(${reverse} reverse, ${tracks.filter(track => track.onlyItem).length} item-only), pools ` +

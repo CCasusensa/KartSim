@@ -67,17 +67,17 @@ func TestCubeDrawsByRankGroup(t *testing.T) {
 	r := soloRace(t, random)
 	standings := order("p1", "p2", "p3", "p4")
 	// The leader draws from top: pick 0 is the banana.
-	grant, notices, err := r.Cube("p1", 7, 2, 1_000, standings)
+	grant, notices, err := r.Cube("p1", 7, 1_000, standings)
 	if err != nil || grant.ItemID != Banana || grant.Reason != "" || grant.CubeID != 7 ||
 		!slices.Equal(grant.Slots, []int{Banana, Empty}) || notices != nil {
 		t.Fatalf("leader grant %+v %v %v", grant, notices, err)
 	}
 	// 4th of 4 is low: pick 99 is the last low item, the magnet.
-	if grant, _, _ := r.Cube("p4", 7, 2, 1_000, standings); grant.ItemID != Magnet {
+	if grant, _, _ := r.Cube("p4", 7, 1_000, standings); grant.ItemID != Magnet {
 		t.Fatalf("last place got %d", grant.ItemID)
 	}
 	// 3rd of 4 is mid: pick 70 lands on the booster (mid 24 at 61..84).
-	if grant, _, _ := r.Cube("p3", 7, 2, 1_000, standings); grant.ItemID != Booster {
+	if grant, _, _ := r.Cube("p3", 7, 1_000, standings); grant.ItemID != Booster {
 		t.Fatalf("3rd got %d", grant.ItemID)
 	}
 	if !slices.Equal(random.asked, []int{100, 100, 100}) {
@@ -85,25 +85,36 @@ func TestCubeDrawsByRankGroup(t *testing.T) {
 	}
 }
 
-func TestCubeCapacityIsFixedByTheFirstReport(t *testing.T) {
-	r := soloRace(t, rand.New(rand.NewPCG(3, 4)))
+// A racer's slots are its kart's: three for a three-slot kart, two for the
+// practice kart and karts without data.
+func TestCubeSlotsFollowTheKart(t *testing.T) {
+	data := defaultData(t)
+	if len(data.ThreeSlotKarts) == 0 || data.ItemSlots(0) != 2 || data.ItemSlots(-5) != 2 {
+		t.Fatalf("three-slot karts %d, practice %d", len(data.ThreeSlotKarts), data.ItemSlots(0))
+	}
+	three := data.ThreeSlotKarts[0]
+	if data.ItemSlots(three) != 3 {
+		t.Fatalf("kart %d holds %d", three, data.ItemSlots(three))
+	}
+	r, err := NewRace(data, TableIndividual, []Member{{ID: "p1"}, {ID: "p2", Equipment: Equipment{Kart: three}}},
+		rand.New(rand.NewPCG(3, 4)), Options{RaceID: "race-slots"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	standings := order("p1", "p2")
-	grant, _, _ := r.Cube("p2", 1, 9, 0, standings)
-	if len(grant.Slots) != 3 {
-		t.Fatalf("capacity %v", grant.Slots)
+	if r.Capacity("p1") != 2 || r.Capacity("p2") != 3 || r.Capacity("nobody") != 0 {
+		t.Fatalf("capacities %d %d", r.Capacity("p1"), r.Capacity("p2"))
 	}
-	grant, _, _ = r.Cube("p2", 2, 2, 0, standings)
-	grant, _, _ = r.Cube("p2", 3, 2, 0, standings)
-	if len(grant.Slots) != 3 || grant.Reason != "" || slices.Contains(grant.Slots, Empty) {
-		t.Fatalf("third slot %+v", grant)
+	for cube := 1; cube <= 3; cube++ {
+		if grant, _, _ := r.Cube("p2", cube, 0, standings); len(grant.Slots) != 3 || grant.Reason != "" {
+			t.Fatalf("cube %d: %+v", cube, grant)
+		}
 	}
-	grant, _, _ = r.Cube("p2", 4, 3, 0, standings)
-	if grant.Reason != ReasonFull || grant.ItemID != NoItem {
+	if grant, _, _ := r.Cube("p2", 4, 0, standings); grant.Reason != ReasonFull || grant.ItemID != NoItem {
 		t.Fatalf("full grant %+v", grant)
 	}
-	other, _, _ := r.Cube("p1", 1, 1, 0, standings)
-	if len(other.Slots) != 2 {
-		t.Fatalf("clamped capacity %v", other.Slots)
+	if other, _, _ := r.Cube("p1", 1, 0, standings); len(other.Slots) != 2 {
+		t.Fatalf("practice kart slots %v", other.Slots)
 	}
 }
 
@@ -111,24 +122,24 @@ func TestCubeAbuse(t *testing.T) {
 	random := rand.New(rand.NewPCG(5, 6))
 	r := soloRace(t, random)
 	standings := order("p1", "p2")
-	r.Cube("p1", 5, 3, 0, standings)
-	if grant, _, _ := r.Cube("p1", 5, 3, 9_999, standings); grant.Reason != ReasonAbusing || grant.ItemID != NoItem {
+	r.Cube("p1", 5, 0, standings)
+	if grant, _, _ := r.Cube("p1", 5, 9_999, standings); grant.Reason != ReasonAbusing || grant.ItemID != NoItem {
 		t.Fatalf("same cube again %+v", grant)
 	}
 	// The abusing pickup counts as the latest eat of that cube.
-	if grant, _, _ := r.Cube("p1", 5, 3, 19_000, standings); grant.Reason != ReasonAbusing {
+	if grant, _, _ := r.Cube("p1", 5, 19_000, standings); grant.Reason != ReasonAbusing {
 		t.Fatalf("camping %+v", grant)
 	}
-	if grant, _, _ := r.Cube("p1", 5, 3, 29_000, standings); grant.Reason != "" || grant.ItemID == NoItem {
+	if grant, _, _ := r.Cube("p1", 5, 29_000, standings); grant.Reason != "" || grant.ItemID == NoItem {
 		t.Fatalf("after 10 s %+v", grant)
 	}
 	// Another cube in between clears it; abuse wins over full slots.
-	r.Cube("p2", 1, 2, 0, standings)
-	r.Cube("p2", 2, 2, 0, standings)
-	if grant, _, _ := r.Cube("p2", 2, 2, 1, standings); grant.Reason != ReasonAbusing {
+	r.Cube("p2", 1, 0, standings)
+	r.Cube("p2", 2, 0, standings)
+	if grant, _, _ := r.Cube("p2", 2, 1, standings); grant.Reason != ReasonAbusing {
 		t.Fatalf("full and abusing %+v", grant)
 	}
-	if grant, _, _ := r.Cube("p2", 1, 2, 2, standings); grant.Reason != ReasonFull {
+	if grant, _, _ := r.Cube("p2", 1, 2, standings); grant.Reason != ReasonFull {
 		t.Fatalf("other cube while full %+v", grant)
 	}
 }
@@ -138,33 +149,33 @@ func TestTestCubeGrantsTheNamedItem(t *testing.T) {
 	r := soloRace(t, random)
 	standings := order("p1", "p2", "p3", "p4")
 	// The leader cannot draw a rocket, but a test grant gives it; nothing is drawn.
-	grant, _, err := r.TestCube("p1", 1, 2, Rocket, 0, standings)
+	grant, _, err := r.TestCube("p1", 1, Rocket, 0, standings)
 	if err != nil || grant.ItemID != Rocket || grant.Reason != "" || !slices.Equal(grant.Slots, []int{Rocket, Empty}) ||
 		len(random.asked) != 0 {
 		t.Fatalf("test grant %+v %v (asked %v)", grant, err, random.asked)
 	}
 	// The abuse and full-slot rules still apply.
-	if grant, _, _ := r.TestCube("p1", 1, 2, Devil, 1, standings); grant.Reason != ReasonAbusing || grant.ItemID != NoItem {
+	if grant, _, _ := r.TestCube("p1", 1, Devil, 1, standings); grant.Reason != ReasonAbusing || grant.ItemID != NoItem {
 		t.Fatalf("same cube again %+v", grant)
 	}
-	r.TestCube("p1", 2, 2, Devil, 2, standings)
-	if grant, _, _ := r.TestCube("p1", 3, 2, Devil, 3, standings); grant.Reason != ReasonFull ||
+	r.TestCube("p1", 2, Devil, 2, standings)
+	if grant, _, _ := r.TestCube("p1", 3, Devil, 3, standings); grant.Reason != ReasonFull ||
 		!slices.Equal(grant.Slots, []int{Rocket, Devil}) {
 		t.Fatalf("full %+v", grant)
 	}
 	// Only race items (a table or a special item): 0 (cloud) and 200 are not.
-	_, _, err = r.TestCube("p2", 1, 2, 0, 0, standings)
+	_, _, err = r.TestCube("p2", 1, 0, 0, standings)
 	wantErr(t, err, ErrInvalidTestItem)
-	_, _, err = r.TestCube("p2", 1, 2, 200, 0, standings)
+	_, _, err = r.TestCube("p2", 1, 200, 0, standings)
 	wantErr(t, err, ErrInvalidTestItem)
-	if grant, _, err := r.TestCube("p4", 1, 2, Mine, 0, standings); err != nil || grant.ItemID != Mine {
+	if grant, _, err := r.TestCube("p4", 1, Mine, 0, standings); err != nil || grant.ItemID != Mine {
 		t.Fatalf("special item test grant %+v %v", grant, err)
 	}
 	// Caps do not stop test grants, but test grants count toward them.
 	team := teamRace(t, &picks{})
 	teamStandings := order("b1", "b2", "a1", "a2")
 	for i := range 3 {
-		if grant, _, _ := team.TestCube("a1", i+1, 3, Angel, int64(i), teamStandings); grant.ItemID != Angel {
+		if grant, _, _ := team.TestCube("a1", i+1, Angel, int64(i), teamStandings); grant.ItemID != Angel {
 			t.Fatalf("test angel %d: %+v", i, grant)
 		}
 		team.racers["a1"].slots.TakeFirst()
@@ -177,15 +188,15 @@ func TestTestCubeGrantsTheNamedItem(t *testing.T) {
 func TestCubeRejectsFinishedAndUnknownRacers(t *testing.T) {
 	r := soloRace(t, &picks{})
 	standings := Standings([]Racer{{ID: "p1", FinishOrder: 1}, {ID: "p2", Distance: 5}})
-	_, _, err := r.Cube("p1", 1, 2, 0, standings)
+	_, _, err := r.Cube("p1", 1, 0, standings)
 	wantErr(t, err, ErrInvalidUse)
-	_, _, err = r.Cube("p3", 1, 2, 0, standings) // not in the standings
+	_, _, err = r.Cube("p3", 1, 0, standings) // not in the standings
 	wantErr(t, err, ErrInvalidUse)
-	_, _, err = r.Cube("p2", MaxCubeID+1, 2, 0, standings)
+	_, _, err = r.Cube("p2", MaxCubeID+1, 0, standings)
 	wantErr(t, err, ErrInvalidUse)
 	// p2 is 2nd of 2 behind a finisher: high.
 	r2 := soloRace(t, &picks{values: []int{0}})
-	if grant, _, _ := r2.Cube("p2", 1, 2, 0, standings); grant.ItemID != Shield {
+	if grant, _, _ := r2.Cube("p2", 1, 0, standings); grant.ItemID != Shield {
 		t.Fatalf("2nd behind a finisher got %d", grant.ItemID)
 	}
 }
@@ -205,7 +216,7 @@ func TestCappedItemsAreRedrawn(t *testing.T) {
 	}
 	for i := range 2 {
 		random.values = []int{angelAt}
-		grant, _, _ := r.Cube("a1", i+1, 3, int64(i), standings)
+		grant, _, _ := r.Cube("a1", i+1, int64(i), standings)
 		if grant.ItemID != Angel {
 			t.Fatalf("draw %d got %d", i, grant.ItemID)
 		}
@@ -213,13 +224,13 @@ func TestCappedItemsAreRedrawn(t *testing.T) {
 	}
 	random.values = []int{angelAt}
 	random.asked = nil
-	grant, _, _ := r.Cube("a1", 3, 3, 2, standings)
+	grant, _, _ := r.Cube("a1", 3, 2, standings)
 	if grant.ItemID == Angel || random.asked[0] != 97 {
 		t.Fatalf("third angel: got %d from %v", grant.ItemID, random.asked)
 	}
 	// Another racer still gets angels.
 	random.values = []int{angelAt}
-	if grant, _, _ := r.Cube("a2", 1, 3, 3, order("b1", "b2", "a2", "a1")); grant.ItemID != Angel {
+	if grant, _, _ := r.Cube("a2", 1, 3, order("b1", "b2", "a2", "a1")); grant.ItemID != Angel {
 		t.Fatalf("a2 got %d", grant.ItemID)
 	}
 }
@@ -401,7 +412,7 @@ func TestScanShowsOpponentSlotsToTheTeam(t *testing.T) {
 		t.Fatalf("scan snapshot %+v", result.Notices)
 	}
 	// An opponent's slot change reaches the scanning team while it lasts.
-	_, notices, _ := r.Cube("b2", 1, 2, 12_000, standings)
+	_, notices, _ := r.Cube("b2", 1, 12_000, standings)
 	if len(notices) != 2 || notices[0].Viewer != "a1" || notices[1].Viewer != "a2" ||
 		notices[0].Subject != "b2" || notices[0].Slots[0] == Empty {
 		t.Fatalf("grant notices %+v", notices)
@@ -412,10 +423,10 @@ func TestScanShowsOpponentSlotsToTheTeam(t *testing.T) {
 		t.Fatalf("swap notices %+v", notices)
 	}
 	// Teammates' changes and changes after the scan send nothing.
-	if _, notices, _ := r.Cube("a2", 1, 2, 14_000, standings); notices != nil {
+	if _, notices, _ := r.Cube("a2", 1, 14_000, standings); notices != nil {
 		t.Fatalf("teammate notices %+v", notices)
 	}
-	if _, notices, _ := r.Cube("b2", 2, 2, 18_500, standings); notices != nil {
+	if _, notices, _ := r.Cube("b2", 2, 18_500, standings); notices != nil {
 		t.Fatalf("expired scan %+v", notices)
 	}
 }

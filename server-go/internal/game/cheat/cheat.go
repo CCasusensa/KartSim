@@ -37,13 +37,15 @@ type RaceInfo struct {
 
 // Finish is a racer's finish as the node saw it: the time it reported, the
 // race time the node observed, the furthest route distance its frames
-// reported and whether its frames should have reached the node all race
-// long (another racer was still in the race to receive them).
+// reported, whether its frames should have reached the node all race long
+// (another racer was still in the race to receive them) and, in an item
+// race, whether it claims a perfect start (the 完美起步 title).
 type Finish struct {
 	ElapsedMs    int     `json:"elapsedMs"`
 	RacedMs      int64   `json:"racedMs"`
 	Progress     float64 `json:"progress"`
 	ExpectFrames bool    `json:"expectFrames"`
+	PerfectStart bool    `json:"perfectStart,omitempty"`
 }
 
 // Item race events (ItemEvent.Kind).
@@ -114,8 +116,10 @@ type Racer interface {
 	Finish(f Finish) (v *Violation, stats map[string]any)
 	// ItemUse reports an item use the node accepted.
 	ItemUse(itemID int)
-	// Cube checks an item cube eaten at now.
-	Cube(cubeID int, now int64) *Violation
+	// Cube checks an item cube eaten at now; claimedSlots are the item slots
+	// the browser says its kart holds, slots what the kart holds (the race's
+	// own count).
+	Cube(cubeID, claimedSlots, slots int, now int64) *Violation
 	// TeamCharge checks a team-charge report at now.
 	TeamCharge(amount float64, now int64) *Violation
 }

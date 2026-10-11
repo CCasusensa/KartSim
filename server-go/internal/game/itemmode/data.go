@@ -212,19 +212,22 @@ type Data struct {
 	Passives    map[string]map[string]map[string]int `json:"passives"`
 	EnchantKeys []EnchantShield                      `json:"enchantKeys"`
 	// XunKarts are the 迅 item karts that start a race holding one item.
-	XunKarts []int   `json:"xunKarts"`
-	Titles   []Title `json:"titles"`
+	XunKarts []int `json:"xunKarts"`
+	// ThreeSlotKarts are the karts that hold three item slots (ItemSlots).
+	ThreeSlotKarts []int   `json:"threeSlotKarts"`
+	Titles         []Title `json:"titles"`
 
-	items     map[int]Item
-	caps      map[int]int
-	tracks    map[string]Track
-	pools     map[int][]string
-	transform map[[2]int]KartTransform
-	fired     map[[2]int]KartGain
-	firing    map[[2]int]KartGain
-	animal    map[int]AnimalBooster
-	passives  map[string]map[int]map[string]int
-	xun       map[int]bool
+	items      map[int]Item
+	caps       map[int]int
+	tracks     map[string]Track
+	threeSlots map[int]bool
+	pools      map[int][]string
+	transform  map[[2]int]KartTransform
+	fired      map[[2]int]KartGain
+	firing     map[[2]int]KartGain
+	animal     map[int]AnimalBooster
+	passives   map[string]map[int]map[string]int
+	xun        map[int]bool
 }
 
 // RandomCodes are the random-track codes an item room accepts (the
@@ -465,6 +468,13 @@ func (d *Data) indexPhase3() error {
 		}
 		d.xun[kart] = true
 	}
+	d.threeSlots = map[int]bool{}
+	for _, kart := range d.ThreeSlotKarts {
+		if kart < 0 || d.threeSlots[kart] {
+			return fmt.Errorf("three-slot kart %d invalid", kart)
+		}
+		d.threeSlots[kart] = true
+	}
 	keys := map[string]bool{}
 	for _, title := range d.Titles {
 		if title.Key == "" || keys[title.Key] {
@@ -522,6 +532,16 @@ var requiredStates = map[int][]string{
 func (d *Data) Table(kind string) *Table { return d.Tables[kind] }
 
 // Item returns a table item.
+// ItemSlots returns how many item slots kart holds: the browser's vehicle
+// spec says 3 for ThreeSlotKarts, 2 for the rest (the practice kart, karts
+// without data).
+func (d *Data) ItemSlots(kart int) int {
+	if d.threeSlots[kart] {
+		return MaxCapacity
+	}
+	return MinCapacity
+}
+
 func (d *Data) Item(idx int) (Item, bool) {
 	item, ok := d.items[idx]
 	return item, ok

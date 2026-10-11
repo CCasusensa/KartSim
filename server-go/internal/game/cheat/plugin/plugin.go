@@ -41,7 +41,7 @@ const (
 	opMotion      = 4  // u32 racer, u8 kind, u8 valid, i64 now, payload -> Violation JSON | empty
 	opFinish      = 5  // JSON {"racer", Finish fields} -> JSON {"violation","stats"} | empty
 	opItemUse     = 6  // u32 racer, i32 item -> empty
-	opCube        = 7  // u32 racer, i32 cube, i64 now -> Violation JSON | empty
+	opCube        = 7  // u32 racer, i32 cube, i64 now, i32 claimed slots, i32 slots -> Violation JSON | empty
 	opTeamCharge  = 8  // u32 racer, f64 amount, i64 now -> Violation JSON | empty
 	opProgressCap = 9  // u32 race, i32 lap, i64 racedMs -> f64 | empty
 	opEndRace     = 10 // u32 race -> empty
@@ -354,14 +354,17 @@ func (x *racer) ItemUse(itemID int) {
 	x.p.request(opItemUse, request[:])
 }
 
-func (x *racer) Cube(cubeID int, now int64) *cheat.Violation {
+func (x *racer) Cube(cubeID, claimedSlots, slots int, now int64) *cheat.Violation {
 	if x.handle == 0 {
 		return nil
 	}
-	var request [16]byte
+	// The slot counts follow the first 16 bytes, which older plugins read alone.
+	var request [24]byte
 	binary.LittleEndian.PutUint32(request[:], x.handle)
 	binary.LittleEndian.PutUint32(request[4:], uint32(int32(cubeID)))
 	binary.LittleEndian.PutUint64(request[8:], uint64(now))
+	binary.LittleEndian.PutUint32(request[16:], uint32(int32(claimedSlots)))
+	binary.LittleEndian.PutUint32(request[20:], uint32(int32(slots)))
 	return x.p.violation(opCube, x.p.request(opCube, request[:]))
 }
 
