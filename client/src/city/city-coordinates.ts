@@ -70,19 +70,16 @@ export function nearestRoadPoint(x: number, z: number): RoadSample {
 
 /** The district containing a design point. */
 export function districtAt(x: number, z: number): { id: string; name: string } | undefined {
-  for (const d of cityMap.districts) {
-    if (d.circle) { const [cx, cz, r] = d.circle; if (Math.hypot(x - (cx ?? 0), z - (cz ?? 0)) <= (r ?? 0)) return d; }
-  }
-  for (const d of cityMap.districts) {
-    if (!d.polygon) continue;
-    let inside = false;
-    const polygon = d.polygon as number[][];
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      const [xi, zi] = polygon[i]!, [xj, zj] = polygon[j]!;
-      if (((zi ?? 0) > z) !== ((zj ?? 0) > z) &&
-          x < (((xj ?? 0) - (xi ?? 0)) * (z - (zi ?? 0))) / ((zj ?? 0) - (zi ?? 0)) + (xi ?? 0)) inside = !inside;
-    }
-    if (inside) return d;
-  }
+  for (const d of cityMap.districts) if (pointInPolygon([x, z], d.polygon)) return d;
   return undefined;
+}
+
+/** Even-odd test of a point against a polygon in design coordinates. */
+function pointInPolygon(p: [number, number], polygon: number[][]): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, zi] = [polygon[i]![0]!, polygon[i]![1]!], [xj, zj] = [polygon[j]![0]!, polygon[j]![1]!];
+    if ((zi > p[1]) !== (zj > p[1]) && p[0] < ((xj - xi) * (p[1] - zi)) / (zj - zi) + xi) inside = !inside;
+  }
+  return inside;
 }

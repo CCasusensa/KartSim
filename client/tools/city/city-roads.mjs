@@ -9,9 +9,9 @@ export function sampleRoad(design, road, terrain, step = 6) {
   const plan = road.points.map(p => [p[0], p[1]]);
   const { points, s, total } = densify2(plan, step, !!road.closed);
   const { tangents, normals } = polylineFrames2(points, !!road.closed);
-  const sea = design.water.sea.polygon;
+  const sea = design.water?.sea?.polygon ?? [];
   const elevation = new Array(points.length);
-  const overSea = points.map(p => pointInPolygon2(p, sea));
+  const overSea = points.map(p => sea.length > 2 && pointInPolygon2(p, sea));
   for (let i = 0; i < points.length; i++) {
     const [x, z] = points[i];
     if (road.id === "tunnel") { elevation[i] = LIFT.tunnel; continue; }

@@ -7,6 +7,8 @@ export const TUNNEL_CEILING = 7;
 
 /** Builds the height function h(x, z) (world metres) from the design. */
 export function createTerrain(design) {
+  // v2 (official-track districts): flat ground, no water or mountains.
+  if (!design.water) return { height: () => 0, land: () => 0, water: () => -Infinity, isWater: () => false, flat: true };
   const sea = design.water.sea.polygon;
   const river = densify2(design.water.river.points, 15, false).points;
   const riverHalf = design.water.river.width / 2;
@@ -55,7 +57,7 @@ export function districtAt(design, x, z) {
  * Emits ground tiles into `city.mesh(...)` grouped by surface texture.
  * `surfaceOf(x, z)` returns { texture, road } for a cell centre.
  */
-export function buildGround(city, terrain, surfaceOf, { cell = 40 } = {}) {
+export function buildGround(city, terrain, surfaceOf, { cell = 40, skip = () => false } = {}) {
   const [min, max] = city.design.meta.extent;
   const columns = Math.round((max[0] - min[0]) / cell), rows = Math.round((max[1] - min[1]) / cell);
   const heights = [];
@@ -65,6 +67,7 @@ export function buildGround(city, terrain, surfaceOf, { cell = 40 } = {}) {
   }
   for (let j = 0; j < rows; j++) for (let i = 0; i < columns; i++) {
     const x0 = min[0] + i * cell, z0 = min[1] + j * cell, x1 = x0 + cell, z1 = z0 + cell;
+    if (skip(x0 + cell / 2, z0 + cell / 2)) continue;
     const surface = surfaceOf(x0 + cell / 2, z0 + cell / 2);
     const corners = [
       [x0, z0, heights[j][i]], [x1, z0, heights[j][i + 1]],

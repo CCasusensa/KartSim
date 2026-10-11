@@ -1,20 +1,20 @@
-// 卡丁城（开放世界城市地图）的权威数据。
+// 卡丁城（开放世界城市地图）v2 的权威数据。
 //
-// 坐标系与游戏世界一致：x 向东，z 向南（three.js 的 +z），y 向上；单位为世界米
-// （与现有赛道的路线长度同一尺度：城镇高速公路一圈约 3455）。原点是中央广场的喷泉。
-// 地图范围 x、z ∈ [-1200, 1200]，即 2.4 km × 2.4 km，与现有最大赛道（约 2000 × 2000）同量级。
+// 坐标系与游戏世界一致：x 向东，z 向南（three.js 的 +z），y 向上；单位为世界米。
+// 原点是中央广场的中心。地图范围 x、z ∈ [-1200, 1200]，即 2.4 km × 2.4 km。
 //
-// render-city-map.mjs 把这份数据画成 city-map.svg，并导出 city-map.json 给后续的
-// 程序化建城流水线（道路网 → 路面网格与碰撞三角形，街区 → 摆放主题建筑）。
+// v2 的思路：城区直接搬用官方赛道（整条赛道连同路面碰撞、房屋、围栏、动画一起
+// 摆进来），中间用官方贴图与道具铺设连接道路——摆放排布因此与原版地图一致。
+// 每个城区给出它用的赛道、赛道路面范围（赛道自己的坐标：x 向东、y 向北）、摆放
+// 中心与入口；建城脚本据此放置、裁开入口围栏，并把赛道路线导出为 city-map.json
+// 的 district 道路（最近道路复位与小地图用）。
 
-/** 道路等级：宽度（米）、限速提示与渲染样式。 */
+/** 道路等级：宽度（米）与渲染样式。 */
 export const ROAD_TYPES = {
   expressway: { label: "环城高速", width: 18, lanes: 4, speed: "最高速", color: "#4b5563" },
   avenue:     { label: "主干道",   width: 14, lanes: 4, speed: "高速",   color: "#6b7280" },
-  street:     { label: "街区道路", width: 10, lanes: 2, speed: "中速",   color: "#9ca3af" },
-  lane:       { label: "小路/林道", width: 7, lanes: 2, speed: "低速",   color: "#b8bec7" },
-  circuit:    { label: "赛道环道", width: 12, lanes: 2, speed: "计时",   color: "#7c3aed" },
-  tunnel:     { label: "隧道",     width: 12, lanes: 2, speed: "高速",   color: "#374151" },
+  street:     { label: "街区道路", width: 12, lanes: 2, speed: "中速",   color: "#9ca3af" },
+  district:   { label: "城区赛道", width: 20, lanes: 2, speed: "赛道",   color: "#7c3aed" },
 };
 
 /** 圆角矩形的折线（顺时针，从北边中点开始），用于环线。 */
@@ -37,201 +37,156 @@ export function roundedRect(half, radius, segments = 8) {
 const round = v => Math.round(v * 10) / 10;
 
 /**
+ * 城区：整条官方赛道。extents 是赛道路面在它自己坐标里的范围（x 向东、y 向北，
+ * 由 tools/city/track-topdown.mjs 量得），center 是路面范围中心要摆到的设计坐标；
+ * entrances 是连接道路接入处，local 为赛道坐标、facing 为连接道路来的方向。
+ */
+export const DISTRICTS = [
+  { id: "plaza", name: "中央广场", theme: "village", track: "village_B04", color: "#fde68a",
+    // The stadium: a flat rim (z 30.2) at street level around a slope down
+    // into the fenced flag field (z 27), the stands beyond the rim. Streets
+    // arrive on the rim through the stands (reach) and the corridors run on
+    // down to the field so its fence opens too (corridorInward).
+    extents: { min: [129, 148], max: [509, 458] }, center: [0, 0], yaw: 0,
+    reach: 110, corridorInward: 90,
+    // The arena's floating coins and the lucci start board are not collectable here.
+    drop: "coin|lucci",
+    entrances: [
+      { id: "plaza-n", local: [319, 458], facing: "n", width: 14 },
+      { id: "plaza-s", local: [319, 148], facing: "s", width: 14 },
+      { id: "plaza-w", local: [129, 303], facing: "w", width: 14 },
+      { id: "plaza-e", local: [509, 303], facing: "e", width: 14 },
+    ],
+    desc: "城镇旗帜竞技场（体育场）：四条主干道穿过看台汇合到环形平台，中间是下沉的旗帜场地，是进城出生点与聊天热区。" },
+  { id: "oldtown", name: "城镇老街", theme: "village", track: "village_I02", color: "#fecaca",
+    extents: { min: [5, 12], max: [561, 551] }, center: [-620, -560], yaw: 0,
+    entrances: [{ id: "oldtown-e", local: [555, 250], facing: "e", width: 12 }],
+    desc: "城镇运河街区：房屋、石桥与运河，赛道一圈约 2 km。" },
+  { id: "homes", name: "小屋街", theme: "village", track: "village_I04", color: "#fed7aa",
+    extents: { min: [68, 31], max: [833, 739] }, center: [600, -600], yaw: 0,
+    entrances: [{ id: "homes-s", local: [400, 40], facing: "s", width: 12 }],
+    desc: "城镇居民区：公交站、木箱与小屋，赛道一圈约 1.6 km。" },
+  { id: "forest", name: "森林公园", theme: "forest", track: "forest_I01", color: "#bbf7d0",
+    extents: { min: [66, 35], max: [879, 778] }, center: [-600, 580], yaw: 0,
+    entrances: [{ id: "forest-n", local: [505.6, 672], facing: "n", width: 12 }],
+    desc: "森林山路：木隧道、悬崖与松林，赛道一圈约 2 km。" },
+  { id: "funpark", name: "冰雪游乐园", theme: "ice", track: "ice_I02", color: "#e0f2fe",
+    extents: { min: [103, 97], max: [864, 859] }, center: [620, 600], yaw: 0,
+    entrances: [{ id: "funpark-s", local: [535, 100], facing: "s", width: 12 }],
+    desc: "冰川与雪道：冰面广场与雪山盘道，赛道一圈约 1.9 km。" },
+];
+
+/** 一个城区的入口在设计坐标里的位置（center + 赛道坐标相对路面范围中心的偏移，y 轴翻转为 z）。 */
+export function entranceAt(district, entrance) {
+  const { min, max } = district.extents;
+  const cx = (min[0] + max[0]) / 2, cy = (min[1] + max[1]) / 2;
+  return [round(district.center[0] + (entrance.local[0] - cx)), round(district.center[1] - (entrance.local[1] - cy))];
+}
+
+/**
+ * 入口所在的路面范围边缘再往里 8 m（设计坐标）：道路围栏在这里留口；连接道路本身一直
+ * 铺到入口点（城区赛道边缘），走廊里的东西由建城脚本清掉。
+ */
+export function gateAt(district, entrance) {
+  const [x, z] = entranceAt(district, entrance);
+  const { min, max } = district.extents;
+  const cx = (min[0] + max[0]) / 2, cy = (min[1] + max[1]) / 2;
+  const inset = 8;
+  switch (entrance.facing) {
+    case "e": return [round(district.center[0] + (max[0] - cx) - inset), z];
+    case "w": return [round(district.center[0] + (min[0] - cx) + inset), z];
+    case "n": return [x, round(district.center[1] - (max[1] - cy) + inset)];
+    default: return [x, round(district.center[1] - (min[1] - cy) - inset)];
+  }
+}
+
+/** 城区路面范围在设计坐标里的矩形（顺时针）。 */
+export function districtPolygon(district) {
+  const { min, max } = district.extents;
+  const cx = (min[0] + max[0]) / 2, cy = (min[1] + max[1]) / 2;
+  const [x0, x1] = [district.center[0] + (min[0] - cx), district.center[0] + (max[0] - cx)];
+  const [z0, z1] = [district.center[1] - (max[1] - cy), district.center[1] - (min[1] - cy)];
+  return [[round(x0), round(z0)], [round(x1), round(z0)], [round(x1), round(z1)], [round(x0), round(z1)]];
+}
+
+const D = Object.fromEntries(DISTRICTS.map(d => [d.id, d]));
+const E = (districtId, entranceId) => entranceAt(D[districtId], D[districtId].entrances.find(e => e.id === entranceId));
+
+/**
  * 道路：id、名称、等级、折线坐标 [x, z]（可选第三个分量 y 为高程，米），
- * closed 表示闭合环线。玩法说明放在 note。
+ * closed 表示闭合环线。城区赛道的路线由建城脚本生成，不写在这里。
  */
 export const ROADS = [
   { id: "ring", name: "环城高速", type: "expressway", closed: true,
-    points: roundedRect(1000, 250, 10),
-    note: "一圈约 7.3 km 的闭合环线，同时是整张地图的路线图主环（lap 计数/复位都依赖它）。东南段跨海大桥抬高 20 m。" },
-  { id: "loop2", name: "二环路", type: "avenue", closed: true,
-    points: roundedRect(500, 120, 6),
-    note: "围绕中心区的方形环线，连接八个分区入口。" },
-  { id: "ave-ns", name: "中央大道", type: "avenue",
-    points: [[0, -1000], [0, -230], [0, 230], [0, 1000]],
-    note: "南北主干道，穿过中央广场环岛；在 z≈480 处跨泡泡河（中央大桥）。" },
-  { id: "ave-ew", name: "东西大道", type: "avenue",
-    points: [[-1000, 0], [-230, 0], [230, 0], [1000, 0]],
-    note: "东西主干道；在 x≈-330 处跨河（西桥）。" },
-  { id: "plaza-ring", name: "广场环岛", type: "avenue", closed: true,
-    points: circle(0, 0, 200, 24),
-    note: "中央广场外围的环岛，所有主干道在这里汇合，是最热闹的聊天区。" },
-  { id: "diag-ne", name: "霓虹林荫道", type: "avenue",
-    points: [[140, -140], [500, -500], [927, -927]],
-    note: "从广场斜穿到商业区，再接环城高速东北匝道。" },
-  { id: "diag-sw", name: "森林林荫道", type: "avenue",
-    points: [[-140, 140], [-500, 500], [-927, 927]],
-    note: "从广场斜穿到森林公园，再接环城高速西南匝道；在 (-300, 250) 附近过河（林荫桥）。" },
-  { id: "biz-v1", name: "霓虹街", type: "street",
-    points: [[750, -1000], [750, -500], [750, 0]] },
-  { id: "biz-h1", name: "商城路", type: "street",
-    points: [[500, -750], [750, -750], [1000, -750]] },
-  { id: "biz-h2", name: "寻宝街", type: "street",
-    points: [[500, -250], [750, -250], [1000, -250]] },
-  { id: "old-loop", name: "老街环路", type: "street", closed: true,
-    points: [[-350, -700], [-200, -850], [100, -900], [300, -750], [250, -600], [0, -650], [-250, -580], [-350, -700]],
-    note: "城镇主题的弯弯曲曲老街，车库与改装店在这里。" },
-  { id: "old-spur", name: "车库巷", type: "street",
-    points: [[0, -500], [0, -650]] },
-  { id: "coast", name: "滨海公路", type: "street",
-    points: [[1000, -200], [900, 200], [800, 450], [650, 650], [500, 850], [400, 1000]],
-    note: "贴着海岸线的观景路，日落时最好看。" },
-  { id: "port-spur", name: "码头路", type: "lane",
-    points: [[900, 200], [960, 300]] },
-  { id: "ind-loop", name: "集装箱环道", type: "street", closed: true,
-    points: [[150, 700], [450, 700], [450, 960], [150, 960], [150, 700]],
-    note: "工业区的方形环道，中间是漂移练习场和特技跳台。" },
-  { id: "ind-spur", name: "工厂路", type: "street",
-    points: [[0, 700], [150, 700]] },
-  { id: "circuit", name: "赛车公园计时环道", type: "circuit", closed: true,
-    points: [[-300, 400], [-150, 450], [-80, 600], [-150, 800], [-350, 900], [-480, 800], [-520, 600], [-450, 450], [-300, 400]],
-    note: "城内约 1.6 km 的闭合小环道：城内计时赛与驾照考试的实战场地。" },
-  { id: "circuit-spur", name: "考场路", type: "street",
-    points: [[-230, 230], [-300, 400]] },
-  { id: "forest-loop", name: "湖畔林道", type: "lane", closed: true,
-    points: [[-560, 560], [-700, 600], [-850, 700], [-900, 850], [-820, 960], [-650, 980], [-540, 900], [-520, 750], [-560, 560]],
-    note: "绕湖一圈的林道，露营地和湖心岛在这里。" },
-  { id: "home-h1", name: "小屋北街", type: "street",
-    points: [[-950, -100], [-520, -100]] },
-  { id: "home-h2", name: "小屋南街", type: "street",
-    points: [[-950, 100], [-520, 100]] },
-  { id: "home-v1", name: "小屋西巷", type: "lane", points: [[-900, -100], [-900, 100]] },
-  { id: "home-v2", name: "小屋中巷", type: "lane", points: [[-700, -100], [-700, 100]] },
-  { id: "home-v3", name: "会馆路", type: "street", points: [[-520, -100], [-520, 100]] },
-  { id: "park-loop", name: "游乐园环道", type: "street", closed: true,
-    points: [[-600, -350], [-900, -350], [-950, -600], [-800, -850], [-600, -800], [-550, -550], [-600, -350]],
-    note: "冰雪游乐园：摩天轮、冰雪滑道和跳台。" },
-  { id: "park-spur", name: "游乐园路", type: "street", points: [[-500, -350], [-600, -350]] },
-  { id: "mountain", name: "盘山公路", type: "lane",
-    points: [[-1000, -700, 0], [-1060, -800, 25], [-1130, -900, 55], [-1090, -1010, 85], [-990, -1070, 105], [-1060, -1130, 120], [-1100, -1100, 120]],
-    note: "从环城高速西北匝道盘旋上山，终点是 120 m 高的观景台。" },
-  { id: "tunnel", name: "穿山隧道", type: "tunnel",
-    points: [[-1000, -600, 0], [-900, -700, -12], [-700, -900, -12], [-600, -1000, 0]],
-    note: "直穿西北角的地下捷径，内有加速带。" },
+    points: roundedRect(1120, 250, 10),
+    note: "一圈约 8.3 km 的闭合环线，也是整张地图的路线图主环（复位与路线进度都依赖它）。" },
+  { id: "ave-n", name: "中央大道（北）", type: "avenue", points: [[0, -1120], E("plaza", "plaza-n")], note: "环城高速北端到中央广场。" },
+  { id: "ave-s", name: "中央大道（南）", type: "avenue", points: [E("plaza", "plaza-s"), [0, 1120]] },
+  { id: "ave-w", name: "东西大道（西）", type: "avenue", points: [[-1120, 0], E("plaza", "plaza-w")] },
+  { id: "ave-e", name: "东西大道（东）", type: "avenue", points: [E("plaza", "plaza-e"), [1120, 0]] },
+  { id: "st-north", name: "北街", type: "street",
+    points: [E("oldtown", "oldtown-e"), [0, E("oldtown", "oldtown-e")[1]]],
+    note: "从城镇老街东门到中央大道。" },
+  { id: "st-homes", name: "小屋街路", type: "street",
+    points: [[E("homes", "homes-s")[0], 0], E("homes", "homes-s")],
+    note: "从东西大道北上到小屋街南门。" },
+  { id: "st-forest", name: "林荫道", type: "street",
+    points: [[E("forest", "forest-n")[0], 0], E("forest", "forest-n")],
+    note: "从东西大道南下到森林公园北门。" },
+  { id: "st-funpark", name: "游乐园路", type: "street",
+    points: [[E("funpark", "funpark-s")[0], 1120], E("funpark", "funpark-s")],
+    note: "从环城高速南段北上到冰雪游乐园南门。" },
 ];
 
-function circle(cx, cz, r, n) {
-  const pts = [];
-  for (let i = 0; i <= n; i++) {
-    const a = (i / n) * Math.PI * 2;
-    pts.push([round(cx + r * Math.sin(a)), round(cz - r * Math.cos(a))]);
-  }
-  return pts;
-}
-
-/** 水体：海湾（东南）与泡泡河。 */
-export const WATER = {
-  sea: { name: "卡丁湾", polygon: [[1300, 120], [1100, 180], [950, 260], [880, 400], [850, 520], [760, 620], [640, 760], [520, 900], [420, 1050], [330, 1300], [1300, 1300]] },
-  river: { name: "泡泡河", width: 40,
-    points: [[-330, -1200], [-345, -1000], [-360, -900], [-420, -520], [-380, -250], [-330, 0], [-300, 250], [-150, 420], [100, 520], [350, 600], [560, 680], [720, 700]] },
-  lake: { name: "森林湖", center: [-720, 830], radius: 90 },
-};
-
-/**
- * 分区：polygon 为范围，theme 是复用现有赛道主题素材的来源（track_<theme>_*），
- * buildings 描述程序化摆放建筑的密度。
- */
-export const DISTRICTS = [
-  { id: "plaza", name: "中央广场", theme: "common", color: "#fde68a", circle: [0, 0, 230],
-    desc: "出生点、喷泉、传送门广场、排行榜大屏。所有人在这里见面。", buildings: "none" },
-  { id: "oldtown", name: "城镇老街", theme: "village", color: "#fecaca",
-    polygon: [[-400, -1000], [400, -1000], [400, -250], [-400, -250]],
-    desc: "经典跑跑城镇风格：红屋顶、小广场；车库与改装店所在地。", buildings: "dense-low" },
-  { id: "neon", name: "霓虹商业区", theme: "world", color: "#c7d2fe",
-    polygon: [[400, -1000], [1000, -1000], [1000, -200], [400, -200]],
-    desc: "高楼、霓虹招牌（世界/中国主题的都市素材）；商城与寻宝屋。", buildings: "dense-high" },
-  { id: "harbor", name: "滨海港区", theme: "beach", color: "#bae6fd",
-    polygon: [[400, -200], [1000, -200], [1000, 120], [880, 400], [760, 620], [520, 900], [420, 1000], [400, 1000]],
-    desc: "海滩、码头、灯塔与舞台；日落观景。", buildings: "sparse" },
-  { id: "industrial", name: "集装箱工业区", theme: "factory", color: "#e5e7eb",
-    polygon: [[0, 560], [420, 560], [420, 1000], [0, 1000]],
-    desc: "工厂、起重机、集装箱；漂移练习场与特技跳台。", buildings: "medium" },
-  { id: "racepark", name: "赛车公园", theme: "wkc", color: "#ddd6fe",
-    polygon: [[-560, 230], [0, 230], [0, 560], [-560, 1000], [-560, 1000]],
-    desc: "驾照考场与城内计时环道，看台与维修区。", buildings: "sparse" },
-  { id: "forest", name: "森林公园", theme: "forest", color: "#bbf7d0",
-    polygon: [[-1000, 230], [-560, 230], [-560, 1000], [-1000, 1000]],
-    desc: "林道、森林湖、露营地篝火；最安静的聊天和挂机点。", buildings: "none" },
-  { id: "homes", name: "小屋街", theme: "village", color: "#fed7aa",
-    polygon: [[-1000, -250], [-400, -250], [-400, 230], [-1000, 230]],
-    desc: "一排排玩家小屋（进入即打开自己的小屋）与俱乐部会馆。", buildings: "houses" },
-  { id: "funpark", name: "冰雪游乐园", theme: "ice", color: "#e0f2fe",
-    polygon: [[-1000, -1000], [-400, -1000], [-400, -250], [-1000, -250]],
-    desc: "摩天轮、冰雪滑道、跳台；西北角外是雪山和观景台。", buildings: "attractions" },
-  { id: "mountain", name: "雪山", theme: "ice", color: "#f1f5f9",
-    polygon: [[-1200, -1200], [-700, -1200], [-1000, -1000], [-1200, -700]],
-    desc: "环城高速之外的山地，盘山公路通向 120 m 高的观景台。", buildings: "none" },
-];
-
-/**
- * 兴趣点。kind：
- *   function  有交互的功能点（打开现有界面或传送）
- *   social    聊天/挂机热区
- *   fun       玩法点（跳台、加速带、练习场）
- *   landmark  地标（只用于辨认方向）
- *   spawn     出生/复位点（heading 为朝向角度，0 = 北，顺时针）
- */
+/** 兴趣点：功能点（打开界面/传送）、聊天热区、玩法点、地标、出生点。城区出生点由建城脚本生成。 */
 export const POIS = [
-  { id: "fountain", name: "中央喷泉", kind: "social", at: [0, 0], desc: "聊天气泡最密集的地方；全城频道的象征。" },
-  { id: "spawn-main", name: "中央停车场（出生点）", kind: "spawn", at: [0, 95], heading: 0, desc: "进城默认出生点，50 个停车位按入场顺序分配。" },
-  { id: "portals", name: "传送门广场", kind: "function", at: [0, -150], desc: "四座传送门：竞速 / 道具 / 计时 / 乱斗。开到门里 = 用当前队伍一键开房。" },
-  { id: "board", name: "排行榜大屏", kind: "landmark", at: [-120, -60], desc: "显示城内计时环道榜、俱乐部积分榜。" },
-  { id: "notice", name: "公告栏", kind: "landmark", at: [120, -60], desc: "管理员公告与系统提醒的实体入口。" },
-  { id: "quest-npc", name: "每日任务 NPC", kind: "function", at: [70, 20], desc: "靠近弹出任务窗口（复用任务系统）。" },
-  { id: "garage", name: "车库", kind: "function", at: [-100, -620], desc: "开进车库门 = 打开车库界面，出来时换好车。" },
-  { id: "tuning", name: "改装店", kind: "function", at: [120, -640], desc: "车辆强化入口。" },
-  { id: "shop", name: "商城", kind: "function", at: [760, -560], desc: "开进商城大楼 = 打开商店。" },
-  { id: "lottery", name: "寻宝屋 / 精品道具场", kind: "function", at: [850, -700], desc: "复用寻宝与精品道具场。" },
-  { id: "club", name: "俱乐部会馆", kind: "function", at: [-640, 0], desc: "俱乐部界面、俱乐部频道聊天的实体空间。" },
-  { id: "homes-row", name: "玩家小屋", kind: "function", at: [-760, 0], desc: "小屋街两侧的房子：开到自己门口打开小屋，开到好友门口拜访。" },
-  { id: "license", name: "驾照考场", kind: "function", at: [-160, 330], desc: "进入考场 = 驾照考试入口（考试在城内计时环道上举行）。" },
-  { id: "circuit-start", name: "计时环道起点", kind: "fun", at: [-300, 400], desc: "压线开始城内计时，一圈约 1.6 km，成绩上排行榜大屏。" },
-  { id: "drift-lot", name: "漂移练习场", kind: "fun", at: [300, 830], desc: "集装箱围出的空地，地面有漂移记分圈。" },
-  { id: "jump", name: "特技跳台", kind: "fun", at: [400, 900], desc: "三级跳台，腾空时间计入每日任务。" },
-  { id: "pier", name: "码头 / 游艇", kind: "social", at: [960, 300], desc: "停车看海的地方。" },
-  { id: "stage", name: "海滩舞台", kind: "social", at: [700, 420], desc: "活动舞台：管理员可以在这里放公告/音乐会事件。" },
-  { id: "lighthouse", name: "灯塔", kind: "landmark", at: [1000, 80], desc: "跨海大桥北端的地标。" },
-  { id: "campfire", name: "露营地篝火", kind: "social", at: [-760, 620], desc: "最安静的聊天点，晚上有篝火光。" },
-  { id: "island", name: "湖心岛", kind: "landmark", at: [-720, 830], desc: "只能从西侧木桥上去的小岛，藏有金币。" },
-  { id: "ferris", name: "摩天轮", kind: "landmark", at: [-700, -650], desc: "全城最高的建筑之一，远处就能看到。" },
-  { id: "ice-slide", name: "冰雪滑道", kind: "fun", at: [-880, -800], desc: "低摩擦的冰面下坡滑道。" },
-  { id: "lookout", name: "观景台", kind: "social", at: [-1100, -1100], desc: "盘山公路尽头，俯瞰全城。" },
-  { id: "tunnel-w", name: "隧道西口", kind: "landmark", at: [-1000, -600] },
-  { id: "tunnel-n", name: "隧道北口", kind: "landmark", at: [-600, -1000] },
-  { id: "bridge-sea", name: "跨海大桥", kind: "landmark", at: [820, 820], desc: "环城高速东南段，抬高 20 m 的大桥。" },
-  { id: "bridge-center", name: "中央大桥", kind: "landmark", at: [0, 500] },
-  { id: "bridge-west", name: "西桥", kind: "landmark", at: [-330, 0] },
-  { id: "bridge-forest", name: "林荫桥", kind: "landmark", at: [-300, 300] },
-  { id: "gas-e", name: "加油站（氮气补给）", kind: "fun", at: [520, 40] },
-  { id: "gas-w", name: "加油站（氮气补给）", kind: "fun", at: [-520, -40] },
-  { id: "gas-s", name: "加油站（氮气补给）", kind: "fun", at: [40, 540] },
-  { id: "tower", name: "广播塔", kind: "landmark", at: [-200, -980], desc: "全城喇叭消息的象征。" },
-  { id: "spawn-homes", name: "小屋街出生点", kind: "spawn", at: [-700, 160], heading: 90 },
-  { id: "spawn-garage", name: "老街出生点", kind: "spawn", at: [-40, -560], heading: 180 },
-  { id: "spawn-beach", name: "海滩出生点", kind: "spawn", at: [820, 480], heading: 270 },
-  { id: "spawn-forest", name: "森林出生点", kind: "spawn", at: [-700, 540], heading: 180 },
+  { id: "fountain", name: "广场中心", kind: "social", at: [0, 0], desc: "聊天气泡最密集的地方；全城频道的象征。" },
+  { id: "spawn-main", name: "广场出生点", kind: "spawn", at: [0, 30], heading: 0, desc: "进城默认出生点（场地中央偏南）。" },
+  { id: "portals", name: "传送门（预留）", kind: "function", at: [0, -35], desc: "竞速 / 道具 / 计时 / 乱斗四座传送门。" },
+  { id: "garage", name: "车库（预留）", kind: "function", at: [-60, -30], desc: "开进车库门 = 打开车库界面。" },
+  { id: "shop", name: "商城（预留）", kind: "function", at: [60, -30], desc: "开进商城 = 打开商店。" },
+  { id: "club", name: "俱乐部会馆（预留）", kind: "function", at: [-60, 30], desc: "俱乐部界面的实体空间。" },
+  { id: "quest-npc", name: "每日任务 NPC（预留）", kind: "function", at: [60, 30], desc: "靠近弹出任务窗口。" },
 ];
 
-/** 环城高速直道上的加速带（x, z）。 */
-export const BOOST_PADS = [
-  [400, -1000], [-400, -1000], [400, 1000], [-400, 1000], [1000, 400], [1000, -400], [-1000, 400], [-1000, -400],
-  [-800, -800, "隧道内"],
-];
+export const BOOST_PADS = [];
+export const COINS = [];
 
-/** 50 枚隐藏金币（寻宝）的其中 12 枚示例位置，其余由建城脚本在各分区随机生成。 */
-export const COINS = [
-  [-720, 830], [-1100, -1090], [960, 310], [410, 910], [-880, -790], [-150, 800], [760, -740], [-250, -840], [-760, 610], [1000, 90], [820, 820], [-800, -800],
-];
-
-/** 聊天与同步的设计参数。 */
+/** 玩法与社交规则（服务端/客户端共同遵守）。 */
 export const RULES = {
-  instancePlayers: 60,        // 一个城市实例的玩家上限（超过另开"线路"）
-  interestRadius: 160,        // 只同步这个半径内的其他车（米）
-  chatBubbleRadius: 60,       // 气泡聊天可见半径（米）
+  instancePlayers: 60,
+  interestRadius: 160,
+  chatBubbleRadius: 60,
   chatBubbleSeconds: 6,
-  districtChannel: true,      // 每个分区一个频道
-  cityChannel: true,          // 全城频道
-  afkMinutes: 10,             // 挂机 10 分钟自动停进最近停车位
-  resetToRoad: true,          // 掉水/卡住：复位到最近的路线帧
-  dayNightMinutes: 48,        // 昼夜循环（可关）
+  districtChannel: true,
+  cityChannel: true,
+  afkMinutes: 10,
+  resetToRoad: true,
+  dayNightMinutes: 48,
 };
+
+const lengthOf = (list, closed) => {
+  let t = 0;
+  for (let i = 1; i < list.length; i++) t += Math.hypot(list[i][0] - list[i - 1][0], list[i][1] - list[i - 1][1]);
+  if (closed && list.length > 1) { const a = list[0], b = list[list.length - 1]; t += Math.hypot(a[0] - b[0], a[1] - b[1]); }
+  return Math.round(t);
+};
+
+/**
+ * The design as city-map.json carries it (before the builder adds the
+ * district routes and spawns): the renderer writes it, the builder starts
+ * from it on every run so nothing generated feeds back in.
+ */
+export function designJson() {
+  const numbered = POIS.map((p, i) => ({ ...p, n: i + 1 }));
+  return {
+    meta: { name: "卡丁城", version: 2, extent: [[-1200, -1200], [1200, 1200]], units: "world meters", origin: "广场中心", axes: "x 东, z 南, y 上" },
+    roadTypes: ROAD_TYPES,
+    roads: ROADS.map(r => ({ ...r, lengthM: lengthOf(r.points, r.closed) })),
+    districts: DISTRICTS.map(d => ({ ...d, polygon: districtPolygon(d), entrances: d.entrances.map(e => ({ ...e, at: entranceAt(d, e), gate: gateAt(d, e) })) })),
+    pois: numbered,
+    boostPads: BOOST_PADS,
+    coins: COINS,
+    rules: RULES,
+  };
+}

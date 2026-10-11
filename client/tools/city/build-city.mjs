@@ -14,16 +14,18 @@
 //              (default: this checkout)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { loadResourceLibrary } from "../economy-export/resource-library.mjs";
 import { MeshBuilder, argb, random } from "./geometry.mjs";
 import { RgbaCanvas } from "./png.mjs";
 import { TextureIndex, TextureSet } from "./textures.mjs";
 import { alpha, backface, group, meshNode, texture, toMinimap, toRoad, trackContainer, trackObject, xml } from "./model.mjs";
-import { WATER_LEVEL, buildGround, buildWater, createTerrain, districtAt } from "./city-terrain.mjs";
-import { buildRoadCeiling, buildRoadSurface, buildRoadWall, routeRecords, sampleRoad } from "./city-roads.mjs";
-import { buildBuildings, buildBoundary, buildTrees, importLandmarks } from "./city-props.mjs";
+import { buildGround, createTerrain } from "./city-terrain.mjs";
+import { buildRoadSurface, buildRoadWall, routeRecords, sampleRoad } from "./city-roads.mjs";
+import { buildBoundary } from "./city-props.mjs";
+import { importDistricts } from "./city-districts.mjs";
+import { pointInPolygon2 } from "./geometry.mjs";
 import { SKY_TEXTURES } from "./city-sky.mjs";
 
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -98,106 +100,90 @@ class City {
   }
 }
 
-function loadDesign() {
-  const file = path.join(projectRoot, "design", "open-world", "city-map.json");
-  return JSON.parse(readFileSync(file, "utf8"));
+async function loadDesign() {
+  // Always from the source: city-map.json also carries a previous build's
+  // generated routes, spawns and shortened streets.
+  const { designJson } = await import(pathToFileURL(path.join(projectRoot, "design", "open-world", "city-map.data.mjs")).href);
+  return JSON.parse(JSON.stringify(designJson()));
 }
 
-/** 256×256 minimap drawn from the design (north up). */
-function renderMinimap(city, minimap) {
+/** 256×256 minimap drawn from the design (north up): district footprints, their routes and the roads. */
+function renderMinimap(city, minimap, loops = []) {
   const canvas = new RgbaCanvas(256, 256, [18, 22, 28, 215]);
   const px = (x, z) => { const c = city.client(x, z, 0); return [128 + (c[0] - minimap.centerX) * minimap.scale, 128 - (c[1] - minimap.centerY) * minimap.scale]; };
+  const tint = { village: [92, 84, 50, 255], forest: [60, 110, 70, 255], ice: [80, 110, 140, 255] };
   for (const d of city.design.districts) {
-    const color = d.id === "mountain" ? [120, 130, 145, 255] : d.id === "forest" ? [60, 110, 70, 255] : [52, 58, 70, 255];
-    if (d.circle) canvas.fillCircle(...px(d.circle[0], d.circle[1]), d.circle[2] * minimap.scale, [92, 84, 50, 255]);
-    else canvas.fillPolygon(d.polygon.map(p => px(p[0], p[1])), color);
+    if (d.polygon) canvas.fillPolygon(d.polygon.map(p => px(p[0], p[1])), tint[d.theme] ?? [52, 58, 70, 255]);
   }
-  const water = [60, 110, 190, 255];
-  canvas.fillPolygon(city.design.water.sea.polygon.map(p => px(p[0], p[1])), water);
-  const river = city.design.water.river.points;
-  for (let i = 0; i + 1 < river.length; i++) canvas.line(...px(river[i][0], river[i][1]), ...px(river[i + 1][0], river[i + 1][1]), city.design.water.river.width * minimap.scale, water);
-  canvas.fillCircle(...px(city.design.water.lake.center[0], city.design.water.lake.center[1]), city.design.water.lake.radius * minimap.scale, water);
+  const stroke = (points, closed, width, color) => {
+    const count = closed ? points.length : points.length - 1;
+    for (let i = 0; i < count; i++) { const a = points[i], b = points[(i + 1) % points.length]; canvas.line(...px(a[0], a[1]), ...px(b[0], b[1]), width, color); }
+  };
+  for (const loop of loops) stroke(loop.points, loop.closed, Math.max(1.5, 20 * minimap.scale * 1.2), [190, 160, 255, 255]);
   for (const road of city.design.roads) {
+    if (road.type === "district") continue;
     const width = Math.max(1.5, city.design.roadTypes[road.type].width * minimap.scale * 1.4);
-    const color = road.type === "expressway" ? [255, 255, 255, 255] : road.type === "circuit" ? [190, 150, 255, 255] : road.type === "tunnel" ? [150, 150, 150, 255] : [220, 220, 220, 255];
-    const pts = road.points;
-    const count = road.closed ? pts.length : pts.length - 1;
-    for (let i = 0; i < count; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; canvas.line(...px(a[0], a[1]), ...px(b[0], b[1]), width, color); }
+    const color = road.type === "expressway" ? [255, 255, 255, 255] : [220, 220, 220, 255];
+    stroke(road.points, road.closed, width, color);
   }
   return canvas.png();
 }
 
 export async function buildCity({ library, formats, design }) {
+  // District routes and spawns are regenerated below; drop a previous build's copies.
+  design = { ...design, roads: design.roads.filter(r => !r.generated), pois: design.pois.filter(p => !p.generated) };
   const city = new City(design, library, formats);
   const terrain = createTerrain(design);
-  const V = ["village"], W = ["world"], B = ["beach"], F = ["forest"], FA = ["factory"], I = ["ice"], K = ["wkc"], M = ["mechanic"], CN = ["china"], P = ["park"];
+  const V = ["village"], F = ["forest"], I = ["ice"];
+  const footprints = design.districts.filter(d => d.polygon).map(d => d.polygon);
+  const inFootprint = (x, z) => footprints.some(polygon => pointInPolygon2([x, z], polygon));
 
-  // Ground surfaces by district.
-  const ground = {
-    grass: city.surface("grass", "F_tilegrass00", V, { road: { surface: "dirt" } }),
-    sand: city.surface("sand", "bc_sand_01", B, { road: { sound: "모래바닥" } }),
-    snow: city.surface("snow", "road_snow_D", I, { road: { sound: "눈바닥" } }),
-    concrete: city.surface("concrete", "cement01", ["common"], { road: {} }),
-    factory: city.surface("factory-floor", "fact_floor001", FA, { road: {} }),
-    rock: city.surface("rock", "cliff_set", V, { road: {} }),
-    seabed: city.surface("seabed", "bc_sand_01", B, { road: { sound: "물밟기", dust: "water" } }),
-  };
-  const surfaceOf = (x, z) => {
-    if (terrain.water(x, z) > 0) return ground.seabed;
-    const d = districtAt(design, x, z);
-    if (!d) return terrain.land(x, z) > 30 ? ground.rock : ground.grass;
-    if (d.id === "mountain") return terrain.land(x, z) > 25 ? ground.rock : ground.snow;
-    if (d.id === "funpark") return ground.snow;
-    if (d.id === "harbor") return ground.sand;
-    if (d.id === "industrial") return ground.factory;
-    if (d.id === "plaza" || d.id === "neon") return ground.concrete;
-    return ground.grass;
-  };
-  buildGround(city, terrain, surfaceOf);
-  buildWater(city, {
-    sea: city.surface("sea", "bc_sea03", B, { sortBias: 1 }),
-    river: city.surface("river", "F_water00", V, { sortBias: 1 }),
-  });
+  // Ground: grass everywhere the districts do not cover (they bring their own ground).
+  const grass = city.surface("grass", "F_tilegrass00", V, { road: { surface: "dirt" } });
+  buildGround(city, terrain, () => grass, { skip: inFootprint });
 
-  // Roads.
+  // Districts: whole official tracks. Their entrances snap inward to where
+  // the official surface begins; the connector streets end there.
+  const districts = await importDistricts(city);
+  design = { ...design, districts: design.districts.map(d => districts.entrances.has(d.id)
+    ? { ...d, entrances: districts.entrances.get(d.id) } : d) };
+  // The street runs STREET_OVERLAP m past the entrance onto the district's own ground.
+  const STREET_OVERLAP = 4;
+  const INWARD = { n: [0, 1], s: [0, -1], e: [-1, 0], w: [1, 0] };
+  const moved = [];
+  for (const d of city.design.districts) for (const [index, e] of (d.entrances ?? []).entries()) {
+    const now = districts.entrances.get(d.id)?.[index];
+    if (!e.at || !now) continue;
+    const [ix, iz] = INWARD[e.facing] ?? [0, 0];
+    moved.push({ from: e.at, to: [now.at[0] + ix * STREET_OVERLAP, now.at[1] + iz * STREET_OVERLAP] });
+  }
+  design = { ...design, roads: design.roads.map(road => ({ ...road, points: road.points.map(point => {
+    const hit = moved.find(m => Math.hypot(point[0] - m.from[0], point[1] - m.from[1]) < 1);
+    return hit ? [hit.to[0], hit.to[1], ...point.slice(2)] : point;
+  }) })) };
+  city.design = design;
+
+  // Roads with the village theme's fences; gaps at junctions and entrances.
   const roadSurfaces = {
-    expressway: city.surface("road-expressway", "bc_road04", B, { road: {} }),
+    expressway: city.surface("road-expressway", "bc_road04", ["beach"], { road: {} }),
     avenue: city.surface("road-avenue", "cement08", ["common"], { road: {} }),
     street: city.surface("road-street", "cement05", ["common"], { road: {} }),
-    lane: city.surface("road-lane", "cement04", ["common"], { road: {} }),
-    circuit: city.surface("road-circuit", "f1_road_m00", K, { road: {} }),
-    tunnel: city.surface("road-tunnel", "war_road01_cj", M, { road: {} }),
   };
   const rail = city.surface("rail", "fence00", V, { road: {}, cull: 1 });
-  const tunnelWall = city.surface("tunnel-wall", "war_road_wall01", M, { road: {}, cull: 1 });
-  const cliff = city.surface("cliff-wall", "cliff_set", V, { road: {}, cull: 1 });
+  const openPoints = roadOpenings(design);
+  const nearOpening = ([x, z]) => openPoints.some(([ox, oz, r]) => Math.hypot(x - ox, z - oz) < r);
   const samples = new Map();
   for (const road of design.roads) {
+    if (road.type === "district") continue;
     const sample = sampleRoad(design, road, terrain);
     samples.set(road.id, sample);
-    buildRoadSurface(city, sample, roadSurfaces[road.type]);
-    const overWater = i => terrain.height(sample.points[i][0], sample.points[i][1]) < -0.5;
-    if (road.type === "expressway") {
-      buildRoadWall(city, sample, rail, 1, 1.2);
-      buildRoadWall(city, sample, rail, -1, 1.2);
-    } else if (road.id === "tunnel") {
-      buildRoadWall(city, sample, tunnelWall, 1, 6);
-      buildRoadWall(city, sample, tunnelWall, -1, 6);
-      buildRoadCeiling(city, sample, tunnelWall, 6);
-    } else if (road.id === "mountain") {
-      buildRoadWall(city, sample, cliff, 1, 1.0);
-      buildRoadWall(city, sample, cliff, -1, 1.0);
-    } else {
-      buildRoadWall(city, sample, rail, 1, 1.0, overWater);
-      buildRoadWall(city, sample, rail, -1, 1.0, overWater);
-    }
+    buildRoadSurface(city, sample, roadSurfaces[road.type] ?? roadSurfaces.street);
+    const where = i => !nearOpening(sample.points[i]);
+    const h = road.type === "expressway" ? 1.2 : 1.0;
+    buildRoadWall(city, sample, rail, 1, h, where);
+    buildRoadWall(city, sample, rail, -1, h, where);
   }
   buildBoundary(city, terrain, city.surface("boundary", "fence01", V, { road: {}, cull: 1, test: true }));
-
-  // Buildings, trees, landmarks.
-  buildBuildings(city, terrain, samples);
-  buildTrees(city, terrain, samples);
-  const landmarks = await importLandmarks(city, terrain);
 
   // Route: the ring expressway.
   const ring = samples.get("ring");
@@ -208,7 +194,7 @@ export async function buildCity({ library, formats, design }) {
   const extent = design.meta.extent;
   const size = Math.max(extent[1][0] - extent[0][0], extent[1][1] - extent[0][1]);
   const minimap = toMinimap({ centerX: size / 2, centerY: size / 2, scale: 236 / size });
-  const minimapPng = renderMinimap(city, minimap);
+  const minimapPng = renderMinimap(city, minimap, districts.loops);
 
   const settings = trackObject("track", xml("property", {}, [
     xml("camera", { far: "1000" }),
@@ -219,10 +205,43 @@ export async function buildCity({ library, formats, design }) {
 
   const { root, meshCount, triangles, chunks } = city.assemble();
   const model = trackContainer("", root, [route, minimap, settings]);
-  return { city, model, minimapPng, landmarks, stats: { meshCount, triangles, chunks, textures: city.textures.files.size, records: records.length } };
+  const generated = { roads: districts.loops, pois: districts.spawns, districts: design.districts, connectors: design.roads.filter(r => r.type !== "district") };
+  return { city, model, minimapPng, districts, generated,
+    stats: { meshCount, triangles, chunks, textures: city.textures.files.size, records: records.length, districts: districts.placed } };
 }
 
-/** Run the browser's extraction and course graph on the in-memory model. */
+/** Points where road fences must leave a gap: road ends, crossings and district entrances. */
+function roadOpenings(design) {
+  const roads = design.roads.filter(r => r.type !== "district");
+  const openings = [];
+  const segments = [];
+  for (const road of roads) {
+    const pts = road.points;
+    if (!road.closed) { openings.push([pts[0][0], pts[0][1], 26], [pts[pts.length - 1][0], pts[pts.length - 1][1], 26]); }
+    const count = road.closed ? pts.length : pts.length - 1;
+    for (let i = 0; i < count; i++) segments.push({ road: road.id, a: pts[i], b: pts[(i + 1) % pts.length] });
+  }
+  for (let i = 0; i < segments.length; i++) for (let j = i + 1; j < segments.length; j++) {
+    const s = segments[i], t = segments[j];
+    if (s.road === t.road) continue;
+    const hit = segmentIntersection(s.a, s.b, t.a, t.b);
+    if (hit) openings.push([hit[0], hit[1], 26]);
+  }
+  // District entrances: the street's end at the district road (a gap for the join).
+  for (const d of design.districts) for (const e of d.entrances ?? []) if (e.at) openings.push([e.at[0], e.at[1], 16]);
+  return openings;
+}
+
+function segmentIntersection(a, b, c, d) {
+  const r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]];
+  const denom = r[0] * s[1] - r[1] * s[0];
+  if (Math.abs(denom) < 1e-9) return undefined;
+  const t = ((c[0] - a[0]) * s[1] - (c[1] - a[1]) * s[0]) / denom;
+  const u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / denom;
+  if (t < -1e-6 || t > 1 + 1e-6 || u < -1e-6 || u > 1 + 1e-6) return undefined;
+  return [a[0] + t * r[0], a[1] + t * r[1]];
+}
+
 export function validateModel(formats, model) {
   const parsed = { root: model, rootOccurrence: { encoding: "new", id: 0, value: model } };
   const road = formats.YW(parsed, "speed-individual", { forceReverse: false });
@@ -239,10 +258,21 @@ export function validateModel(formats, model) {
 }
 
 async function main() {
-  const design = loadDesign();
+  const design = await loadDesign();
   const { library, formats } = await loadResourceLibrary(projectRoot, "p3553", mirrorRoot);
   const built = await buildCity({ library, formats, design });
   console.log("model", JSON.stringify(built.stats));
+  // The design plus the generated district routes and spawns, for the client and the node.
+  const merged = { ...design, districts: built.generated.districts,
+    roads: [...built.generated.connectors, ...built.generated.roads],
+    pois: [...design.pois.filter(p => !p.generated), ...built.generated.pois] };
+  const mergedJson = JSON.stringify(merged, null, 2) + "\n";
+  for (const target of [path.join(projectRoot, "design", "open-world", "city-map.json"),
+    path.join(clientDir, "src", "city", "city-map.json"),
+    path.join(projectRoot, "server-go", "internal", "game", "city", "city-map.json")]) {
+    writeFileSync(target, mergedJson);
+  }
+  console.log(`city-map.json: ${built.generated.roads.length} district routes, ${built.generated.pois.length} spawns written`);
   const report = validateModel(formats, built.model);
   console.log("validate", JSON.stringify({ ...report, start: undefined, stats: undefined }));
   console.log("start", JSON.stringify(report.start));

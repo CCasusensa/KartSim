@@ -19,7 +19,7 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 		t.Fatalf("snapshot %v", snapshot)
 	}
 	you := snapshot["you"].(map[string]any)
-	if spawn := you["spawn"].(map[string]any); spawn["id"] != "spawn-main" || spawn["z"] != 95.0 {
+	if spawn := you["spawn"].(map[string]any); spawn["id"] != "spawn-main" || spawn["z"] != 30.0 {
 		t.Fatalf("first spawn %v", spawn)
 	}
 	if members := snapshot["members"].([]any); len(members) != 1 {
@@ -37,7 +37,7 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 	// The second spawn of line 1 rotates past the main one; the roster is
 	// sorted by id and carries the hello equipment.
 	you = snapshot["you"].(map[string]any)
-	if spawn := you["spawn"].(map[string]any); spawn["id"] != "spawn-homes" {
+	if spawn := you["spawn"].(map[string]any); spawn["id"] != "spawn-plaza" {
 		t.Fatalf("second spawn %v", spawn)
 	}
 	members := snapshot["members"].([]any)
@@ -46,7 +46,7 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 		first["equipment"].(map[string]any)["itemIds"] == nil {
 		t.Fatalf("members %v", members)
 	}
-	if pose := first["pose"].(map[string]any); pose["z"] != 95.0 || pose["heading"] != 0.0 {
+	if pose := first["pose"].(map[string]any); pose["z"] != 30.0 || pose["heading"] != 0.0 {
 		t.Fatalf("alice's pose %v", pose)
 	}
 	// Line 1 is full, so Carol lands on line 2; Alice heard Bob come in, Carol hears nothing.
@@ -236,7 +236,7 @@ func TestMotionPlausibilityKicksRepeatOffenders(t *testing.T) {
 		t.Fatalf("a 7 m hop was refused: %d frames", len(frames))
 	}
 	// A declared respawn resets the reference.
-	h.must(alice, `{"type":"city-respawn","spawn":"spawn-beach"}`)
+	h.must(alice, `{"type":"city-respawn","spawn":"spawn-forest"}`)
 	h.svc.RelayMotion(alice.c, motionFrame(8, 820, 0, 480, 0))
 	h.at(bob, 820, 0, 480, 0)
 	bob.sink.takeMotion()
@@ -278,7 +278,7 @@ func TestChatChannelsAndMute(t *testing.T) {
 	}
 	h.at(alice, 0, 0, 0, 0)      // the plaza (circle r=230)
 	h.at(near, 50, 0, 0, 0)      // within 60 m, same district
-	h.at(plaza, 0, 0, 200, 0)    // the plaza, out of chat range
+	h.at(plaza, 0, 0, 120, 0)    // the plaza (its south slope), out of chat range
 	h.at(harbor, 820, 0, 480, 0) // the harbor district
 	for _, p := range []*peer{alice, near, plaza, harbor} {
 		p.sink.events(t)
@@ -381,10 +381,10 @@ func TestEmoteStateAndRespawn(t *testing.T) {
 		t.Fatalf("members %v", members)
 	}
 
-	h.must(alice, `{"type":"city-respawn","spawn":"spawn-garage"}`)
+	h.must(alice, `{"type":"city-respawn","spawn":"spawn-oldtown"}`)
 	respawns := ofType(near.sink.events(t), "city-respawn")
-	if len(respawns) != 1 || respawns[0]["pose"].(map[string]any)["z"] != -560.0 ||
-		respawns[0]["pose"].(map[string]any)["heading"] != 180.0 {
+	if len(respawns) != 1 || respawns[0]["pose"].(map[string]any)["z"] != -452.3 ||
+		respawns[0]["pose"].(map[string]any)["heading"] != 270.0 {
 		t.Fatalf("near's respawns %v", respawns)
 	}
 	h.refused(alice, `{"type":"city-respawn","spawn":"spawn-moon"}`, "INVALID_SPAWN")
@@ -633,12 +633,12 @@ func TestAdminKickAndCloseLine(t *testing.T) {
 	if err := h.svc.OpenLine(1); err != nil {
 		t.Fatal(err)
 	}
-	// Bob gets the freed id 1 and, fourth to spawn on the line, the beach
-	// spawn in the harbor district.
+	// Bob gets the freed id 1 and, fourth to spawn on the line, the 小屋街
+	// spawn (spawn-main, plaza, oldtown, homes, …).
 	h.join(bob, `{"type":"city-join","line":1}`)
 	members, err := h.svc.Members(1)
 	if err != nil || len(members) != 1 || members[0].ID != 1 || members[0].Name != "Bob" ||
-		members[0].District != "harbor" {
+		members[0].District != "homes" {
 		t.Fatalf("members %+v %v", members, err)
 	}
 }
