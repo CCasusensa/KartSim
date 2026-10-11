@@ -9,7 +9,7 @@
 | 部分 | 位置 | 公开 |
 | --- | --- | --- |
 | 运动帧格式校验：浏览器解码器解不开的帧一律不转发（否则接收方会断开整条游戏连接） | `internal/game/lobby/motion_payload.go` | 是，没有插件也生效 |
-| 把比赛事件交给插件（开赛、运动帧、完赛、道具使用、吃箱、团队集气、结束），执行插件的处理结果 | `internal/game/lobby/anticheat.go`、`internal/game/cheat` | 是 |
+| 把比赛事件交给插件（开赛、运动帧、完赛、道具使用、吃箱、道具命中上报、团队集气、结束），执行插件的处理结果 | `internal/game/lobby/anticheat.go`、`internal/game/cheat` | 是 |
 | 插件加载器（WebAssembly，由 [wazero](https://wazero.io) 在进程内运行，纯 Go，节点仍是静态二进制） | `internal/game/cheat/plugin` | 是 |
 | 具体检测项与阈值 | `plugins/anticheat.wasm` | 只提供编译产物 |
 
@@ -91,6 +91,7 @@ services:
 | 8 | teamCharge | 组队竞速：团队集气上报 |
 | 9 | progressCap | 计入结算的路线进度上限（插件不回答时用宿主的默认公式） |
 | 10 | endRace | 比赛结束，或房间被移除 |
+| 11 | itemEvent | 道具赛事件（可选，插件不认识时回空）：服务器接受的道具使用（目标、`startAt`、`etaMs`、发数、落点）、`place` 落点，以及受害者的每条 `hit`/`escape` 上报——被服务器拒绝的也给（`error` 为拒绝码），重复上报标 `repeat`。都带该道具的状态时长 `states`（道具数据里的毫秒数）。回复的违规针对发出这条事件的车手 |
 
 回复里的 `Violation` 是 `{"code","detail","action"}`，其中 `action` 为 `kick` 或 `log`。测试用的最小插件见 `internal/game/cheat/plugin/testdata/testplugin`。
 

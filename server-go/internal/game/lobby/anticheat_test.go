@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"kartsim/internal/game/cheat"
+	"kartsim/internal/game/itemmode"
 	"kartsim/internal/shared/contract"
 )
 
@@ -21,6 +22,7 @@ type fakeGuard struct {
 	finish func(x *fakeRacer, f cheat.Finish) (*cheat.Violation, map[string]any)
 	cube   func(x *fakeRacer, cubeID int) *cheat.Violation
 	charge func(x *fakeRacer, amount float64) *cheat.Violation
+	item   func(e cheat.ItemEvent) *cheat.Violation
 	cap    float64 // the progress cap (0: no opinion)
 }
 
@@ -28,6 +30,7 @@ type fakeRace struct {
 	g      *fakeGuard
 	info   cheat.RaceInfo
 	racers map[string]*fakeRacer
+	items  []cheat.ItemEvent
 	ended  bool
 }
 
@@ -62,6 +65,14 @@ func (r *fakeRace) Racer(playerID string, kart int) cheat.Racer {
 
 func (r *fakeRace) ProgressCap(int, int64) (float64, bool) { return r.g.cap, r.g.cap > 0 }
 func (r *fakeRace) End()                                   { r.ended = true }
+
+func (r *fakeRace) Item(e cheat.ItemEvent) *cheat.Violation {
+	r.items = append(r.items, e)
+	if r.g.item == nil {
+		return nil
+	}
+	return r.g.item(e)
+}
 
 func (x *fakeRacer) Motion(kind int, valid bool, now int64, payload []byte) *cheat.Violation {
 	x.frames = append(x.frames, fakeFrame{kind, valid, now})
@@ -249,6 +260,52 @@ func TestPluginHearsItemRaces(t *testing.T) {
 				t.Fatalf("item uses %v, want [%d]", x.items, item)
 			}
 		}
+	}
+}
+
+// The plugin hears item uses, placed points and every judged hit report
+// (repeats marked, refusals with their code), with the item's lifetimes; a
+// report it refuses kicks the reporter.
+func TestPluginHearsItemReports(t *testing.T) {
+	g := &fakeGuard{item: func(e cheat.ItemEvent) *cheat.Violation {
+		if e.Kind == cheat.ItemHit && e.Error != "" {
+			return &cheat.Violation{Code: "LIAR", Detail: e.Error, Action: cheat.ActionKick}
+		}
+		return nil
+	}}
+	h, _ := cheatHarness(t, g, nil)
+	a, _ := h.connectClosing("A")
+	b, bSink := h.connectClosing("B")
+	ir := h.startItemRace([]*Client{a, b}, "itemIndiCombine")
+	ir.at(a, 500, 1)
+	ir.at(b, 600, 1)
+	ir.grant(a, 1, itemmode.GroupHigh, itemmode.Rocket)
+	used := ir.send(a, "use", map[string]any{"itemId": itemmode.Rocket, "targetId": b.playerID})
+	ir.send(b, "hit", map[string]any{"useId": 1, "itemId": 7, "result": "blocked", "by": "shield"})
+	ir.send(b, "hit", map[string]any{"useId": 1, "itemId": 7, "result": "hit"})
+	if code := ir.reject(b, "hit", map[string]any{"useId": 9, "itemId": 7, "result": "hit"}); code != "CHEAT_DETECTED" {
+		t.Fatalf("refused report: %s", code)
+	}
+	race := g.races[0]
+	if len(race.items) != 4 {
+		t.Fatalf("item events %+v", race.items)
+	}
+	use, first, repeat, refused := race.items[0], race.items[1], race.items[2], race.items[3]
+	if use.Kind != cheat.ItemUse || use.PlayerID != a.playerID || use.UseID != 1 || use.ItemID != 7 ||
+		len(use.Targets) != 1 || use.Targets[0] != b.playerID || use.StartAt != int64(used["startAt"].(float64)) ||
+		use.EtaMs != int(used["etaMs"].(float64)) || use.Count != 1 || use.States["Use"] != 1500 || use.Point != nil {
+		t.Fatalf("use %+v", use)
+	}
+	if first.Kind != cheat.ItemHit || first.PlayerID != b.playerID || first.Result != "blocked" ||
+		first.By != "shield" || first.Repeat || first.Error != "" || first.At != h.clock.Now() {
+		t.Fatalf("report %+v", first)
+	}
+	if !repeat.Repeat || repeat.Result != "hit" || refused.Error != "INVALID_USE" || refused.UseID != 9 {
+		t.Fatalf("repeat %+v, refused %+v", repeat, refused)
+	}
+	assertEqual(t, bSink.closes, []string{"1008 anti-cheat"})
+	if reports := h.cheatReports(); len(reports) != 1 || reports[0].Code != "LIAR" || reports[0].PlayerID != b.playerID {
+		t.Fatalf("reports %+v", reports)
 	}
 }
 

@@ -6,7 +6,11 @@
 //   - a motion frame whose x (payload float32 at 4) is over 1000: FAR;
 //   - a finish under 1 s: QUICK, with {"frames": the racer's frames} as stats;
 //   - a third item cube: CUBES; a team charge over 1e6: CHARGE;
-//   - the progress cap is 12345 m; op 99 traps.
+//   - the progress cap is 12345 m;
+//   - an item event (op 11): a hit report blocked "by" a defence whose
+//     item's "Use" lifetime is 1500 (the host passes the item data) and
+//     with the event's point: LIAR, with the event in the detail;
+//   - op 99 traps.
 //
 // KART_ANTICHEAT=log turns the kicks into logs, KART_ANTICHEAT=broken
 // fails the init.
@@ -109,6 +113,22 @@ func acCall(op, length uint32) uint64 {
 		}
 	case 9:
 		out = le.AppendUint64(out, math.Float64bits(12345))
+	case 11:
+		var req struct {
+			Race  uint32 `json:"race"`
+			Event struct {
+				Kind     string         `json:"kind"`
+				PlayerID string         `json:"playerId"`
+				By       string         `json:"by"`
+				Point    *[3]float64    `json:"point"`
+				States   map[string]int `json:"states"`
+			} `json:"event"`
+		}
+		if json.Unmarshal(request, &req) == nil && req.Race != 0 && req.Event.Kind == "hit" &&
+			req.Event.By != "" && req.Event.States["Use"] == 1500 && req.Event.Point != nil {
+			reply(map[string]string{"code": "LIAR", "action": action,
+				"detail": req.Event.PlayerID + " " + req.Event.By + " " + string(rune('0'+int(req.Event.Point[2])))})
+		}
 	case 99:
 		panic("test trap")
 	}

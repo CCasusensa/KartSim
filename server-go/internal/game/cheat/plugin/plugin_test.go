@@ -66,6 +66,15 @@ func TestPluginCalls(t *testing.T) {
 	if v := racer.TeamCharge(2e6, 3000); v == nil || v.Code != "CHARGE" {
 		t.Fatalf("team charge: %+v", v)
 	}
+	report := cheat.ItemEvent{Kind: cheat.ItemHit, PlayerID: "player-1", UseID: 1, ItemID: 7, At: 3000,
+		Result: "blocked", By: "angel", Point: &[3]float64{1, 2, 3}, States: map[string]int{"Use": 1500}}
+	if v := race.Item(report); v == nil || v.Code != "LIAR" || v.Detail != "player-1 angel 3" {
+		t.Fatalf("item report: %+v", v)
+	}
+	report.By = ""
+	if v := race.Item(report); v != nil {
+		t.Fatalf("plain report: %+v", v)
+	}
 	v, stats := racer.Finish(cheat.Finish{ElapsedMs: 500, RacedMs: 600})
 	if v == nil || v.Code != "QUICK" || stats["frames"] != 3.0 || len(stats["items"].([]any)) != 2 {
 		t.Fatalf("finish %+v %v", v, stats)

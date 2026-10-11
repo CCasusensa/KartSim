@@ -56,6 +56,20 @@ func (l *Lobby) guard(r *room, playerID string) cheat.Racer {
 	return g
 }
 
+// itemCheat tells the plugin about an item race event c sent (it fills in
+// the item's state lifetimes) and acts on its answer: true when c was
+// kicked.
+func (l *Lobby) itemCheat(r *room, c *Client, e cheat.ItemEvent) bool {
+	rc := r.race
+	if rc == nil || rc.cheat == nil {
+		return false
+	}
+	if item, ok := l.items.Item(e.ItemID); ok && len(item.States) > 0 {
+		e.States = item.States
+	}
+	return l.cheated(r, c, rc.cheat.Item(e))
+}
+
 // racerKart is the kart a racer brought to the race (its frozen
 // equipment; 0, the practice kart, without one).
 func racerKart(rc *race, playerID string) int {

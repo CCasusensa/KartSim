@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"slices"
 
+	"kartsim/internal/game/cheat"
 	"kartsim/internal/game/itemmode"
 	"kartsim/internal/shared/contract"
 )
@@ -400,6 +401,11 @@ func (l *Lobby) itemUse(r *room, c *Client, in Request, sequence int, now int64)
 	if g := l.guard(r, c.playerID); g != nil {
 		g.ItemUse(use.ItemID)
 	}
+	if l.itemCheat(r, c, cheat.ItemEvent{Kind: cheat.ItemUse, PlayerID: c.playerID, UseID: use.ID,
+		ItemID: use.ItemID, At: now, Targets: use.Targets, StartAt: use.StartAt, EtaMs: use.EtaMs,
+		Count: use.Count, Point: cheatPoint(use.Point)}) {
+		return nil, errCheatDetected()
+	}
 	event := itemEvent(r, "used", field{"playerId", c.playerID}, field{"useId", use.ID},
 		field{"itemId", use.ItemID}, field{"targets", use.Targets}, field{"startAt", use.StartAt},
 		field{"etaMs", use.EtaMs})
@@ -434,6 +440,10 @@ func (l *Lobby) itemPlace(r *room, c *Client, in Request, sequence int, now int6
 	use, err := r.race.items.Place(c.playerID, useID, *point, now)
 	if err != nil {
 		return nil, itemFailure(err)
+	}
+	if l.itemCheat(r, c, cheat.ItemEvent{Kind: cheat.ItemPlace, PlayerID: c.playerID, UseID: use.ID,
+		ItemID: use.ItemID, At: now, Point: cheatPoint(use.Placed)}) {
+		return nil, errCheatDetected()
 	}
 	event := itemEvent(r, "placed", field{"useId", use.ID}, field{"itemId", use.ItemID},
 		field{"playerId", use.PlayerID}, field{"point", pointObj(*use.Placed)})
@@ -499,6 +509,13 @@ func (l *Lobby) itemHit(r *room, c *Client, in Request, sequence int, now int64)
 	}
 	hit, fresh, err := r.race.items.Hit(itemmode.HitRequest{VictimID: c.playerID, UseID: useID,
 		ItemID: itemID, Result: result, By: by, Variant: variant, Shot: shot, HazardID: hazardID, Now: now})
+	// The plugin hears every report the item rules judged, refused or not.
+	report := cheat.ItemEvent{Kind: cheat.ItemHit, PlayerID: c.playerID, UseID: useID, ItemID: itemID, At: now,
+		Result: result, By: by, Variant: variant, Shot: shot, HazardID: hazardID, Repeat: err == nil && !fresh,
+		Error: itemErrorCode(err)}
+	if l.itemCheat(r, c, report) {
+		return nil, errCheatDetected()
+	}
 	if err != nil {
 		return nil, itemFailure(err)
 	}
@@ -552,6 +569,10 @@ func (l *Lobby) itemEscape(r *room, c *Client, in Request, sequence int, now int
 		}
 	}
 	hit, fresh, err := r.race.items.Escape(c.playerID, useID, hazardID, now)
+	if l.itemCheat(r, c, cheat.ItemEvent{Kind: cheat.ItemEscape, PlayerID: c.playerID, UseID: useID,
+		ItemID: hit.ItemID, At: now, HazardID: hazardID, Repeat: err == nil && !fresh, Error: itemErrorCode(err)}) {
+		return nil, errCheatDetected()
+	}
 	if err != nil {
 		return nil, itemFailure(err)
 	}
@@ -581,6 +602,23 @@ func (l *Lobby) emitScans(r *room, notices []itemmode.ScanNotice) {
 		viewer.emit(encode(itemEvent(r, "scan", field{"playerId", notice.Subject},
 			field{"slots", notice.Slots}, field{"until", notice.Until})))
 	}
+}
+
+// itemErrorCode is the code of an itemmode rejection, "" for none.
+func itemErrorCode(err error) string {
+	var rejected *itemmode.Error
+	if errors.As(err, &rejected) {
+		return rejected.Code
+	}
+	return ""
+}
+
+// cheatPoint is an item point as the plugin takes it (nil for none).
+func cheatPoint(p *itemmode.Point) *[3]float64 {
+	if p == nil {
+		return nil
+	}
+	return &[3]float64{p.X, p.Y, p.Z}
 }
 
 // itemFailure turns an itemmode rejection into its error code.

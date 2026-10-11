@@ -45,6 +45,7 @@ const (
 	opTeamCharge  = 8  // u32 racer, f64 amount, i64 now -> Violation JSON | empty
 	opProgressCap = 9  // u32 race, i32 lap, i64 racedMs -> f64 | empty
 	opEndRace     = 10 // u32 race -> empty
+	opItemEvent   = 11 // JSON {"race", "event": cheat.ItemEvent} -> Violation JSON | empty (optional)
 )
 
 // FileName is the plugin's file name in the default places (Find).
@@ -268,6 +269,17 @@ func (r *race) ProgressCap(lap int, racedMs int64) (float64, bool) {
 	}
 	value := math.Float64frombits(binary.LittleEndian.Uint64(reply))
 	return value, !math.IsNaN(value) && !math.IsInf(value, 0)
+}
+
+func (r *race) Item(e cheat.ItemEvent) *cheat.Violation {
+	if r.handle == 0 {
+		return nil
+	}
+	request, _ := json.Marshal(struct {
+		Race  uint32          `json:"race"`
+		Event cheat.ItemEvent `json:"event"`
+	}{r.handle, e})
+	return r.p.violation(opItemEvent, r.p.request(opItemEvent, request))
 }
 
 func (r *race) End() {

@@ -46,6 +46,43 @@ type Finish struct {
 	ExpectFrames bool    `json:"expectFrames"`
 }
 
+// Item race events (ItemEvent.Kind).
+const (
+	ItemUse    = "use"    // an item use the node accepted
+	ItemPlace  = "place"  // a point a barricade's target or a time bomb's user reported
+	ItemHit    = "hit"    // a victim's hit report
+	ItemEscape = "escape" // a trapped racer's early escape
+)
+
+// ItemEvent is an item race event: what the node accepted, and the hit and
+// escape reports also when it refused them (Error is the refusal's code).
+// PlayerID is the racer who sent it: the user of a use or place, the victim
+// of a hit or escape. Times are the node clock (ms); points are client
+// coordinates (z up). States are the item's state lifetimes (ms) from the
+// item data.
+type ItemEvent struct {
+	Kind     string      `json:"kind"`
+	PlayerID string      `json:"playerId"`
+	UseID    int         `json:"useId"`
+	ItemID   int         `json:"itemId"`
+	At       int64       `json:"at"`
+	Targets  []string    `json:"targets,omitempty"`
+	StartAt  int64       `json:"startAt,omitempty"`
+	EtaMs    int         `json:"etaMs,omitempty"`
+	Count    int         `json:"count,omitempty"`
+	Point    *[3]float64 `json:"point,omitempty"`
+	Result   string      `json:"result,omitempty"`
+	By       string      `json:"by,omitempty"`
+	Variant  string      `json:"variant,omitempty"`
+	Shot     int         `json:"shot,omitempty"`
+	HazardID int         `json:"hazardId,omitempty"`
+	// Repeat: a report the node had recorded already (it answers the first
+	// one again).
+	Repeat bool           `json:"repeat,omitempty"`
+	Error  string         `json:"error,omitempty"`
+	States map[string]int `json:"states,omitempty"`
+}
+
 // Guard checks the races of one node.
 type Guard interface {
 	// StartRace registers a race at now (the node clock, ms).
@@ -60,6 +97,9 @@ type Race interface {
 	// ProgressCap is the most route distance a racer may have reached
 	// racedMs after the start at lap (false: no opinion).
 	ProgressCap(lap int, racedMs int64) (float64, bool)
+	// Item checks an item race event; a violation is about the racer who
+	// sent it (ItemEvent.PlayerID).
+	Item(e ItemEvent) *Violation
 	// End forgets the race.
 	End()
 }
