@@ -58,9 +58,10 @@ export function parseServerEvent(value: unknown,
   if (typeof event.type === "string" && (event.type === "city" || event.type === "ok" ||
       CITY_EVENT_TYPES.has(event.type))) {
     try {
-      // The node answers city-join with the snapshot fields on the reply itself.
+      // The node answers city-join with the snapshot fields on the reply itself;
+      // other replies (city-left …) only carry the requestId.
       if (event.type === "city") parseCitySnapshot((event as Record<string, unknown>).city ?? event);
-      else if (event.type !== "ok") parseCityEvent(event as Record<string, unknown>);
+      else if (event.type !== "ok" && event.requestId === undefined) parseCityEvent(event as Record<string, unknown>);
       return event;
     } catch (error) {
       console.warn("城市消息无效", error, JSON.stringify(event).slice(0, 400));

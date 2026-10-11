@@ -173,7 +173,9 @@ export class RainScreenEffect {
     for (const { particle, projected, alpha } of visible) {
       const depth = float32(float32(projected.z + 1) * float32(0.5));
       const size = float32(float32(1.8 - depth) * particle.size);
-      const halfWidth = size * 2 / Math.max(1, width);
+      // The port has no raindrop texture, so a drop is a thin translucent streak
+      // (about 2 px wide and up to 100 px tall) rather than a solid block.
+      const halfWidth = Math.max(1, size * 0.12) / Math.max(1, width);
       const halfHeight = size * 2.4 * 2 / Math.max(1, height);
       const corners = [
         [projected.x - halfWidth, projected.y + halfHeight],
@@ -183,7 +185,7 @@ export class RainScreenEffect {
       ];
       for (const [x, y] of corners) {
         this.positions.set([x!, y!, projected.z], vertex * 3);
-        this.colors.set([1, 1, 1, alpha], vertex * 4);
+        this.colors.set([0.85, 0.9, 1, alpha * 0.45], vertex * 4);
         vertex++;
       }
     }

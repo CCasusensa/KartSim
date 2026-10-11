@@ -115,8 +115,12 @@ export function trackContainer(name, scene, trackObjects) {
   };
 }
 
-/** Rotation about the client Z (up) axis by `degrees`, as a basis matrix. */
+/**
+ * Rotation about the client Z (up) axis by `degrees` as the node basis. The
+ * loader treats `transform[i]` as matrix rows, so this is the usual
+ * row-major rotation matrix.
+ */
 export function yawBasis(degrees) {
   const r = (degrees * Math.PI) / 180, c = Math.cos(r), s = Math.sin(r);
-  return [[c, s, 0], [-s, c, 0], [0, 0, 1]];
+  return [[c, -s, 0], [s, c, 0], [0, 0, 1]];
 }

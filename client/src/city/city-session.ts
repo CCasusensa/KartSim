@@ -200,7 +200,28 @@ export class CitySession {
       update(frame);
       if (!this.disposed && stage.active) this.frame(performance.now());
     };
+
+    // Esc twice within two seconds leaves the city (the race's Esc only cancels input).
+    this.escapeListener = (event: KeyboardEvent) => {
+      if (event.code !== "Escape" || this.disposed) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const now = performance.now();
+      if (now - this.lastEscape < 2000) {
+        this.lastEscape = -Infinity;
+        this.host.options.status("正在离开卡丁城…");
+        void this.leave();
+      } else {
+        this.lastEscape = now;
+        this.host.options.status("再按一次 Esc 离开卡丁城。");
+        this.stage?.chat?.notice?.("再按一次 Esc 离开卡丁城");
+      }
+    };
+    window.addEventListener("keydown", this.escapeListener);
   }
+
+  private escapeListener?: (event: KeyboardEvent) => void;
+  private lastEscape = -Infinity;
 
   private statusLine?: HTMLDivElement;
 
@@ -327,6 +348,8 @@ export class CitySession {
     if (this.disposed) return;
     this.disposed = true;
     this.abort.abort();
+    if (this.escapeListener) window.removeEventListener("keydown", this.escapeListener);
+    this.escapeListener = undefined;
     this.labels?.dispose();
     this.atmosphere?.dispose();
     this.statusLine?.remove();

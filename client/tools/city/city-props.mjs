@@ -232,7 +232,10 @@ const compose = (p, c) => {
   const t = mul(p, [c[9], c[10], c[11]]); r[9] = t[0]; r[10] = t[1]; r[11] = t[2];
   return r;
 };
-const localMatrix = n => { const [a, b, c] = n.transform, s = n.scale; return [a[0] * s[0], a[1] * s[0], a[2] * s[0], b[0] * s[1], b[1] * s[1], b[2] * s[1], c[0] * s[2], c[1] * s[2], c[2] * s[2], n.position[0], n.position[1], n.position[2]]; };
+// The loader reads `transform[i]` as the i-th ROW of the node matrix
+// (formats.js Jm: Matrix4.set(t[0]*sx, t[1]*sy, t[2]*sz, px, …)), so column j
+// is (transform[0][j], transform[1][j], transform[2][j]) * scale[j].
+const localMatrix = n => { const [a, b, c] = n.transform, s = n.scale; return [a[0] * s[0], b[0] * s[0], c[0] * s[0], a[1] * s[1], b[1] * s[1], c[1] * s[1], a[2] * s[2], b[2] * s[2], c[2] * s[2], n.position[0], n.position[1], n.position[2]]; };
 const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
 
 function subtreeBounds(node, parent = IDENTITY, acc = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] }) {
@@ -287,6 +290,10 @@ export async function importLandmarks(city, terrain) {
     const renamed = new Set();
     const unresolved = new Set();
     const relink = n => {
+      // Animation controllers (visibility slot 0, PRS slot 1) would move the
+      // copy back to its original scene position; landmarks are static here.
+      n.slots[0] = undefined;
+      n.slots[1] = undefined;
       for (let i = 0; i < n.slots.length; i++) {
         const slot = n.slots[i];
         if (slot?.kind === "texture") {
@@ -314,9 +321,10 @@ export async function importLandmarks(city, terrain) {
     const center = [(box.min[0] + box.max[0]) / 2, (box.min[1] + box.max[1]) / 2, box.min[2]];
     const basis = yawBasis(spec.yaw);
     const s = spec.scale;
+    // Rows convention (see localMatrix): x' = row0 · c, y' = row1 · c.
     const rotated = [
-      (basis[0][0] * center[0] + basis[1][0] * center[1]) * s,
-      (basis[0][1] * center[0] + basis[1][1] * center[1]) * s,
+      (basis[0][0] * center[0] + basis[0][1] * center[1]) * s,
+      (basis[1][0] * center[0] + basis[1][1] * center[1]) * s,
       center[2] * s,
     ];
     const floor = spec.floor ?? Math.max(0, terrain.height(spec.at[0], spec.at[1]));
