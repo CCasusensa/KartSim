@@ -1866,8 +1866,8 @@
     },
     {
       "file": "vehicle.js",
-      "bytes": 186118,
-      "sha256": "c405a9f1a348620018022cb473445c89714078801463a5f7cdfb6921813b8185",
+      "bytes": 186622,
+      "sha256": "471f84ad4c1fdd7fec82cd201f953fe191bcfdf48a5159f3bc2ee4d0e217c8bc",
       "imports": 183,
       "exports": 104
     },
@@ -1880,8 +1880,8 @@
     },
     {
       "file": "world.js",
-      "bytes": 124199,
-      "sha256": "6ae79e6f09b00183f2781d57de39db4d152bcfc5723416400f975c676b8f4755",
+      "bytes": 124304,
+      "sha256": "5c7c7f63ebd6c2946b0be18852133f0020569bb57150a240dc7fa03a45f8e23a",
       "imports": 186,
       "exports": 81
     },

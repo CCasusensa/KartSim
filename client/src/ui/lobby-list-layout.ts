@@ -8,7 +8,7 @@
 import { isItemChannel } from "../multiplayer/lobby-item-mode";
 
 export type LobbyGameplay = "ordinary" | "grip" | "shadow" | "roadblock" | "lte" | "giant" | "rp" |
-  "item" | "brawl";
+  "item" | "brawl" | "city";
 
 /** Room summary fields the list shows; the server sends these per room. */
 export interface LobbyListRoom {
@@ -92,6 +92,9 @@ export const LOBBY_TABS: readonly LobbyTab[] = [
       channel: "speedIndiCombine", channels: PAIR },
     // 50人乱斗 (server-go/BRAWL.md): open seats race as AI.
     { id: "brawl", title: "50人乱斗", subtitle: "个人/AI补位", gameplay: "brawl",
+      channel: "speedIndiCombine", channels: ["speedIndiCombine"] },
+    // 卡丁城 (design/open-world/PLAN.md): opens the open-world city, not a room list.
+    { id: "city", title: "卡丁城", subtitle: "开放世界 · 自由驾驶", gameplay: "city",
       channel: "speedIndiCombine", channels: ["speedIndiCombine"] },
   ] },
 ];

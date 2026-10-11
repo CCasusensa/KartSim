@@ -1,3 +1,4 @@
+import { enterCity, type CityLobbyHost } from "../city/city-session";
 import { formatMultiplayerError } from "./errors";
 import type { GameServer, GameServerEntry } from "./game-servers";
 import type { Gameplay, RoomSummary } from "./lobby-actions";
@@ -164,6 +165,8 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
   const lobby = await deps.loadLobby({
     ...host.options,
     onMode: (channel: string, page: number, gameplay?: Gameplay) => {
+      // 卡丁城 is not a room list; the city opens once the connection is up.
+      if ((gameplay as string) === "city") return;
       void host.list(channel, page, false, gameplay ?? "ordinary");
     },
     onUnavailable: (title: string, message: string) => {
@@ -172,17 +175,20 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
     onCreate: () => { void host.create(); },
     onJoin: (room: RoomSummary) => { void host.join(room); },
     onQuickJoin: () => { void host.quickJoin(); },
+    onCity: () => { void enterCity(host as unknown as CityLobbyHost); },
   });
   if (host.disposed) {
     lobby.dispose();
     return;
   }
   host.lobby = lobby;
-  lobby.show();
+  const cityEntry = host.options.lobbyGameplay === "city";
+  if (cityEntry) (lobby as { hide?(): void }).hide?.();
+  else lobby.show();
   host.options.onVisible?.();
   host.options.onPageAudio?.("lobby");
   host.bindClient();
-  host.options.status("多人大厅已打开，正在连接房间服务…");
+  host.options.status(cityEntry ? "正在连接卡丁城…" : "多人大厅已打开，正在连接房间服务…");
 
   const replaceClient = () => {
     host.client.dispose();
@@ -243,7 +249,9 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
     host.playerId = response.playerId!;
     host.connected = true;
     host.render();
-    host.options.status("请选择比赛频道。");
+    host.options.status(cityEntry ? "正在进入卡丁城…" : "请选择比赛频道。");
+    // The home page's 卡丁城 entry opens the lobby only to connect: go straight into the city.
+    if (cityEntry) void enterCity(host as unknown as CityLobbyHost);
     host.refresh = setInterval(() => {
       if (host.channelName && !host.disposed && !host.state.room && !host.busy &&
           !host.modalLoading && !host.dialog && host.connected) {

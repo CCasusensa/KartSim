@@ -32,6 +32,8 @@ export interface QuickEntry {
 }
 
 export const QUICK_ENTRIES: readonly QuickEntry[] = [
+  // 卡丁城 (design/open-world/PLAN.md): the open-world city, entered from home.
+  { id: "city", title: "卡丁城", kind: "multiplayer", channel: "speedIndiCombine", gameplay: "city" },
   { id: "speedIndi", title: "竞速个人赛", kind: "multiplayer", channel: "speedIndiCombine" },
   { id: "speedIndiInfinit", title: "无限加速个人赛", kind: "multiplayer",
     channel: "speedIndiInfinit" },
@@ -63,7 +65,7 @@ export interface LobbyEvent {
   states: readonly LobbyImage[];
 }
 
-export const DEFAULT_QUICK_ENTRIES = ["speedIndi", "speedIndiInfinit", "timeAttack", "trackDuel"];
+export const DEFAULT_QUICK_ENTRIES = ["city", "speedIndi", "speedIndiInfinit", "timeAttack", "trackDuel"];
 export const MAX_QUICK_ENTRIES = 5;
 const QUICK_ENTRY_KEY = "kartsim.lobbyQuickEntries";
 

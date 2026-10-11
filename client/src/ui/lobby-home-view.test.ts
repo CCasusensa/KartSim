@@ -15,9 +15,9 @@ function memoryStorage(initial?: string) {
   };
 }
 
-test("大厅快速进入默认四项与截图一致，且每项都有去处", () => {
+test("大厅快速进入默认五项（卡丁城在前）与截图一致，且每项都有去处", () => {
   assert.deepEqual(DEFAULT_QUICK_ENTRIES.map(id => quickEntry(id)?.title),
-    ["竞速个人赛", "无限加速个人赛", "计时挑战赛", "赛道对决"]);
+    ["卡丁城", "竞速个人赛", "无限加速个人赛", "计时挑战赛", "赛道对决"]);
   for (const entry of QUICK_ENTRIES) {
     if (entry.kind === "multiplayer") assert.ok(entry.channel, entry.id);
   }

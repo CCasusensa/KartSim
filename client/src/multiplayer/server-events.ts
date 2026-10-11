@@ -1,3 +1,4 @@
+import { CITY_EVENT_TYPES, parseCityEvent, parseCitySnapshot } from "../city/city-protocol";
 import { roomSlotCount } from "./lobby-brawl-mode";
 import {
   ITEM_HIT_BLOCKERS, ITEM_HIT_VARIANTS, PROTOCOL_VERSION, ROOM_RULESET, validHitOutcome,
@@ -51,6 +52,21 @@ export function parseServerEvent(value: unknown,
     return undefined;
   }
   const event = value as ParsedServerEvent;
+  // 卡丁城 (server-go/CITY.md): the city reply, the generic ok reply and the
+  // city events are validated by the city module; a malformed one is dropped
+  // without closing the connection.
+  if (typeof event.type === "string" && (event.type === "city" || event.type === "ok" ||
+      CITY_EVENT_TYPES.has(event.type))) {
+    try {
+      // The node answers city-join with the snapshot fields on the reply itself.
+      if (event.type === "city") parseCitySnapshot((event as Record<string, unknown>).city ?? event);
+      else if (event.type !== "ok") parseCityEvent(event as Record<string, unknown>);
+      return event;
+    } catch (error) {
+      console.warn("城市消息无效", error, JSON.stringify(event).slice(0, 400));
+      return { type: "city-invalid" } as unknown as ParsedServerEvent;
+    }
+  }
   switch (event.type) {
     case "p2p-signal":
       return text(event.roomId, 1, 64) && text(event.raceId, 1, 64) &&

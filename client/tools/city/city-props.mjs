@@ -34,14 +34,14 @@ export function pushBox(city, terrain, { x, z, w, d, h, wall, roof, tile = 8, ya
     const a = p[i], b = p[(i + 1) % 4];
     const run = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const color = argb(shade[i], shade[i], shade[i]);
-    // Outward-facing: with north-up client space the corner order above is
-    // clockwise on the map, so a→b with the up edge gives an outward normal.
+    // Outward-facing (away from the box centre).
+    const mid = city.client((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 0), centre = city.client(x, z, 0);
     wallBuilder.pushQuad(
       [city.client(b[0], b[1], y0), [0, h / tile]],
       [city.client(a[0], a[1], y0), [run / tile, h / tile]],
       [city.client(a[0], a[1], y0 + h), [run / tile, 0]],
       [city.client(b[0], b[1], y0 + h), [0, 0]],
-      color,
+      color, [mid[0] - centre[0], mid[1] - centre[1], 0],
     );
   }
   const roofBuilder = city.mesh("roof", roof, x, z);
@@ -51,7 +51,7 @@ export function pushBox(city, terrain, { x, z, w, d, h, wall, roof, tile = 8, ya
     [city.client(p[3][0], p[3][1], y0 + h), uv(p[3])],
     [city.client(p[2][0], p[2][1], y0 + h), uv(p[2])],
     [city.client(p[1][0], p[1][1], y0 + h), uv(p[1])],
-    argb(0.75, 0.75, 0.75),
+    argb(0.75, 0.75, 0.75), [0, 0, 1],
   );
 }
 
@@ -190,11 +190,13 @@ export function buildBoundary(city, terrain, surface) {
       const q = [a[0] + (b[0] - a[0]) * ((k + 1) / steps), a[1] + (b[1] - a[1]) * ((k + 1) / steps)];
       const yp = Math.max(terrain.height(p[0], p[1]), -2) - 1, yq = Math.max(terrain.height(q[0], q[1]), -2) - 1;
       const builder = city.mesh("boundary", surface, p[0], p[1]);
+      const mid = city.client((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, 0), centre = city.client(0, 0, 0);
       builder.pushQuad(
         [city.client(p[0], p[1], yp), [0, 1]],
         [city.client(q[0], q[1], yq), [8, 1]],
         [city.client(q[0], q[1], yq + h), [8, 0]],
         [city.client(p[0], p[1], yp + h), [0, 0]],
+        undefined, [centre[0] - mid[0], centre[1] - mid[1], 0],
       );
     }
   }
@@ -283,6 +285,7 @@ export async function importLandmarks(city, terrain) {
     // Deep copy so repeated placements stay distinct objects (the loader rejects shared nodes).
     const copies = sources.map(source => structuredClone(source));
     const renamed = new Set();
+    const unresolved = new Set();
     const relink = n => {
       for (let i = 0; i < n.slots.length; i++) {
         const slot = n.slots[i];
@@ -290,18 +293,23 @@ export async function importLandmarks(city, terrain) {
           if (!renamed.has(slot) && slot.name !== undefined) {
             const found = city.textures.index.resolve(slot.name, prefixes);
             if (found) slot.name = city.textures.adopt(found, slot.name);
-            else { console.warn(`landmark ${spec.id}: texture ${slot.name} not found; hiding ${n.name}`); n.nodeEnabled = 0; }
+            else { console.warn(`landmark ${spec.id}: texture ${slot.name} not found; dropping ${n.name}`); unresolved.add(slot); }
             // Imported road descriptors are replaced by our own collision box.
             if (slot.property) { slot.property = undefined; slot.propertyOccurrence = undefined; }
             renamed.add(slot);
           }
+          if (unresolved.has(slot)) n.dropped = true;
         }
         n.slotOccurrences[i] = slot ? { encoding: "new", value: slot } : undefined;
       }
       if (n.vertexData) n.vertexDataOccurrence = { encoding: "new", value: n.vertexData };
       n.children.forEach(relink);
+      // The scene assembly rejects disabled nodes, so nodes with a missing texture are removed.
+      n.children = n.children.filter(child => !child.dropped);
+      n.childOccurrences = n.children.map(child => ({ encoding: "new", value: child }));
     };
     copies.forEach(relink);
+    for (let i = copies.length - 1; i >= 0; i--) if (copies[i].dropped) copies.splice(i, 1);
     const box = copies.reduce((acc, c) => subtreeBounds(c, IDENTITY, acc), { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] });
     const center = [(box.min[0] + box.max[0]) / 2, (box.min[1] + box.max[1]) / 2, box.min[2]];
     const basis = yawBasis(spec.yaw);
@@ -328,8 +336,10 @@ export async function importLandmarks(city, terrain) {
       const builder = city.mesh("landmark-collision", invisible, spec.at[0], spec.at[1]);
       for (let i = 0; i < 4; i++) {
         const a = p[i], b = p[(i + 1) % 4];
+        const mid = city.client((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 0), centre = city.client(spec.at[0], spec.at[1], 0);
         builder.pushQuad([city.client(b[0], b[1], floor - 1), [0, 1]], [city.client(a[0], a[1], floor - 1), [1, 1]],
-          [city.client(a[0], a[1], floor + Math.min(h, 30)), [1, 0]], [city.client(b[0], b[1], floor + Math.min(h, 30)), [0, 0]]);
+          [city.client(a[0], a[1], floor + Math.min(h, 30)), [1, 0]], [city.client(b[0], b[1], floor + Math.min(h, 30)), [0, 0]],
+          undefined, [mid[0] - centre[0], mid[1] - centre[1], 0]);
       }
     }
     placed.push({ id: spec.id, nodes: copies.length, size: [w, d, h].map(v => Math.round(v)) });

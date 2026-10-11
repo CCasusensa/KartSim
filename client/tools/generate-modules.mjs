@@ -408,6 +408,60 @@ vehicleAssetLoaderMethodOverrides.set("loadMap", "  async loadMap(path, trackId,
 const itemWorldVehicleImports = [
   'import { isItemRaceRoom, loadItemGameTrackSources, loadItemRaceFields } from "../item/item-race-map.ts";',
 ];
+// city: 卡丁城 (design/open-world/PLAN.md, server-go/CITY.md). The city is a
+// normal track outside the release track table, and a city session is a
+// one-racer "race" whose other karts arrive later: A40 falls back to the
+// city track choice, lets a race have one roster entry, always builds the
+// snow effect for the city (its weather changes at run time) and exposes its
+// per-racer loader (`loadRosterEntry`) so members can be added and disposed
+// while the session runs.
+const cityVehicleImports = [
+  'import { cityTrackChoice, isCityRace } from "../city/city-track.ts"; // city',
+];
+const cityRosterPatches = [
+  [`    e.roster.length < 2 ||`, `    e.roster.length < (isCityRace(e) ? 1 : 2) || // city`],
+];
+const cityRaceAssetPatches = [
+  [`const E = x.find((D) => D.id === t.trackId);`,
+    `const E = x.find((D) => D.id === t.trackId) ?? cityTrackChoice(g, t.trackId); // city`],
+  [`    const q = C.data.weather?.snowEnabled
+      ? await A7.load(g, n.targetRandom)`,
+    `    const q = C.data.weather?.snowEnabled || isCityRace(t) // city
+      ? await A7.load(g, n.targetRandom)`],
+  [`    for (let O = 0; O < h.length; ++O) {
+      const F = t.roster[O],
+        z = F.playerId === r.playerId,
+        Y = u.competition && !z ? zQ(h[O], v) : h[O],`,
+    `    const loadRosterEntry = async (F, entry) => { // city: also adds 卡丁城 members later
+      const P2 = [];
+      const z = F.playerId === r.playerId,
+        Y = u.competition && !z ? zQ(entry, v) : entry,`],
+  [`? Z00(h[O], t.rp.draws[F.playerId])`, `? Z00(entry, t.rp.draws[F.playerId])`],
+  [`      (S.push(() => y40(R)), w());`, `      (P2.push(() => y40(R)), w());`],
+  [`      ($ && S.push(() => $.dispose()), w());`, `      ($ && P2.push(() => $.dispose()), w());`],
+  [`      (S.push(() => {
+        (c0.ordinary?.scene.dispose(), c0.linked?.scene.dispose());
+      }),
+        w(),
+        L.push({`,
+    `      (P2.push(() => {
+        (c0.ordinary?.scene.dispose(), c0.linked?.scene.dispose());
+      }),
+        S.push(() => P2.forEach((f2x) => f2x())),
+        w(),
+        L.push({
+          dispose: () => { P2.splice(0).forEach((f2x) => f2x()); }, // city`],
+  [`        }));
+    }
+    if (!n.isGenerationCurrent(A))`,
+    `        }));
+      return L[L.length - 1];
+    };
+    for (let O = 0; O < h.length; ++O) await loadRosterEntry(t.roster[O], h[O]); // city
+    if (!n.isGenerationCurrent(A))`],
+  [`      participants: L,`, `      participants: L,
+      loadRosterEntry, // city`],
+];
 const itemWorldVehicleOps = [
   "const itemWorldFieldOps = { createObject: () => new T2(), originalAsset: nl, decodeModel: y9, decodeAudio: Q9, loadModel: c5, routeAudio: S9 };",
   "trackMapOps.loadItemGame = loadItemGameTrackSources;",
@@ -2205,7 +2259,12 @@ const iv = createDriftEffectClass(driftEffectDependencies);`,
             ? Q[F.team - 1].dyeId
             : individualRiderDye(e, F.slot),`).replace(dyedCharacters, `c0 = await (
           Q || F0 !== void 0
-            ? new ul(`), itemWorldRaceAssetPatches) });
+            ? new ul(`), [...itemWorldRaceAssetPatches, ...cityRaceAssetPatches]) });
+    continue;
+  }
+  if (declarationName === "w40") { // city: a 卡丁城 session has a one-racer roster
+    bodies.get("vehicle").push({ at: node.start,
+      text: applyItemWorldPatches(source.slice(node.start, node.end), cityRosterPatches) });
     continue;
   }
   if (declarationName === "qc0") {
@@ -4635,6 +4694,7 @@ function renderModule(name) {
     lines.push('import { loadVehicleAsset } from "../vehicle/load-vehicle-asset.ts";');
     lines.push('import { loadTrackMap, loadTimeAttackMap, loadMultiplayerMap } from "../vehicle/load-track-map.ts";');
     lines.push(...itemWorldVehicleImports); // item-mode(world)
+    lines.push(...cityVehicleImports); // city
     lines.push('import { KartAudioRuntime, loadKartAudio, decodeMotorAudio, parseRoadSoundConfig } from "../vehicle/kart-audio-runtime.ts";');
     lines.push('import { loadCharacterAsset } from "../vehicle/load-character-asset.ts";');
     lines.push('import { SlipstreamVisual, loadSlipstreamVisual, SlipstreamAudio, loadSlipstreamAudio } from "../vehicle/slipstream-effects.ts";');
@@ -5467,6 +5527,7 @@ function awardPodiumLoadDependencies() { return {
     lines.push("const localRaceControllerDependencies = { construction: localRaceConstructionDependencies, runtime: localRaceDependencies, makeLapTiming: () => new vL(), makeLifecycle: () => new OQ(), makeResetState: () => pr(), makeWarpNext: () => new Qk(), resetVisible: gL };");
     lines.push("const raceRoomDependencies = { modeOf: G2, sameRp: t7, sameRoadblock: oR, sameLte: Nw, sameGiant: yI, toLocalTick: Y3, racingState: X2.Racing };");
     lines.push("const racePresenterInitializationDependencies = { createCameraShake: (random, anchor) => new nP(random, anchor), createRankRoster: (roster, playerId) => new Tr0(roster, playerId), createLightFactor: random => new sP(random), createAction2d: assets => new dI(assets), applyTrackFog: (scene, track) => kv(scene, track), createRacerView: scene => new Vg(scene), vehicleParts: vehicle => lc(vehicle), serializedRoot: model => J5(model), get accessorySockets() { return oP; }, createLinkedPresentation: (...args) => new _a(...args), attachAura: (...args) => ev(...args), createGiantAppearance: (...args) => new GiantAppearance(...args, giantAppearanceDependencies), startPosition: (...args) => rL(...args), createShadowPresentation: object => new $i0(object) };");
+    lines.push("export { racePresenterInitializationDependencies }; // city: 卡丁城 attaches members' karts with them");
     lines.push("const racePresenterFrameDependencies = { result: { get countdownState() { return X2.Countdown; }, render: (...args) => e4(...args) }, events: { get racingState() { return X2.Racing; } }, participants: { updateRemoteVehicleEffects: (...args) => xr0(...args), updateLocalVehicleEffects: (...args) => Mr0(...args) }, hud: { rankByProgress: (...args) => _r0(...args), rankFallback: (...args) => Gr0(...args), rankWithResults: (...args) => Br0(...args), updateTachometer: (...args) => QL(...args), prepareScene: (...args) => e4(...args), get racingState() { return X2.Racing; } } };");
     lines.push("const racePresenterSetupDependencies = { flyingPetItem: (library, itemId) => Ma(library, itemId), serializedRoot: model => J5(model), loadFlyingPet: options => S4.race(options), paintColors: (library, itemId) => We(library, itemId), loadRoadblockFlag: (...args) => _v.load(...args), loadGiant: (...args) => Fv.load(...args), loadRoadblockResult: (...args) => Bv.load(...args), nowMs: () => performance.now() };");
     lines.push("const racePresenterTrackEventDependencies = { loadEffects: (...args) => b7.load(...args), loadAudio: (...args) => v7.load(...args), loadDummyAudio: (...args) => m7.load(...args) };");
@@ -5771,8 +5832,9 @@ const brawlPatches = new Map([
       '      : e.brawl !== void 0\n' +
       '  )\n' +
       '    throw new Error("50人乱斗冻结参数无效。");\n'],
-    ['    e.roster.length < 2 ||\n    e.roster.length > 8\n  )',
-      '    e.roster.length < 2 ||\n    e.roster.length > roomSlotCount(G2(n)) // brawl(lobby)\n  )'],
+    // The city roster patch (cityRosterPatches) has already rewritten the lower bound.
+    ['    e.roster.length < (isCityRace(e) ? 1 : 2) || // city\n    e.roster.length > 8\n  )',
+      '    e.roster.length < (isCityRace(e) ? 1 : 2) || // city\n    e.roster.length > roomSlotCount(G2(n)) // brawl(lobby)\n  )'],
     ['      r.slot < 0 ||\n      r.slot > 7\n    )',
       '      r.slot < 0 ||\n      r.slot > roomSlotCount(G2(n)) - 1 // brawl(lobby)\n    )'],
   ]],

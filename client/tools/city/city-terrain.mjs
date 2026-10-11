@@ -74,9 +74,10 @@ export function buildGround(city, terrain, surfaceOf, { cell = 40 } = {}) {
     // Ground quads: counter-clockwise seen from above once converted to client space.
     const builder = city.mesh(`ground:${surface.texture}`, surface, x0 + cell / 2, z0 + cell / 2);
     const [a, b, c, d] = corners.map(p => [city.client(p[0], p[1], p[2]), uv(p)]);
-    builder.pushQuad(a, d, c, b);
+    builder.pushQuad(a, d, c, b, undefined, UP);
   }
 }
+const UP = [0, 0, 1];
 
 /** Water surfaces at WATER_LEVEL (not drivable). */
 export function buildWater(city, surfaces) {
@@ -86,13 +87,9 @@ export function buildWater(city, surfaces) {
   // Sea: clip the polygon to the map extent by densifying and triangulating as is.
   const seaBuilder = city.mesh("water:sea", surfaces.sea, 900, 900);
   const polygon = sea.polygon.map(p => [clamp(p[0], -1200, 1200), clamp(p[1], -1200, 1200)]);
-  const seaIndex = polygon.map(p => seaBuilder.vertex(city.client(p[0], p[1], level), seaUv(p), [0, 0, 1]));
   for (const [ia, ib, ic] of triangulate2(polygon)) {
-    const a = polygon[ia], b = polygon[ib], c = polygon[ic];
-    // Keep the winding that faces up in client space (counter-clockwise on the map with north up).
-    const area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-    if (area < 0) seaBuilder.triangle(seaIndex[ia], seaIndex[ib], seaIndex[ic]);
-    else seaBuilder.triangle(seaIndex[ia], seaIndex[ic], seaIndex[ib]);
+    const corner = index => [city.client(polygon[index][0], polygon[index][1], level), seaUv(polygon[index])];
+    seaBuilder.pushTriangle(corner(ia), corner(ib), corner(ic), undefined, UP);
   }
   // River: a strip along the centreline.
   const { points } = densify2(river.points, 12, false);
@@ -104,7 +101,7 @@ export function buildWater(city, surfaces) {
     const corners = [[p[0] + nx * half, p[1] + nz * half], [p[0] - nx * half, p[1] - nz * half], [q[0] - nx * half, q[1] - nz * half], [q[0] + nx * half, q[1] + nz * half]];
     const builder = city.mesh("water:river", surfaces.river, p[0], p[1]);
     const [a, b, c, d] = corners.map(v => [city.client(v[0], v[1], level), seaUv(v)]);
-    builder.pushQuad(a, d, c, b);
+    builder.pushQuad(a, d, c, b, undefined, UP);
   }
   // Lake: a fan.
   const lakeBuilder = city.mesh("water:lake", surfaces.river, lake.center[0], lake.center[1]);
@@ -116,5 +113,5 @@ export function buildWater(city, surfaces) {
     const p = [lake.center[0] + Math.cos(a) * (lake.radius + 8), lake.center[1] + Math.sin(a) * (lake.radius + 8)];
     ring.push(lakeBuilder.vertex(city.client(p[0], p[1], level), seaUv(p), [0, 0, 1]));
   }
-  for (let i = 0; i < segments; i++) lakeBuilder.triangle(center, ring[i], ring[(i + 1) % segments]);
+  for (let i = 0; i < segments; i++) lakeBuilder.triangle(center, ring[(i + 1) % segments], ring[i]);
 }

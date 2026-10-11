@@ -51,8 +51,8 @@ export class RainScreenEffect {
       depthTest: true,
       depthWrite: false,
       blending: NormalBlending,
+      // three declares the vec4 colour attribute itself (vertexColors with a 4-component attribute).
       vertexShader: `
-        attribute vec4 color;
         varying vec4 vColor;
         void main() {
           vColor = color;

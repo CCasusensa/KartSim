@@ -22,7 +22,8 @@ export function registerCityTrack(): void {
     id: CITY_TRACK_ID,
     cnTitle: CITY_MAP.meta.name,
     gameType: "speed",
-    laps: 1,
+    // Free roam never finishes: the lifecycle ends a race at lap > laps.
+    laps: 99999,
     difficulty: 1,
     folder: CITY_TRACK_ID,
     theme: "village",
@@ -33,4 +34,24 @@ export function registerCityTrack(): void {
     speedPool: false,
     roadExtent: size + 1,
   });
+}
+
+/** True for the city "race" snapshot the city session fabricates. */
+export function isCityRace(race: { trackId?: unknown } | undefined): boolean {
+  return race?.trackId === CITY_TRACK_ID;
+}
+
+interface MapAsset { virtualPath: string }
+interface MapLibrary { mapAssets(): readonly MapAsset[] }
+
+/**
+ * The track catalog is built from the release track table, which does not
+ * list the city; the race asset loader falls back to this choice.
+ */
+export function cityTrackChoice(library: MapLibrary, trackId: string):
+  { id: string; path: string } | undefined {
+  if (trackId !== CITY_TRACK_ID) return undefined;
+  const asset = library.mapAssets().find(entry =>
+    entry.virtualPath.toLowerCase() === CITY_TRACK_PATH.toLowerCase());
+  return asset ? { id: CITY_TRACK_ID, path: asset.virtualPath } : undefined;
 }

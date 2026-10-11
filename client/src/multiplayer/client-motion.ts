@@ -22,6 +22,8 @@ export interface ClientMotionHost {
   };
   motionListeners: Set<(message: DecodedGameMotion) => void>;
   clock: ClockSynchronizer;
+  /** 卡丁城: consumes city frames before the race decoder sees them. */
+  binaryInterceptor?: (bytes: Uint8Array) => boolean;
   dispose(): void;
 }
 
@@ -34,6 +36,9 @@ export function acceptServerMotion(host: ClientMotionHost, input: unknown): void
     : ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength)
       : undefined;
   if (!bytes) { host.dispose(); return; }
+  // 卡丁城 frames (0xC1 motion, 0xC2 radar) share the channel; the city
+  // session installs an interceptor that consumes them.
+  if (host.binaryInterceptor?.(bytes)) return;
   const motion = host.decoder.decode(bytes);
   if (!motion) { host.dispose(); return; }
   const message = host.motionScope && resolveGameMotion(motion, host.motionScope);

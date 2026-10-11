@@ -56,9 +56,11 @@ export function buildRoadSurface(city, sample, surface) {
       [city.client(r0[0], r0[1], y0), [1, v0]],
       [city.client(r1[0], r1[1], y1), [1, v1]],
       [city.client(l1[0], l1[1], y1), [0, v1]],
+      undefined, UP,
     );
   }
 }
+const UP = [0, 0, 1], DOWN = [0, 0, -1];
 
 /**
  * A vertical rail/wall along one side (+1 left, -1 right) of the road:
@@ -75,15 +77,16 @@ export function buildRoadWall(city, sample, surface, side, h, where = () => true
     const y0 = sample.elevation[i] + base, y1 = sample.elevation[j] + base;
     const u0 = sample.s[i] / h, u1 = (closed && j === 0 ? sample.total : sample.s[j]) / h;
     const builder = city.mesh(`wall:${sample.road.id}`, surface, a[0], a[1]);
-    // Face the road: for the left side the wall's front faces −normal.
-    const quad = [
+    // The wall faces the road (its collision normal pushes karts back onto it).
+    const [nx, nz] = sample.normals[i];
+    const toRoad = city.clientDirection(-side * nx, -side * nz);
+    builder.pushQuad(
       [city.client(a[0], a[1], y0), [u0, 1]],
       [city.client(b[0], b[1], y0), [u1, 1]],
       [city.client(b[0], b[1], y1 + h), [u1, 0]],
       [city.client(a[0], a[1], y0 + h), [u0, 0]],
-    ];
-    if (side > 0) builder.pushQuad(quad[0], quad[1], quad[2], quad[3]);
-    else builder.pushQuad(quad[1], quad[0], quad[3], quad[2]);
+      undefined, [toRoad[0], toRoad[1], 0],
+    );
   }
 }
 
@@ -100,6 +103,7 @@ export function buildRoadCeiling(city, sample, surface, h) {
       [city.client(l0[0], l0[1], y0), [0, sample.s[i] / 10]],
       [city.client(l1[0], l1[1], y1), [0, sample.s[j] / 10]],
       [city.client(r1[0], r1[1], y1), [1, sample.s[j] / 10]],
+      undefined, DOWN,
     );
   }
 }

@@ -264,6 +264,9 @@ async function main() {
   renameSky(sky);
   files.push({ path: "skydome.1s", bytes: encodeTrackModel(sky) });
   files.push({ path: "xt_minimap.png", bytes: built.minimapPng });
+  // Weather config: the rain effect exists (off at start); the city clock turns it on.
+  const trackXml = "<?xml version='1.0' encoding='UTF-16'?>\n<trackInfo>\n\t<track filename='track'>\n\t\t<rainEffect enable='true' onStart='false'/>\n\t</track>\n</trackInfo>\n";
+  files.push({ path: "track.xml", bytes: new Uint8Array(Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(trackXml, "utf16le")])) });
   for (const [stem, make] of Object.entries(SKY_TEXTURES)) files.push({ path: `${stem}.png`, bytes: make() });
   for (const entry of await built.city.textures.entries()) files.push({ path: entry.path, bytes: entry.bytes });
   mkdirSync(outDir, { recursive: true });

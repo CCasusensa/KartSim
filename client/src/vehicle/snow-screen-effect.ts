@@ -108,8 +108,8 @@ export class SnowScreenEffect {
       depthTest: true,
       depthWrite: false,
       blending: NormalBlending,
+      // three declares the vec4 colour attribute itself (vertexColors with a 4-component attribute).
       vertexShader: `
-        attribute vec4 color;
         varying vec4 vColor;
         varying vec2 vUv;
         void main() {

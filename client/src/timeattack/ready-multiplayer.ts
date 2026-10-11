@@ -245,6 +245,8 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
     onHover: () => host.getInterfaceAudio()?.playHover(),
     onStartActivate: () => host.getInterfaceAudio()?.playStart(),
     onActivate: () => host.getInterfaceAudio()?.playClick(),
+    // 卡丁城 has no room list: leaving the city closes the lobby and returns home.
+    onCityExit: () => { if (controller.multiplayer === lobby) controller.closeMultiplayer(); },
   });
   controller.multiplayer = lobby;
   controller.activeTimeAttackReady?.freeze();

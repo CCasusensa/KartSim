@@ -20,6 +20,8 @@ export interface LobbyListActionHost {
     onMode(channel: string, page: number, gameplay: string): void;
     onCreate?(): void;
     onQuickJoin?(): void;
+    /** 卡丁城: the city card opens the open-world city instead of a room list. */
+    onCity?(): void;
     onJoin?(room: LobbyRoomSummary): void;
     onUnavailable?(title: string, message: string): void;
   };
@@ -56,6 +58,7 @@ export function activateLobbyListEntry(
   if (name.startsWith("cat:")) {
     const found = lobbyCategory(name.slice(4));
     if (!found) return;
+    if (found.category.gameplay === "city") { host.options.onCity?.(); return; }
     state.tab = found.tab.id;
     state.category = found.category.id;
     host.render?.();
@@ -76,6 +79,7 @@ export function activateLobbyListEntry(
     return;
   }
 
+  if (name === "cityRoam") { host.options.onCity?.(); return; }
   const choice = modeForButton(name);
   if (choice) {
     // Mode cards are speed-channel games; from an item list they start on the speed pair.

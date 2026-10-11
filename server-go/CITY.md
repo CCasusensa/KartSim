@@ -16,7 +16,7 @@
 
 | 请求 | 字段 | 答复 / 说明 |
 | --- | --- | --- |
-| `city-join` | `line?`（整数） | `{"type":"city","requestId":…,"city":<快照>}`；进入后广播 `city-joined` 给实例内其他人 |
+| `city-join` | `line?`（整数） | `{"type":"city","requestId":…, …快照字段}`（快照字段直接放在答复里）；进入后广播 `city-joined` 给实例内其他人 |
 | `city-leave` | — | `{"type":"city-left","requestId":…}`；广播 `city-left` |
 | `city-chat` | `text`（1–60 个码点，不含换行）、`channel`（`"near"`、`"district"`、`"city"`） | 成功答复 `{"type":"ok","requestId":…}`；广播 `city-chat` 事件。`near` 只发给发送者 `KART_CITY_CHAT_RADIUS`（默认 60 m）内的成员，`district` 发给同分区（见 §5 分区判定）的成员，`city` 发给全实例。限流：每秒 1 条、突发 5，超出后禁言 10 秒（`CHAT_MUTED`），与小屋聊天相同 |
 | `city-emote` | `emote`（整数 1–16） | `{"type":"ok"}`；广播 `city-emote` 给 `KART_CITY_INTEREST_RADIUS` 内的成员。限流每秒 2 条 |

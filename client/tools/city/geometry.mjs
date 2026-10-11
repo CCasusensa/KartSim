@@ -157,19 +157,28 @@ export class MeshBuilder {
     return this.positions.length - 1;
   }
   triangle(a, b, c) { this.indices.push(a, b, c); }
-  /** Quad from four corner vertices [position, uv] with an optional colour. */
-  pushQuad(a, b, c, d, color, flip = false) {
+  /**
+   * Quad from four corner vertices [position, uv] with an optional colour.
+   * `facing` is the side the quad must face: the winding is flipped when the
+   * natural normal points the other way (the design→client mapping mirrors
+   * one axis, so corner orders written in design space come out reversed).
+   */
+  pushQuad(a, b, c, d, color, facing) {
     const n = normalize(cross(sub(b[0], a[0]), sub(c[0], a[0])));
+    const flip = facing ? dot(n, facing) < 0 : false;
     const normal = flip ? scale(n, -1) : n;
     const ia = this.vertex(a[0], a[1], normal, color), ib = this.vertex(b[0], b[1], normal, color);
     const ic = this.vertex(c[0], c[1], normal, color), id = this.vertex(d[0], d[1], normal, color);
     if (flip) { this.triangle(ia, ic, ib); this.triangle(ia, id, ic); }
     else { this.triangle(ia, ib, ic); this.triangle(ia, ic, id); }
   }
-  /** Triangle from three [position, uv] corners. */
-  pushTriangle(a, b, c, color) {
-    const normal = normalize(cross(sub(b[0], a[0]), sub(c[0], a[0])));
-    this.triangle(this.vertex(a[0], a[1], normal, color), this.vertex(b[0], b[1], normal, color), this.vertex(c[0], c[1], normal, color));
+  /** Triangle from three [position, uv] corners; `facing` as in pushQuad. */
+  pushTriangle(a, b, c, color, facing) {
+    const n = normalize(cross(sub(b[0], a[0]), sub(c[0], a[0])));
+    const flip = facing ? dot(n, facing) < 0 : false;
+    const normal = flip ? scale(n, -1) : n;
+    const ia = this.vertex(a[0], a[1], normal, color), ib = this.vertex(b[0], b[1], normal, color), ic = this.vertex(c[0], c[1], normal, color);
+    if (flip) this.triangle(ia, ic, ib); else this.triangle(ia, ib, ic);
   }
   isEmpty() { return this.indices.length === 0; }
   /** Split into pieces of at most `maxVertices` vertices (triangle granularity). */

@@ -34,6 +34,7 @@ import { loadTrackMap, loadTimeAttackMap, loadMultiplayerMap } from "../vehicle/
 import { isItemRaceRoom, loadItemGameTrackSources, loadItemRaceFields } from "../item/item-race-map.ts";
 import { loadItemRacePresenter } from "../item/item-race-presenter.ts"; // item-mode(fx)
 import { itemRaceVehicleSpec } from "../physics/item-race-tuning.ts"; // item-mode(p3p)
+import { cityTrackChoice, isCityRace } from "../city/city-track.ts"; // city
 import { KartAudioRuntime, loadKartAudio, decodeMotorAudio, parseRoadSoundConfig } from "../vehicle/kart-audio-runtime.ts";
 import { loadCharacterAsset } from "../vehicle/load-character-asset.ts";
 import { SlipstreamVisual, loadSlipstreamVisual, SlipstreamAudio, loadSlipstreamAudio } from "../vehicle/slipstream-effects.ts";
@@ -5948,7 +5949,7 @@ function w40(n, e) {
     ![4, 7].includes(n.speed) ||
     n.race?.raceId !== e.raceId ||
     (n.randomTrackCode === void 0 && n.trackId !== e.trackId) ||
-    e.roster.length < 2 ||
+    e.roster.length < (isCityRace(e) ? 1 : 2) || // city
     e.roster.length > roomSlotCount(G2(n)) // brawl(lobby)
   )
     throw new Error("多人实跑开放P3553国服标准或无限速度的个人与组队竞速。");
@@ -6065,7 +6066,7 @@ async function A40(n, e, t, i, r, s) {
       g.timeAttackGarageCatalog(),
     ]);
   w();
-  const E = x.find((D) => D.id === t.trackId);
+  const E = x.find((D) => D.id === t.trackId) ?? cityTrackChoice(g, t.trackId); // city
   if (!E) throw new Error("本局赛道不在当前资源目录中。");
   const _ = new ul(rd(n, h[0])),
     C = await (
@@ -6110,7 +6111,7 @@ async function A40(n, e, t, i, r, s) {
     K && S.push(() => K.dispose());
     const P = K ? await y7.load(g, i) : void 0;
     (P && S.push(() => P.dispose()), w());
-    const q = C.data.weather?.snowEnabled
+    const q = C.data.weather?.snowEnabled || isCityRace(t) // city
       ? await A7.load(g, n.targetRandom)
       : void 0;
     (q && S.push(() => q.dispose()), w());
@@ -6118,13 +6119,13 @@ async function A40(n, e, t, i, r, s) {
     (S.push(() => e0.dispose()), w());
     const Q = e.mode === "team" || t.roadblock ? await fa(g) : void 0,
       U = await MZ(g, e.speed);
-    for (let O = 0; O < h.length; ++O) {
-      const F = t.roster[O],
-        z = F.playerId === r.playerId,
-        Y = u.competition && !z ? zQ(h[O], v) : h[O],
+    const loadRosterEntry = async (F, entry) => { // city: also adds 卡丁城 members later
+      const P2 = [];
+      const z = F.playerId === r.playerId,
+        Y = u.competition && !z ? zQ(entry, v) : entry,
         X = F.playerId === t.roadblock?.runnerId,
         l0 = t.rp
-          ? Z00(h[O], t.rp.draws[F.playerId])
+          ? Z00(entry, t.rp.draws[F.playerId])
           : t.roadblock
             ? s20(Y, X, M.karts, Q)
             : Y,
@@ -6200,14 +6201,14 @@ async function A40(n, e, t, i, r, s) {
           !z,
           z && l,
         );
-      (S.push(() => y40(R)), w());
+      (P2.push(() => y40(R)), w());
       const $ = await mv.load(
         g,
         R.imported.renderScene,
         C.environment,
         C.stageBinding,
       );
-      ($ && S.push(() => $.dispose()), w());
+      ($ && P2.push(() => $.dispose()), w());
       const o0 = F0 ?? O2.equipment.itemIds[70],
         c0 = await (
           Q || F0 !== void 0
@@ -6231,11 +6232,13 @@ async function A40(n, e, t, i, r, s) {
           C.stageBinding,
           !0,
         );
-      (S.push(() => {
+      (P2.push(() => {
         (c0.ordinary?.scene.dispose(), c0.linked?.scene.dispose());
       }),
+        S.push(() => P2.forEach((f2x) => f2x())),
         w(),
         L.push({
+          dispose: () => { P2.splice(0).forEach((f2x) => f2x()); }, // city
           characterDyeId: o0,
           playerId: F.playerId,
           slot: F.slot,
@@ -6249,7 +6252,9 @@ async function A40(n, e, t, i, r, s) {
             charger: E0.chargeAntiCollideBalance,
           },
         }));
-    }
+      return L[L.length - 1];
+    };
+    for (let O = 0; O < h.length; ++O) await loadRosterEntry(t.roster[O], h[O]); // city
     if (!n.isGenerationCurrent(A))
       throw new Error("多人比赛装配期间资源库已变化。");
     return {
@@ -6275,6 +6280,7 @@ async function A40(n, e, t, i, r, s) {
       rainAudio: P,
       snow: q,
       participants: L,
+      loadRosterEntry, // city
       draftAudio: e0,
       dispose: I,
     };
