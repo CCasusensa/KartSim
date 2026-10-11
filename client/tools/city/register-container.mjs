@@ -20,7 +20,7 @@ import { createHash } from "node:crypto";
 import { closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readSync,
   renameSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 import { deflateSync, inflateSync } from "node:zlib";
 
 import { scanRhoArchiveIndex } from "../../src/codecs/rho-index-scan.ts";
@@ -239,6 +239,3 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
     process.exit(1);
   }
 }
-
-// Resolve the script directory for callers that import this module.
-export const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
