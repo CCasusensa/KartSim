@@ -9,5 +9,6 @@
 | 比赛循环 | `stage-lifecycle.ts`、`stage-update.ts`、`driving-loop.ts` | 倒计时、驾驶逐帧、圈数、完赛和返回 Ready |
 | 重置与呈现 | `automatic-reset.ts`、`checkpoint-reset.ts`、`race-reset.ts`、`stage-render.ts`、`race-hud.ts`、`action-dispatch.ts` | 低速或离轨重置、检查点、HUD、场景和操作派发 |
 | Ghost | `ghost-capture.ts`、`record-service.ts` | 帧采集、完赛记录提交、装备快照和重放载荷 |
+| 录像观看 | `ready-replay.ts`、`ready-replays.ts`、`replay-session.ts`、`replay-observe.ts` | 排位榜录像下载、"我的回放"列表（本机影子记录）、OB 观看会话与镜头（server-go TIMEATTACK.md 4） |
 
 `record-service.ts` 接管发行版 `Nh0` 的 `restore`、`promote`、`captureReplay`、`rawRecording` 与 `currentEquipment`。相邻差分测试覆盖记录发布、空录制、错误路径和装备数据。其他测试在 `tests/` 和相邻目录中；运行 `npm run verify` 会同时进行生成、类型检查、测试和构建。

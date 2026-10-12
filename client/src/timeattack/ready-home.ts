@@ -15,6 +15,7 @@ import type { ReadyFlowController } from "./ready-flow";
 import { currentRoomSubject, localRiderName, type ReadyHouseController,
   type ReadyHouseLibrary } from "./ready-house";
 import { leaveStory, loadStoryMenu, openStoryChapter } from "./ready-story";
+import { deleteLocalReplay, loadReplayMenu, openLocalReplay, type ReadyReplayController } from "./ready-replays";
 import { claimProEmblem, leaveLicense, openLicenseStep, refreshLicenseMenu, startLicenseQualify,
   takeLicenseLevel, type ReadyLicenseController } from "./ready-license";
 import type { ReadyShopController } from "./ready-shop";
@@ -167,6 +168,13 @@ export async function openReadyHome(controller: ReadyHomeController,
   try {
     const assets = await homeAssets(library);
     if (controller.disposed || controller.activeHome || controller.activeHouse) return;
+    const riderName = () => activeBrowserSession()?.summary()?.account.nickname ?? localRiderName();
+    // 回放 (TIMEATTACK.md 4): this browser's Ghost records, played through the OB viewer.
+    const refreshReplays = (): void => {
+      void loadReplayMenu(controller, riderName()).then(entries => {
+        if (controller.activeHome === view) view.setReplays(entries);
+      }).catch(error => view.showNotice(`回放读取失败：${error instanceof Error ? error.message : String(error)}`));
+    };
     const single = new MainMenuView(host.root, assets, {
       keepFont: true,
       onTimeAttack: () => closeReadyHome(controller),
@@ -184,6 +192,7 @@ export async function openReadyHome(controller: ReadyHomeController,
         if (category !== "cat_riderSchool") leaveLicense(license);
         // The standing may have changed since the page was read.
         if (category === "cat_riderSchool") void refreshLicenseMenu(license);
+        if (category === "cat_replay") { view.setReplays(undefined); refreshReplays(); }
         if (category !== "cat_scenario") return;
         // Progress may have changed since the list was read.
         void loadStoryMenu(controller).then(chapters => {
@@ -192,6 +201,15 @@ export async function openReadyHome(controller: ReadyHomeController,
           `故事模式读取失败：${error instanceof Error ? error.message : String(error)}`));
       },
       onStoryChapter: name => { void openStoryChapter(controller, name); },
+      onReplay: entry => {
+        void openLocalReplay(controller as ReadyReplayController, entry).catch(error =>
+          controller.activeHome?.single.showNotice(`回放：${error instanceof Error ? error.message : String(error)}`));
+      },
+      onReplayDelete: entry => {
+        void deleteLocalReplay(controller as ReadyReplayController, entry).then(deleted => {
+          if (deleted && controller.activeHome === view) refreshReplays();
+        }).catch(error => view.showNotice(`删除回放：${error instanceof Error ? error.message : String(error)}`));
+      },
       onLicenseStep: step => { void openLicenseStep(controller as ReadyLicenseController, step); },
       onLicenseTake: level => { void takeLicenseLevel(controller as ReadyLicenseController, level); },
       onLicenseQualify: track => { void startLicenseQualify(controller as ReadyLicenseController, track); },

@@ -4,6 +4,7 @@ import type { TimeAttackRunDetails } from "../account/rewards";
 import { encodeRunReplay, rankedRaceOf, recordSpeedChannel, replayBase64 } from "./ranked-race";
 import { observeOf } from "./replay-observe";
 import { settleBrowserTimeAttackRun } from "./timeattack-settle";
+import { noteReplayRecorded, runRecordKey } from "./ready-replays";
 
 interface Action2D {
   scheduleStart(atMs: number): void;
@@ -245,7 +246,13 @@ export function showTimeAttackResult(
   }
   // Story races do not touch the time attack records.
   if (action.isNewRecord && !storyRaceOf(host.session.selection)) {
-    host.promoteTimeAttackRecord(action.elapsedMs, counts).catch(error => {
+    const options = host.timeAttackReadyOptions as { speed: number; booster: number; version?: string;
+      settingSpeed?: number } | undefined;
+    const trackId = (host.session.selection as { trackId?: unknown } | undefined)?.trackId;
+    host.promoteTimeAttackRecord(action.elapsedMs, counts).then(() => {
+      // 我的回放 dates its cards from here; the record itself carries no time.
+      if (typeof trackId === "string" && options) noteReplayRecorded(runRecordKey(trackId, options));
+    }).catch(error => {
       host.hud.showDebugText(
         `TimeAttack record 保存失败：${error instanceof Error ? error.message : String(error)}`,
         "error",
