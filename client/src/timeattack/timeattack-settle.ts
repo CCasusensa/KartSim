@@ -6,7 +6,8 @@
 import { errorCode } from "../account/account-api";
 import { showAccountToast, type OverlayDocument } from "../account/account-dialogs";
 import { activeBrowserSession } from "../account/account-runtime";
-import { newRequestId, settleTimeAttack, type SettleSession, type TimeAttackSettlement } from "../account/rewards";
+import { newRequestId, settleTimeAttack, type SettleSession, type TimeAttackRunDetails,
+  type TimeAttackSettlement } from "../account/rewards";
 import { accountErrorMessages, formatAccountServiceError } from "../multiplayer/account-ui-support";
 
 export interface ResultRewardTarget {
@@ -22,6 +23,10 @@ export interface TimeAttackSettleOptions {
   notify?(message: string): void;
   /** Wait before the single retry of an unreachable service. */
   retryDelayMs?: number;
+  /** TIMEATTACK.md: the mode, settings, kart and counts (and a ranked run's replay). */
+  details?: TimeAttackRunDetails;
+  /** A ranked run settles with its paid entry's request id. */
+  requestId?: string;
 }
 
 /**
@@ -34,6 +39,8 @@ export const MIN_REWARDED_TIME_ATTACK_MS = 10_000;
 const SETTLE_ERROR_MESSAGES: Record<string, string> = {
   ...accountErrorMessages,
   INVALID_ELAPSED_MS: "成绩时间无效，本次不发放奖励。",
+  NO_RANKED_ENTRY: "本局没有排位入场记录，成绩不计入排名。",
+  INVALID_REPLAY: "录像无效，本局成绩未能上传。",
   INVALID_TRACK: "该赛道不发放计时赛奖励。",
   INVALID_REQUEST_ID: "结算请求无效，请重新完成一次比赛。",
   TOO_MANY_ATTEMPTS: "结算过于频繁，请稍后再试。",
@@ -59,8 +66,9 @@ export async function settleTimeAttackRun(options: TimeAttackSettleOptions):
   if (!session || !options.trackId || !Number.isFinite(options.elapsedMs)) return undefined;
   // Not sent at all: the service would only answer INVALID_ELAPSED_MS, shown as an error.
   if (options.elapsedMs < MIN_REWARDED_TIME_ATTACK_MS) return undefined;
-  const requestId = newRequestId();
-  const run = { trackId: options.trackId, elapsedMs: options.elapsedMs, requestId };
+  const requestId = options.requestId ?? newRequestId();
+  const run = { trackId: options.trackId, elapsedMs: options.elapsedMs, requestId,
+    ...(options.details ? { details: options.details } : {}) };
   let settlement: TimeAttackSettlement;
   try {
     try {
@@ -85,12 +93,13 @@ export async function settleTimeAttackRun(options: TimeAttackSettleOptions):
 
 /** Browser wiring for showTimeAttackResult: the signed-in account and a page toast. */
 export function settleBrowserTimeAttackRun(trackId: string | undefined, elapsedMs: number,
-  result: ResultRewardTarget | undefined, report: (message: string) => void):
+  result: ResultRewardTarget | undefined, report: (message: string) => void,
+  extra: { details?: TimeAttackRunDetails; requestId?: string } = {}):
   Promise<TimeAttackSettlement | undefined> {
   const session = activeBrowserSession();
   if (!session) return Promise.resolve(undefined);
   return settleTimeAttackRun({
-    session, trackId, elapsedMs, result, report,
+    session, trackId, elapsedMs, result, report, ...extra,
     notify: message => {
       if (typeof document !== "undefined")
         showAccountToast(document as unknown as OverlayDocument, message);

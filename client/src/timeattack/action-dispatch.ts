@@ -1,5 +1,7 @@
 import type { TimeAttackAction } from "./lifecycle";
 import { storyRaceOf } from "../story/story-race";
+import type { TimeAttackRunDetails } from "../account/rewards";
+import { encodeRunReplay, rankedRaceOf, recordSpeedChannel, replayBase64 } from "./ranked-race";
 import { settleBrowserTimeAttackRun } from "./timeattack-settle";
 
 interface Action2D {
@@ -48,6 +50,8 @@ export interface TimeAttackActionStage {
       readyCamera?: { start(): void };
       pendingCharacterFinishMotion: number;
       selection?: unknown;
+      /** The kart's catalog title (the record's 卡丁车). */
+      vehicleTitle?: unknown;
       lifecycle: {
         effectiveTime(rawNowMs: number): number;
         resultBeatTarget(): boolean;
@@ -70,6 +74,10 @@ export interface TimeAttackActionStage {
     handleTimeAttackActionAudio(action: TimeAttackAction, rawNowMs: number): boolean;
     returnToReady(): Promise<unknown>;
     promoteTimeAttackRecord(elapsedMs: number, counts: Record<string, unknown>): Promise<unknown>;
+    /** TIMEATTACK.md: the settle reports the run's settings, kart and (ranked) recording. */
+    timeAttackReadyOptions?: unknown;
+    ghostRecorder?: unknown;
+    currentGhostEquipment?(): unknown;
   };
   handleTimeAttackFinishAction(action: TimeAttackAction, rawNowMs: number): boolean;
   showTimeAttackResult(action: Extract<TimeAttackAction, { kind: "show-result" }>, rawNowMs: number): void;
@@ -219,8 +227,15 @@ export function showTimeAttackResult(
   // The signed-in account's reward fills the RP/Lucci slots once the data service credits it.
   if (!storyRaceOf(host.session.selection)) {
     const trackId = (host.session.selection as { trackId?: unknown } | undefined)?.trackId;
-    void settleBrowserTimeAttackRun(typeof trackId === "string" ? trackId : undefined,
-      action.elapsedMs, result, message => host.hud.showDebugText(message, "error"));
+    const ranked = rankedRaceOf(host.session.selection);
+    const details = runDetails(stage, typeof trackId === "string" ? trackId : undefined, action.elapsedMs, counts);
+    const settled = settleBrowserTimeAttackRun(typeof trackId === "string" ? trackId : undefined,
+      action.elapsedMs, result, message => host.hud.showDebugText(message, "error"),
+      { ...(details ? { details } : {}), ...(ranked ? { requestId: ranked.requestId } : {}) });
+    // The ranking window reads the settled rank when the race returns.
+    if (ranked) ranked.settlement = settled.then(settlement => settlement && settlement.modeBestMs !== undefined
+      ? { modeBestMs: settlement.modeBestMs, modeNewRecord: settlement.modeNewRecord === true,
+        rank: settlement.rank ?? 0, topTen: settlement.topTen === true } : undefined);
   }
   // A story race is not a time attack record.
   if (action.bestMs === action.elapsedMs && !storyRaceOf(host.session.selection)) {
@@ -235,4 +250,42 @@ export function showTimeAttackResult(
       );
     });
   }
+}
+
+/**
+ * TIMEATTACK.md: what the settle reports besides the time — the mode and
+ * its settings, the kart and the counts, and a ranked run's recording.
+ */
+function runDetails(stage: TimeAttackActionStage, trackId: string | undefined, elapsedMs: number,
+  counts: Record<string, unknown>): TimeAttackRunDetails | undefined {
+  const { host } = stage;
+  const selection = host.session.selection as { vehicleItemId?: unknown; vehicleSystemKey?: unknown } | undefined;
+  const options = host.timeAttackReadyOptions as { speed?: unknown; booster?: unknown; version?: unknown;
+    settingSpeed?: unknown } | undefined;
+  if (!trackId || !options || typeof options.speed !== "number") return undefined;
+  const ranked = rankedRaceOf(host.session.selection);
+  const details: TimeAttackRunDetails = {
+    mode: ranked ? "ranked" : "practice",
+    speed: ranked ? ranked.speed : recordSpeedChannel({ speed: options.speed,
+      ...(typeof options.version === "string" ? { version: options.version } : {}),
+      ...(typeof options.settingSpeed === "number" ? { settingSpeed: options.settingSpeed } : {}) }),
+    booster: ranked ? ranked.booster : typeof options.booster === "number" ? options.booster : 0,
+    kart: { itemId: typeof selection?.vehicleItemId === "number" ? selection.vehicleItemId : 0,
+      ...(typeof selection?.vehicleSystemKey === "string" ? { systemKey: selection.vehicleSystemKey } : {}),
+      name: typeof host.session.vehicleTitle === "string" ? host.session.vehicleTitle : "" },
+    crashCount: typeof counts.crashCount === "number" ? counts.crashCount : 0,
+    boosterCount: typeof counts.boosterCount === "number" ? counts.boosterCount : 0,
+  };
+  if (ranked) {
+    try {
+      const recorder = host.ghostRecorder as { finish(): Array<{ record: { stamps: unknown[] } }> } | undefined;
+      const recorded = recorder?.finish()[0];
+      const equipment = host.currentGhostEquipment?.() as (Record<string, unknown> & { playerName?: string }) | undefined;
+      if (recorded && recorded.record.stamps.length > 0 && equipment)
+        details.replay = replayBase64(encodeRunReplay(recorded, equipment, trackId, elapsedMs, details.speed));
+    } catch (error) {
+      host.hud.showDebugText(`排位录像编码失败：${error instanceof Error ? error.message : String(error)}`, "error");
+    }
+  }
+  return details;
 }

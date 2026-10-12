@@ -1,3 +1,4 @@
+import { openRankingWindow, type ReadyRankingController } from "./ready-ranking";
 import { bindLoadingBadge, createResourceButton } from "../ui/resource-panel";
 import { activeBrowserSession } from "../account/account-runtime";
 import { logoutAccount } from "../app/account-startup";
@@ -170,6 +171,8 @@ export async function openReadyHome(controller: ReadyHomeController,
       keepFont: true,
       onTimeAttack: () => closeReadyHome(controller),
       onPractice: () => closeReadyHome(controller),
+      // 排位计时赛 (TIMEATTACK.md): the ranking window over this page.
+      onRanking: () => { void openRankingWindow(controller as ReadyRankingController); },
       onChannel: channel => {
         void controller.openMultiplayer(channel);
         closeReadyHomeWhenCovered(controller);

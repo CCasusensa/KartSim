@@ -774,6 +774,64 @@ var migrations = []migration{
 			PRIMARY KEY (name)
 		) ` + tableTail,
 	}},
+	// v16: 练习计时赛 / 排位计时赛 (TIMEATTACK.md): per-mode records by
+	// track, speed and booster mode; the replays of a track's top ranked
+	// records; ranked entry fees; and training goal / duel progress.
+	{version: 16, statements: []string{
+		`CREATE TABLE IF NOT EXISTS timeattack_records (
+			account_id CHAR(36) ` + idColumn + ` NOT NULL,
+			track_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+			speed TINYINT NOT NULL,
+			booster TINYINT NOT NULL,
+			mode VARCHAR(8) ` + idColumn + ` NOT NULL,
+			best_ms INT NOT NULL,
+			kart_item_id INT NOT NULL DEFAULT 0,
+			kart_system_key VARCHAR(64) ` + idColumn + ` NOT NULL DEFAULT '',
+			kart_name VARCHAR(64) NOT NULL DEFAULT '',
+			crash_count INT NOT NULL DEFAULT 0,
+			booster_count INT NOT NULL DEFAULT 0,
+			updated_at BIGINT NOT NULL,
+			PRIMARY KEY (account_id, track_id, speed, booster, mode),
+			KEY idx_timeattack_records_rank (track_id, speed, booster, mode, best_ms, updated_at),
+			CONSTRAINT fk_timeattack_records_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+		) ` + tableTail,
+		`CREATE TABLE IF NOT EXISTS timeattack_replays (
+			track_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+			speed TINYINT NOT NULL,
+			booster TINYINT NOT NULL,
+			account_id CHAR(36) ` + idColumn + ` NOT NULL,
+			best_ms INT NOT NULL,
+			byte_size INT NOT NULL,
+			ksv MEDIUMBLOB NOT NULL,
+			updated_at BIGINT NOT NULL,
+			PRIMARY KEY (track_id, speed, booster, account_id),
+			CONSTRAINT fk_timeattack_replays_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+		) ` + tableTail,
+		`CREATE TABLE IF NOT EXISTS timeattack_entries (
+			request_id VARCHAR(64) ` + idColumn + ` NOT NULL,
+			account_id CHAR(36) ` + idColumn + ` NOT NULL,
+			track_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+			speed TINYINT NOT NULL,
+			booster TINYINT NOT NULL,
+			created_at BIGINT NOT NULL,
+			settled_at BIGINT NULL,
+			PRIMARY KEY (request_id),
+			KEY idx_timeattack_entries_account (account_id, created_at),
+			KEY idx_timeattack_entries_created (created_at),
+			CONSTRAINT fk_timeattack_entries_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+		) ` + tableTail,
+		`CREATE TABLE IF NOT EXISTS timeattack_missions (
+			account_id CHAR(36) ` + idColumn + ` NOT NULL,
+			track_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+			mission VARCHAR(80) ` + idColumn + ` NOT NULL,
+			value INT NOT NULL DEFAULT 0,
+			cleared_at BIGINT NULL,
+			claimed_at BIGINT NULL,
+			updated_at BIGINT NOT NULL,
+			PRIMARY KEY (account_id, track_id, mission),
+			CONSTRAINT fk_timeattack_missions_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

@@ -658,7 +658,40 @@ const readyViewMethodOverrides = new Map([
   ["drawImageButton", "  drawImageButton(node, rect) { return drawReadyImageButton(this, node, rect, readyButtonDrawingDependencies); }"],
   ["drawButtonText", "  drawButtonText(node, rect, state) { return drawReadyButtonText(this, node, rect, state, readyButtonDrawingDependencies); }"],
   ["activateTrainingShortcut", "  activateTrainingShortcut() { return activateReadyTrainingShortcut(this); }"],
-  ["activateButton", "  activateButton(name) { return activateReadyButton(this, name); }"],
+  ["activateButton", "  activateButton(name) { return activateReadyMissionButton(this, name); }"],
+  // TIMEATTACK.md: the 赛道对决 / 练习目标 tabs (ui/ready-missions.ts) hook the
+  // view's construction, drawing and disposal.
+  ["load", `  static async load(e) {
+    const t = await R80(e.library, e.trackPath, e.trackId, e.randomGroup);
+    let i;
+    try {
+      i = await ny.load(e.library, e.kart, e.character, e.environment, e.stageBinding, e.profile);
+      const view = new ty(e, t, i);
+      await installReadyMissions(view, readyMissionDependencies);
+      return view;
+    } catch (r) {
+      throw (i?.dispose(), G1(t.font), r);
+    }
+  }`],
+  ["drawNode", "  drawNode(e, t, i) { return drawReadyMissionNode(this, e, t, i, readyMissionDependencies); }"],
+  ["drawNodeChildren", "  drawNodeChildren(e, t) { return drawReadyMissionChildren(this, e, t, readyMissionDependencies); }"],
+  ["drawLabel", "  drawLabel(e, t, i) { return drawReadyMissionLabel(this, e, t, i, readyMissionDependencies); }"],
+  ["drawRiderPreview", "  drawRiderPreview(e, t) { return drawReadyMissionRiderPreview(this, e, t, readyMissionDependencies); }"],
+  ["dispose", `  dispose() {
+    this.disposed ||
+      (disposeReadyMissions(this),
+      (this.disposed = !0),
+      this.resizeObserver.disconnect(),
+      window.removeEventListener("resize", this.onViewportResize),
+      this.canvas.removeEventListener("pointermove", this.onPointerMove),
+      this.canvas.removeEventListener("pointerdown", this.onPointerDown),
+      this.canvas.removeEventListener("pointerup", this.onPointerUp),
+      this.canvas.removeEventListener("pointercancel", this.onPointerCancel),
+      this.canvas.removeEventListener("pointerleave", this.onPointerLeave),
+      this.preview.dispose(),
+      this.canvas.remove(),
+      G1(this.assets.font));
+  }`],
   ["refreshRecord", "  refreshRecord() { return refreshReadyViewRecord(this, readyViewDependencies); }"],
   ["setSpeedChannel", "  setSpeedChannel(change) { return setReadyViewSpeedChannel(this, change, readyViewDependencies); }"],
   ["selectReadyOption", "  selectReadyOption(name) { return selectReadyViewOption(this, name); }"],
@@ -1436,6 +1469,7 @@ const activeRaceMethodOverrides = new Map([
   ["dispose", "  dispose() { return disposeActiveRace(this); }"],
 ]);
 const developmentExports = new Set([
+  "ny", // the Ready rider preview, for the 排位计时赛 window (ui/ranking-ready-window.ts)
   "Sw",
   "AL",
   "_L",
@@ -4773,6 +4807,7 @@ function renderModule(name) {
     lines.push('import { addGraphicsPresentationOptions } from "../ui/graphics-presentation-options.ts";');
     lines.push('import { activateReadyButton, activateReadyTrainingShortcut, applyReadyViewOptions, cancelReadyPointer, drawReadyButtonText, drawReadyImageButton, leaveReadyPointer, moveReadyPointer, pressReadyPointer, readyButtonAtPoint, readyButtonNodeId, refreshReadyViewRecord, releaseReadyPointer, selectReadyViewOption, setReadyViewSpeedChannel } from "../ui/ready-view-actions.ts";');
     lines.push('import { disposeReadyVehiclePreview, loadReadyVehiclePreview, renderReadyVehiclePreview } from "../ui/ready-vehicle-preview.ts";');
+    lines.push('import { installReadyMissions, disposeReadyMissions, drawReadyMissionNode, drawReadyMissionChildren, drawReadyMissionLabel, drawReadyMissionRiderPreview, activateReadyMissionButton } from "../ui/ready-missions.ts";');
     lines.push('import { GarageCanvasCompositor } from "../ui/garage-compositor.ts";');
     lines.push('import { canFavoriteItem, centerOffset, defaultLocalProfile, favoriteItemIdentity, favoriteItemKey, favoriteItemKeys, hasSystemKartKey, isUnsignedInteger, loadLocalProfile, makeFavoriteItem, parseLocalProfile, resolveSystemKartVariant, saveLocalProfile, selectLocalKart, uniqueItemKey, validateFavoriteItems, validateFavoriteTracks, validateInteger, validateNonzeroItemId } from "../ui/local-profile.ts";');
     lines.push('import { loadBrowserProfile, syncBrowserProfile } from "../ui/profile-sync.ts";');
@@ -5158,6 +5193,7 @@ function awardPodiumLoadDependencies() { return {
     lines.push('const trackPickerWindowDependencies = { loadAssets: (library, groups) => loadTrackPickerWindowAssets(library, groups, trackPickerAssetDependencies), loadTrackCard: (library, path) => loadTrackCard(library, path, { decodePng: p2 }), releaseFont: G1, layoutTree: jc, layoutRect: V0, frameClient: E9, paintFrame: C9, paintText: m9, measureText: ve, configureCanvas: p3, pixelRatio: xe, positionControl: aw, noticeLayout: Wo, paintNotice: qP };');
     lines.push('const readyViewDependencies = { formatRecord: yT, speedChannel: Ue, defaultVersion: ze };');
     lines.push('const readyButtonDrawingDependencies = { paintFrame: ct, paintText: df, translate: Yn };');
+    lines.push('const readyMissionDependencies = { layout: V0, paintFrame: C9, innerRect: E9, attribute: T, visible: fF, drawImage: fs, translate: Yn, paintText: df, color: bl, image: pf, requireAttribute: Oi, trackCardPanel: wT, paintButtonFrame: ct, buttonStyle: m4, parseBml: s2, loadPreview: (library, kart, character, environment, stageBinding, profile) => ny.load(library, kart, character, environment, stageBinding, profile), loadTexture: file => K5(file) };');
     lines.push(`class Ma0 extends GarageCanvasCompositor {
   constructor(canvas) {
     super(canvas, {

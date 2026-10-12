@@ -12,6 +12,7 @@ import (
 
 	"kartsim/internal/data/economy"
 	"kartsim/internal/data/store"
+	"kartsim/internal/data/timeattack"
 	"kartsim/internal/shared/apierr"
 	"kartsim/internal/shared/rewards"
 )
@@ -484,6 +485,14 @@ func (a *API) settleTimeAttack(w http.ResponseWriter, r *http.Request) error {
 		TrackID   string `json:"trackId"`
 		ElapsedMs *int64 `json:"elapsedMs"`
 		RequestID string `json:"requestId"`
+		// TIMEATTACK.md: the mode's record and, for ranked runs, the replay.
+		Mode         string               `json:"mode"`
+		Speed        int                  `json:"speed"`
+		Booster      int                  `json:"booster"`
+		Kart         store.TimeAttackKart `json:"kart"`
+		CrashCount   int                  `json:"crashCount"`
+		BoosterCount int                  `json:"boosterCount"`
+		Replay       string               `json:"replay"`
 	}
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
@@ -502,14 +511,43 @@ func (a *API) settleTimeAttack(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	switch request.Mode {
+	case "", timeattack.ModePractice, timeattack.ModeRanked:
+	default:
+		return errInvalidRequest
+	}
+	if request.Mode != "" {
+		if _, err := a.timeAttackKey(request.TrackID, request.Speed, request.Booster); err != nil {
+			return err
+		}
+	}
+	if request.CrashCount < 0 || request.CrashCount > 100_000 || request.BoosterCount < 0 || request.BoosterCount > 100_000 ||
+		request.Kart.ItemID < 0 || !optionalText(request.Kart.SystemKey, 64) || !optionalText(request.Kart.Name, 64) {
+		return errInvalidRequest
+	}
+	var replay []byte
+	if request.Mode == timeattack.ModeRanked {
+		if replay, err = decodeReplay(request.Replay); err != nil {
+			return err
+		}
+	}
 	if err := a.accountWrite(r.Context(), account.ID); err != nil {
 		return err
 	}
+	if name := a.itemName(3, request.Kart.ItemID, request.Kart.SystemKey); name != "" {
+		request.Kart.Name = name
+	}
 	now := a.now()
-	result, err := a.store.SettleTimeAttack(r.Context(), store.TimeAttackRun{
+	run := store.TimeAttackRun{
 		AccountID: account.ID, RequestID: id, TrackID: request.TrackID, ElapsedMs: *request.ElapsedMs,
 		Day: rewards.BeijingDay(now), Now: now.UnixMilli(), MaxTracks: a.tracks.Len(),
-	})
+		Mode: request.Mode, Speed: request.Speed, Booster: request.Booster, Kart: request.Kart,
+		CrashCount: request.CrashCount, BoosterCount: request.BoosterCount, Replay: replay,
+	}
+	if request.Mode == timeattack.ModePractice {
+		run.Goals = a.missions.Goals(request.TrackID)
+	}
+	result, err := a.store.SettleTimeAttack(r.Context(), run)
 	if err != nil {
 		return err
 	}

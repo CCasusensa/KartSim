@@ -30,6 +30,7 @@ import (
 	"kartsim/internal/data/messenger"
 	"kartsim/internal/data/myroom"
 	"kartsim/internal/data/store"
+	"kartsim/internal/data/timeattack"
 	"kartsim/internal/shared/apierr"
 	"kartsim/internal/shared/netcfg"
 	"kartsim/internal/shared/rewards"
@@ -122,6 +123,7 @@ type API struct {
 	lotteryRand     func() lottery.Rand
 
 	license    *license.Data
+	missions   *timeattack.Data // TIMEATTACK.md: training goals and duel events
 	licenseDoc licenseTable
 	clubData   *club.Data
 
@@ -259,6 +261,9 @@ func New(opts Options) *API {
 	if a.license, err = license.Default(); err != nil {
 		panic(err) // the embedded data is checked by the license tests
 	}
+	if a.missions, err = timeattack.Default(); err != nil {
+		panic(err)
+	}
 	a.licenseDoc = newLicenseTable(a.license)
 	if a.clubData, err = club.Default(); err != nil {
 		panic(err) // the embedded data is checked by the club tests
@@ -321,6 +326,12 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/shop/free-coupon", a.shopClaimStatus)
 	route("POST /api/shop/free-coupon/claim", a.shopClaim)
 	route("POST /api/timeattack/settle", a.settleTimeAttack)
+	route("GET /api/timeattack/ranking", a.timeAttackRanking)
+	route("POST /api/timeattack/ranked/enter", a.enterRanked)
+	route("GET /api/timeattack/replay", a.timeAttackReplay)
+	route("GET /api/timeattack/missions", a.timeAttackMissions)
+	route("POST /api/timeattack/goals/claim", a.claimTimeAttackGoal)
+	route("POST /api/timeattack/duel/settle", a.settleDuel)
 	route("GET /api/admin/me", a.adminMe)
 	route("GET /api/admin/overview", a.adminOverview)
 	route("GET /api/admin/accounts", a.adminAccounts)

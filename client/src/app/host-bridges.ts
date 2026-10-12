@@ -229,10 +229,19 @@ export interface PresenterBridgeApplication {
   applyWarpNextActions(a: Value): Value;
   promoteTimeAttackRecord(a: Value, b: Value): Value;
   returnToReady(): Value;
+  timeAttackReadyOptions: Value;
 }
 
 /** Bind the frame presenter to the current renderer, race, input and HUD. */
 export function createPresenterHost(application: PresenterBridgeApplication) {
+  const host = createPresenterHostFields(application);
+  // TIMEATTACK.md: the settle reports the run's speed and booster mode. On
+  // the prototype: the release bridge has no such own getter (host-bridges.test).
+  Object.setPrototypeOf(host, { get timeAttackReadyOptions() { return application.timeAttackReadyOptions; } });
+  return host;
+}
+
+function createPresenterHostFields(application: PresenterBridgeApplication) {
   return {
     get clientFramerate() { return application.presenter.clientFramerate; },
     get resourceVersion() { return application.assets?.opfs?.version; },

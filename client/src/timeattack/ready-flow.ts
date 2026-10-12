@@ -9,6 +9,8 @@ import { ensureReadyNoticer, openReadyFindRider, openReadyQuests, openReadyRewar
 import { openShopUnlessRacing } from "./ready-shop-guard";
 import { goReadyHome, openReadyHome, preloadReadyHome, syncReadyHome,
   type ReadyHomeController } from "./ready-home";
+import { startDuelRace, type ReadyDuelController } from "./ready-duel";
+import type { DuelRaceRequest } from "../ui/ready-missions";
 
 /** The selection carried from the Ready screen into a single-player race. */
 export interface ReadySelection {
@@ -19,6 +21,10 @@ export interface ReadySelection {
   vehicleSystemKey?: string;
   characterPath?: string;
   characterItemId?: number;
+  /** A story / 驾照考试 / 赛道对决 race (story/story-race.ts StoryRaceRequest). */
+  story?: unknown;
+  /** A 排位计时赛 run (timeattack/ranked-race.ts RankedRaceRequest). */
+  ranked?: unknown;
   [key: string]: unknown;
 }
 
@@ -308,6 +314,15 @@ export async function enterTimeAttackReady(
       onTraining: (options: ReadyOptions) => controller.startRaceFromReady(selection, options),
       onTrackSelect: (options: ReadyOptions) => controller.openTrackSelect(selection, options),
       onItemSelect: (options: ReadyOptions) => controller.openGarage(selection, options),
+      // 赛道对决 (TIMEATTACK.md): the practice window's 开始对决.
+      onDuel: (options: ReadyOptions, duel: DuelRaceRequest) => {
+        void startDuelRace(controller as ReadyDuelController, selection, options, duel).catch(error =>
+          host.hud.showDebugText(`赛道对决：${error instanceof Error ? error.message : String(error)}`, "error"));
+      },
+      onNotice: (text: string) => {
+        if (controller.activeWindowNotice) controller.activeWindowNotice.show(text, "info", undefined, 2600);
+        else host.hud.showDebugText(text, "info");
+      },
       // The window's close button returns to the 单人游戏 page it opened from.
       onExit: () => {
         void openReadyHome(controller as unknown as ReadyHomeController, "single");

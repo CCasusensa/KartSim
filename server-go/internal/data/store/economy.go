@@ -12,6 +12,7 @@ import (
 	"kartsim/internal/data/career"
 	"kartsim/internal/data/economy"
 	"kartsim/internal/data/quest"
+	"kartsim/internal/data/timeattack"
 	"kartsim/internal/shared/apierr"
 	"kartsim/internal/shared/rewards"
 )
@@ -535,6 +536,19 @@ type TimeAttackRun struct {
 	// MaxTracks bounds the distinct tracks an account holds records on
 	// (the track list size); 0 means no bound.
 	MaxTracks int
+
+	// TIMEATTACK.md: the mode of the run (practice or ranked; "" for the
+	// bare settlement), its speed and booster mode, the kart it was driven
+	// with and its counts; a ranked run's RequestID is its paid entry and
+	// Replay its .ksv recording; a practice run advances Goals.
+	Mode         string
+	Speed        int
+	Booster      int
+	Kart         TimeAttackKart
+	CrashCount   int
+	BoosterCount int
+	Replay       []byte
+	Goals        []timeattack.GoalSet
 }
 
 // TimeAttackTolerance is how much shorter than the run time the interval
@@ -550,6 +564,12 @@ type TimeAttackResult struct {
 	Capped    bool                  `json:"capped"`
 	BestMs    int64                 `json:"bestMs"`
 	LevelUps  []economy.LevelReward `json:"levelUps"`
+	// TIMEATTACK.md: the mode's own record (practice or ranked by track,
+	// speed and booster), and a ranked run's rank once settled.
+	ModeBestMs    int64 `json:"modeBestMs"`
+	ModeNewRecord bool  `json:"modeNewRecord"`
+	Rank          int   `json:"rank"`
+	TopTen        bool  `json:"topTen"`
 }
 
 // SettleTimeAttack settles a run once per request id: the account's best on
@@ -633,6 +653,39 @@ func (s *Store) SettleTimeAttack(ctx context.Context, run TimeAttackRun) (TimeAt
 				VALUES(?, ?, ?, ?) AS incoming
 				ON DUPLICATE KEY UPDATE best_ms = incoming.best_ms, updated_at = incoming.updated_at`,
 				run.AccountID, run.TrackID, run.ElapsedMs, run.Now); err != nil {
+				return err
+			}
+		}
+		if run.Mode != "" {
+			if run.Mode == timeattack.ModeRanked {
+				if err := settleRankedEntry(ctx, tx, run); err != nil {
+					return err
+				}
+			}
+			result.ModeBestMs, result.ModeNewRecord, err = upsertTimeAttackRecord(ctx, tx, run)
+			if err != nil {
+				return err
+			}
+			if run.Mode == timeattack.ModeRanked {
+				if result.ModeNewRecord && len(run.Replay) > 0 {
+					if err := saveReplay(ctx, tx, run); err != nil {
+						return err
+					}
+				}
+				updatedAt := run.Now
+				if !result.ModeNewRecord {
+					if err := tx.QueryRowContext(ctx, `SELECT updated_at FROM timeattack_records WHERE account_id = ? AND track_id = ?
+						AND speed = ? AND booster = ? AND mode = ?`, run.AccountID, run.TrackID, run.Speed, run.Booster, run.Mode).
+						Scan(&updatedAt); err != nil {
+						return err
+					}
+				}
+				if result.Rank, err = rankOf(ctx, tx, timeAttackKey{run.TrackID, run.Speed, run.Booster}, run.AccountID,
+					result.ModeBestMs, updatedAt); err != nil {
+					return err
+				}
+				result.TopTen = result.Rank <= timeattack.RankingSize
+			} else if err := advanceGoals(ctx, tx, run); err != nil {
 				return err
 			}
 		}

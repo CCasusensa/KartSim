@@ -1,4 +1,5 @@
 import { storyRaceOf, storyRaceOutcome } from "../story/story-race";
+import { rankedRaceOf } from "../timeattack/ranked-race";
 import type { ReadySelection } from "../timeattack/ready-flow";
 
 interface Disposable {
@@ -115,10 +116,14 @@ export async function returnToReady(
     // underneath with the player's own kart and rider.
     const session = application.session as { selection?: unknown } | undefined;
     const story = storyRaceOf(session?.selection);
-    const outcome = story ? storyRaceOutcome(session) : undefined;
+    // A 排位计时赛 run likewise returns to the ranking window (TIMEATTACK.md).
+    const ranked = story ? undefined : rankedRaceOf(session?.selection);
+    const outcome = story || ranked ? storyRaceOutcome(session) : undefined;
     story?.restore();
+    ranked?.restore();
     await application.enterTimeAttackReady();
     if (story && outcome) story.onReturn(outcome);
+    else if (ranked && outcome) ranked.onReturn(outcome, await ranked.settlement);
   } catch (error) {
     application.hud.showDebugText(
       `Ready stage fail-closed：${error instanceof Error ? error.message : String(error)}`,

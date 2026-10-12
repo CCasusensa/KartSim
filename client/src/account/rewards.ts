@@ -53,6 +53,24 @@ export interface TimeAttackSettlement {
   /** The daily reward limit was reached; nothing (or less) was credited. */
   capped: boolean;
   summary?: AccountSummary;
+  /** TIMEATTACK.md: the mode's record (practice or ranked by track, speed and booster). */
+  modeBestMs?: number;
+  modeNewRecord?: boolean;
+  /** A ranked run's rank once settled, and whether it is in the top ten. */
+  rank?: number;
+  topTen?: boolean;
+}
+
+/** TIMEATTACK.md: what a practice or ranked run reports besides its time. */
+export interface TimeAttackRunDetails {
+  mode: "practice" | "ranked";
+  speed: number;
+  booster: number;
+  kart: { itemId: number; systemKey?: string; name: string };
+  crashCount: number;
+  boosterCount: number;
+  /** A ranked run's .ksv recording, base64. */
+  replay?: string;
 }
 
 export interface SettleSession {
@@ -80,12 +98,12 @@ function settlementSummary(body: Record<string, unknown>): AccountSummary | unde
 
 /** `POST /api/timeattack/settle`; the returned account summary is applied to the session. */
 export async function settleTimeAttack(session: SettleSession,
-  run: { trackId: string; elapsedMs: number; requestId?: string }):
+  run: { trackId: string; elapsedMs: number; requestId?: string; details?: TimeAttackRunDetails }):
   Promise<TimeAttackSettlement> {
   const body = await session.requestJson("/api/timeattack/settle", {
     method: "POST",
     body: JSON.stringify({ trackId: run.trackId, elapsedMs: Math.round(run.elapsedMs),
-      requestId: run.requestId ?? newRequestId() }),
+      requestId: run.requestId ?? newRequestId(), ...(run.details ?? {}) }),
   });
   const value = record(body) ? body : {};
   const summary = settlementSummary(value);
@@ -96,5 +114,11 @@ export async function settleTimeAttack(session: SettleSession,
     newRecord: value.newRecord === true,
     capped: value.capped === true,
     ...(summary ? { summary } : {}),
+    ...(run.details ? {
+      modeBestMs: amount(value.modeBestMs) ?? 0,
+      modeNewRecord: value.modeNewRecord === true,
+      rank: amount(value.rank) ?? 0,
+      topTen: value.topTen === true,
+    } : {}),
   };
 }

@@ -138,6 +138,10 @@ export interface MainMenuOptions {
   onTimeAttack(): void;
   /** 练习计时赛 on the single-play page: the time attack Ready page. */
   onPractice?(): void;
+  /** 排位计时赛 on the single-play page: the ranking window (TIMEATTACK.md). */
+  onRanking?(): void;
+  /** 回放 on the single-play page: a card's replay (ui/replay-list). */
+  onReplay?(key: string): void;
   /** A favourite channel opens the multiplayer lobby on that channel. */
   onChannel(channel: string): void;
   onHover?(): void;
@@ -695,6 +699,7 @@ export class MainMenuView {
       return () => this.selectCategory(name as SingleCategory);
     if (name === "timeAttack_train") return () => (this.options.onPractice ??
       this.options.onTimeAttack)();
+    if (name === "timeAttack_ranking" && this.options.onRanking) return () => this.options.onRanking!();
     if (name === "timeAttack_competitive") return () => this.options.onTimeAttack();
     const license = /^riderSchool_Level([1-6])$/.exec(name);
     if (license) return () => this.selectLicense(Number(license[1]));

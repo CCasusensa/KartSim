@@ -51,6 +51,9 @@ export interface ReadyViewHost {
   applyReadyOptions(options: ReadyOptions): void;
   refreshRecord(): void;
   hitButton(event: ReadyPointerEvent): ReadyButtonHit | undefined;
+  /** ui/ready-missions.ts: the 赛道对决 tab's opponent record and tab button states. */
+  recordOverride?(options: ReadyOptions): unknown;
+  missionButtonState?(id: string, name: string): number | undefined;
 }
 
 export interface ReadyButtonNode {
@@ -98,7 +101,7 @@ export function drawReadyImageButton(host: ReadyButtonDrawingHost,
     (name === "onBtn" || name === "offBtn");
   const state = randomGhostButton
     ? (name === "offBtn" ? 4 : 1)
-    : readyButtonImageState(id, name, host.readyOptions,
+    : host.missionButtonState?.(id, name) ?? readyButtonImageState(id, name, host.readyOptions,
       host.hoveredButton, host.pressedButton);
   const images = host.assets.buttonImages.get(imageName);
   if (!images) throw new Error(`P3528 Ready button ${imageName} 没有四态图片。`);
@@ -212,7 +215,8 @@ export function activateReadyButton(host: ReadyViewHost, name: string): void {
 }
 
 export function refreshReadyViewRecord(host: ReadyViewHost, deps: ReadyViewDependencies): void {
-  const record = host.options.recordFor(host.readyOptions);
+  const record = (host.recordOverride ? host.recordOverride(host.readyOptions)
+    : host.options.recordFor(host.readyOptions)) as { hasGhost?: boolean } | undefined;
   host.record = deps.formatRecord(record, host.assets.strings,
     host.readyOptions.version ?? deps.defaultVersion);
   host.hasReplay = record?.hasGhost === true;

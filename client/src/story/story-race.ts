@@ -1,4 +1,5 @@
 import type { LicenseMissionSpec } from "../license/license-mission";
+import type { NpcGhostSpec } from "../timeattack/duel-npc-ghost";
 import type { ChaseRule } from "./story-chase";
 
 /**
@@ -27,6 +28,8 @@ export interface StoryRaceOutcome {
 
 export interface StoryRaceRequest {
   ghosts: StoryGhostSource[];
+  /** 赛道对决: an NPC ghost the race builder generates along the course line (TIMEATTACK.md). */
+  npc?: NpcGhostSpec;
   laps?: number;
   /** Tracing (追击) / Escape (逃脱): judged every frame against the rival ghost. */
   chase?: ChaseRule;
