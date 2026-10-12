@@ -18,7 +18,7 @@ export class HomeScreen {
     return this.current ?? "home";
   }
 
-  get singleCategory(): SingleCategory {
+  get singleCategory(): SingleCategory | undefined {
     return this.single.singleCategory;
   }
 

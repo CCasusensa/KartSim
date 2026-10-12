@@ -153,7 +153,7 @@ export class RankingReadyWindow {
       const index = Number(line[1]) - 1;
       const entryRow = this.ranking?.rows[index];
       return entryRow?.hasReplay ? { action: () => this.options.onReplay(entryRow), label: `观看 ${entryRow.nickname} 的录像`,
-        hoverRegion: `row-${index}`, pointerBlock: true } : {};
+        hoverRegion: `row-${index}` } : {};
     }
     switch (name) {
       case "onBtn":

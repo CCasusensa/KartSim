@@ -418,7 +418,8 @@ export class MainMenuView {
   private bannerTimer = 0;
   private disposed = false;
   private currentPage: MainMenuPage = "home";
-  private category: SingleCategory = "cat_timeAttack";
+  /** The single-play category shown; none is the overview (the five mode cards and the banner). */
+  private category: SingleCategory | undefined;
   private notice?: string;
   private noticeTimer = 0;
   private story?: StoryMenuChapter[];
@@ -478,15 +479,15 @@ export class MainMenuView {
     return this.currentPage;
   }
 
-  get singleCategory(): SingleCategory {
+  get singleCategory(): SingleCategory | undefined {
     return this.category;
   }
 
-  /** Switch between home and the single-play page; single play reopens on 计时赛. */
+  /** Switch between home and the single-play page; single play reopens on its overview. */
   setPage(page: MainMenuPage): void {
     if (page === this.currentPage) return;
     this.currentPage = page;
-    this.category = "cat_timeAttack";
+    this.category = undefined;
     this.notice = undefined;
     this.element.setAttribute("aria-label", page === "single" ? "单人游戏" : "主菜单");
     this.render();
@@ -613,6 +614,9 @@ export class MainMenuView {
     }
 
     if (name === "rightTitleName") this.rightTitleRect = parent;
+    // The overview: the lobby's promotion banner under the five mode cards.
+    if (name === "singleplay_subCats" && this.currentPage === "single" && this.category === undefined)
+      this.drawOverviewBanner(rect);
     if (name === "favoriteChannel") this.drawChannels(rect);
     if (name === "promotionNew") this.drawBanner(rect);
     if (name === "scenario_bnt_list") this.drawStoryList(rect);
@@ -688,7 +692,7 @@ export class MainMenuView {
       // Category pages; their per-level pages open from cards that are not run here.
       return name === this.category;
     }
-    if (name === "singleplay_subCats") return !RIGHT_FILLED.has(this.category);
+    if (name === "singleplay_subCats") return this.category === undefined || !RIGHT_FILLED.has(this.category);
     return true;
   }
 
@@ -700,7 +704,8 @@ export class MainMenuView {
     if (name === "timeAttack_train") return () => (this.options.onPractice ??
       this.options.onTimeAttack)();
     if (name === "timeAttack_ranking" && this.options.onRanking) return () => this.options.onRanking!();
-    if (name === "timeAttack_competitive") return () => this.options.onTimeAttack();
+    // 竞争排位赛 (seasonal ranked, dialog2_timeAttackCompetitive) is not built yet.
+    if (name === "timeAttack_competitive") return () => this.showNotice("竞争排位赛暂未开放");
     const license = /^riderSchool_Level([1-6])$/.exec(name);
     if (license) return () => this.selectLicense(Number(license[1]));
     if (this.category === "cat_riderSchool" && this.license) {
@@ -995,6 +1000,10 @@ export class MainMenuView {
   private text(node: MainMenuNode): string | undefined {
     const override = this.licenseText(attribute(node, "name") ?? "");
     if (override !== undefined) return override;
+    // The right panel is titled after the category it shows (计时赛 …), 单人游戏 on the overview.
+    if (attribute(node, "name") === "rightTitleName" && this.currentPage === "single" && this.category &&
+        RIGHT_FILLED.has(this.category))
+      return SINGLE_LABELS[this.category] ?? this.assets.strings.get("singlePlay") ?? "单人游戏";
     const raw = attribute(node, "text");
     if (!raw) return undefined;
     const key = /^#sb\(([^)]+)\)$/.exec(raw)?.[1];
@@ -1043,6 +1052,13 @@ export class MainMenuView {
       } });
       y += first.height + 8;
     }
+  }
+
+  /** The overview's banner strip below the mode cards (the right panel is 586 tall, the cards 348). */
+  private drawOverviewBanner(cards: Rect): void {
+    const banner = { x: cards.x + 14, y: cards.y + cards.height - 6, width: cards.width - 28, height: 586 - cards.height - 24 };
+    this.drawBanner(banner);
+    this.drawBannerDots({ x: banner.x, y: banner.y + banner.height - 2, width: banner.width, height: 24 });
   }
 
   private drawBanner(rect: Rect): void {

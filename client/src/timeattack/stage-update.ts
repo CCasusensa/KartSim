@@ -2,6 +2,7 @@ import { updateStoryChase, type ChaseStage } from "../story/story-chase";
 import { updateLicenseMission, type LicenseMissionStage } from "../license/license-mission";
 import { updateLicenseTimer, type LicenseTimerStage } from "../license/license-race";
 import { licenseItemsOf } from "../license/license-item-race";
+import { observeOf } from "./replay-observe";
 
 // Presentation owners still come from the generated client. Their renderer,
 // physics and asset types will be narrowed as those systems are migrated.
@@ -110,10 +111,18 @@ export function updateTimeAttackStage(
   mark?.("kt-player-anim");
 
   let ghostPoses: any[] = [];
+  // OB 观看: the local kart stays hidden and the ghost runs off the replay clock.
+  const observe = observeOf(host.session);
+  if (observe) host.kartView.root.visible = false;
   if (host.session.ghosts.length > 0 && host.session.lifecycle.startAtMs !== 0) {
-    const ghostTimeMs = dependencies.relativeGhostTime(
+    let ghostTimeMs = dependencies.relativeGhostTime(
       effectiveNowMs, host.session.lifecycle.startAtMs,
     );
+    if (observe) {
+      observe.naturalMs = ghostTimeMs;
+      ghostTimeMs = observe.clock.advance(ghostTimeMs);
+      observe.console?.update();
+    }
     const ghosts = host.session.ghosts;
     if (stage.ghostPoseBuffer.length !== ghosts.length) {
       stage.ghostPoseBuffer = ghosts.map(() => dependencies.newGhostPoseBuffer());

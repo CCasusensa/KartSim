@@ -265,6 +265,8 @@ export async function buildSoloRaceAssets(
       }
       // 赛道对决: the NPC drives the course line in the stage's time (duel-npc-ghost.ts),
       // setting off advantageMs later at a 难度设定 level above 无.
+      // OB 观看: the console's 退出 leaves like the pause menu's 菜单.
+      if (selection.story?.observe) selection.story.observe.exit = () => { host.returnToReady(); };
       if (selection.story?.npc) {
         const npc = selection.story.npc;
         ghostSources.push({ equipment: npc.equipment,

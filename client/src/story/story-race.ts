@@ -1,5 +1,6 @@
 import type { LicenseMissionSpec } from "../license/license-mission";
 import type { NpcGhostSpec } from "../timeattack/duel-npc-ghost";
+import type { ObserveState } from "../timeattack/replay-observe";
 import type { ChaseRule } from "./story-chase";
 
 /**
@@ -30,6 +31,8 @@ export interface StoryRaceRequest {
   ghosts: StoryGhostSource[];
   /** 赛道对决: an NPC ghost the race builder generates along the course line (TIMEATTACK.md). */
   npc?: NpcGhostSpec;
+  /** OB 观看: the race only plays its ghost; the local kart hides (replay-observe.ts). */
+  observe?: ObserveState;
   laps?: number;
   /** Tracing (追击) / Escape (逃脱): judged every frame against the rival ghost. */
   chase?: ChaseRule;

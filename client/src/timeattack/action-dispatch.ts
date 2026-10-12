@@ -2,6 +2,7 @@ import type { TimeAttackAction } from "./lifecycle";
 import { storyRaceOf } from "../story/story-race";
 import type { TimeAttackRunDetails } from "../account/rewards";
 import { encodeRunReplay, rankedRaceOf, recordSpeedChannel, replayBase64 } from "./ranked-race";
+import { observeOf } from "./replay-observe";
 import { settleBrowserTimeAttackRun } from "./timeattack-settle";
 
 interface Action2D {
@@ -109,7 +110,8 @@ export function dispatchTimeAttackActions(
         host.session.cameraMode = "ready";
         host.scene.visible = true;
         host.session.readyCamera?.start();
-        host.input.setEnabled(true);
+        // OB 观看: nobody drives.
+        host.input.setEnabled(!observeOf(host.session));
         break;
       case "switch-drive-camera":
         host.session.cameraMode = "drive";
