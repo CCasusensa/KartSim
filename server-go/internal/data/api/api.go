@@ -32,6 +32,7 @@ import (
 	"kartsim/internal/data/store"
 	"kartsim/internal/data/timeattack"
 	"kartsim/internal/shared/apierr"
+	"kartsim/internal/shared/contract"
 	"kartsim/internal/shared/netcfg"
 	"kartsim/internal/shared/rewards"
 )
@@ -91,12 +92,14 @@ type Options struct {
 
 // API serves the public and internal handlers.
 type API struct {
-	store        *store.Store
-	cache        *cache.Cache
-	cluster      *cache.Cluster
-	network      *netcfg.Network
-	secret       []byte
-	dataNode     string
+	store    *store.Store
+	cache    *cache.Cache
+	cluster  *cache.Cluster
+	network  *netcfg.Network
+	secret   []byte
+	dataNode string
+	// nodeRegistry caches the nodes added in the console (nodes.go).
+	nodeRegistry nodeRegistry
 	publicOrigin string
 	log          *slog.Logger
 	now          func() time.Time
@@ -347,6 +350,11 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/admin/anti-cheat", a.adminAntiCheat)
 	route("GET /api/admin/online", a.adminOnline)
 	route("GET /api/admin/nodes", a.adminNodes)
+	route("GET /api/admin/game-nodes", a.adminGameNodes)
+	route("POST /api/admin/game-nodes", a.adminCreateGameNode)
+	route("PATCH /api/admin/game-nodes/{id}", a.adminUpdateGameNode)
+	route("POST /api/admin/game-nodes/{id}/key", a.adminRotateGameNodeKey)
+	route("DELETE /api/admin/game-nodes/{id}", a.adminDeleteGameNode)
 	route("GET /api/admin/ledger", a.adminLedger)
 	route("GET /api/admin/grants", a.adminGrants)
 	route("GET /api/admin/races", a.adminRaces)
@@ -441,6 +449,9 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/admin/economy", a.adminEconomy)
 	route("PUT /api/admin/economy", a.adminSaveEconomy)
 	mux.Handle("GET /api/myroom/ws", a.rooms)
+	// Game nodes with their own key reach the internal API through the
+	// public listener too (the reverse proxy already forwards /multiplayer/).
+	mux.Handle(contract.NodePathPrefix+"/internal/", a.nodeAPI(false))
 
 	return recoverPanics(a.network.CORS(jsonFallback(mux)))
 }

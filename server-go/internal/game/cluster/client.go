@@ -20,19 +20,35 @@ import (
 // maxResponse bounds how much of a data service response is read.
 const maxResponse = 1 << 20
 
-// DataClient posts JSON to the data service's internal listener with the
-// cluster key.
+// DataClient posts JSON to the data service's internal API with the
+// cluster key, or with the node's own key (NODE.md "后台添加节点").
 type DataClient struct {
 	baseURL string
+	header  string // contract.ClusterKeyHeader or contract.NodeKeyHeader
 	key     string
+	prefix  string // contract.NodePathPrefix for a node key
 	http    *http.Client
 }
 
-// NewDataClient returns a client for baseURL (e.g. http://127.0.0.1:8790).
+// NewDataClient returns a client for baseURL (e.g. http://127.0.0.1:8790)
+// that authenticates with the cluster secret.
 func NewDataClient(baseURL string, secret []byte) *DataClient {
+	return newDataClient(baseURL, contract.ClusterKeyHeader, string(secret), "")
+}
+
+// NewKeyedDataClient returns a client that authenticates with a node key.
+// It calls the API under /multiplayer, so baseURL may be the data
+// service's public origin (behind its reverse proxy) or its internal one.
+func NewKeyedDataClient(baseURL, nodeKey string) *DataClient {
+	return newDataClient(baseURL, contract.NodeKeyHeader, nodeKey, contract.NodePathPrefix)
+}
+
+func newDataClient(baseURL, header, key, prefix string) *DataClient {
 	return &DataClient{
 		baseURL: strings.TrimRight(baseURL, "/"),
-		key:     string(secret),
+		header:  header,
+		key:     key,
+		prefix:  prefix,
 		http: &http.Client{
 			Timeout: 15 * time.Second,
 			Transport: &http.Transport{
@@ -98,12 +114,12 @@ func refusal(status int, data []byte) *apierr.Error {
 }
 
 func (c *DataClient) post(ctx context.Context, path string, body []byte) (int, []byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+path, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+c.prefix+path, bytes.NewReader(body))
 	if err != nil {
 		return 0, nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set(contract.ClusterKeyHeader, c.key)
+	req.Header.Set(c.header, c.key)
 	resp, err := c.http.Do(req)
 	if err != nil {
 		return 0, nil, err

@@ -340,9 +340,11 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `KART_NODE_NAME` | 同 `KART_NODE_ID` | 列表中显示的名称，最多 32 个字符 |
 | `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>`（设置了 `KART_TLS_CERT` 时为 `https://`） | 浏览器访问本节点的 HTTP(S) origin；`same-origin` 表示经数据服务所在 origin 同源代理（列表中为 `null`） |
 | `KART_TLS_CERT` / `KART_TLS_KEY` | 空 | PEM 证书与私钥文件，要同时设置：节点自己提供 `https://` 与 `wss://`（只协商 HTTP/1.1），不必再放 TLS 反向代理。证书文件变化后，节点在一分钟内的下一次握手时重新读取（续期不用重启），读取失败时继续用旧证书并记录错误 |
-| `KART_DATA_INTERNAL_URL` | `http://127.0.0.1:8790` | 数据服务内部 API 地址（可为 https） |
-| `KART_DATA_NODE_ID` | `data-1` | 票据中的数据节点必须与它相同 |
-| `KART_CLUSTER_SECRET` | 必填 | 与数据服务相同 |
+| `KART_NODE_KEY` | 空 | 节点密钥：管理后台“服务器节点 → 节点管理 → 添加节点”给出的 `kn1.<节点ID>.<43 个字符>`（[`NODE.md`](NODE.md)）。设置后节点用它调用数据服务（请求头 `X-Kart-Node-Key`，路径加 `/multiplayer` 前缀，所以公网网址也能用），启动时先注册：节点 ID 取自密钥（`KART_NODE_ID` 不用设，设了必须相同），名称、数据节点 ID、票据密钥、游戏页面域名（并入 `KART_LAN_HOSTS`）由数据服务下发，没有 `KART_PUBLIC_ORIGIN` 时用后台的对外地址或数据服务看到的本机 IP；不需要 `KART_CLUSTER_SECRET` |
+| `KART_DATA_URL` | 同 `KART_DATA_INTERNAL_URL` | 数据服务地址：有节点密钥时可以是数据服务的公网网址（如 `https://kart.example.com`），也可以是内部端口 |
+| `KART_DATA_INTERNAL_URL` | `http://127.0.0.1:8790` | 数据服务内部 API 地址（可为 https）；`KART_DATA_URL` 优先 |
+| `KART_DATA_NODE_ID` | `data-1` | 票据中的数据节点必须与它相同（有节点密钥时由数据服务下发） |
+| `KART_CLUSTER_SECRET` | 没有 `KART_NODE_KEY` 时必填 | 与数据服务相同 |
 | `KART_MAX_PLAYERS` | `400` | 满员后 `hello` 返回 503 `SERVER_FULL`，列表中标记为满；最大 10000（数据服务心跳接受的上限） |
 | `KART_OUTBOX_DIR` | `./data/outbox-<NODE_ID>` | 结算发件箱目录（目录 0700，文件 0600）；容器镜像中为 `/var/lib/kart/outbox` |
 | `KART_LAN_HOSTS` | 空（兼容 `KART_LANHOSTS`） | WebSocket Origin 校验与 CORS 的可信主机；前端页面域名与本节点域名不同时必须列入页面域名 |
@@ -565,10 +567,14 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 
 ### 内部 API（`KART_INTERNAL_LISTEN`，只给游戏节点）
 
-全部为 `POST` + JSON，必须带 `X-Kart-Cluster-Key: <KART_CLUSTER_SECRET>`，否则 401 `CLUSTER_KEY_INVALID`。路径与结构定义在 [`internal/shared/contract`](internal/shared/contract/contract.go)。
+全部为 `POST` + JSON，路径与结构定义在 [`internal/shared/contract`](internal/shared/contract/contract.go)。认证二选一：
+
+- `X-Kart-Cluster-Key: <KART_CLUSTER_SECRET>`（共享密钥，只在内部端口接受），否则 401 `CLUSTER_KEY_INVALID`。已在后台添加过的节点 ID 不能再用它（403 `NODE_KEY_REQUIRED`）。
+- `X-Kart-Node-Key: <节点密钥>`（后台添加的节点，[`NODE.md`](NODE.md)）：内部端口与**公网端口**都接受，路径也可以加 `/multiplayer` 前缀（`/multiplayer/internal/v1/…`，反向代理已转发 `/multiplayer/`）。密钥不对 401 `NODE_KEY_INVALID`，节点被停用 403 `NODE_DISABLED`；请求体里的 `nodeId` 必须是密钥自己的节点，否则 403 `NODE_MISMATCH`。这种节点的票据用 `HMAC(KART_CLUSTER_SECRET, 节点 ID)` 派生的票据密钥签发，节点之间不能互相伪造票据；心跳里的名称与对外地址以后台设置为准。
 
 | 路径 | 调用时机 | 作用 |
 | --- | --- | --- |
+| `/internal/v1/nodes/register` | 有节点密钥的节点启动时 | 返回节点 ID、后台设置的名称与对外地址、数据节点 ID、票据密钥、游戏页面域名（`pageHosts`）、数据服务看到的节点 IP（`observedIp`），并记录注册时间与 IP；用共享密钥调用 403 `NODE_KEY_REQUIRED` |
 | `/internal/v1/nodes/heartbeat` | 启动时与每 5 秒 | 注册/刷新节点（TTL 15 秒），续期在线玩家的昵称与账号占用；可选的 `stats`（`heapMB` 保留一位小数、`goroutines`、`connections`、`races`、`version`）与玩家的 `room`（所在房间名）供管理后台显示，玩家的 `accountId` 让数据服务在 Redis 丢失账号映射后补回，旧节点不带也可以（新节点的小数 `heapMB` 旧数据服务无法解析，先升级数据服务）；响应带 `conflicts`（昵称或账号已被其他会话占用、须断开的玩家）与奖励倍率 `expRate`/`lucciRate`（游戏节点据此显示 `race.rewards`） |
 | `/internal/v1/nodes/leave` | 优雅关闭 | 删除节点及其全部昵称与账号占用 |
 | `/internal/v1/presence/claim` | `hello` | 原子占用昵称与账号（`presence:{昵称}`、`presence-account:{accountId}`，30 秒 TTL，靠心跳续期；两者都能占用才写入）；占用者节点已消失时可抢占；账号已在其他会话在线 409 `ACCOUNT_ONLINE`（先检查账号），昵称冲突 409 `NICKNAME_TAKEN`，游客名非法 400 `INVALID_GUEST_NAME`，账号被封禁 403 `ACCOUNT_BANNED`（游戏节点原样转给 `hello`） |
@@ -600,6 +606,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `private_messages`、`private_conversations` | 私聊消息（30 天，按发送者 + `clientId` 去重）、每个账号的会话列表（最后一条、已读位置、未读数、清除标记、隐藏） |
 | `account_counters`、`account_login_days` | 成就计数（多人赛按模式与赛道主题的胜利/完赛/未完赛、连续未完赛、计时赛完赛）、登录过的北京日期 |
 | `account_careers`、`account_emblems` | 已完成的成就（完成时间）、拥有的徽章（来源、代表徽章槽 `main_slot`） |
+| `game_nodes` | 后台添加的游戏节点（v19）：节点 ID、名称、对外地址、备注、节点密钥的摘要（只在添加或重置时显示一次原文）、停用标记、添加者与时间、最后注册时间与 IP |
 
 `timeattack_runs` 与 `daily_rewards` 只保留 30 天：kart-data 每小时清理一次（与过期会话一起），同时把过期的好友请求改为拒绝、删除过期的请求结果与 30 天前的私聊消息。账号经济表在 schema v2 引入，`admin_grants`、`timeattack_state` 在 v3，好友私聊的表在 v4，小屋成就与徽章的表在 v5，道具图鉴奖励的表在 v6，开箱记录与赛车探险队的表在 v7，抽奖（`lottery_draws`、`lottery_counters`、`lottery_daily`、`lottery_activities`）在 v8，驾照考试（`license_state`、`license_clears`、`license_records`、`license_runs`）在 v9，俱乐部（`clubs`、`club_members`、`club_applications`、`club_leaves`、`club_donations`、`club_welfare`）在 v10，奖励箱、任务与迷你提示窗公告（`reward_box`、`quest_progress`、`notices`）在 v11。kart-data 每小时还会清理 30 天前已领取或过期的奖励箱记录与 14 天前的任务周期。
 
@@ -658,7 +665,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 
 ## 分布式部署
 
-一个数据服务（连同 MySQL 与 Redis）加任意多个游戏节点，游戏节点可以放在不同机器、不同地区。在单独的机器上部署节点推荐用 [`kart-node`](NODE.md)：`kart-node init --data <数据服务内部地址> …` 生成配置、`kart-node check` 检查连通与密钥、`kart-node service install` 装成 systemd / Windows 服务，人数按 CPU、内存与上行带宽自动计算。
+一个数据服务（连同 MySQL 与 Redis）加任意多个游戏节点，游戏节点可以放在不同机器、不同地区。在单独的机器上部署节点推荐用 [`kart-node`](NODE.md)：在管理后台“服务器节点 → 节点管理”添加节点得到节点密钥，节点上只填数据服务网址与这个密钥（第一次运行 `kart-node` 会提示输入），它走数据服务的公网网址（`/multiplayer/` 下）注册，不需要开放内部端口；`kart-node service install` 装成 systemd / Windows 服务，人数按 CPU、内存与上行带宽自动计算。下面的“游戏节点”要点是不用节点密钥（共享集群密钥）时的做法。
 
 **游戏节点**
 

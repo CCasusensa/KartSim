@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -81,7 +82,7 @@ func TestDerivedDefaults(t *testing.T) {
 		"KART_GAME_ADDR":         "0.0.0.0",
 		"KART_NODE_ID":           "hk-01-8800",
 		"KART_WEBRTC_UDP_PORT":   "8800",
-		"KART_DATA_INTERNAL_URL": "http://10.0.0.10:8790",
+		"KART_DATA_URL":          "http://10.0.0.10:8790",
 		"KART_WEBRTC_PUBLIC_IPS": "203.0.113.7",
 		"KART_PUBLIC_ORIGIN":     "http://203.0.113.7:8800",
 		// 4 CPUs × 40; memory allows (8192-1228-160)/2.5 = 2721.
@@ -160,8 +161,18 @@ func TestHelpers(t *testing.T) {
 		"[fd00::1]":                    "http://[fd00::1]:8790",
 		"http://data.example.com:8790": "http://data.example.com:8790",
 	} {
-		if got, err := normalizeDataURL(in); err != nil || got != want {
+		if got, err := normalizeDataURL(in, false); err != nil || got != want {
 			t.Errorf("%s → %q %v, want %q", in, got, err, want)
+		}
+	}
+	// A keyed node's bare host is the data service's website.
+	for in, want := range map[string]string{
+		"kart.example.com":         "https://kart.example.com",
+		"10.0.0.10:8787":           "http://10.0.0.10:8787",
+		"http://kart.example.com/": "http://kart.example.com",
+	} {
+		if got, err := normalizeDataURL(in, true); err != nil || got != want {
+			t.Errorf("keyed %s → %q %v, want %q", in, got, err, want)
 		}
 	}
 	for in, want := range map[string]string{"hk-01.example.com": "hk-01-8788", "WIN_SERVER 2022": "WIN_SERVER-2022-8788",
@@ -215,7 +226,7 @@ func TestInitWritesARunnableFile(t *testing.T) {
 	}
 	data, _ := os.ReadFile(conf)
 	text := string(data)
-	for _, want := range []string{"KART_DATA_INTERNAL_URL=http://10.0.0.10:8790\n", "KART_CLUSTER_SECRET=" + secret + "\n",
+	for _, want := range []string{"KART_DATA_URL=http://10.0.0.10:8790\n", "KART_CLUSTER_SECRET=" + secret + "\n",
 		"KART_MAX_PLAYERS=auto\n", "KART_UPLINK_MBPS=50\n", "KART_NODE_NAME=华东一区\n", "# KART_TLS_CERT=\n",
 		"KART_PUBLIC_ORIGIN=https://game1.example.com\n", "KART_WEBRTC_UDP_PORT=8788\n"} {
 		if !strings.Contains(text, want) {
@@ -232,5 +243,138 @@ func TestInitWritesARunnableFile(t *testing.T) {
 	}
 	if s.get("KART_NODE_NAME") != "华东一区" || !s.auto || s.plan.LimitedBy != "cpu" {
 		t.Fatalf("%v %+v", s.values, s.plan)
+	}
+}
+
+var testKey = "kn1.hk-1." + strings.Repeat("A", 43)
+
+// With a node key, the data service address and the key are all a node
+// needs: its ID comes from the key, its name, origin and page hosts from
+// the registration.
+func TestKeyedNodeSettings(t *testing.T) {
+	s := mustLoad(t, []string{"--key", testKey, "--data", "kart.example.com"}, nil)
+	if s.get("KART_DATA_URL") != "https://kart.example.com" || s.get("KART_NODE_ID") != "hk-1" ||
+		s.get("KART_PUBLIC_ORIGIN") != "" || s.get("KART_OUTBOX_DIR") == "" || !s.keyed() {
+		t.Fatalf("%v", s.values)
+	}
+	notes := strings.Join(s.notes, "\n")
+	if strings.Contains(notes, "--page-host") || strings.Contains(notes, "--public-origin") {
+		t.Fatalf("notes %q", notes)
+	}
+	cfg, err := nodeConfig(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.NodeKey != testKey || cfg.NodeID != "hk-1" || len(cfg.Secret) != 0 || cfg.DataInternalURL != "https://kart.example.com" {
+		t.Fatalf("config %+v", cfg)
+	}
+	if len(summary(s)) == 0 || !strings.Contains(strings.Join(summary(s), "\n"), "节点密钥") {
+		t.Fatalf("summary %q", summary(s))
+	}
+	for _, bad := range [][]string{
+		{"--key", "kn1.short"},
+		{"--key", testKey},
+		{"--key", testKey, "--data", "kart.example.com", "--id", "other"},
+	} {
+		f, _ := parseFlags("run", bad)
+		if _, err := load(f, nil, box); err == nil {
+			t.Errorf("%v accepted", bad)
+		}
+	}
+	// --public-ip still sets the origin and the WebRTC address.
+	s = mustLoad(t, []string{"--key", testKey, "--data", "kart.example.com", "--public-ip", "203.0.113.7"}, nil)
+	if s.get("KART_PUBLIC_ORIGIN") != "http://203.0.113.7:8788" || s.get("KART_WEBRTC_PUBLIC_IPS") != "203.0.113.7" {
+		t.Fatalf("%v", s.values)
+	}
+}
+
+func TestInitWithAKey(t *testing.T) {
+	dir := t.TempDir()
+	conf := filepath.Join(dir, "kart-node.conf")
+	t.Setenv("KART_CLUSTER_SECRET", secret) // not written: the key replaces it
+	if err := cmdInit([]string{"--config", conf, "--data", "kart.example.com", "--key", testKey}); err != nil {
+		t.Fatal(err)
+	}
+	data, _ := os.ReadFile(conf)
+	text := string(data)
+	for _, want := range []string{"KART_DATA_URL=https://kart.example.com\n", "KART_NODE_KEY=" + testKey + "\n",
+		"# KART_NODE_ID=\n", "# KART_DATA_NODE_ID=\n", "# KART_CLUSTER_SECRET=\n", "# KART_PUBLIC_ORIGIN=\n"} {
+		if !strings.Contains(text, want) {
+			t.Errorf("missing %q in\n%s", want, text)
+		}
+	}
+	t.Setenv("KART_CLUSTER_SECRET", "")
+	s := mustLoad(t, []string{"--config", conf}, nil)
+	if _, err := nodeConfig(s); err != nil || s.get("KART_NODE_ID") != "hk-1" {
+		t.Fatalf("%v %v", err, s.values)
+	}
+}
+
+func TestRegisterOnce(t *testing.T) {
+	var path, header string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path, header = r.URL.Path, r.Header.Get(contract.NodeKeyHeader)
+		if header != testKey {
+			apierr.WriteError(w, apierr.New(http.StatusUnauthorized, "NODE_KEY_INVALID"))
+			return
+		}
+		_ = json.NewEncoder(w).Encode(contract.NodeRegistration{NodeID: "hk-1", Name: "香港一区", DataNode: "data-1",
+			TicketKey: strings.Repeat("k", 43), ObservedIP: "203.0.113.7"})
+	}))
+	defer server.Close()
+	s := mustLoad(t, []string{"--key", testKey, "--data", server.URL}, nil)
+	cfg, err := nodeConfig(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reg, err := registerOnce(context.Background(), cfg)
+	if err != nil || reg.Name != "香港一区" || path != contract.NodePathPrefix+contract.PathNodeRegister {
+		t.Fatalf("%+v %v %s", reg, err, path)
+	}
+	if err := cfg.ApplyRegistration(reg); err != nil || cfg.PublicOrigin != "http://203.0.113.7:8788" ||
+		cfg.NodeName != "香港一区" || string(cfg.TicketKey) != strings.Repeat("k", 43) {
+		t.Fatalf("%v %+v", err, cfg)
+	}
+	cfg.NodeKey = "kn1.hk-1." + strings.Repeat("B", 43)
+	if _, err := registerOnce(context.Background(), cfg); err == nil || !strings.Contains(err.Error(), "不认识") {
+		t.Fatalf("wrong key: %v", err)
+	}
+}
+
+// Started with nothing configured, kart-node asks for the address and the
+// key, checks them and saves them.
+func TestFirstRun(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(contract.NodeKeyHeader) != testKey {
+			apierr.WriteError(w, apierr.New(http.StatusUnauthorized, "NODE_KEY_INVALID"))
+			return
+		}
+		_ = json.NewEncoder(w).Encode(contract.NodeRegistration{NodeID: "hk-1", Name: "香港一区", DataNode: "data-1",
+			TicketKey: strings.Repeat("k", 43)})
+	}))
+	defer server.Close()
+	dir := t.TempDir()
+	t.Chdir(dir)
+	f, _ := parseFlags("run", nil)
+	if !needsFirstRun(f, []string{"HOME=/x"}) || needsFirstRun(f, []string{"KART_NODE_KEY=" + testKey}) {
+		t.Fatal("needsFirstRun")
+	}
+	wrong := "kn1.hk-1." + strings.Repeat("B", 43)
+	input := strings.NewReader(server.URL + "\nnot a key\n" + server.URL + "\n" + wrong + "\n" + server.URL + "\n" + testKey + "\n")
+	var out strings.Builder
+	path, err := firstRun(f, input, &out)
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out.String())
+	}
+	if !strings.Contains(out.String(), "格式不对") || !strings.Contains(out.String(), "不认识") ||
+		!strings.Contains(out.String(), "香港一区") {
+		t.Fatalf("output:\n%s", out.String())
+	}
+	data, _ := os.ReadFile(path)
+	if !strings.Contains(string(data), "KART_NODE_KEY="+testKey) || !strings.Contains(string(data), "KART_DATA_URL="+server.URL) {
+		t.Fatalf("saved:\n%s", data)
+	}
+	if _, err := firstRun(f, strings.NewReader(""), &out); err == nil {
+		t.Fatal("empty input accepted")
 	}
 }

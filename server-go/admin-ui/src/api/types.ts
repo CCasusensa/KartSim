@@ -190,6 +190,31 @@ export interface NodeRow {
   stats: NodeStats | null
 }
 
+/** A game node added in the console (GET /api/admin/game-nodes). */
+export interface GameNodeRow {
+  id: string
+  name: string
+  /** Set in the console; empty: the node decides. */
+  origin?: string
+  note?: string
+  disabled: boolean
+  createdBy: string
+  createdAt: number
+  keyCreatedAt: number
+  registeredAt?: number
+  registeredIp?: string
+  status: 'online' | 'offline' | 'never' | 'disabled' | string
+  players: number
+  capacity: number
+  /** The origin the running node reports. */
+  liveOrigin?: string | null
+  seenAt?: number
+}
+
+export interface GameNodesResponse {
+  nodes: GameNodeRow[]
+}
+
 export interface NodesResponse {
   now: number
   nodes: NodeRow[]

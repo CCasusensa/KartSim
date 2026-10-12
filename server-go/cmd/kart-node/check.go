@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -9,6 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"kartsim/internal/game/app"
+	"kartsim/internal/game/config"
+	"kartsim/internal/shared/apierr"
 	"kartsim/internal/shared/contract"
 )
 
@@ -40,6 +44,28 @@ func probeData(ctx context.Context, dataURL, secret string) error {
 	}
 	return fmt.Errorf("%s 不像 KartSim 数据服务的内部端口（HTTP %d：%s）；--data 应指向 KART_INTERNAL_LISTEN（默认 8790），不是公网端口 8787",
 		dataURL, resp.StatusCode, strings.TrimSpace(string(body)))
+}
+
+// registerOnce asks the data service once who this keyed node is.
+func registerOnce(ctx context.Context, cfg config.Config) (contract.NodeRegistration, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	var reg contract.NodeRegistration
+	err := app.DataClient(cfg).Call(ctx, contract.PathNodeRegister,
+		contract.NodeRegisterRequest{ProtocolVersion: contract.ProtocolVersion}, &reg)
+	var refused *apierr.Error
+	switch {
+	case err == nil:
+		return reg, nil
+	case errors.As(err, &refused) && refused.Status == http.StatusUnauthorized:
+		return reg, errors.New("数据服务不认识这个节点密钥：检查是否完整复制，或在后台重置后用新密钥")
+	case errors.As(err, &refused) && refused.Code == "NODE_DISABLED":
+		return reg, errors.New("这个节点已在后台停用")
+	case errors.As(err, &refused):
+		return reg, fmt.Errorf("%s 不像 KartSim 数据服务（%s）：--data 应是游戏网站的地址，反向代理要转发 /multiplayer/",
+			cfg.DataInternalURL, refused.Code)
+	}
+	return reg, fmt.Errorf("连不上数据服务 %s：%v。检查地址、网络与防火墙", cfg.DataInternalURL, err)
 }
 
 // checkPorts tries to bind the TCP and UDP ports the node will use.

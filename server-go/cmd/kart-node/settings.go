@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"kartsim/internal/game/capacity"
+	"kartsim/internal/shared/nodekey"
 )
 
 // option is a command-line flag that sets one configuration key.
@@ -23,17 +24,18 @@ type option struct {
 // options are the flags every subcommand accepts; any other KART_* setting
 // goes in the configuration file or the environment.
 var options = []option{
-	{"data", "KART_DATA_INTERNAL_URL", "数据服务内部地址（数据服务的 KART_INTERNAL_LISTEN），如 10.0.0.10:8790、https://data.example.com:8790"},
-	{"data-node-id", "KART_DATA_NODE_ID", "数据服务的 KART_DATA_NODE_ID（默认 data-1）"},
-	{"secret-file", "KART_CLUSTER_SECRET_FILE", "集群密钥文件（或用 KART_CLUSTER_SECRET 环境变量 / 配置项）"},
-	{"id", "KART_NODE_ID", "节点 ID，集群内唯一（默认 主机名-端口）"},
-	{"name", "KART_NODE_NAME", "选服列表里显示的名称（默认同节点 ID）"},
+	{"data", "KART_DATA_URL", "数据服务地址，如 https://kart.example.com（用节点密钥时就是游戏网站的地址）"},
+	{"key", "KART_NODE_KEY", "节点密钥：管理后台“游戏节点 → 添加节点”给出的 kn1.… 整串"},
+	{"data-node-id", "KART_DATA_NODE_ID", "不用节点密钥时：数据服务的 KART_DATA_NODE_ID（默认 data-1）"},
+	{"secret-file", "KART_CLUSTER_SECRET_FILE", "不用节点密钥时：集群密钥文件（或 KART_CLUSTER_SECRET）"},
+	{"id", "KART_NODE_ID", "不用节点密钥时：节点 ID，集群内唯一（默认 主机名-端口）"},
+	{"name", "KART_NODE_NAME", "不用节点密钥时：选服列表里显示的名称（有密钥时以后台为准）"},
 	{"listen", "KART_GAME_ADDR", "监听地址（默认 0.0.0.0）"},
 	{"port", "KART_GAME_PORT", "TCP 端口（默认 8788）"},
 	{"udp-port", "KART_WEBRTC_UDP_PORT", "WebRTC 的 UDP 端口（默认与 TCP 端口相同）"},
 	{"public-origin", "KART_PUBLIC_ORIGIN", "玩家浏览器访问本节点的地址，如 https://game1.example.com"},
 	{"public-ip", "KART_PUBLIC_IP", "本机公网 IP：WebRTC 候选地址，没有 --public-origin 时也用它拼地址"},
-	{"page-host", "KART_LAN_HOSTS", "前端页面的域名（与本节点不同域名时必填），逗号分隔"},
+	{"page-host", "KART_LAN_HOSTS", "额外信任的游戏页面域名，逗号分隔（有节点密钥时自动从数据服务获得）"},
 	{"tls-cert", "KART_TLS_CERT", "PEM 证书文件：节点直接提供 https/wss"},
 	{"tls-key", "KART_TLS_KEY", "PEM 私钥文件"},
 	{"players", "KART_MAX_PLAYERS", "最大人数：数字或 auto（默认 auto，按硬件计算）"},
@@ -96,6 +98,9 @@ type settings struct {
 }
 
 func (s *settings) get(key string) string { return s.values[key] }
+
+// keyed reports whether the node uses its own key from the console.
+func (s *settings) keyed() bool { return s.values["KART_NODE_KEY"] != "" }
 
 func (s *settings) note(format string, args ...any) {
 	s.notes = append(s.notes, fmt.Sprintf(format, args...))
@@ -167,6 +172,16 @@ func (s *settings) derive() error {
 	if n, err := strconv.Atoi(port); err != nil || n < 1 || n > 65535 {
 		return errors.New("端口必须是 1–65535")
 	}
+	if s.keyed() {
+		id, ok := nodekey.NodeID(v["KART_NODE_KEY"])
+		if !ok {
+			return errors.New("节点密钥格式不对：应是后台“添加节点”给出的 kn1.… 整串")
+		}
+		if v["KART_NODE_ID"] != "" && v["KART_NODE_ID"] != id {
+			return fmt.Errorf("--id 与节点密钥中的节点 %s 不同（有密钥时不用设置节点 ID）", id)
+		}
+		v["KART_NODE_ID"] = id
+	}
 	setDefault("KART_NODE_ID", defaultNodeID(s.hw.Hostname, port))
 	setDefault("KART_WEBRTC_UDP_PORT", port)
 
@@ -185,16 +200,27 @@ func (s *settings) derive() error {
 		v["KART_CLUSTER_SECRET"] = strings.TrimSpace(string(data))
 	}
 
-	if raw := v["KART_DATA_INTERNAL_URL"]; raw != "" {
-		normalized, err := normalizeDataURL(raw)
+	raw := v["KART_DATA_URL"]
+	if raw == "" {
+		raw = v["KART_DATA_INTERNAL_URL"]
+	}
+	switch {
+	case raw != "":
+		normalized, err := normalizeDataURL(raw, s.keyed())
 		if err != nil {
 			return err
 		}
-		v["KART_DATA_INTERNAL_URL"] = normalized
-		if host := hostOf(normalized); strings.HasPrefix(normalized, "http://") && isPublicHost(host) {
-			s.note("数据服务地址 %s 是公网明文 HTTP：集群密钥会明文经过公网。请走内网/VPN（WireGuard），或在数据服务内部端口前加 TLS 并用 https://", normalized)
+		v["KART_DATA_URL"] = normalized
+		what := "集群密钥"
+		if s.keyed() {
+			what = "节点密钥"
 		}
-	} else {
+		if host := hostOf(normalized); strings.HasPrefix(normalized, "http://") && isPublicHost(host) {
+			s.note("数据服务地址 %s 是公网明文 HTTP：%s会明文经过公网。请用 https:// 地址，或走内网/VPN", normalized, what)
+		}
+	case s.keyed():
+		return errors.New("没有数据服务地址：用 --data 或配置项 KART_DATA_URL 填数据服务的网址")
+	default:
 		s.note("没有设置数据服务地址（--data），使用 http://127.0.0.1:8790，只适合数据服务在同一台机器")
 	}
 
@@ -211,17 +237,22 @@ func (s *settings) derive() error {
 			scheme = "https"
 		}
 		host := publicIP
-		if host == "" {
+		switch {
+		case host == "" && s.keyed():
+			// The console's address, else the one the data service sees.
+		case host == "":
 			host = localAddress()
 			s.note("没有设置 --public-origin 或 --public-ip，玩家将用 %s://%s:%s 访问本节点；云服务器的公网 IP 通常不在网卡上，请设置它们",
 				scheme, host, port)
 		}
-		v["KART_PUBLIC_ORIGIN"] = scheme + "://" + net.JoinHostPort(host, port)
+		if host != "" {
+			v["KART_PUBLIC_ORIGIN"] = scheme + "://" + net.JoinHostPort(host, port)
+		}
 	}
-	if strings.HasPrefix(v["KART_PUBLIC_ORIGIN"], "http://") {
+	if strings.HasPrefix(v["KART_PUBLIC_ORIGIN"], "http://") || (v["KART_PUBLIC_ORIGIN"] == "" && v["KART_TLS_CERT"] == "") {
 		s.note("玩家访问地址是 http://：如果游戏页面是 https://，浏览器不允许连 ws://，需要 --tls-cert/--tls-key 或在前面加 TLS 反向代理")
 	}
-	if v["KART_LAN_HOSTS"] == "" {
+	if v["KART_LAN_HOSTS"] == "" && !s.keyed() {
 		s.note("没有设置 --page-host：游戏页面与本节点不是同一个域名时，浏览器的连接会被 Origin 校验拒绝")
 	}
 	return s.size()
@@ -293,18 +324,24 @@ func defaultNodeID(hostname, port string) string {
 	return host[:min(len(host), 64-len(port)-1)] + "-" + port
 }
 
-// normalizeDataURL accepts host, host:port or an http(s) URL; the port
-// defaults to 8790 (the data service's internal listener).
-func normalizeDataURL(raw string) (string, error) {
-	if !strings.Contains(raw, "://") {
+// normalizeDataURL accepts host, host:port or an http(s) URL. Without a
+// scheme, a keyed node's bare host is https (the data service's website)
+// and host:port is http; a node on the cluster secret talks to the internal
+// listener, whose port defaults to 8790.
+func normalizeDataURL(raw string, keyed bool) (string, error) {
+	hasScheme := strings.Contains(raw, "://")
+	if !hasScheme {
 		raw = "http://" + raw
 	}
 	parsed, err := url.Parse(raw)
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Hostname() == "" ||
 		parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return "", fmt.Errorf("数据服务地址 %q 无效，应为 主机:端口 或 http(s)://主机:端口", raw)
+		return "", fmt.Errorf("数据服务地址 %q 无效，应为 https://域名 或 主机:端口", raw)
 	}
-	if parsed.Port() == "" {
+	switch {
+	case keyed && !hasScheme && parsed.Port() == "":
+		parsed.Scheme = "https"
+	case !keyed && parsed.Port() == "":
 		parsed.Host = net.JoinHostPort(parsed.Hostname(), "8790")
 	}
 	return parsed.Scheme + "://" + parsed.Host + strings.TrimRight(parsed.Path, "/"), nil

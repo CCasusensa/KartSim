@@ -74,10 +74,18 @@ var maxRaceReward = func() rewards.Reward {
 	return most
 }()
 
-// InternalHandler serves the game-node API. Every call needs the cluster key.
-func (a *API) InternalHandler() http.Handler {
+// InternalHandler serves the game-node API on the internal listener: with
+// the cluster secret or a node's own key, at /internal/v1/… and under
+// /multiplayer.
+func (a *API) InternalHandler() http.Handler { return a.nodeAPI(true) }
+
+// nodeAPI serves the game-node API. Every call needs a node key (a node
+// added in the console, acting only as itself) or, when clusterKey, the
+// cluster secret.
+func (a *API) nodeAPI(clusterKey bool) http.Handler {
 	mux := http.NewServeMux()
 	route := func(path string, handler handlerFunc) { mux.Handle("POST "+path, a.serve(handler)) }
+	route(contract.PathNodeRegister, a.registerNode)
 	route(contract.PathHeartbeat, a.heartbeat)
 	route(contract.PathNodeLeave, a.nodeLeave)
 	route(contract.PathPresenceClaim, a.presenceClaim)
@@ -90,9 +98,21 @@ func (a *API) InternalHandler() http.Handler {
 	routes := jsonFallback(mux)
 	expected := sha256.Sum256(a.secret)
 	return recoverPanics(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if rest, ok := strings.CutPrefix(r.URL.Path, contract.NodePathPrefix); ok && strings.HasPrefix(rest, "/internal/") {
+			r.URL.Path, r.URL.RawPath = rest, ""
+		}
+		if key := r.Header.Get(contract.NodeKeyHeader); key != "" {
+			id, err := a.authenticateNode(r.Context(), key)
+			if err != nil {
+				apierr.WriteError(w, err)
+				return
+			}
+			routes.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), nodeIdentityKey{}, id)))
+			return
+		}
 		// Comparing digests keeps the comparison constant-time for any key length.
 		given := sha256.Sum256([]byte(r.Header.Get(contract.ClusterKeyHeader)))
-		if len(a.secret) == 0 || subtle.ConstantTimeCompare(given[:], expected[:]) != 1 {
+		if !clusterKey || len(a.secret) == 0 || subtle.ConstantTimeCompare(given[:], expected[:]) != 1 {
 			apierr.WriteError(w, errClusterKeyInvalid)
 			return
 		}
@@ -119,8 +139,8 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	name := strings.TrimSpace(request.Name)
 	if name == "" {
@@ -142,8 +162,22 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 		stats.Races < 0 || (stats.Version != "" && !validText(stats.Version, 64))) {
 		return errInvalidHeartbeat
 	}
+	_, keyed := keyedNode(r.Context())
+	if keyed {
+		// The console's name and origin win, so edits apply within a heartbeat.
+		nodes, err := a.gameNodes(r.Context())
+		if err != nil {
+			return errServiceUnavailable
+		}
+		registered := nodes[request.NodeID]
+		name = registered.Name
+		if registered.Origin != "" {
+			origin = registered.Origin
+		}
+	}
 	now := a.nowMillis()
 	result, err := a.cluster.Heartbeat(r.Context(), cache.Node{
+		Keyed:           keyed,
 		NodeID:          request.NodeID,
 		Name:            name,
 		Origin:          origin,
@@ -192,8 +226,8 @@ func (a *API) nodeLeave(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	if err := a.cluster.Leave(r.Context(), request.NodeID); err != nil {
 		a.log.Warn("node leave not stored", "node", request.NodeID, "error", err)
@@ -210,8 +244,8 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	if !validASCIIID(request.PlayerID, 64) {
 		return errInvalidPlayerID
@@ -301,8 +335,8 @@ func (a *API) presenceRelease(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	if !validASCIIID(request.PlayerID, 64) {
 		return errInvalidPlayerID
@@ -339,8 +373,8 @@ func (a *API) saveRoomRules(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	rules, ok := compactObject(request.Rules)
 	if !ok || !validASCIIID(request.RoomID, 64) || len(rules) > maxRoomRulesBytes || request.UpdatedAt <= 0 {
@@ -495,8 +529,8 @@ func (a *API) saveRace(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	// A future finish time would pin the race above newer ones in the history.
 	request.FinishedAt = a.clampNodeTime(request.NodeID, "race", request.FinishedAt)

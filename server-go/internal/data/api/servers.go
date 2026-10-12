@@ -94,7 +94,7 @@ func (a *API) issueTicket(w http.ResponseWriter, r *http.Request) error {
 	}
 	claims.NodeID = node.NodeID
 	claims.DataNode = a.dataNode
-	signed, issued := ticket.Sign(a.secret, claims, a.now())
+	signed, issued := ticket.Sign(a.ticketKey(node), claims, a.now())
 	return writeJSON(w, http.StatusOK, contract.TicketResponse{
 		Ticket:    signed,
 		NodeID:    node.NodeID,

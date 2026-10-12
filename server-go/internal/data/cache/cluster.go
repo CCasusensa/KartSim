@@ -49,6 +49,9 @@ type Node struct {
 	// Stats are the load figures of the latest heartbeat; nil from nodes
 	// that send none.
 	Stats *contract.NodeStats `json:"stats,omitempty"`
+	// Keyed nodes authenticate with their own key (added in the console);
+	// their tickets are signed with the node's ticket key.
+	Keyed bool `json:"keyed,omitempty"`
 }
 
 // Full reports whether the node accepts no more players.

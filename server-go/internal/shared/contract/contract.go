@@ -14,7 +14,15 @@ import (
 
 const (
 	ClusterKeyHeader = "X-Kart-Cluster-Key"
+	// NodeKeyHeader carries a node's own key (nodekey package) instead of
+	// the cluster secret. Such a node may only act as itself.
+	NodeKeyHeader = "X-Kart-Node-Key"
+	// NodePathPrefix also serves the API below it for nodes with their own
+	// key: on the internal listener and on the public one, where a reverse
+	// proxy already forwards /multiplayer/ (NODE.md).
+	NodePathPrefix = "/multiplayer"
 
+	PathNodeRegister    = "/internal/v1/nodes/register"
 	PathHeartbeat       = "/internal/v1/nodes/heartbeat"
 	PathNodeLeave       = "/internal/v1/nodes/leave"
 	PathPresenceClaim   = "/internal/v1/presence/claim"
@@ -115,6 +123,31 @@ type CurrencyAmounts struct {
 // MaxCurrencyGrant bounds each amount of an admin-set grant (the
 // registration and per-race grants of ECONOMY.md 2.3/2.4).
 const MaxCurrencyGrant = 1_000_000_000
+
+// NodeRegisterRequest is a keyed node's first call: it learns who it is.
+type NodeRegisterRequest struct {
+	ProtocolVersion int    `json:"protocolVersion"`
+	Version         string `json:"version,omitempty"`
+}
+
+// NodeRegistration is what the console set for the node and what it needs
+// to run: its ID and name, the browser origin if the admin set one (else
+// the node uses its own or ObservedIP), the data node of the tickets and the
+// node's ticket key.
+type NodeRegistration struct {
+	NodeID    string `json:"nodeId"`
+	Name      string `json:"name"`
+	Origin    string `json:"origin,omitempty"`
+	DataNode  string `json:"dataNode"`
+	TicketKey string `json:"ticketKey"`
+	// ObservedIP is the node's address as the data service sees it.
+	ObservedIP string `json:"observedIp,omitempty"`
+	// PageHosts are the hosts the data service trusts (its KART_LAN_HOSTS
+	// and public origin): the game page is served from one of them, so the
+	// node accepts browser connections from them too.
+	PageHosts  []string `json:"pageHosts,omitempty"`
+	ServerTime int64    `json:"serverTime"`
+}
 
 // NodeLeaveRequest removes a node and its presence claims on shutdown.
 type NodeLeaveRequest struct {

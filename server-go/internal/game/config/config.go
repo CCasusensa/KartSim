@@ -13,7 +13,9 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"kartsim/internal/shared/contract"
 	"kartsim/internal/shared/netcfg"
+	"kartsim/internal/shared/nodekey"
 	"kartsim/internal/shared/ticket"
 )
 
@@ -37,7 +39,19 @@ type Config struct {
 	PublicOrigin    string // "" when SameOrigin
 	DataInternalURL string
 	DataNodeID      string
-	Secret          []byte
+	// Secret is the shared cluster secret (KART_CLUSTER_SECRET), unless the
+	// node has its own key: NodeKey (KART_NODE_KEY, from the console) makes
+	// the node register with the data service (ApplyRegistration) and get
+	// its ID, name and TicketKey from it.
+	Secret  []byte
+	NodeKey string
+	// TicketKey verifies entry tickets: the cluster secret, or the node's
+	// ticket key from its registration.
+	TicketKey []byte
+	// PublicOriginSet tells whether KART_PUBLIC_ORIGIN was given (else a
+	// keyed node uses the console's origin or the address the data
+	// service saw).
+	PublicOriginSet bool
 	MaxPlayers      int
 	OutboxDir       string
 	Network         *netcfg.Network
@@ -113,6 +127,37 @@ func (c Config) ListenAddr() string {
 	return net.JoinHostPort(c.Addr, strconv.Itoa(c.Port))
 }
 
+// ApplyRegistration takes what the data service said about a keyed node:
+// its ID, the console's name, the data node, the ticket key and the browser
+// origin (the console's, else KART_PUBLIC_ORIGIN, else the address the data
+// service saw on this node's port).
+func (c *Config) ApplyRegistration(reg contract.NodeRegistration) error {
+	if reg.NodeID != c.NodeID || len(reg.TicketKey) < ticket.MinSecretLength || !nodeIDPattern.MatchString(reg.DataNode) {
+		return fmt.Errorf("数据服务的注册回复无效（节点 %q）", reg.NodeID)
+	}
+	if name := strings.TrimSpace(reg.Name); name != "" && utf8.RuneCountInString(name) <= 32 && !hasControl(name) {
+		c.NodeName = name
+	}
+	c.DataNodeID, c.TicketKey = reg.DataNode, []byte(reg.TicketKey)
+	c.Network = c.Network.With(reg.PageHosts)
+	switch {
+	case reg.Origin != "":
+		origin, err := normalizeOrigin(reg.Origin)
+		if err != nil {
+			return fmt.Errorf("后台设置的对外地址 %q 无效", reg.Origin)
+		}
+		c.PublicOrigin = origin
+	case c.PublicOriginSet:
+	case reg.ObservedIP != "" && net.ParseIP(reg.ObservedIP) != nil:
+		scheme := "http"
+		if c.TLSCert != "" {
+			scheme = "https"
+		}
+		c.PublicOrigin = scheme + "://" + net.JoinHostPort(reg.ObservedIP, strconv.Itoa(c.Port))
+	}
+	return nil
+}
+
 // FromEnv reads and validates the configuration through getenv.
 func FromEnv(getenv func(string) string) (Config, error) {
 	env := func(name, fallback string) string {
@@ -131,7 +176,19 @@ func FromEnv(getenv func(string) string) (Config, error) {
 	}
 	cfg.Port = port
 
+	cfg.NodeKey = strings.TrimSpace(getenv("KART_NODE_KEY"))
 	cfg.NodeID = env("KART_NODE_ID", "game-"+strconv.Itoa(port))
+	if cfg.NodeKey != "" {
+		keyID, ok := nodekey.NodeID(cfg.NodeKey)
+		switch {
+		case !ok:
+			problems = append(problems, errors.New("KART_NODE_KEY 格式不对：应是后台“添加节点”给出的 kn1.… 整串"))
+		case getenv("KART_NODE_ID") != "" && strings.TrimSpace(getenv("KART_NODE_ID")) != keyID:
+			problems = append(problems, fmt.Errorf("KART_NODE_ID 与节点密钥中的节点 %s 不同（有密钥时不用设置节点 ID）", keyID))
+		default:
+			cfg.NodeID = keyID
+		}
+	}
 	if !nodeIDPattern.MatchString(cfg.NodeID) {
 		problems = append(problems, errors.New("KART_NODE_ID 只允许 [A-Za-z0-9_-]，长度 1–64"))
 	}
@@ -148,6 +205,7 @@ func FromEnv(getenv func(string) string) (Config, error) {
 	if cfg.TLSCert != "" {
 		scheme = "https"
 	}
+	cfg.PublicOriginSet = strings.TrimSpace(getenv("KART_PUBLIC_ORIGIN")) != ""
 	origin := env("KART_PUBLIC_ORIGIN", scheme+"://127.0.0.1:"+strconv.Itoa(port))
 	if origin == SameOrigin {
 		cfg.PublicOrigin = ""
@@ -157,10 +215,12 @@ func FromEnv(getenv func(string) string) (Config, error) {
 		cfg.PublicOrigin = normalized
 	}
 
-	dataURL := strings.TrimRight(env("KART_DATA_INTERNAL_URL", "http://127.0.0.1:8790"), "/")
+	// KART_DATA_URL is the data service address of a keyed node: its public
+	// origin works (the API is also served under /multiplayer).
+	dataURL := strings.TrimRight(env("KART_DATA_URL", env("KART_DATA_INTERNAL_URL", "http://127.0.0.1:8790")), "/")
 	if parsed, err := url.Parse(dataURL); err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") ||
 		parsed.Host == "" {
-		problems = append(problems, errors.New("KART_DATA_INTERNAL_URL 必须是 http(s) URL"))
+		problems = append(problems, errors.New("KART_DATA_URL / KART_DATA_INTERNAL_URL 必须是 http(s) URL"))
 	}
 	cfg.DataInternalURL = dataURL
 
@@ -170,10 +230,13 @@ func FromEnv(getenv func(string) string) (Config, error) {
 	}
 
 	secret := getenv("KART_CLUSTER_SECRET")
-	if len(secret) < ticket.MinSecretLength {
-		problems = append(problems, fmt.Errorf("KART_CLUSTER_SECRET 必填且至少 %d 个字符", ticket.MinSecretLength))
+	if cfg.NodeKey == "" && len(secret) < ticket.MinSecretLength {
+		problems = append(problems, fmt.Errorf("需要节点密钥 KART_NODE_KEY（后台添加节点得到），或至少 %d 个字符的集群密钥 KART_CLUSTER_SECRET",
+			ticket.MinSecretLength))
 	}
-	cfg.Secret = []byte(secret)
+	if cfg.NodeKey == "" {
+		cfg.Secret, cfg.TicketKey = []byte(secret), []byte(secret)
+	}
 
 	maxPlayers, err := strconv.Atoi(env("KART_MAX_PLAYERS", "400"))
 	if err != nil || maxPlayers < 1 || maxPlayers > MaxPlayersLimit {

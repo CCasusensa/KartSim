@@ -29,7 +29,7 @@ const help = `kart-node — KartSim 独立游戏节点（Linux / Windows）
   kart-node [run] [选项]          启动节点（默认命令）
   kart-node init [选项]           生成配置文件 kart-node.conf（写入本次的选项与检测到的硬件）
   kart-node detect [选项]         只检测硬件，打印将使用的人数与配置
-  kart-node check [选项]          检查数据服务地址、集群密钥与端口
+  kart-node check [选项]          检查数据服务地址、密钥与端口
   kart-node service <动作> [选项]  系统服务：install | uninstall | start | stop | status
                                   （Linux 为 systemd，需要 root；Windows 为系统服务，需要管理员）
   kart-node version
@@ -37,9 +37,9 @@ const help = `kart-node — KartSim 独立游戏节点（Linux / Windows）
 选项写成 -data 或 --data 都可以。配置的优先级：命令行选项 > 环境变量 > 配置文件。配置文件是 KART_变量=值 的文本，
 可以写任何 kart-game 的变量（server-go/README.md“kart-game”表）。
 
-例子：
-  KART_CLUSTER_SECRET=<集群密钥> ./kart-node init --data 10.0.0.10:8790 \
-      --public-origin https://game1.example.com --page-host kart.example.com --uplink 100
+先在管理后台“服务器节点 → 节点管理”添加节点，拿到节点密钥。然后：
+  ./kart-node                      第一次运行会提示输入数据服务地址与节点密钥并保存
+  ./kart-node init --data https://kart.example.com --key kn1.… --uplink 100
   ./kart-node check
   sudo ./kart-node service install
 
@@ -81,6 +81,7 @@ func main() {
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "kart-node：", err)
+		pauseBeforeExit()
 		os.Exit(1)
 	}
 }
@@ -129,6 +130,16 @@ func summary(s *settings) []string {
 	if name == "" {
 		name = s.get("KART_NODE_ID")
 	}
+	origin := s.get("KART_PUBLIC_ORIGIN")
+	data := fmt.Sprintf("%s（数据节点 %s）", orDefault(s.get("KART_DATA_URL"), "http://127.0.0.1:8790"),
+		orDefault(s.get("KART_DATA_NODE_ID"), "data-1"))
+	if s.keyed() {
+		name = "名称以后台为准"
+		if origin == "" {
+			origin = "后台设置的对外地址，或数据服务看到的本机 IP"
+		}
+		data = s.get("KART_DATA_URL") + "（节点密钥）"
+	}
 	memory := s.get("KART_MEMORY_LIMIT_MB") + " MB"
 	if memory == "0 MB" {
 		memory = "不限"
@@ -140,9 +151,8 @@ func summary(s *settings) []string {
 			s.get("KART_MAX_CONNECTIONS"), memory, s.get("KART_CITY_LINES")),
 		fmt.Sprintf("节点：%s（%s），监听 %s:%s/tcp，WebRTC %s/udp", s.get("KART_NODE_ID"), name,
 			s.get("KART_GAME_ADDR"), s.get("KART_GAME_PORT"), s.get("KART_WEBRTC_UDP_PORT")),
-		"玩家访问：" + s.get("KART_PUBLIC_ORIGIN"),
-		fmt.Sprintf("数据服务：%s（数据节点 %s）", orDefault(s.get("KART_DATA_INTERNAL_URL"), "http://127.0.0.1:8790"),
-			orDefault(s.get("KART_DATA_NODE_ID"), "data-1")),
+		"玩家访问：" + origin,
+		"数据服务：" + data,
 		"配置文件：" + conf,
 	}
 }
@@ -193,7 +203,17 @@ func cmdCheck(args []string) error {
 	}
 	cfg, err := nodeConfig(s)
 	report("配置", err)
-	if err == nil {
+	switch {
+	case err == nil && cfg.NodeKey != "":
+		reg, err := registerOnce(context.Background(), cfg)
+		if err == nil {
+			fmt.Printf("  节点 %s（%s），数据服务看到的本机地址 %s\n", reg.NodeID, reg.Name, orDefault(reg.ObservedIP, "未知"))
+			if reg.Origin != "" {
+				fmt.Printf("  后台设置的对外地址：%s\n", reg.Origin)
+			}
+		}
+		report("数据服务与节点密钥", err)
+	case err == nil:
 		report("数据服务与集群密钥", probeData(context.Background(), cfg.DataInternalURL, string(cfg.Secret)))
 	}
 	report("端口", errors.Join(checkPorts(s)...))
@@ -223,7 +243,16 @@ func cmdRun(args []string) error {
 			return runNode(ctx, s)
 		})
 	}
-	_, s, err := loadSettings("run", args)
+	f, err := parseFlags("run", args)
+	if err != nil {
+		return err
+	}
+	if needsFirstRun(f, os.Environ()) && isTerminal(os.Stdin) {
+		if f.config, err = firstRun(f, os.Stdin, os.Stdout); err != nil {
+			return err
+		}
+	}
+	s, err := load(f, os.Environ(), capacity.Detect())
 	if err != nil {
 		return err
 	}
@@ -259,16 +288,25 @@ func runNode(ctx context.Context, s *settings) error {
 		// Same as GOMEMLIMIT; the node also refuses new players near the limit.
 		debug.SetMemoryLimit(int64(cfg.MemoryLimitMB) << 20)
 	}
+	if cfg.NodeKey != "" {
+		if err := app.Register(ctx, &cfg, log); err != nil {
+			if ctx.Err() != nil {
+				return nil
+			}
+			return fail("注册失败", err)
+		}
+	} else {
+		go func() {
+			// Advice only: the heartbeat keeps retrying either way.
+			if err := probeData(ctx, cfg.DataInternalURL, string(cfg.Secret)); err != nil && ctx.Err() == nil {
+				log.Error("数据服务检查未通过，节点会继续重试", "problem", err.Error())
+			}
+		}()
+	}
 	node, err := app.New(cfg, log, app.Options{})
 	if err != nil {
 		return fail("启动失败", err)
 	}
-	go func() {
-		// Advice only: the heartbeat keeps retrying either way.
-		if err := probeData(ctx, cfg.DataInternalURL, string(cfg.Secret)); err != nil && ctx.Err() == nil {
-			log.Error("数据服务检查未通过，节点会继续重试", "problem", err.Error())
-		}
-	}()
 	if err := node.Run(ctx); err != nil {
 		return fail("节点异常退出", err)
 	}

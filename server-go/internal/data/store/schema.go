@@ -865,6 +865,25 @@ var migrations = []migration{
 			KEY idx_featured_replays_created (created_at)
 		) ` + tableTail,
 	}},
+	// v19: game nodes the admin added (NODE.md): each has its own key, kept
+	// as a digest like invites; a node registers with it instead of the
+	// shared cluster secret.
+	{version: 19, statements: []string{
+		`CREATE TABLE IF NOT EXISTS game_nodes (
+			id VARCHAR(64) ` + idColumn + ` NOT NULL,
+			name VARCHAR(32) ` + nameColumn + ` NOT NULL,
+			origin VARCHAR(255) ` + idColumn + ` NOT NULL DEFAULT '',
+			note VARCHAR(200) ` + nameColumn + ` NOT NULL DEFAULT '',
+			key_hash VARCHAR(64) ` + idColumn + ` NOT NULL,
+			disabled TINYINT NOT NULL DEFAULT 0,
+			created_by VARCHAR(24) ` + nameColumn + ` NOT NULL,
+			created_at BIGINT NOT NULL,
+			key_created_at BIGINT NOT NULL,
+			registered_at BIGINT NOT NULL DEFAULT 0,
+			registered_ip VARCHAR(45) ` + idColumn + ` NOT NULL DEFAULT '',
+			PRIMARY KEY (id)
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

@@ -62,6 +62,37 @@ type App struct {
 	shutdownErr  error
 }
 
+// DataClient is the node's client of the data service: with its own key
+// when it has one, else with the cluster secret.
+func DataClient(cfg config.Config) *cluster.DataClient {
+	if cfg.NodeKey != "" {
+		return cluster.NewKeyedDataClient(cfg.DataInternalURL, cfg.NodeKey)
+	}
+	return cluster.NewDataClient(cfg.DataInternalURL, cfg.Secret)
+}
+
+// Register completes a keyed node's configuration from the data service
+// (NODE.md "后台添加节点"); it waits until the data service answers.
+func Register(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
+	reg, err := cluster.Register(ctx, DataClient(*cfg), log)
+	if err != nil {
+		return err
+	}
+	if err := cfg.ApplyRegistration(reg); err != nil {
+		return err
+	}
+	log.Info("已向数据服务注册", "node", cfg.NodeID, "name", cfg.NodeName, "origin", cfg.PublicOrigin,
+		"dataNode", cfg.DataNodeID, "observedIP", reg.ObservedIP)
+	return nil
+}
+
+func ticketKey(cfg config.Config) []byte {
+	if len(cfg.TicketKey) > 0 {
+		return cfg.TicketKey
+	}
+	return cfg.Secret
+}
+
 // New builds a node; nothing runs until Start.
 func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 	items, err := itemmode.Default()
@@ -74,7 +105,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 			return nil, err
 		}
 	}
-	data := cluster.NewDataClient(cfg.DataInternalURL, cfg.Secret)
+	data := DataClient(cfg)
 	if opts.Outbox.Logger == nil {
 		opts.Outbox.Logger = log
 	}
@@ -102,7 +133,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		NodeID:      cfg.NodeID,
 		Clock:       opts.Clock,
 		Presence:    agent,
-		Tickets:     admission.New(cfg.Secret, cfg.NodeID, cfg.DataNodeID),
+		Tickets:     admission.New(ticketKey(cfg), cfg.NodeID, cfg.DataNodeID),
 		Recorder:    recorder{box: box, log: log},
 		Ownership:   cluster.NewOwnership(data),
 		AllowGuests: cfg.AllowGuests,
