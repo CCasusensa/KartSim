@@ -3,6 +3,7 @@
 #
 #   ./docker-start.sh             # 第一次：生成 .env（随机密码、密钥与管理员），构建镜像并启动
 #   ./docker-start.sh --no-build  # 不重新构建镜像，直接启动
+#   ./docker-start.sh --pull      # 不在本机构建：拉取 Docker Hub 上的 kbl13350/kartsim-…（docker-push.sh 推送的）
 #   ./docker-stop.sh              # 停止（数据保留在 Docker 卷里）
 #
 # 端口、管理员用户名、注册方式、经济倍率等写在 .env（第一次运行生成，之后不会覆盖）。
@@ -14,11 +15,13 @@ die() { printf '\n错误：%s\n' "$*" >&2; exit 1; }
 say() { printf '%s\n' "$*"; }
 
 build=--build
+pull=
 for arg in "$@"; do
   case "$arg" in
     --no-build) build= ;;
-    -h|--help) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-    *) die "不认识的参数 $arg（可用 --no-build）" ;;
+    --pull) pull=1; build= ;;
+    -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) die "不认识的参数 $arg（可用 --no-build、--pull）" ;;
   esac
 done
 
@@ -96,6 +99,11 @@ KART_HOST=
 # KART_HOST 写的是域名时，在这里写服务器的公网 IP。
 KART_WEBRTC_PUBLIC_IPS=
 
+# ./docker-start.sh --pull 时拉取的镜像：留空为 Docker Hub 上的 kbl13350/kartsim-…:latest；
+# 标签可以固定成某个提交号（如 cc55ba69）。不加 --pull 时在本机构建 kartsim-…:local。
+KART_IMAGE_PREFIX=
+KART_IMAGE_TAG=
+
 # 管理员：登录后打开 /multiplayer/admin。docker-start.sh 第一次启动时自动注册这个账号。
 KART_ADMIN_USERNAMES=admin
 KART_ADMIN_PASSWORD=$(random_secret 9)
@@ -148,7 +156,15 @@ if [ -z "$(env_value KART_WEBRTC_PUBLIC_IPS)" ]; then
   export KART_WEBRTC_PUBLIC_IPS="$ips"
 fi
 
-say "启动 KartSim（第一次构建镜像要几分钟）…"
+if [ -n "$pull" ]; then
+  prefix=$(env_value KART_IMAGE_PREFIX); export KART_IMAGE_PREFIX="${prefix:-kbl13350/kartsim}"
+  image_tag=$(env_value KART_IMAGE_TAG); export KART_IMAGE_TAG="${image_tag:-latest}"
+  say "拉取镜像 $KART_IMAGE_PREFIX-{client,data,node}:$KART_IMAGE_TAG …"
+  docker compose pull || die "拉取镜像失败（网络，或镜像名 KART_IMAGE_PREFIX / 标签 KART_IMAGE_TAG 不对）"
+  say "启动 KartSim…"
+else
+  say "启动 KartSim（第一次构建镜像要几分钟）…"
+fi
 # --wait：等所有容器健康；MySQL 第一次初始化约 1 分钟。
 if ! docker compose up -d $build --wait --wait-timeout 600; then
   say ""

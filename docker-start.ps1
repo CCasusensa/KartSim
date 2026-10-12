@@ -2,10 +2,11 @@
 #
 #   docker-start.cmd             # 第一次：生成 .env（随机密码、密钥与管理员），构建镜像并启动
 #   docker-start.cmd -NoBuild    # 不重新构建镜像，直接启动
+#   docker-start.cmd -Pull       # 不在本机构建：拉取 Docker Hub 上的 kbl13350/kartsim-…（docker-push.sh 推送的）
 #   docker-stop.cmd              # 停止（数据保留在 Docker 卷里）
 #
 # 与 docker-start.sh 相同；端口、管理员、注册方式等写在 .env（第一次运行生成，之后不会覆盖）。
-param([switch]$NoBuild)
+param([switch]$NoBuild, [switch]$Pull)
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
@@ -95,6 +96,11 @@ KART_HOST=
 # KART_HOST 写的是域名时，在这里写服务器的公网 IP。
 KART_WEBRTC_PUBLIC_IPS=
 
+# ./docker-start.sh --pull 时拉取的镜像：留空为 Docker Hub 上的 kbl13350/kartsim-…:latest；
+# 标签可以固定成某个提交号（如 cc55ba69）。不加 --pull 时在本机构建 kartsim-…:local。
+KART_IMAGE_PREFIX=
+KART_IMAGE_TAG=
+
 # 管理员：登录后打开 /multiplayer/admin。docker-start 第一次启动时自动注册这个账号。
 KART_ADMIN_USERNAMES=admin
 KART_ADMIN_PASSWORD=$(New-Secret 9)
@@ -153,11 +159,22 @@ if (-not (Get-EnvValue 'KART_WEBRTC_PUBLIC_IPS')) {
   $env:KART_WEBRTC_PUBLIC_IPS = ($ips -join ',')
 }
 
-Write-Host "启动 KartSim（第一次构建镜像要几分钟）…"
+$ErrorActionPreference = 'Continue'
+if ($Pull) {
+  $prefix = Get-EnvValue 'KART_IMAGE_PREFIX'; if (-not $prefix) { $prefix = 'kbl13350/kartsim' }
+  $imageTag = Get-EnvValue 'KART_IMAGE_TAG'; if (-not $imageTag) { $imageTag = 'latest' }
+  $env:KART_IMAGE_PREFIX = $prefix
+  $env:KART_IMAGE_TAG = $imageTag
+  Write-Host "拉取镜像 $prefix-{client,data,node}:$imageTag …"
+  & docker compose pull
+  if ($LASTEXITCODE -ne 0) { Fail "拉取镜像失败（网络，或镜像名 KART_IMAGE_PREFIX / 标签 KART_IMAGE_TAG 不对）" }
+  Write-Host "启动 KartSim…"
+} else {
+  Write-Host "启动 KartSim（第一次构建镜像要几分钟）…"
+}
 # --wait：等所有容器健康；MySQL 第一次初始化约 1 分钟。
 $arguments = @('compose', 'up', '-d', '--wait', '--wait-timeout', '600')
-if (-not $NoBuild) { $arguments += '--build' }
-$ErrorActionPreference = 'Continue'
+if (-not $NoBuild -and -not $Pull) { $arguments += '--build' }
 & docker @arguments
 $code = $LASTEXITCODE
 $ErrorActionPreference = 'Stop'

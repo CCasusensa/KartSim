@@ -89,9 +89,10 @@ Requirements: Git LFS and Docker (Docker Desktop on macOS and Windows; Docker En
 ```sh
 git lfs install && git lfs pull     # game resources in mirror/p3553 (about 3.5 GB)
 ./docker-start.sh                   # Windows: double-click docker-start.cmd
+./docker-start.sh --pull            # or skip the build: use the prebuilt images on Docker Hub
 ```
 
-The first run writes `.env` with random passwords and secrets, builds the images, starts everything, registers the admin account and prints its password. Open <http://localhost:8780/>. Other devices on the LAN use `https://<LAN IP>:8443/`, which has a self-signed certificate; you can put your own `cert.pem`/`key.pem` in `docker-data/tls/`. The admin console is at <http://localhost:8780/multiplayer/admin>. Ports, the admin name, the registration mode and the economy settings are in `.env`. Stop with `./docker-stop.sh` (`docker-stop.cmd`); the data stays in a Docker volume. To add game nodes on other machines, see "用 Docker 运行" in [`server-go/NODE.md`](server-go/NODE.md).
+The first run writes `.env` with random passwords and secrets, builds the images, starts everything, registers the admin account and prints its password. Open <http://localhost:8780/>. Other devices on the LAN use `https://<LAN IP>:8443/`, which has a self-signed certificate; you can put your own `cert.pem`/`key.pem` in `docker-data/tls/`. The admin console is at <http://localhost:8780/multiplayer/admin>. Ports, the admin name, the registration mode and the economy settings are in `.env`. Stop with `./docker-stop.sh` (`docker-stop.cmd`); the data stays in a Docker volume. The prebuilt images are [`kbl13350/kartsim-client`](https://hub.docker.com/r/kbl13350/kartsim-client), [`kbl13350/kartsim-data`](https://hub.docker.com/r/kbl13350/kartsim-data) and [`kbl13350/kartsim-node`](https://hub.docker.com/r/kbl13350/kartsim-node) (amd64 and arm64). A game node on another machine needs only `docker run kbl13350/kartsim-node` with the data service address and its key: see "用 Docker 运行" in [`server-go/NODE.md`](server-go/NODE.md).
 
 ### Quick start
 
@@ -204,9 +205,10 @@ KartSim/
 ```sh
 git lfs install && git lfs pull     # 拉取 mirror/p3553 游戏资源（约 3.5 GB）
 ./docker-start.sh                   # Windows：双击 docker-start.cmd
+./docker-start.sh --pull            # 或者不在本机构建，直接用 Docker Hub 上的镜像
 ```
 
-第一次运行会生成 `.env`（随机密码与密钥）、构建镜像并启动全部服务，自动注册管理员并打印密码。本机打开 <http://localhost:8780/>；局域网的其他设备打开 `https://<局域网 IP>:8443/`（自签名证书；也可以把自己的 `cert.pem`、`key.pem` 放进 `docker-data/tls/`）。管理后台：<http://localhost:8780/multiplayer/admin>。端口、管理员、注册方式、经济设置都在 `.env` 里。停止用 `./docker-stop.sh`（`docker-stop.cmd`），数据保留在 Docker 卷里。在其他机器上加游戏节点见 [`server-go/NODE.md`](server-go/NODE.md)“用 Docker 运行”。
+第一次运行会生成 `.env`（随机密码与密钥）、构建镜像并启动全部服务，自动注册管理员并打印密码。本机打开 <http://localhost:8780/>；局域网的其他设备打开 `https://<局域网 IP>:8443/`（自签名证书；也可以把自己的 `cert.pem`、`key.pem` 放进 `docker-data/tls/`）。管理后台：<http://localhost:8780/multiplayer/admin>。端口、管理员、注册方式、经济设置都在 `.env` 里。停止用 `./docker-stop.sh`（`docker-stop.cmd`），数据保留在 Docker 卷里。Docker Hub 上的镜像：[`kbl13350/kartsim-client`](https://hub.docker.com/r/kbl13350/kartsim-client)、[`kbl13350/kartsim-data`](https://hub.docker.com/r/kbl13350/kartsim-data)、[`kbl13350/kartsim-node`](https://hub.docker.com/r/kbl13350/kartsim-node)（amd64 与 arm64）。在其他机器上加游戏节点只要 `docker run kbl13350/kartsim-node` 并填数据服务地址与密钥，见 [`server-go/NODE.md`](server-go/NODE.md)“用 Docker 运行”。
 
 ### 快速开始
 
@@ -319,9 +321,10 @@ KartSim/
 ```sh
 git lfs install && git lfs pull     # mirror/p3553 게임 리소스 받기(약 3.5 GB)
 ./docker-start.sh                   # Windows: docker-start.cmd 더블클릭
+./docker-start.sh --pull            # 또는 빌드 없이 Docker Hub의 이미지 사용
 ```
 
-처음 실행하면 `.env`(무작위 비밀번호와 키)를 만들고, 이미지를 빌드해 모든 서비스를 시작하며, 관리자 계정을 등록하고 비밀번호를 출력합니다. 이 컴퓨터에서는 <http://localhost:8780/>, 같은 LAN의 다른 기기에서는 `https://<LAN IP>:8443/`을 엽니다(자체 서명 인증서이며, 직접 가진 `cert.pem`/`key.pem`을 `docker-data/tls/`에 넣어도 됩니다). 관리자 콘솔: <http://localhost:8780/multiplayer/admin>. 포트, 관리자, 가입 방식, 경제 설정은 `.env`에 있습니다. 중지는 `./docker-stop.sh`(`docker-stop.cmd`)이며 데이터는 Docker 볼륨에 남습니다. 다른 서버에 게임 노드를 추가하는 방법은 [`server-go/NODE.md`](server-go/NODE.md)의 "用 Docker 运行"을 보세요.
+처음 실행하면 `.env`(무작위 비밀번호와 키)를 만들고, 이미지를 빌드해 모든 서비스를 시작하며, 관리자 계정을 등록하고 비밀번호를 출력합니다. 이 컴퓨터에서는 <http://localhost:8780/>, 같은 LAN의 다른 기기에서는 `https://<LAN IP>:8443/`을 엽니다(자체 서명 인증서이며, 직접 가진 `cert.pem`/`key.pem`을 `docker-data/tls/`에 넣어도 됩니다). 관리자 콘솔: <http://localhost:8780/multiplayer/admin>. 포트, 관리자, 가입 방식, 경제 설정은 `.env`에 있습니다. 중지는 `./docker-stop.sh`(`docker-stop.cmd`)이며 데이터는 Docker 볼륨에 남습니다. Docker Hub 이미지: [`kbl13350/kartsim-client`](https://hub.docker.com/r/kbl13350/kartsim-client), [`kbl13350/kartsim-data`](https://hub.docker.com/r/kbl13350/kartsim-data), [`kbl13350/kartsim-node`](https://hub.docker.com/r/kbl13350/kartsim-node)(amd64, arm64). 다른 서버에 게임 노드를 추가할 때는 데이터 서비스 주소와 키만 넣어 `docker run kbl13350/kartsim-node`를 실행하면 됩니다. [`server-go/NODE.md`](server-go/NODE.md)의 "用 Docker 运行"을 보세요.
 
 ### 빠른 시작
 

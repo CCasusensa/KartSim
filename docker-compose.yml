@@ -2,7 +2,8 @@
 # 管理后台）、kartsim-node（游戏节点），加上 MySQL 8.4 与 Redis 7。
 #
 #   ./docker-start.sh            # macOS / Linux：生成 .env（随机密码与管理员）、构建、启动、打印地址
-#   docker-start.cmd             # Windows（Docker Desktop）
+#   ./docker-start.sh --pull     # 不在本机构建，直接用 Docker Hub 上的 kbl13350/kartsim-…（docker-push.sh 推送）
+#   docker-start.cmd             # Windows（Docker Desktop；-Pull 同上）
 #
 # 也可以手动：先按 .env 的说明准备好变量，再 docker compose up -d --build。
 # 浏览器只连客户端（http 8780 / https 8443）：页面、账号、大厅、比赛都经它同源转发；
@@ -59,7 +60,8 @@ services:
     logging: *logging
 
   kart-data:
-    image: kartsim-data:local
+    # 本机构建时是 kartsim-data:local；--pull 时 KART_IMAGE_PREFIX=kbl13350/kartsim、KART_IMAGE_TAG=latest。
+    image: ${KART_IMAGE_PREFIX:-kartsim}-data:${KART_IMAGE_TAG:-local}
     build:
       context: ./server-go
       target: data
@@ -93,7 +95,7 @@ services:
     logging: *logging
 
   kart-node:
-    image: kartsim-node:local
+    image: ${KART_IMAGE_PREFIX:-kartsim}-node:${KART_IMAGE_TAG:-local}
     build:
       context: ./server-go
       target: node
@@ -127,7 +129,7 @@ services:
     logging: *logging
 
   client:
-    image: kartsim-client:local
+    image: ${KART_IMAGE_PREFIX:-kartsim}-client:${KART_IMAGE_TAG:-local}
     build:
       context: .
       dockerfile: client/Dockerfile

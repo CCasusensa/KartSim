@@ -1,5 +1,6 @@
 # KartSim 单机集群（只有服务端）：MySQL 8.4 + Redis 7 + 数据服务 kart-data + 两个游戏节点 kart-node。
-# 镜像 kartsim-data 与 kartsim-node 都由本目录的 Dockerfile 构建（target data / node）。
+# 镜像 kartsim-data 与 kartsim-node 都由本目录的 Dockerfile 构建（target data / node）。不想构建时在 .env 写
+# KART_IMAGE_PREFIX=kbl13350/kartsim 与 KART_IMAGE_TAG=latest，再 docker compose pull && docker compose up -d --no-build。
 # 想连网页客户端一起一键启动，用仓库根目录的 docker-compose.yml（./docker-start.sh）。
 #
 #   install -m 600 .env.example .env    # 只有自己可读；填写密码、KART_CLUSTER_SECRET 与 KART_ADMIN_USERNAMES
@@ -22,7 +23,7 @@ x-logging: &logging
     max-file: "5"
 
 x-game: &game
-  image: kartsim-node:local
+  image: ${KART_IMAGE_PREFIX:-kartsim}-node:${KART_IMAGE_TAG:-local}
   build:
     context: .
     target: node
@@ -107,7 +108,7 @@ services:
     logging: *logging
 
   kart-data:
-    image: kartsim-data:local
+    image: ${KART_IMAGE_PREFIX:-kartsim}-data:${KART_IMAGE_TAG:-local}
     build:
       context: .
       target: data

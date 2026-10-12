@@ -68,15 +68,7 @@ Windows（PowerShell；安装服务要用管理员 PowerShell）：
 
 ### 用 Docker 运行
 
-节点镜像 `kartsim-node` 是 [`Dockerfile`](Dockerfile) 的 `node` 目标（带反作弊插件，以非 root 用户运行）。先在节点机器上取得镜像，任选一种：
-
-```sh
-docker build --target node -t kartsim-node:local server-go         # 在节点机器上从源码构建（要有仓库）
-docker save kartsim-node:local | ssh 节点机器 docker load           # 从构建过的机器传过去（仓库根目录 ./docker-start.sh 构建的就是它）
-docker buildx build --platform linux/amd64 --target node -t kartsim-node:local --load server-go   # 给另一种 CPU 架构构建
-```
-
-然后只要数据服务地址与密钥，其余都和上面一样由数据服务下发、按容器的 CPU 与内存自动算人数：
+节点镜像在 Docker Hub：[`kbl13350/kartsim-node`](https://hub.docker.com/r/kbl13350/kartsim-node)（amd64 与 arm64，标签 `latest` 和提交号）。它是 [`Dockerfile`](Dockerfile) 的 `node` 目标，带反作弊插件，以非 root 用户运行。节点机器上不用仓库，只要数据服务地址与密钥，其余都和上面一样由数据服务下发、按容器的 CPU 与内存自动算人数：
 
 ```sh
 docker run -d --name kart-node --restart unless-stopped \
@@ -85,14 +77,16 @@ docker run -d --name kart-node --restart unless-stopped \
   -e KART_NODE_KEY=kn1.node-49e70f.… \
   -e KART_PUBLIC_IP=203.0.113.10 \
   -v kart-node-outbox:/var/lib/kart/outbox \
-  kartsim-node:local
+  kbl13350/kartsim-node
 ```
 
 - `KART_PUBLIC_IP`：玩家访问这台机器用的 IP。容器里看不到宿主机的网卡，WebRTC 的候选地址要靠它（不填时 UDP 连不上，浏览器 8 秒后退回 WebSocket）。Linux 上也可以改用 `--network host`（不用 `-p`，节点直接看到宿主机网卡）。
 - HTTPS：把证书挂进容器，`-v /etc/kart-tls:/tls:ro -e KART_TLS_CERT=/tls/fullchain.pem -e KART_TLS_KEY=/tls/privkey.pem`（文件要对容器内的 UID 10001 可读），并在后台填 `https://域名:8788` 作为对外地址。
 - 其他选项都用同名环境变量（[选项与配置文件](#选项与配置文件)），如 `-e KART_UPLINK_MBPS=100`、`-e KART_GAME_PORT=9000`（端口映射与 UDP 端口跟着改）。
 - 发件箱卷 `/var/lib/kart/outbox` 保存数据服务暂时不可用时的赛果，换镜像重建容器时保留它。
-- 自检：`docker run --rm -e KART_DATA_URL=… -e KART_NODE_KEY=… kartsim-node:local check`。
+- 自检：`docker run --rm -e KART_DATA_URL=… -e KART_NODE_KEY=… kbl13350/kartsim-node check`。
+- 升级：`docker pull kbl13350/kartsim-node`，再删掉并用同样的参数重建容器（发件箱卷保留）。节点与数据服务要用同一版（协议版本不同的节点不会被分配比赛）。
+- 自己构建：`docker build --target node -t kartsim-node:local server-go`；推自己的镜像仓库用仓库根目录的 `./docker-push.sh 名字`。
 
 ### 节点的对外地址
 

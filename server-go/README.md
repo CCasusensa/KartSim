@@ -210,7 +210,7 @@ node --test tools/item-mode-export/item-mode.test.mjs        # 导出规则单�
 
 ### Docker Compose
 
-连网页客户端一起一键启动（三个镜像 `kartsim-client`、`kartsim-data`、`kartsim-node`，自动生成密码、注册管理员）用仓库根目录的 `./docker-start.sh`（Windows：`docker-start.cmd`），见根目录 README“Docker 一键启动”与 [`../docker-compose.yml`](../docker-compose.yml)。下面是只有服务端的 compose，前面自己放 Nginx。
+连网页客户端一起一键启动（三个镜像 `kartsim-client`、`kartsim-data`、`kartsim-node`，自动生成密码、注册管理员）用仓库根目录的 `./docker-start.sh`（Windows：`docker-start.cmd`），见根目录 README“Docker 一键启动”与 [`../docker-compose.yml`](../docker-compose.yml)。Docker Hub 上有构建好的 `kbl13350/kartsim-client`、`kbl13350/kartsim-data`、`kbl13350/kartsim-node`（amd64 与 arm64，标签 `latest` 与提交号；`./docker-start.sh --pull` 用它们，维护者用根目录的 `./docker-push.sh` 构建并推送）。下面是只有服务端的 compose，前面自己放 Nginx。
 
 ```sh
 cd server-go
