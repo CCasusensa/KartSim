@@ -18,6 +18,16 @@ const (
 	KindDistance = 3 // 累计完成: route distance in 0.1 km
 	KindRank     = 4 // 第N名以内完成
 	KindWin      = 8 // 胜利
+	// KindClubRace (this server's): a race with another member of the rider's
+	// club in it (the 俱乐部任务 box of questInfo2KartPass).
+	KindClubRace = 20
+)
+
+// Groups: the three boxes of the questInfo2KartPass dialog.
+const (
+	GroupNormal = "normal" // 普通任务
+	GroupPass   = "pass"   // 跑跑通行证每日任务 (a daily chain of stages)
+	GroupClub   = "club"   // 俱乐部任务 (needs a club)
 )
 
 // Resets (QuestUX2ndButton resetType).
@@ -49,11 +59,14 @@ type Reward struct {
 	Days     int    `json:"days,omitempty"`
 	Currency string `json:"currency,omitempty"`
 	Emblem   int    `json:"emblem,omitempty"`
+	// PassPoints are 通行证积分, credited to the account at once (pass_points).
+	PassPoints int `json:"passPoints,omitempty"`
 }
 
 // Quest is one quest.
 type Quest struct {
 	ID       int      `json:"id"`
+	Group    string   `json:"group"`
 	Reset    string   `json:"reset"`
 	Kind     int      `json:"kind"`
 	Target   int64    `json:"target"`
@@ -102,6 +115,32 @@ func times(reward Reward, count int) Reward {
 	return reward
 }
 
+func passPoints(amount int) Reward {
+	return Reward{Name: formatAmount(amount) + " 通行证积分", Count: amount, PassPoints: amount}
+}
+
+// Pass is the 跑跑通行证每日任务 chain (release kartPassQuestPreset 1, 11, 12
+// with the season's stepPoint 10/20/40): three stages of 多人游戏行驶 a day.
+var Pass = []Quest{
+	{ID: 9301, Group: GroupPass, Reset: ResetDaily, Kind: KindDrive, Target: 3, Channels: Multiplayer, Title: "多人游戏行驶",
+		Desc: "完成跑跑通行证任务获得多种奖励吧！|完成任务时通行证积分会立即体现在通行证等级中。", Mission: "多人游戏行驶3回",
+		Rewards: []Reward{passPoints(10)}},
+	{ID: 9302, Group: GroupPass, Reset: ResetDaily, Kind: KindDrive, Target: 4, Channels: Multiplayer, Pre: 9301,
+		Title: "多人游戏行驶", Desc: "完成跑跑通行证任务获得多种奖励吧！|完成任务时通行证积分会立即体现在通行证等级中。",
+		Mission: "多人游戏行驶4回", Rewards: []Reward{passPoints(20)}},
+	{ID: 9303, Group: GroupPass, Reset: ResetDaily, Kind: KindDrive, Target: 6, Channels: Multiplayer, Pre: 9302,
+		Title: "多人游戏行驶", Desc: "完成跑跑通行证任务获得多种奖励吧！|完成任务时通行证积分会立即体现在通行证等级中。",
+		Mission: "多人游戏行驶6回", Rewards: []Reward{passPoints(40)}},
+}
+
+// Club is the 俱乐部任务 box: races with a clubmate (release 1731 快乐俱乐部赛
+// counted club races; this server has none, so a shared race stands in).
+var Club = []Quest{
+	{ID: 9401, Group: GroupClub, Reset: ResetDaily, Kind: KindClubRace, Target: 3, Channels: Multiplayer,
+		Title: "俱乐部同场比赛", Desc: "和俱乐部的成员在同一场多人游戏中比赛吧！|不论是否完成比赛都会计入。",
+		Mission: "与俱乐部成员同场比赛3回", Rewards: []Reward{lucci(2000)}},
+}
+
 // All is the quest list, in the order the dialog lists them.
 var All = []Quest{
 	{ID: 9001, Reset: ResetDaily, Kind: KindDrive, Target: 3, Channels: Multiplayer, Title: "多人游戏行驶",
@@ -133,6 +172,20 @@ var All = []Quest{
 	{ID: 9202, Reset: ResetNone, Kind: KindDistance, Target: 3000, Channels: Multiplayer, Pre: 9201, Title: "跑跑之路 2",
 		Desc: "在多人游戏中累计行驶300KM。|（原版任务2118）", Mission: "多人游戏累计完成300KM",
 		Rewards: []Reward{koin(50), {Name: "徽章", Count: 1, Emblem: 8872}}},
+}
+
+func init() {
+	for i := range All {
+		if All[i].Group == "" {
+			All[i].Group = GroupNormal
+		}
+	}
+	// The dialog's boxes: the pass chain, the normal quests, the club quests.
+	All = append(append(append([]Quest{}, Pass...), All...), Club...)
+	byID = map[int]*Quest{}
+	for i := range All {
+		byID[All[i].ID] = &All[i]
+	}
 }
 
 var byID = func() map[int]*Quest {
@@ -187,6 +240,8 @@ type Race struct {
 	Won      bool
 	// Meters is the route distance the rider drove.
 	Meters int64
+	// ClubMates: another member of the rider's club raced too.
+	ClubMates bool
 }
 
 // Gain is what a race adds to a quest's progress (0 when it does not count).
@@ -217,6 +272,10 @@ func (q *Quest) Gain(race Race) int64 {
 		}
 	case KindDistance:
 		return race.Meters / 100
+	case KindClubRace:
+		if race.ClubMates {
+			return 1
+		}
 	}
 	return 0
 }

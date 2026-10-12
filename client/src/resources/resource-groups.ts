@@ -68,7 +68,7 @@ const RULES: Rule[] = [
     names: ["aaa", "stage_common", "stage_mainMenu", "stage_timeAttackReady", "stage_logo", "track_common",
       "theme_common", "theme_village", "sound_bgm_main", "sound_bgm_village", "sound_fx_interface", "sound_fx_etc",
       "character_common", "myRoom", "dialog2_timeAttackCompetitive", "dialog2_personalShop",
-      "dialog2_customMessageBox", "dialog2_progressDialog", "dialog2_questInfo2"],
+      "dialog2_customMessageBox", "dialog2_progressDialog", "dialog2_questInfo2", "dialog2_questInfo2KartPass"],
     patterns: [/^gui_/],
     packs: ["DataPack1", "DataPack4"],
   },

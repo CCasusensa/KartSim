@@ -5,7 +5,7 @@ import { MessengerConnection, parseChatLine, type ChatJoined, type ChatLine,
   type MessengerSocket } from "../messenger/messenger-connection";
 import { MessengerStore } from "../messenger/messenger-store";
 import { MenusApi, menuErrorMessage, parseQuest, parseRewardBoxEntry, parseRiderCard } from "./menus-api";
-import { questLists, questProgressText } from "./quest-screen";
+import { questBoxes, questLists, questPercent, questProgressText } from "./quest-screen";
 import { claimedMessage, formatBoxTime, rewardDescription, rewardTitle, storageLeft } from "./reward-box-screen";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -55,6 +55,19 @@ test("quests parse, split into 进行中 / 完成 and word their progress", () =
   assert.deepEqual(lists.doing.map(quest => quest.id), [9006, 9202]);
   assert.deepEqual(lists.done.map(quest => quest.id), [9002]);
   assert.throws(() => parseQuest({ ...questBody, kind: "x" }));
+  // The KartPass dialog's boxes and row percentages; the cn progress text drops its color tags.
+  const pass = parseQuest({ ...questBody, id: 9301, group: "pass", kind: 1, target: 3, value: 1,
+    rewards: [{ name: "10 通行证积分", category: 0, itemId: 0, count: 1, days: 0, passPoints: 10 }] });
+  const club = parseQuest({ ...questBody, id: 9401, group: "club" });
+  const boxes = questBoxes([distance, pass, club, done]);
+  assert.deepEqual(boxes.pass.map(quest => quest.id), [9301]);
+  assert.deepEqual(boxes.normal.map(quest => quest.id), [9006, 9002]);
+  assert.deepEqual(boxes.club.map(quest => quest.id), [9401]);
+  assert.equal(pass.rewards[0]?.passPoints, 10);
+  assert.equal(questPercent(pass), 33);
+  assert.equal(questPercent(done), 100);
+  assert.equal(questProgressText(pass, new Map([["missionTextDefault", "[color:255 36 129 255]目前 %d回[/color] / 目标 %d回"]])),
+    "目前 1回 / 目标 3回");
 });
 
 test("the rider card parses its club and statistics", () => {

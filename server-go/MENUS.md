@@ -5,7 +5,7 @@
 | 按钮（`tray@cn`） | 窗口（原版资源） | 说明 |
 | --- | --- | --- |
 | `goRewardBox` 奖励箱 | `stage_rewardBox` `mq_window@zz` + `rewardBoxCard@zz` | 第 1 节 |
-| `questDialog` 任务（“!”） | `dialog2_questInfo2` `questInfo2@cn` | 第 2 节 |
+| `questDialog` 任务（“!”） | `dialog2_questInfo2KartPass` `questInfo2KartPass@zz`（跑跑通行证版的 QuestUX2nd 对话框） | 第 2 节 |
 | `noticer` 迷你提示窗 | `dialog2_noticer` `noticer@zz` | 第 3 节 |
 | `toggle_gchat` 聊天 | `stage_globalChatSystem` `GCFrameInnerClient@zz`（国服的俱乐部聊天窗，标题栏放两个标签） | 第 4 节 |
 | `findRiderButton` 查找车手 | `dialog2_findRider` → `dialog2_userInfo` `userInfo@zz` | 第 5 节 |
@@ -30,7 +30,11 @@
 
 ## 2. 任务
 
-原版任务（`QuestAutomation`）的条件和奖励都在服务端，客户端只有界面和日期写死的活动任务。这里按原版界面（QuestUX2nd：进行中/完成两个列表、任务详情、进度条、奖励格）和原版任务类型自定了一组任务，只用服务端能统计的比赛：多人竞速（个人/组队）、无限加速（个人/组队）和单人练习计时赛。列表在 `internal/data/quest/quest.go`（可调整）。
+原版任务（`QuestAutomation`）的条件和奖励都在服务端，客户端只有界面和日期写死的活动任务。这里按原版界面（跑跑通行证版的 QuestUX2nd：左侧三个框 **跑跑通行证每日任务** / **普通任务** / **俱乐部任务**，右侧任务标题、任务时间、说明、可进行状态、任务详情进度条和奖励格，左下“进入跑跑通行证系统”）和原版任务类型自定了一组任务，只用服务端能统计的比赛：多人竞速（个人/组队）、无限加速（个人/组队）和单人练习计时赛。列表在 `internal/data/quest/quest.go`（可调整）。
+
+- **跑跑通行证每日任务**是一条三阶段链（9301 → 9302 → 9303）：前一阶段完成后下一阶段才开放（锁住的行显示“完成前阶段任务时开放”），完成一阶段的那场比赛不计入下一阶段；每天 06:00 整条链从 1 阶段重来。奖励是**通行证积分**，完成时直接记入账号（表 `pass_points(account_id, points)`，schema v17），不进奖励箱；通行证系统本身还没有，按钮只提示。
+- **俱乐部任务**（9401）统计与本俱乐部成员同场的多人比赛（结算时查两边的 `club_members`）；没有俱乐部时整框变暗（“加入俱乐部时开放”），行不可点。
+- **普通任务**框一次显示 7 行，滚轮翻动；每行标题后带完成百分比。每个框标题右侧的“i”悬停显示原版的帮助提示。
 
 | 类型（原版 type） | 统计 |
 | --- | --- |
@@ -42,6 +46,9 @@
 
 | 编号 | 种类 | 任务 | 奖励 |
 | --- | --- | --- | --- |
+| 9301 | 通行证 1 阶段（每日） | 多人游戏行驶 3 回 | 10 通行证积分 |
+| 9302 | 通行证 2 阶段（需先完成 9301） | 多人游戏行驶 4 回 | 20 通行证积分 |
+| 9303 | 通行证 3 阶段（需先完成 9302） | 多人游戏行驶 6 回 | 40 通行证积分 |
 | 9001 | 每日 | 多人游戏行驶 3 回 | 1,000 金币 |
 | 9002 | 每日 | 多人游戏完成 5 回 | 2,000 金币、[活动]光明骑士幸运宝石、幸运车胎 |
 | 9003 | 每日 | 多人游戏胜利 1 回 | 5 酷币 |
@@ -54,6 +61,7 @@
 | 9103 | 每周 | 组队赛胜利 5 回 | 10,000 金币 |
 | 9201 | 一般 | 多人游戏累计完成 30 KM | 10,000 金币 |
 | 9202 | 一般（需先完成 9201） | 多人游戏累计完成 300 KM | 50 酷币、徽章 8872 |
+| 9401 | 俱乐部（每日） | 与俱乐部成员同场比赛 3 回 | 2,000 金币 |
 
 - 每日任务北京时间 06:00 重置，每周任务周四 06:00 重置（`questInfo2` detailDailyQuest / detailWeeklyQuest）；一般任务只能完成一次。
 - 比赛结算时（多人：`SaveSettlement`，与成就、俱乐部活跃度同一事务；计时赛：发奖时）累加进度，达到目标即完成，奖励放进奖励箱（消息“任务：<任务详情>”），徽章直接发放。
@@ -61,7 +69,7 @@
 
 | 路径 | 说明 |
 | --- | --- |
-| `GET /api/quests` | `{"quests":[{id,reset,kind,target,rank?,channels,pre?,title,desc,mission,rewards,value,completedAt?,locked?,periodStart?,periodEnd?}],"resetHour":6}` |
+| `GET /api/quests` | `{"quests":[{id,group,reset,kind,target,rank?,channels,pre?,title,desc,mission,rewards,value,completedAt?,locked?,periodStart?,periodEnd?}],"resetHour":6,"passPoints":N,"hasClub":bool}`；`group` 是 `pass` / `normal` / `club`，通行证奖励的 `rewards[]` 带 `passPoints` |
 
 ## 3. 迷你提示窗
 

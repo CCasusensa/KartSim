@@ -832,6 +832,16 @@ var migrations = []migration{
 			CONSTRAINT fk_timeattack_missions_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
 		) ` + tableTail,
 	}},
+	// v17: 通行证积分 of the 跑跑通行证每日任务 chain (MENUS.md 2).
+	{version: 17, statements: []string{
+		`CREATE TABLE IF NOT EXISTS pass_points (
+			account_id CHAR(36) ` + idColumn + ` NOT NULL,
+			points INT NOT NULL DEFAULT 0,
+			updated_at BIGINT NOT NULL,
+			PRIMARY KEY (account_id),
+			CONSTRAINT fk_pass_points_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

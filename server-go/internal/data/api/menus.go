@@ -182,7 +182,17 @@ func (a *API) listQuests(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return writeJSON(w, http.StatusOK, map[string]any{"quests": rows, "resetHour": quest.ResetHour})
+	points, err := a.store.PassPoints(r.Context(), account.ID)
+	if err != nil {
+		return err
+	}
+	// hasClub: the 俱乐部任务 box is dimmed (加入俱乐部时开放) without a club.
+	club, _, err := a.store.ClubMembership(r.Context(), account.ID)
+	if err != nil {
+		return err
+	}
+	return writeJSON(w, http.StatusOK, map[string]any{"quests": rows, "resetHour": quest.ResetHour, "passPoints": points,
+		"hasClub": club != 0})
 }
 
 /* ---------- 迷你提示窗 ---------- */

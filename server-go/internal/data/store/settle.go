@@ -114,6 +114,10 @@ func (s *Store) SaveSettlement(ctx context.Context, in Settlement) (duplicate bo
 			duplicate = true
 			return nil
 		}
+		clubs, err := racerClubs(ctx, tx, in.Results)
+		if err != nil {
+			return err
+		}
 		for _, racer := range in.Results {
 			var accountID any
 			if racer.AccountID != "" {
@@ -144,8 +148,10 @@ func (s *Store) SaveSettlement(ctx context.Context, in Settlement) (duplicate bo
 				if err := addClubActivity(ctx, tx, racer.AccountID, raceClubPoints(racer), in.CreatedAt); err != nil {
 					return err
 				}
-				// And to the rider's quests (MENUS.md 2).
-				if err := addQuestProgress(ctx, tx, racer.AccountID, raceQuestResult(in, racer), in.CreatedAt); err != nil {
+				// And to the rider's quests (MENUS.md 2); a clubmate in the race counts on the club quest.
+				race := raceQuestResult(in, racer)
+				race.ClubMates = clubMates(clubs, racer.AccountID)
+				if err := addQuestProgress(ctx, tx, racer.AccountID, race, in.CreatedAt); err != nil {
 					return err
 				}
 			}
@@ -368,4 +374,54 @@ func (s *Store) SaveRoomRules(ctx context.Context, roomID, rules string, updated
 			updated_at = GREATEST(room_rules.updated_at, incoming.updated_at)`,
 		roomID, rules, updatedAt)
 	return err
+}
+
+// racerClubs maps the racers' accounts to their clubs.
+func racerClubs(ctx context.Context, tx *sql.Tx, results []SettledResult) (map[string]int64, error) {
+	clubs := map[string]int64{}
+	args := []any{}
+	marks := ""
+	for _, racer := range results {
+		if racer.AccountID == "" {
+			continue
+		}
+		if marks != "" {
+			marks += ","
+		}
+		marks += "?"
+		args = append(args, racer.AccountID)
+	}
+	if len(args) < 2 {
+		return clubs, nil
+	}
+	rows, err := tx.QueryContext(ctx, "SELECT account_id, club_id FROM club_members WHERE account_id IN ("+marks+")", args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var (
+			accountID string
+			clubID    int64
+		)
+		if err := rows.Scan(&accountID, &clubID); err != nil {
+			return nil, err
+		}
+		clubs[accountID] = clubID
+	}
+	return clubs, rows.Err()
+}
+
+// clubMates reports whether another racer shares the account's club.
+func clubMates(clubs map[string]int64, accountID string) bool {
+	club, ok := clubs[accountID]
+	if !ok {
+		return false
+	}
+	for other, id := range clubs {
+		if other != accountID && id == club {
+			return true
+		}
+	}
+	return false
 }

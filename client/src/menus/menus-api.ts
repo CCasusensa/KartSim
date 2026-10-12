@@ -54,6 +54,8 @@ export interface QuestReward {
   days: number;
   currency?: string;
   emblem?: number;
+  /** 通行证积分 (the pass chain), credited at once. */
+  passPoints?: number;
 }
 
 /** Quest kinds (QuestAutomation type). */
@@ -63,8 +65,12 @@ export const QUEST_DISTANCE = 3;
 export const QUEST_RANK = 4;
 export const QUEST_WIN = 8;
 
+export type QuestGroup = "pass" | "normal" | "club";
+
 export interface Quest {
   id: number;
+  /** The dialog box the quest sits in (questInfo2KartPass): 跑跑通行证每日任务 / 普通任务 / 俱乐部任务. */
+  group: QuestGroup;
   reset: "daily" | "weekly" | "none" | string;
   kind: number;
   target: number;
@@ -82,7 +88,14 @@ export interface Quest {
   periodEnd: number;
 }
 
-export interface QuestList { quests: Quest[]; resetHour: number }
+export interface QuestList {
+  quests: Quest[];
+  resetHour: number;
+  /** 通行证积分 the pass chain granted. */
+  passPoints: number;
+  /** The 俱乐部任务 box opens with a club. */
+  hasClub: boolean;
+}
 
 export interface MiniNotice { title: string; message: string; kind: "notice" | "quest" | "rewardBox" | string }
 
@@ -161,17 +174,19 @@ function parseReward(value: unknown): QuestReward {
   const row = record(value, "reward");
   const currency = text(row.currency, "currency");
   const emblem = number(row.emblem, "emblem");
+  const passPoints = number(row.passPoints, "pass points");
   return {
     name: text(row.name, "reward name"), category: number(row.category, "category"),
     itemId: number(row.itemId, "item id"), count: number(row.count, "count"), days: number(row.days, "days"),
-    ...(currency ? { currency } : {}), ...(emblem ? { emblem } : {}),
+    ...(currency ? { currency } : {}), ...(emblem ? { emblem } : {}), ...(passPoints ? { passPoints } : {}),
   };
 }
 
 export function parseQuest(value: unknown): Quest {
   const row = record(value, "quest");
   return {
-    id: number(row.id, "quest id"), reset: text(row.reset, "reset"), kind: number(row.kind, "kind"),
+    id: number(row.id, "quest id"), group: row.group === "pass" || row.group === "club" ? row.group : "normal",
+    reset: text(row.reset, "reset"), kind: number(row.kind, "kind"),
     target: number(row.target, "target"), rank: number(row.rank, "rank"),
     channels: list(row.channels, "channels").map(channel => text(channel, "channel")),
     pre: number(row.pre, "pre"), title: text(row.title, "title"), desc: text(row.desc, "desc"),
@@ -244,7 +259,8 @@ export class MenusApi {
 
   async quests(): Promise<QuestList> {
     const body = await send(this.session, "/api/quests", "GET");
-    return { quests: list(body.quests, "quests").map(parseQuest), resetHour: number(body.resetHour, "reset hour") || 6 };
+    return { quests: list(body.quests, "quests").map(parseQuest), resetHour: number(body.resetHour, "reset hour") || 6,
+      passPoints: typeof body.passPoints === "number" ? body.passPoints : 0, hasClub: body.hasClub === true };
   }
 
   async notices(): Promise<{ notices: MiniNotice[]; rewardBox: number }> {
