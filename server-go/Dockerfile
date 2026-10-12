@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # KartSim Go 服务镜像：同一镜像包含 kart-data、kart-game 与 kart-migrate-sqlite，
-# 由 command 选择运行哪个。构建：docker build -t kartsim-server:local .
+# 由 command 选择运行哪个（另带独立节点 kart-node，NODE.md）。构建：docker build -t kartsim-server:local .
 
 FROM golang:1.26 AS build
 WORKDIR /src
@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     go build -trimpath -ldflags="-s -w" -o /out/ \
-      ./cmd/kart-data ./cmd/kart-game ./cmd/kart-migrate-sqlite
+      ./cmd/kart-data ./cmd/kart-game ./cmd/kart-node ./cmd/kart-migrate-sqlite
 
 FROM alpine:3.22
 # ca-certificates：连接启用 TLS 的 MySQL/Redis；tzdata：日志时间；wget（busybox）供健康检查。

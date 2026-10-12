@@ -158,7 +158,8 @@ schema v2 另有账号经济表 `account_progress`、`wallets`、`wallet_ledger`
 | `KART_GAME_PORT` | `8788` | |
 | `KART_NODE_ID` | `game-<端口>` | 只允许 `[A-Za-z0-9_-]{1,64}` |
 | `KART_NODE_NAME` | 同 NODE_ID | 显示名（最多 32 码点） |
-| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>` | 浏览器访问本节点的 HTTP(S) origin；设为 `same-origin` 表示经数据服务同源代理（列表中 origin 为 null） |
+| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>`（设置了 TLS 时为 `https://`） | 浏览器访问本节点的 HTTP(S) origin；设为 `same-origin` 表示经数据服务同源代理（列表中 origin 为 null） |
+| `KART_TLS_CERT` / `KART_TLS_KEY` | 空 | PEM 证书与私钥，同时设置时节点自己提供 HTTPS/WSS（只用 HTTP/1.1）；文件变化后最多一分钟内的握手重新读取，读取失败继续用旧证书 |
 | `KART_DATA_INTERNAL_URL` | `http://127.0.0.1:8790` | 数据服务内部 API |
 | `KART_DATA_NODE_ID` | `data-1` | 票据中的数据节点必须相同 |
 | `KART_CLUSTER_SECRET` | 必填 | |

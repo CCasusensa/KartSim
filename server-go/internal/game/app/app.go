@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -51,6 +52,8 @@ type App struct {
 	handler http.Handler
 	// cheat is the anti-cheat plugin (nil: none).
 	cheat *plugin.Plugin
+	// certs serves HTTPS/WSS (KART_TLS_CERT; nil: plain HTTP).
+	certs *certFiles
 
 	agentCancel context.CancelFunc
 	agentDone   chan struct{}
@@ -64,6 +67,12 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 	items, err := itemmode.Default()
 	if err != nil {
 		return nil, fmt.Errorf("item race data: %w", err)
+	}
+	var certs *certFiles
+	if cfg.TLSCert != "" {
+		if certs, err = loadCertFiles(cfg.TLSCert, cfg.TLSKey, log); err != nil {
+			return nil, err
+		}
 	}
 	data := cluster.NewDataClient(cfg.DataInternalURL, cfg.Secret)
 	if opts.Outbox.Logger == nil {
@@ -176,7 +185,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 	}
 
 	a := &App{cfg: cfg, log: log, data: data, agent: agent, outbox: box,
-		lobby: rooms, city: zone, ws: sockets, memory: memory, cheat: cheatPlugin}
+		lobby: rooms, city: zone, ws: sockets, memory: memory, cheat: cheatPlugin, certs: certs}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /multiplayer/healthz", a.health)
 	mux.Handle("GET /multiplayer/ws", sockets)
@@ -311,6 +320,11 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if a.certs != nil {
+		// HTTP/1.1 only: WebSockets upgrade over it, never over HTTP/2.
+		listener = tls.NewListener(listener, &tls.Config{GetCertificate: a.certs.certificate,
+			MinVersion: tls.VersionTLS12, NextProtos: []string{"http/1.1"}})
+	}
 	server := &http.Server{
 		Handler:           a.handler,
 		ReadHeaderTimeout: 10 * time.Second,
@@ -318,7 +332,7 @@ func (a *App) Run(ctx context.Context) error {
 		ErrorLog:          slog.NewLogLogger(a.log.Handler(), slog.LevelWarn),
 	}
 	a.Start()
-	a.log.Info("game node listening", "addr", listener.Addr().String(), "node", a.cfg.NodeID,
+	a.log.Info("game node listening", "addr", listener.Addr().String(), "node", a.cfg.NodeID, "tls", a.certs != nil,
 		"origin", a.cfg.PublicOrigin, "data", a.cfg.DataInternalURL, "capacity", a.cfg.MaxPlayers,
 		"maxConnections", a.cfg.MaxConnections, "maxRooms", a.cfg.MaxRooms,
 		"memoryLimitMB", a.cfg.MemoryLimitMB, "allowGuests", a.cfg.AllowGuests,

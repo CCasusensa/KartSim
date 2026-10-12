@@ -42,6 +42,12 @@ type Config struct {
 	OutboxDir       string
 	Network         *netcfg.Network
 
+	// TLSCert and TLSKey make the node serve HTTPS and WSS itself
+	// (KART_TLS_CERT, KART_TLS_KEY: PEM files, both or neither). The node
+	// reads them again when they change, so a renewed certificate needs no
+	// restart.
+	TLSCert, TLSKey string
+
 	// AllowGuests admits guest tickets (KART_ALLOW_GUESTS, default false:
 	// hello with a guest ticket answers 401 LOGIN_REQUIRED).
 	AllowGuests bool
@@ -134,7 +140,15 @@ func FromEnv(getenv func(string) string) (Config, error) {
 		problems = append(problems, errors.New("KART_NODE_NAME 最多 32 个字符且不能含控制字符"))
 	}
 
-	origin := env("KART_PUBLIC_ORIGIN", "http://127.0.0.1:"+strconv.Itoa(port))
+	cfg.TLSCert, cfg.TLSKey = env("KART_TLS_CERT", ""), env("KART_TLS_KEY", "")
+	if (cfg.TLSCert == "") != (cfg.TLSKey == "") {
+		problems = append(problems, errors.New("KART_TLS_CERT 与 KART_TLS_KEY 要同时设置"))
+	}
+	scheme := "http"
+	if cfg.TLSCert != "" {
+		scheme = "https"
+	}
+	origin := env("KART_PUBLIC_ORIGIN", scheme+"://127.0.0.1:"+strconv.Itoa(port))
 	if origin == SameOrigin {
 		cfg.PublicOrigin = ""
 	} else if normalized, err := normalizeOrigin(origin); err != nil {

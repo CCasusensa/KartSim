@@ -43,7 +43,7 @@ KartSim/
 │   ├── tests/               Client tests
 │   └── tools/               Build helpers and data export tools (economy, career, item race, license, lottery, club …)
 ├── server-go/               Back-end source (Go)
-│   ├── cmd/                 kart-data, kart-game, kart-migrate-sqlite
+│   ├── cmd/                 kart-data, kart-game, kart-node, kart-migrate-sqlite
 │   ├── internal/data/       Data service: accounts, economy, store, admin API …
 │   ├── internal/game/       Game node: lobby, rooms, races, item race, WebSocket/WebRTC …
 │   ├── internal/shared/     Contract and helpers shared by both services
@@ -99,6 +99,7 @@ Open the client at <http://127.0.0.1:8780/> (the script prints the exact address
 - `./run-lan.sh` lets other devices on the LAN play over HTTPS.
 - `./run-local.sh` serves the untouched original release at <http://127.0.0.1:8765/>.
 - For production, use `server-go/docker-compose.yml`.
+- To run game nodes on other machines (Linux or Windows), use `kart-node`, which sizes the player limit from the hardware: [`server-go/NODE.md`](server-go/NODE.md).
 - More detail:
   - Environment variables, APIs, deployment and tests: [`server-go/README.md`](server-go/README.md)
   - Client development: [`client/README.md`](client/README.md)
@@ -146,7 +147,7 @@ KartSim/
 │   ├── tests/               客户端测试
 │   └── tools/               构建辅助与数据导出工具（经济、生涯、道具赛、驾照、抽奖、俱乐部 …）
 ├── server-go/               后端源码（Go）
-│   ├── cmd/                 kart-data、kart-game、kart-migrate-sqlite
+│   ├── cmd/                 kart-data、kart-game、kart-node、kart-migrate-sqlite
 │   ├── internal/data/       数据服务：账号、经济、存储、管理接口 …
 │   ├── internal/game/       游戏节点：大厅、房间、比赛、道具赛、WebSocket/WebRTC …
 │   ├── internal/shared/     两个服务共用的协议约定与工具
@@ -202,6 +203,7 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 - `./run-lan.sh`：让局域网设备通过 HTTPS 访问。
 - `./run-local.sh`：在 <http://127.0.0.1:8765/> 原样运行原版发行镜像。
 - 生产部署：使用 `server-go/docker-compose.yml`。
+- 在其他机器（Linux 或 Windows）上加游戏节点：使用按硬件自动设置人数的 `kart-node`，见 [`server-go/NODE.md`](server-go/NODE.md)。
 - 详细说明：
   - 环境变量、接口、部署与测试：[`server-go/README.md`](server-go/README.md)
   - 客户端开发：[`client/README.md`](client/README.md)
@@ -249,7 +251,7 @@ KartSim/
 │   ├── tests/               클라이언트 테스트
 │   └── tools/               빌드 보조 및 데이터 내보내기 도구(경제, 커리어, 아이템전, 라이선스, 뽑기, 클럽 …)
 ├── server-go/               백엔드 소스(Go)
-│   ├── cmd/                 kart-data, kart-game, kart-migrate-sqlite
+│   ├── cmd/                 kart-data, kart-game, kart-node, kart-migrate-sqlite
 │   ├── internal/data/       데이터 서비스: 계정, 경제, 저장소, 관리자 API …
 │   ├── internal/game/       게임 노드: 로비, 방, 레이스, 아이템전, WebSocket/WebRTC …
 │   ├── internal/shared/     두 서비스가 함께 쓰는 프로토콜 규약과 유틸리티
@@ -305,6 +307,7 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 - `./run-lan.sh`: 같은 LAN의 기기가 HTTPS로 접속할 수 있습니다.
 - `./run-local.sh`: 원본 배포 미러를 <http://127.0.0.1:8765/>에서 그대로 실행합니다.
 - 운영 배포: `server-go/docker-compose.yml`을 사용합니다.
+- 다른 서버(Linux 또는 Windows)에 게임 노드를 추가하려면 하드웨어에 맞춰 인원을 자동으로 정하는 `kart-node`를 사용합니다: [`server-go/NODE.md`](server-go/NODE.md).
 - 자세한 내용:
   - 환경 변수, API, 배포, 테스트: [`server-go/README.md`](server-go/README.md)
   - 클라이언트 개발: [`client/README.md`](client/README.md)

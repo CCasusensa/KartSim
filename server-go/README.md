@@ -232,11 +232,13 @@ Compose 只运行服务端。开发前端时在 `client/` 运行 `npm run dev`�
 
 ```sh
 cd server-go
-go build -o bin/ ./cmd/kart-data ./cmd/kart-game ./cmd/kart-migrate-sqlite
+go build -o bin/ ./cmd/kart-data ./cmd/kart-game ./cmd/kart-node ./cmd/kart-migrate-sqlite
 export KART_CLUSTER_SECRET=$(openssl rand -base64 48)
 KART_MYSQL_DSN='kart:kart@tcp(127.0.0.1:3306)/kartsim?charset=utf8mb4&collation=utf8mb4_0900_as_ci' ./bin/kart-data &
 KART_NODE_ID=game-1 KART_NODE_NAME='游戏服 1' ./bin/kart-game &
 ```
+
+在其他机器（Linux 或 Windows）上运行游戏节点用 `kart-node`：同一套节点代码，加上配置文件、按硬件自动设置人数、连接自检、系统服务与内置 TLS，见 [`NODE.md`](NODE.md)。
 
 两个程序都只从环境变量读取配置，配置非法时拒绝启动并说明原因；日志是 `log/slog` 文本格式，写到 stderr。SIGINT/SIGTERM 触发优雅关闭。
 
@@ -336,7 +338,8 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `KART_GAME_PORT` | `8788` | 监听端口 |
 | `KART_NODE_ID` | `game-<端口>` | 节点 ID，`[A-Za-z0-9_-]{1,64}`，集群内唯一且应保持稳定（发件箱默认目录与它有关） |
 | `KART_NODE_NAME` | 同 `KART_NODE_ID` | 列表中显示的名称，最多 32 个字符 |
-| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>` | 浏览器访问本节点的 HTTP(S) origin；`same-origin` 表示经数据服务所在 origin 同源代理（列表中为 `null`） |
+| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>`（设置了 `KART_TLS_CERT` 时为 `https://`） | 浏览器访问本节点的 HTTP(S) origin；`same-origin` 表示经数据服务所在 origin 同源代理（列表中为 `null`） |
+| `KART_TLS_CERT` / `KART_TLS_KEY` | 空 | PEM 证书与私钥文件，要同时设置：节点自己提供 `https://` 与 `wss://`（只协商 HTTP/1.1），不必再放 TLS 反向代理。证书文件变化后，节点在一分钟内的下一次握手时重新读取（续期不用重启），读取失败时继续用旧证书并记录错误 |
 | `KART_DATA_INTERNAL_URL` | `http://127.0.0.1:8790` | 数据服务内部 API 地址（可为 https） |
 | `KART_DATA_NODE_ID` | `data-1` | 票据中的数据节点必须与它相同 |
 | `KART_CLUSTER_SECRET` | 必填 | 与数据服务相同 |
@@ -655,7 +658,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 
 ## 分布式部署
 
-一个数据服务（连同 MySQL 与 Redis）加任意多个游戏节点，游戏节点可以放在不同机器、不同地区。
+一个数据服务（连同 MySQL 与 Redis）加任意多个游戏节点，游戏节点可以放在不同机器、不同地区。在单独的机器上部署节点推荐用 [`kart-node`](NODE.md)：`kart-node init --data <数据服务内部地址> …` 生成配置、`kart-node check` 检查连通与密钥、`kart-node service install` 装成 systemd / Windows 服务，人数按 CPU、内存与上行带宽自动计算。
 
 **游戏节点**
 
@@ -828,6 +831,8 @@ server {
 | 位置 | 职责 |
 | --- | --- |
 | `cmd/kart-data`、`cmd/kart-game`、`cmd/kart-migrate-sqlite` | 程序入口 |
+| `cmd/kart-node` | 独立游戏节点命令行（[`NODE.md`](NODE.md)）：配置文件与选项的合并、`init`/`detect`/`check`、systemd 与 Windows 服务、日志文件 |
+| `internal/game/capacity` | 硬件检测（CPU、内存、cgroup 限制，Linux/Windows/macOS）与按 CPU、内存、上行带宽计算节点人数 |
 | `internal/shared/contract` | 内部 API 路径与 JSON 结构、游戏服列表与票据响应 |
 | `internal/shared/ticket` | 票据签名与验签 |
 | `internal/shared/netcfg` | 可信主机、CORS、WebSocket Origin 校验 |
@@ -840,7 +845,7 @@ server {
 | `internal/data/economy` | 商店目录与等级表（`catalog.json`、`levels.json`，由 `client/tools/export-economy-data.mjs` 生成并 `go:embed`） |
 | `internal/shared/rewards` | 联机比赛与计时赛奖励公式、每日上限（游戏节点与数据服务共用） |
 | `internal/data/sqlitemigrate` | 旧 SQLite 数据迁移 |
-| `internal/game/config`、`internal/game/app` | 游戏节点配置与组装 |
+| `internal/game/config`、`internal/game/app` | 游戏节点配置与组装（`app/certs.go`：内置 TLS 的证书热加载） |
 | `internal/game/lobby` | 房间、赛程与特殊模式（移植自 `LobbyService`/`Room`/`GameModes`）；道具赛的房间、赛道与 `item` 请求在 `item_mode.go` |
 | `internal/game/itemmode` | 道具赛规则（纯函数，可注入随机源）：名次组、按权重抽取与获得上限、道具槽、目标选择与 `etaMs`、道具锁、透视、刷箱检查、`useId` 与命中记录；第 3 阶段：冻结装备的特性与共享确定性掷骰（`roll.go`）、按车辆的变换与获得表、迅引擎开局道具、49 种特殊道具规则、双发导弹、黄金盾牌、命中后的道具锁、只解除飞碟减速的电磁波、换位/变更卡、赛中金币与结算称号；`itemmode.json` 由 `client/tools/export-item-mode-data.mjs` 生成 |
 | `internal/game/ws` | WebSocket 读写协程、请求 ID 回复、运动帧中继（首字节 `0xC1` 的城市帧交给 `city`） |
