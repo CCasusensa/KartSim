@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { replayDateText, replayEntries, replaySettingsLabel, runRecordKey } from "./ready-replays";
+import { featuredEntries, rankedEntries, replayDateText, replayEntries, replaySettingsLabel, runRecordKey } from "./ready-replays";
 
 test("replay cards come from records with a Ghost, newest first, titled by track and time", () => {
   const records: Array<[string, Record<string, unknown>]> = [
@@ -19,6 +19,31 @@ test("replay cards come from records with a Ghost, newest first, titled by track
   assert.equal(entries[1]?.settings, "无限 / 组队赛");
   assert.equal(entries[1]?.dateText, "—");
   assert.equal(entries[1]?.riderName, "F10测试");
+  assert.equal(entries[0]?.source, "local");
+  assert.equal(entries[0]?.deletable, true);
+});
+
+test("联赛回放 and 其他回放 cards carry their sources and titles", () => {
+  const [league] = featuredEntries([{ id: 5, title: "第1届决赛", note: "城镇", trackId: "village_R01", trackName: "城镇 高速公路",
+    speed: 7, booster: 0, accountId: "a1", nickname: "小乖", kartName: "棉花糖", bestMs: 95_000, createdAt: 1_760_000_000_000 }]);
+  assert.equal(league?.key, "featured:5");
+  assert.equal(league?.source, "featured");
+  assert.equal(league?.title, "第1届决赛");
+  assert.equal(league?.note, "城镇");
+  assert.equal(league?.trackTitle, "城镇 高速公路");
+  assert.equal(league?.deletable, false);
+  assert.equal(league?.featuredId, 5);
+  const state = { track: { id: "forest_I01", path: "p", title: "森林" }, speed: 4, booster: 1 };
+  const ranked = rankedEntries([
+    { rank: 1, accountId: "a1", nickname: "小乖", kartName: "棉花糖", bestMs: 90_000, updatedAt: 1, hasReplay: true, self: false },
+    { rank: 2, accountId: "a2", nickname: "我自己", kartName: "黑妞", bestMs: 91_000, updatedAt: 2, hasReplay: true, self: true },
+    { rank: 3, accountId: "a3", nickname: "无录像", kartName: "x", bestMs: 92_000, updatedAt: 3, hasReplay: false, self: false },
+  ], state);
+  assert.deepEqual(ranked.map(entry => entry.accountId), ["a1", "a2"]);
+  assert.equal(ranked[0]?.title, "第1名　小乖　01:30:00");
+  assert.equal(ranked[0]?.settings, "无限 / 组队赛");
+  assert.equal(ranked[1]?.riderName, "我自己（我）");
+  assert.equal(ranked[0]?.key, "ranked:forest_I01:4:1:a1");
 });
 
 test("settings labels and record keys follow the Ready options", () => {

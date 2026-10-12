@@ -25,6 +25,7 @@
 | 俱乐部 | 俱乐部列表：名称、会长、等级、人数、创建时间 |
 | 抽奖活动、奖励箱、公告、邀请码 | 原后台的功能，用 Element Plus 表单与表格重做，接口不变 |
 | 经济设置 | 注册赠送与每场比赛赠送的点券/金币/K币，以及商城“点击获取点券”按钮的开关与每次数额（`GET`/`PUT /api/admin/economy`，`ECONOMY.md` 2.4/2.5）：表单、默认值提示、最后修改人与时间 |
+| 联赛回放 | 游戏 回放 → 联赛回放 的列表（`TIMEATTACK.md` 4）：已发布的联赛回放（标题、说明、赛道、设置、车手、卡丁车、成绩、大小、发布人与时间，删除），下方是排位录像池（各赛道、设置的前 10 名录像：时间、赛道、设置、车手、卡丁车、成绩、已发布次数；按账号/昵称/赛道搜索，赛道筛选），每行“发布为联赛回放”弹出标题与说明 |
 
 - 所有表格：服务器端分页（每页 20/50/100）、搜索、可排序列；空数据、加载中、出错都有提示；时间统一按北京时间显示 `YYYY-MM-DD HH:mm:ss`；金额千分位。
 
@@ -82,6 +83,8 @@
 | GET | `/api/admin/box-openings` | 开箱记录 |
 | GET | `/api/admin/clubs` | 俱乐部列表 |
 | 现有 | `/api/admin/lottery`、`/api/admin/reward-box`、`/api/admin/notices`、`/multiplayer/admin/invites` | 保持不变 |
+| `timeattack-replays` | 用户名、昵称、赛道编号 | 录像时间 | `updatedAt`、`bestMs`、`track` | `track`（赛道编号，完全相同）、`account`；行：`trackId, trackName, speed, booster, accountId, username, nickname, kartName, bestMs, byteSize, updatedAt, featured`（已发布为联赛回放的次数） |
+| `featured-replays` | `GET` 列出已发布的联赛回放 `{replays: FeaturedReplay[]}`（新的在前）；`POST {trackId, speed, booster, accountId, title, note?}` 复制该排位录像并发布 → `{replay}`（400 `INVALID_FEATURED`：标题 1–60 字、说明 ≤ 200 字；404 `REPLAY_NOT_FOUND`：没有这条录像）；`DELETE /api/admin/featured-replays/{id}`（404 `FEATURED_NOT_FOUND`）。`FeaturedReplay`：`id, title, note, trackId, trackName, speed, booster, accountId, nickname, kartName, bestMs, byteSize, createdBy, createdAt`。表 `featured_replays`（schema v18）存录像副本，车手昵称是发布时的快照，不随账号删除 | | | |
 
 错误统一沿用现有格式 `{"error": "错误码"}`（`ACCOUNT_BANNED` 另带 `until`、`reason`）；未登录 401 `LOGIN_REQUIRED`、非管理员 403 `ADMIN_REQUIRED`，账号不存在 404 `ACCOUNT_NOT_FOUND`。
 

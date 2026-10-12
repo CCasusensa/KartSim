@@ -7,7 +7,7 @@ import { HomeScreen } from "../ui/home-screen";
 import { LobbyHomeView, type QuickEntry } from "../ui/lobby-home-view";
 import { followAccountTopBar, lobbyAccountInfo } from "../ui/lobby-top-bar";
 import { loadLobbyTopBarArt, type TopBarArtLibrary } from "../ui/lobby-top-bar-assets";
-import { MAIN_MENU_FONT_FAMILY, MainMenuView, loadMainMenuAssets, type MainMenuAssets,
+import { MAIN_MENU_FONT_FAMILY, MainMenuView, loadMainMenuAssets, type MainMenuAssets, type ReplayTab,
   type MainMenuLibrary, type MainMenuPage } from "../ui/main-menu-view";
 import type { LocalProfile } from "../ui/local-profile";
 import { loadMyRoomCatalog } from "../ui/my-room-catalog";
@@ -15,7 +15,8 @@ import type { ReadyFlowController } from "./ready-flow";
 import { currentRoomSubject, localRiderName, type ReadyHouseController,
   type ReadyHouseLibrary } from "./ready-house";
 import { leaveStory, loadStoryMenu, openStoryChapter } from "./ready-story";
-import { deleteLocalReplay, loadReplayMenu, openLocalReplay, type ReadyReplayController } from "./ready-replays";
+import { deleteLocalReplay, loadFeaturedMenu, loadOtherMenu, loadReplayMenu, openReplayEntry, pickReplayTrack,
+  toggleReplaySetting, type ReadyReplayController } from "./ready-replays";
 import { claimProEmblem, leaveLicense, openLicenseStep, refreshLicenseMenu, startLicenseQualify,
   takeLicenseLevel, type ReadyLicenseController } from "./ready-license";
 import type { ReadyShopController } from "./ready-shop";
@@ -169,11 +170,28 @@ export async function openReadyHome(controller: ReadyHomeController,
     const assets = await homeAssets(library);
     if (controller.disposed || controller.activeHome || controller.activeHouse) return;
     const riderName = () => activeBrowserSession()?.summary()?.account.nickname ?? localRiderName();
-    // 回放 (TIMEATTACK.md 4): this browser's Ghost records, played through the OB viewer.
-    const refreshReplays = (): void => {
-      void loadReplayMenu(controller, riderName()).then(entries => {
-        if (controller.activeHome === view) view.setReplays(entries);
-      }).catch(error => view.showNotice(`回放读取失败：${error instanceof Error ? error.message : String(error)}`));
+    // 回放 (TIMEATTACK.md 4): 我的回放 (this browser's Ghost records), 联赛回放
+    // (admin-published) and 其他回放 (the ranked top 10), all played through the OB viewer.
+    const replays = controller as ReadyReplayController;
+    const refreshReplays = (tab: ReplayTab = view.single.currentReplayTab): void => {
+      replays.replayTab = tab;
+      view.setReplays(tab, undefined);
+      const failed = (error: unknown) => view.showNotice(`回放读取失败：${error instanceof Error ? error.message : String(error)}`);
+      if (tab === "my") {
+        void loadReplayMenu(controller, riderName()).then(entries => {
+          if (controller.activeHome === view) view.setReplays("my", entries);
+        }).catch(failed);
+      } else if (tab === "league") {
+        void loadFeaturedMenu().then(entries => {
+          if (controller.activeHome === view) view.setReplays("league", entries);
+        }).catch(failed);
+      } else {
+        void loadOtherMenu(replays).then(({ entries, header }) => {
+          if (controller.activeHome !== view) return;
+          view.setReplayHeader(header);
+          view.setReplays("other", entries);
+        }).catch(failed);
+      }
     };
     const single = new MainMenuView(host.root, assets, {
       keepFont: true,
@@ -192,7 +210,7 @@ export async function openReadyHome(controller: ReadyHomeController,
         if (category !== "cat_riderSchool") leaveLicense(license);
         // The standing may have changed since the page was read.
         if (category === "cat_riderSchool") void refreshLicenseMenu(license);
-        if (category === "cat_replay") { view.setReplays(undefined); refreshReplays(); }
+        if (category === "cat_replay") refreshReplays();
         if (category !== "cat_scenario") return;
         // Progress may have changed since the list was read.
         void loadStoryMenu(controller).then(chapters => {
@@ -202,13 +220,24 @@ export async function openReadyHome(controller: ReadyHomeController,
       },
       onStoryChapter: name => { void openStoryChapter(controller, name); },
       onReplay: entry => {
-        void openLocalReplay(controller as ReadyReplayController, entry).catch(error =>
+        void openReplayEntry(replays, entry).catch(error =>
           controller.activeHome?.single.showNotice(`回放：${error instanceof Error ? error.message : String(error)}`));
       },
       onReplayDelete: entry => {
-        void deleteLocalReplay(controller as ReadyReplayController, entry).then(deleted => {
-          if (deleted && controller.activeHome === view) refreshReplays();
+        void deleteLocalReplay(replays, entry).then(deleted => {
+          if (deleted && controller.activeHome === view) refreshReplays("my");
         }).catch(error => view.showNotice(`删除回放：${error instanceof Error ? error.message : String(error)}`));
+      },
+      onReplayTab: tab => refreshReplays(tab),
+      onReplayPickTrack: () => {
+        void pickReplayTrack(replays).then(chosen => {
+          if (chosen && controller.activeHome === view) refreshReplays("other");
+        });
+      },
+      onReplaySetting: kind => {
+        void toggleReplaySetting(replays, kind).then(() => {
+          if (controller.activeHome === view) refreshReplays("other");
+        });
       },
       onLicenseStep: step => { void openLicenseStep(controller as ReadyLicenseController, step); },
       onLicenseTake: level => { void takeLicenseLevel(controller as ReadyLicenseController, level); },

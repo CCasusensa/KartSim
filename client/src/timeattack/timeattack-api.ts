@@ -306,9 +306,52 @@ export async function enterRankedTimeAttack(session: TimeAttackSession, entry: {
 /** A ranked record's replay, a .ksv file. */
 export async function fetchTimeAttackReplay(session: TimeAttackSession, trackId: string, speed: number,
   booster: number, accountId: string): Promise<Uint8Array> {
-  if (!session.authorizedFetch) throw new AccountServiceError("LOGIN_REQUIRED");
   const query = new URLSearchParams({ trackId, speed: String(speed), booster: String(booster), accountId });
-  const response = await session.authorizedFetch(`/api/timeattack/replay?${query}`);
+  return authorizedBytes(session, `/api/timeattack/replay?${query}`);
+}
+
+/** 联赛回放 (TIMEATTACK.md 4): an admin-published replay. */
+export interface FeaturedReplay {
+  id: number;
+  title: string;
+  note: string;
+  trackId: string;
+  trackName: string;
+  speed: number;
+  booster: number;
+  accountId: string;
+  nickname: string;
+  kartName: string;
+  bestMs: number;
+  createdBy: string;
+  createdAt: number;
+}
+
+export function parseFeaturedReplays(value: unknown): FeaturedReplay[] {
+  const body = record(value, "联赛回放");
+  const rows = Array.isArray(body.replays) ? body.replays : [];
+  return rows.map((raw, index) => {
+    const row = record(raw, `联赛回放 ${index + 1}`);
+    return { id: integer(row.id), title: text(row.title), note: text(row.note), trackId: text(row.trackId),
+      trackName: text(row.trackName), speed: integer(row.speed, 7), booster: integer(row.booster),
+      accountId: text(row.accountId), nickname: text(row.nickname), kartName: text(row.kartName),
+      bestMs: integer(row.bestMs), createdBy: text(row.createdBy), createdAt: integer(row.createdAt) };
+  }).filter(row => row.id > 0);
+}
+
+/** The published replays, newest first. */
+export async function fetchFeaturedReplays(session: TimeAttackSession): Promise<FeaturedReplay[]> {
+  return parseFeaturedReplays(await session.requestJson("/api/timeattack/featured"));
+}
+
+/** A published replay's .ksv file. */
+export async function fetchFeaturedReplayFile(session: TimeAttackSession, id: number): Promise<Uint8Array> {
+  return authorizedBytes(session, `/api/timeattack/featured/replay?${new URLSearchParams({ id: String(id) })}`);
+}
+
+async function authorizedBytes(session: TimeAttackSession, path: string): Promise<Uint8Array> {
+  if (!session.authorizedFetch) throw new AccountServiceError("LOGIN_REQUIRED");
+  const response = await session.authorizedFetch(path);
   if (!response.ok) {
     let code = "INVALID_RESPONSE";
     try { code = textOr((await response.json() as { error?: unknown }).error, code); } catch { /* not JSON */ }

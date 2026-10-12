@@ -58,8 +58,11 @@
 
 - 排位榜上带录像的行可点击观看：浏览器下载 `.ksv`，用原版回放舞台 `stage_replay` 的操作台播放（`client/src/timeattack/replay-session.ts`）：被观看的车手作为唯一的幻影参赛者，本机的车不出现；镜头跟随幻影。
 - 操作台（原版 `console`）：播放 / 暂停 / 0.5× / 0.25×、时间条拖动、镜头 A（追尾）S（俯视）Q（第一人称）F（左侧）D（正面）V（低角度）、显示开关、退出。录像只有 10 Hz 的姿态与状态位，没有道具、碰撞与音效。
-- "我的回放"（单人游戏页的 回放 标签，`client/src/timeattack/ready-replays.ts`）列出本机影子库里带影子的记录，按原版 `replayCard` 画成一页 4 张卡（标题是赛道与成绩；车手 / 日期 时间 / 赛道，以及卡丁车 / 记录 / 设置两列；右上角 删除；底部 上一页 / 下一页，滚轮翻页）。点卡片用同样的 OB 操作台观看（本机导出 .ksv 后播放，看完回到 回放 标签）；删除先弹确认框。记录日期由完赛写入记录时记在浏览器存储里（`kartsim:replay-dates`），影子记录本身没有时间。"联赛回放 / 其他回放"暂未开放。
+- 回放标签的三页（`client/src/timeattack/ready-replays.ts`，卡片都按原版 `replayCard` 画，一页 4 张，底部 上一页 / 下一页 与滚轮翻页；点卡片都用同一套 OB 操作台观看，看完回到原来那页）：
+  - **联赛回放**：管理后台发布的录像（`GET /api/timeattack/featured` → `{replays:[{id,title,note,trackId,trackName,speed,booster,accountId,nickname,kartName,bestMs,byteSize,createdBy,createdAt}]}`，新的在前；文件 `GET /api/timeattack/featured/replay?id=` 与排位录像一样是 .ksv 字节流，带 ETag）。管理员在后台“联赛回放”页从排位录像池里挑一条，填标题与说明后发布，录像复制进 `featured_replays`（schema v18），之后原记录掉出前 10 名或账号删除都不影响；删除也在后台。卡片标题是发布的标题，说明显示在标题下；车手 / 日期 时间（发布时间）/ 赛道，卡丁车 / 记录 / 设置。
+  - **其他回放**：浏览排位榜上别人的录像。页首一张设置卡显示当前赛道与设置（标准速度或无限 / 个人赛或组队赛），“选择赛道”打开原版选赛道窗口（随机赛道不可选），“切换速度”“切换模式”改设置；下面是该赛道、设置的排位榜前 10 名里带录像的记录（`GET /api/timeattack/ranking`，自己的也列出并标“我”），卡片标题是“第 N 名 昵称 成绩”。赛道默认是当前计时赛选中的赛道，设置默认取计时赛的设置。
+- "我的回放"（单人游戏页的 回放 标签，`client/src/timeattack/ready-replays.ts`）列出本机影子库里带影子的记录，按原版 `replayCard` 画成一页 4 张卡（标题是赛道与成绩；车手 / 日期 时间 / 赛道，以及卡丁车 / 记录 / 设置两列；右上角 删除；底部 上一页 / 下一页，滚轮翻页）。点卡片用同样的 OB 操作台观看（本机导出 .ksv 后播放，看完回到 回放 标签）；删除先弹确认框。记录日期由完赛写入记录时记在浏览器存储里（`kartsim:replay-dates`），影子记录本身没有时间。
 
 ## 5. 存储
 
-`timeattack_records`、`timeattack_replays`、`timeattack_entries`、`timeattack_missions` 在 schema v16 引入（结构见 `internal/data/store/schema.go`）。kart-data 每小时删除 24 小时前的入场记录。
+`timeattack_records`、`timeattack_replays`、`timeattack_entries`、`timeattack_missions` 在 schema v16 引入，联赛回放的 `featured_replays` 在 schema v18 引入（结构见 `internal/data/store/schema.go`）。kart-data 每小时删除 24 小时前的入场记录。

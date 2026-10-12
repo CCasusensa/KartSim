@@ -49,20 +49,39 @@ export interface ReplayTabArt {
   remove: Texture[];
 }
 
-/** One card on the 我的回放 list (timeattack/ready-replays). */
+/** The 回放 tab's pages: 我的回放 / 联赛回放 / 其他回放 (TIMEATTACK.md 4). */
+export type ReplayTab = "my" | "league" | "other";
+
+/** One card on a 回放 list (timeattack/ready-replays). */
 export interface ReplayMenuEntry {
   key: string;
+  /** local: this browser's Ghost; featured: 联赛回放; ranked: another rider's ranked record. */
+  source: "local" | "featured" | "ranked";
   trackId: string;
   trackTitle: string;
   riderName: string;
   kartName: string;
   elapsedMs: number;
   recordedAt?: number;
-  /** The card's title line: track and time. */
+  /** The card's title line: track and time, or the published title. */
   title: string;
+  /** A second title line (the published note). */
+  note?: string;
   /** "标准速度 / 个人赛". */
   settings: string;
   dateText: string;
+  /** Local records have a 删除 button. */
+  deletable: boolean;
+  speed: number;
+  booster: number;
+  accountId?: string;
+  featuredId?: number;
+}
+
+/** 其他回放: the settings card above the list. */
+export interface ReplayBrowseHeader {
+  trackTitle: string;
+  settings: string;
 }
 
 export type LobbyEventId = "treasureHunt" | "gacha";
@@ -168,6 +187,12 @@ export interface MainMenuOptions {
   onReplay?(entry: ReplayMenuEntry): void;
   /** 回放: a card's 删除 button. */
   onReplayDelete?(entry: ReplayMenuEntry): void;
+  /** 回放: a page tab (我的 / 联赛 / 其他) was chosen; the page's cards reload. */
+  onReplayTab?(tab: ReplayTab): void;
+  /** 其他回放: 选择赛道 on the settings card. */
+  onReplayPickTrack?(): void;
+  /** 其他回放: 切换速度 / 切换模式 on the settings card. */
+  onReplaySetting?(kind: "speed" | "booster"): void;
   /** A favourite channel opens the multiplayer lobby on that channel. */
   onChannel(channel: string): void;
   onHover?(): void;
@@ -469,9 +494,11 @@ export class MainMenuView {
   private noticeTimer = 0;
   private story?: StoryMenuChapter[];
   private storyRow = 0;
-  /** 我的回放 cards; undefined while they load. */
-  private replays?: ReplayMenuEntry[];
-  private replayPage = 0;
+  /** The 回放 pages' cards; undefined while a page loads. */
+  private replays: Partial<Record<ReplayTab, ReplayMenuEntry[]>> = {};
+  private replayPages: Record<ReplayTab, number> = { my: 0, league: 0, other: 0 };
+  private replayTab: ReplayTab = "my";
+  private replayHeader?: ReplayBrowseHeader;
   private storyFocus?: string;
   private storyListRect?: Rect;
   private license?: LicenseMenu;
@@ -572,21 +599,42 @@ export class MainMenuView {
     this.render();
   }
 
-  /** Cards for the 回放 tab; undefined while they load. */
-  setReplays(entries: ReplayMenuEntry[] | undefined): void {
-    this.replays = entries;
-    this.replayPage = Math.min(this.replayPage, this.maxReplayPage());
+  /** Cards for a 回放 page; undefined while they load. */
+  setReplays(tab: ReplayTab, entries: ReplayMenuEntry[] | undefined): void {
+    this.replays[tab] = entries;
+    this.replayPages[tab] = Math.min(this.replayPages[tab], this.maxReplayPage(tab));
     this.render();
   }
 
-  private maxReplayPage(): number {
-    return Math.max(0, Math.ceil((this.replays?.length ?? 0) / REPLAY_CARD.perPage) - 1);
+  /** 其他回放: the track and settings on its first card. */
+  setReplayHeader(header: ReplayBrowseHeader | undefined): void {
+    this.replayHeader = header;
+    this.render();
+  }
+
+  get currentReplayTab(): ReplayTab { return this.replayTab; }
+
+  /** Show a 回放 page (and ask for its cards). */
+  showReplayTab(tab: ReplayTab): void {
+    this.replayTab = tab;
+    this.render();
+    this.options.onReplayTab?.(tab);
+  }
+
+  /** 其他回放 keeps a settings card in its first slot. */
+  private replayPerPage(tab: ReplayTab): number {
+    return tab === "other" ? REPLAY_CARD.perPage - 1 : REPLAY_CARD.perPage;
+  }
+
+  private maxReplayPage(tab: ReplayTab): number {
+    return Math.max(0, Math.ceil((this.replays[tab]?.length ?? 0) / this.replayPerPage(tab)) - 1);
   }
 
   private turnReplayPage(delta: number): void {
-    const next = Math.min(this.maxReplayPage(), Math.max(0, this.replayPage + delta));
-    if (next === this.replayPage) return;
-    this.replayPage = next;
+    const tab = this.replayTab;
+    const next = Math.min(this.maxReplayPage(tab), Math.max(0, this.replayPages[tab] + delta));
+    if (next === this.replayPages[tab]) return;
+    this.replayPages[tab] = next;
     this.render();
   }
 
@@ -595,7 +643,7 @@ export class MainMenuView {
   }
 
   private readonly onWheel = (event: WheelEvent): void => {
-    if (this.currentPage === "single" && this.category === "cat_replay" && this.replays) {
+    if (this.currentPage === "single" && this.category === "cat_replay" && this.replays[this.replayTab]) {
       event.preventDefault();
       this.turnReplayPage(event.deltaY > 0 ? 1 : event.deltaY < 0 ? -1 : 0);
       return;
@@ -671,7 +719,7 @@ export class MainMenuView {
       const selected = (name === this.category &&
         (menu === "singleplay_cats" || menu === "singleplay_subCats")) ||
         (this.category === "cat_riderSchool" && name === `riderSchool_Level${this.selectedLicense}`) ||
-        (this.category === "cat_replay" && menu === "cats" && name === "replay_my");
+        (this.category === "cat_replay" && menu === "cats" && name === `replay_${this.replayTab}`);
       const state = selected ? 2 : action ? st(key, this.hovered, this.pressed) : 3;
       ct(this.context, textures[state]!, rect);
       if (action) this.regions.push({ key, rect, label: this.label(node, name),
@@ -692,7 +740,8 @@ export class MainMenuView {
     if (name === "favoriteChannel") this.drawChannels(rect);
     if (name === "promotionNew") this.drawBanner(rect);
     if (name === "scenario_bnt_list") this.drawStoryList(rect);
-    if (name === "my" && this.category === "cat_replay" && this.currentPage === "single") this.drawReplayList(rect);
+    if (this.category === "cat_replay" && this.currentPage === "single" &&
+        (name === "my" || name === "league" || name === "other") && name === this.replayTab) this.drawReplayList(rect, name);
     if (this.category === "cat_riderSchool" && this.currentPage === "single") {
       if (name === "grid") this.drawLicenseSteps(rect);
       if (name === "mainEmblemText" && this.license) {
@@ -764,7 +813,7 @@ export class MainMenuView {
     if (node.name === "TabPage") {
       // Category pages; their per-level pages open from cards that are not run here.
       // 回放 shows its 我的回放 page (联赛 / 其他 are not built).
-      return name === this.category || (this.category === "cat_replay" && name === "replay_my");
+      return name === this.category || (this.category === "cat_replay" && name === `replay_${this.replayTab}`);
     }
     if (name === "singleplay_subCats") return this.category === undefined || !RIGHT_FILLED.has(this.category);
     return true;
@@ -779,9 +828,11 @@ export class MainMenuView {
       this.options.onTimeAttack)();
     if (name === "timeAttack_ranking" && this.options.onRanking) return () => this.options.onRanking!();
     if (this.category === "cat_replay") {
-      if (name === "replay_my") return () => this.render();
-      if (name === "prev") return this.replayPage > 0 ? () => this.turnReplayPage(-1) : undefined;
-      if (name === "next") return this.replayPage < this.maxReplayPage() ? () => this.turnReplayPage(1) : undefined;
+      const tab = /^replay_(my|league|other)$/.exec(name)?.[1] as ReplayTab | undefined;
+      if (tab) return () => { if (tab !== this.replayTab) this.showReplayTab(tab); };
+      const page = this.replayPages[this.replayTab];
+      if (name === "prev") return page > 0 ? () => this.turnReplayPage(-1) : undefined;
+      if (name === "next") return page < this.maxReplayPage(this.replayTab) ? () => this.turnReplayPage(1) : undefined;
     }
     // 竞争排位赛 (seasonal ranked, dialog2_timeAttackCompetitive) is not built yet.
     if (name === "timeAttack_competitive") return () => this.showNotice("竞争排位赛暂未开放");
@@ -976,66 +1027,104 @@ export class MainMenuView {
   }
 
   /**
-   * 我的回放: stage_mainMenu replayCard rows (750×128): the title line, 删除 at
-   * the corner, and the 车手 / 日期 / 赛道 columns; this build adds 卡丁车 /
-   * 记录 / 设置 beside them.
+   * 回放 lists: stage_mainMenu replayCard rows (750×128): the title line, 删除
+   * at the corner of a local record, and the 车手 / 日期 / 赛道 columns; this
+   * build adds 卡丁车 / 记录 / 设置 beside them. 其他回放 keeps its track and
+   * settings card in the first slot.
    */
-  private drawReplayList(rect: Rect): void {
+  private drawReplayList(rect: Rect, tab: ReplayTab): void {
     const context = this.context;
     const art = this.assets.replay;
     const label = (text: string, box: Rect, size: number, color: string, align: "left" | "center") =>
       m9(context, text, box, { family: FONT_FAMILY, size, kind: "label", color, align,
         verticalAlign: "center", stroke: 0, strokeColor: "black" });
-    if (!this.replays) {
-      label("读取中…", { x: rect.x, y: rect.y, width: rect.width, height: 60 }, 16, "rgb(88,105,129)", "center");
-      return;
-    }
-    if (this.replays.length === 0) {
-      label("还没有回放记录。完成练习计时赛或排位计时赛后，这里会保存你的跑法。",
-        { x: rect.x, y: rect.y, width: rect.width, height: 60 }, 16, "rgb(88,105,129)", "center");
-      return;
-    }
-    const first = this.replayPage * REPLAY_CARD.perPage;
-    this.replays.slice(first, first + REPLAY_CARD.perPage).forEach((entry, offset) => {
-      const box = { x: rect.x - 1, y: rect.y + offset * (REPLAY_CARD.height + REPLAY_CARD.gap),
-        width: REPLAY_CARD.width, height: REPLAY_CARD.height };
-      const key = `replay:${entry.key}`;
-      const removeKey = `replay-delete:${entry.key}`;
-      const face = art?.card[st(key, this.hovered, this.pressed)] ?? art?.card[0];
-      if (face) context.drawImage(face.image, box.x, box.y, box.width, box.height);
+    const slot = (index: number): Rect => ({ x: rect.x - 1, y: rect.y + index * (REPLAY_CARD.height + REPLAY_CARD.gap),
+      width: REPLAY_CARD.width, height: REPLAY_CARD.height });
+    const face = (key: string | undefined, box: Rect): void => {
+      const image = (key ? art?.card[st(key, this.hovered, this.pressed)] : undefined) ?? art?.card[0];
+      if (image) context.drawImage(image.image, box.x, box.y, box.width, box.height);
       else {
         context.save();
-        context.fillStyle = this.hovered === key ? "rgba(255,255,255,.9)" : "rgba(240,244,250,.9)";
+        context.fillStyle = key && this.hovered === key ? "rgba(255,255,255,.9)" : "rgba(240,244,250,.9)";
         context.fillRect(box.x, box.y, box.width, box.height);
         context.restore();
       }
-      label(entry.title, { x: box.x, y: box.y, width: 722, height: 31 }, 20, "white", "center");
-      const columns: Array<[number, Array<[string, string]>]> = [
-        [18, [["车手", entry.riderName], ["日期 / 时间", entry.dateText], ["赛道", entry.trackTitle]]],
-        [400, [["卡丁车", entry.kartName || "—"], ["记录", formatCardTime(entry.elapsedMs)], ["设置", entry.settings]]],
+    };
+    const column = (box: Rect, left: number, rows: Array<[string, string]>): void => {
+      rows.forEach(([caption, value], row) => {
+        const y = box.y + 44 + row * 22;
+        label(caption, { x: box.x + left, y: y - 2, width: 83, height: 18 }, 14, "rgb(88,105,129)", "left");
+        context.save();
+        context.fillStyle = "rgb(170,176,190)";
+        context.fillRect(box.x + left + 83, y, 1, 18);
+        context.restore();
+        label(value, { x: box.x + left + 95, y: y - 2, width: 270, height: 18 }, 14, "rgb(42,55,80)", "left");
+      });
+    };
+    let listTop = rect.y;
+    if (tab === "other") {
+      // The settings card: the track and settings, with 选择赛道 / 切换速度 / 切换模式.
+      const box = slot(0);
+      face(undefined, box);
+      label("其他回放　排位榜上其他车手的录像", { x: box.x, y: box.y, width: 722, height: 31 }, 20, "white", "center");
+      const header = this.replayHeader;
+      column(box, 18, [["赛道", header?.trackTitle ?? "—"], ["设置", header?.settings ?? "—"]]);
+      const buttons: Array<[string, string, (() => void) | undefined]> = [
+        ["replay-pick-track", "选择赛道", this.options.onReplayPickTrack],
+        ["replay-setting-speed", "切换速度", this.options.onReplaySetting && (() => this.options.onReplaySetting!("speed"))],
+        ["replay-setting-booster", "切换模式", this.options.onReplaySetting && (() => this.options.onReplaySetting!("booster"))],
       ];
-      for (const [left, rows] of columns) {
-        rows.forEach(([caption, value], row) => {
-          const y = box.y + 44 + row * 24;
-          label(caption, { x: box.x + left, y: y - 2, width: 83, height: 18 }, 14, "rgb(88,105,129)", "left");
-          context.save();
-          context.fillStyle = "rgb(170,176,190)";
-          context.fillRect(box.x + left + 83, y, 1, 18);
-          context.restore();
-          label(value, { x: box.x + left + 95, y: y - 2, width: 270, height: 18 }, 14, "rgb(42,55,80)", "left");
-        });
-      }
+      buttons.forEach(([key, text, action], index) => {
+        const button = { x: box.x + 430 + index * 104, y: box.y + 62, width: 96, height: 32 };
+        context.save();
+        context.fillStyle = !action ? "rgba(160,170,185,.6)" : this.pressed === key ? "rgb(16,110,180)"
+          : this.hovered === key ? "rgb(52,150,230)" : "rgb(36,129,255)";
+        context.beginPath();
+        context.roundRect(button.x, button.y, button.width, button.height, 6);
+        context.fill();
+        context.restore();
+        label(text, button, 15, "white", "center");
+        if (action) this.regions.push({ key, rect: button, label: text, activate: () => {
+          this.options.onActivate?.();
+          action();
+        } });
+      });
+      listTop = box.y + box.height + REPLAY_CARD.gap;
+    }
+    const entries = this.replays[tab];
+    const listRect = { x: rect.x, y: listTop, width: rect.width, height: 60 };
+    if (!entries) {
+      label("读取中…", listRect, 16, "rgb(88,105,129)", "center");
+      return;
+    }
+    if (entries.length === 0) {
+      const empty = tab === "my" ? "还没有回放记录。完成练习计时赛或排位计时赛后，这里会保存你的跑法。"
+        : tab === "league" ? "管理员还没有发布联赛回放。" : "这个赛道和设置的排位榜上还没有带录像的纪录。";
+      label(empty, listRect, 16, "rgb(88,105,129)", "center");
+      return;
+    }
+    const perPage = this.replayPerPage(tab);
+    const first = this.replayPages[tab] * perPage;
+    const offset0 = tab === "other" ? 1 : 0;
+    entries.slice(first, first + perPage).forEach((entry, offset) => {
+      const box = slot(offset0 + offset);
+      const key = `replay:${entry.key}`;
+      const removeKey = `replay-delete:${entry.key}`;
+      face(key, box);
+      label(entry.title, { x: box.x, y: box.y, width: 722, height: 31 }, 20, "white", "center");
+      column(box, 18, [["车手", entry.riderName], ["日期 / 时间", entry.dateText], ["赛道", entry.trackTitle]]);
+      column(box, 400, [["卡丁车", entry.kartName || "—"], ["记录", formatCardTime(entry.elapsedMs)], ["设置", entry.settings]]);
+      if (entry.note)
+        label(entry.note, { x: box.x + 18, y: box.y + 106, width: 700, height: 18 }, 13, "rgb(88,105,129)", "left");
       this.regions.push({ key, rect: box, label: `回放：${entry.title}`, activate: () => {
         this.options.onActivate?.();
         this.options.onReplay?.(entry);
       } });
-      if (this.options.onReplayDelete) {
+      if (entry.deletable && this.options.onReplayDelete) {
         const remove = { x: box.x + box.width - 26 - 3, y: box.y + 2, width: 26, height: 26 };
         const state = art?.remove[st(removeKey, this.hovered, this.pressed)];
         if (state) context.drawImage(state.image, remove.x, remove.y, remove.width, remove.height);
-        else {
-          label("×", remove, 18, this.hovered === removeKey ? "white" : "rgb(220,220,220)", "center");
-        }
+        else label("×", remove, 18, this.hovered === removeKey ? "white" : "rgb(220,220,220)", "center");
         this.regions.push({ key: removeKey, rect: remove, label: `删除回放：${entry.title}`, activate: () => {
           this.options.onActivate?.();
           this.options.onReplayDelete!(entry);

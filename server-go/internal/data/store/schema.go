@@ -842,6 +842,29 @@ var migrations = []migration{
 			CONSTRAINT fk_pass_points_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
 		) ` + tableTail,
 	}},
+	// v18: 联赛回放 (TIMEATTACK.md 4): admin-published copies of ranked replays.
+	// The rider is a snapshot (no account foreign key), so the replay outlives
+	// the record's pruning and the account.
+	{version: 18, statements: []string{
+		`CREATE TABLE IF NOT EXISTS featured_replays (
+			id BIGINT NOT NULL AUTO_INCREMENT,
+			title VARCHAR(60) ` + nameColumn + ` NOT NULL,
+			note VARCHAR(200) ` + nameColumn + ` NOT NULL DEFAULT '',
+			track_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+			speed TINYINT NOT NULL,
+			booster TINYINT NOT NULL,
+			account_id CHAR(36) ` + idColumn + ` NOT NULL,
+			nickname VARCHAR(64) ` + nameColumn + ` NOT NULL,
+			kart_name VARCHAR(64) NOT NULL DEFAULT '',
+			best_ms INT NOT NULL,
+			byte_size INT NOT NULL,
+			ksv MEDIUMBLOB NOT NULL,
+			created_by VARCHAR(24) ` + nameColumn + ` NOT NULL,
+			created_at BIGINT NOT NULL,
+			PRIMARY KEY (id),
+			KEY idx_featured_replays_created (created_at)
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.
