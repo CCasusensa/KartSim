@@ -210,6 +210,8 @@ node --test tools/item-mode-export/item-mode.test.mjs        # 导出规则单�
 
 ### Docker Compose
 
+连网页客户端一起一键启动（三个镜像 `kartsim-client`、`kartsim-data`、`kartsim-node`，自动生成密码、注册管理员）用仓库根目录的 `./docker-start.sh`（Windows：`docker-start.cmd`），见根目录 README“Docker 一键启动”与 [`../docker-compose.yml`](../docker-compose.yml)。下面是只有服务端的 compose，前面自己放 Nginx。
+
 ```sh
 cd server-go
 install -m 600 .env.example .env   # 只有自己可读；填写 KART_CLUSTER_SECRET、MYSQL_ROOT_PASSWORD、KART_MYSQL_PASSWORD、KART_REDIS_PASSWORD、KART_ADMIN_USERNAMES
@@ -220,7 +222,7 @@ docker compose logs kart-data | grep -i "account economy"   # 注册方式、游
 # docker compose logs kart-data | grep -i invitation 查看邀请码
 ```
 
-[`docker-compose.yml`](docker-compose.yml) 包含 `mysql:8.4`（默认排序规则 `utf8mb4_0900_as_ci`，首次初始化执行 [`scripts/docker-mysql-init.sql`](scripts/docker-mysql-init.sql)）、`redis:7`（带密码、不持久化）、`kart-data`（发布 8787）以及 `kart-game-1`、`kart-game-2`（发布 8788、8789，各自的 `KART_PUBLIC_ORIGIN` 与发件箱卷）。默认只绑定宿主机 127.0.0.1（`KART_BIND_ADDR`）；MySQL、Redis 和内部 API 8790 不发布。所有容器有健康检查与 `restart: unless-stopped`，镜像以非 root 用户（UID 10001）运行。数据卷：`mysql-data`、`game-1-outbox`、`game-2-outbox`。
+[`docker-compose.yml`](docker-compose.yml) 包含 `mysql:8.4`（默认排序规则 `utf8mb4_0900_as_ci`，首次初始化执行 [`scripts/docker-mysql-init.sql`](scripts/docker-mysql-init.sql)）、`redis:7`（带密码、不持久化）、`kart-data`（镜像 `kartsim-data`，发布 8787）以及 `kart-game-1`、`kart-game-2`（镜像 `kartsim-node`，即 `kart-node`，人数按容器的 CPU 与内存自动计算；发布 8788、8789，各自的 `KART_PUBLIC_ORIGIN` 与发件箱卷）。两个镜像都由 [`Dockerfile`](Dockerfile) 构建（`--target data` / `--target node`，共用一次 Go 编译；节点镜像带反作弊插件 `plugins/anticheat.wasm`）。默认只绑定宿主机 127.0.0.1（`KART_BIND_ADDR`）；MySQL、Redis 和内部 API 8790 不发布。所有容器有健康检查与 `restart: unless-stopped`，镜像以非 root 用户（UID 10001）运行。数据卷：`mysql-data`、`game-1-outbox`、`game-2-outbox`。
 
 网络分两层：`backend`（`internal: true`，没有出网路由）只有 `mysql`、`redis` 与 `kart-data`；`cluster` 有 `kart-data` 与两个游戏节点，发布的端口经它对宿主机可达。游戏节点因此只能访问 `kart-data` 的 8787/8790，连不到 MySQL 与 Redis——Redis 里的会话缓存与账号缓存等同登录凭据，能写 Redis 就能冒充任何账号（包括管理员）。
 

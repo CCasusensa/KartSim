@@ -66,6 +66,34 @@ Windows（PowerShell；安装服务要用管理员 PowerShell）：
 
 启动后节点向数据服务注册，得到：节点 ID（就是密钥里的那一段）、后台起的名称、票据密钥、数据节点 ID、游戏页面的域名（数据服务的 `KART_LAN_HOSTS` 与 `KART_PUBLIC_ORIGIN`，浏览器从那里来的连接因此直接被接受，不用再设 `--page-host`），以及数据服务看到的本机 IP。连不上数据服务时每 2–30 秒重试，连上为止；密钥不对时直接退出并说明原因。
 
+### 用 Docker 运行
+
+节点镜像 `kartsim-node` 是 [`Dockerfile`](Dockerfile) 的 `node` 目标（带反作弊插件，以非 root 用户运行）。先在节点机器上取得镜像，任选一种：
+
+```sh
+docker build --target node -t kartsim-node:local server-go         # 在节点机器上从源码构建（要有仓库）
+docker save kartsim-node:local | ssh 节点机器 docker load           # 从构建过的机器传过去（仓库根目录 ./docker-start.sh 构建的就是它）
+docker buildx build --platform linux/amd64 --target node -t kartsim-node:local --load server-go   # 给另一种 CPU 架构构建
+```
+
+然后只要数据服务地址与密钥，其余都和上面一样由数据服务下发、按容器的 CPU 与内存自动算人数：
+
+```sh
+docker run -d --name kart-node --restart unless-stopped \
+  -p 8788:8788 -p 8788:8788/udp \
+  -e KART_DATA_URL=https://kart.example.com \
+  -e KART_NODE_KEY=kn1.node-49e70f.… \
+  -e KART_PUBLIC_IP=203.0.113.10 \
+  -v kart-node-outbox:/var/lib/kart/outbox \
+  kartsim-node:local
+```
+
+- `KART_PUBLIC_IP`：玩家访问这台机器用的 IP。容器里看不到宿主机的网卡，WebRTC 的候选地址要靠它（不填时 UDP 连不上，浏览器 8 秒后退回 WebSocket）。Linux 上也可以改用 `--network host`（不用 `-p`，节点直接看到宿主机网卡）。
+- HTTPS：把证书挂进容器，`-v /etc/kart-tls:/tls:ro -e KART_TLS_CERT=/tls/fullchain.pem -e KART_TLS_KEY=/tls/privkey.pem`（文件要对容器内的 UID 10001 可读），并在后台填 `https://域名:8788` 作为对外地址。
+- 其他选项都用同名环境变量（[选项与配置文件](#选项与配置文件)），如 `-e KART_UPLINK_MBPS=100`、`-e KART_GAME_PORT=9000`（端口映射与 UDP 端口跟着改）。
+- 发件箱卷 `/var/lib/kart/outbox` 保存数据服务暂时不可用时的赛果，换镜像重建容器时保留它。
+- 自检：`docker run --rm -e KART_DATA_URL=… -e KART_NODE_KEY=… kartsim-node:local check`。
+
 ### 节点的对外地址
 
 玩家浏览器要能直接访问节点。地址按这个顺序决定：后台设置的“对外地址” → 节点的 `--public-origin` → `--public-ip` 加端口 → 数据服务看到的节点 IP 加端口（云服务器从公网连数据服务时，这就是公网 IP）。游戏页面是 `https://` 时节点地址也必须是 `https://`：给节点配证书（`--tls-cert`/`--tls-key`，见下文“HTTPS”）并在后台填 `https://域名:端口`。
@@ -79,7 +107,7 @@ Windows（PowerShell；安装服务要用管理员 PowerShell）：
 
 ### 不用节点密钥的旧方式
 
-`run-full-local.sh`、`docker-compose.yml` 与冒烟测试仍用共享的集群密钥：节点设 `KART_CLUSTER_SECRET`（与数据服务相同）、`--data` 指向数据服务的**内部端口**（`KART_INTERNAL_LISTEN`，默认 `127.0.0.1:8790`，没写端口时补 8790）、`--data-node-id`、`--id`、`--name`、`--page-host`。这种节点只能连内部端口；内部端口要只对节点开放，跨公网时走 VPN 或 TLS。已经在后台添加过的节点 ID 不能再用集群密钥登记（`NODE_KEY_REQUIRED`）。
+`run-full-local.sh`、两个 `docker-compose.yml`（本机的节点）与冒烟测试仍用共享的集群密钥：节点设 `KART_CLUSTER_SECRET`（与数据服务相同）、`--data` 指向数据服务的**内部端口**（`KART_INTERNAL_LISTEN`，默认 `127.0.0.1:8790`，没写端口时补 8790）、`--data-node-id`、`--id`、`--name`、`--page-host`。这种节点只能连内部端口；内部端口要只对节点开放，跨公网时走 VPN 或 TLS。已经在后台添加过的节点 ID 不能再用集群密钥登记（`NODE_KEY_REQUIRED`）。
 
 ## 命令
 
@@ -211,4 +239,4 @@ go build -o kart-node ./cmd/kart-node                                        # �
 GOOS=windows GOARCH=amd64 go build -o kart-node.exe ./cmd/kart-node          # 交叉编译 Windows
 ```
 
-直接构建时把 `plugins/anticheat.wasm` 放到程序旁的 `plugins/` 目录，否则节点只做运动帧格式校验（日志会说明）。纯 Go、不需要 cgo，产物没有其他依赖。Docker 镜像（[`Dockerfile`](Dockerfile)）里也带有 `kart-node`。
+直接构建时把 `plugins/anticheat.wasm` 放到程序旁的 `plugins/` 目录，否则节点只做运动帧格式校验（日志会说明）。纯 Go、不需要 cgo，产物没有其他依赖。Docker 镜像见上文“用 Docker 运行”。

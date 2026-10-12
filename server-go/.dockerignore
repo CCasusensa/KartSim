@@ -5,5 +5,7 @@ test/
 .env
 .env.*
 **/.DS_Store
-# 反作弊插件源码不进镜像；镜像只带编译好的 plugins/*.wasm
-plugins/*/
+# 反作弊插件源码不进镜像；镜像只带编译好的 plugins/*.wasm。（不能写 plugins/*/：Docker 去掉末尾的 /，
+# 它就等于 plugins/*，连 anticheat.wasm 也排除了。）
+plugins/*
+!plugins/*.wasm

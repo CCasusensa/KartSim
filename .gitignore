@@ -29,3 +29,6 @@
 /apk_analysis
 /mirror/assets/*.decompiled
 client/build/
+
+# docker-start 生成的证书（客户端镜像的 HTTPS）
+/docker-data/

@@ -1,0 +1,16 @@
+# Build context of client/Dockerfile (the repository root): only the
+# browser client and the release's small runtime files. The 3.5 GB game
+# archives (mirror/p3553) are mounted at run time, never copied.
+*
+!client/
+client/node_modules/
+client/dist/
+client/build/
+!mirror/assets/
+mirror/assets/*.decompiled
+!mirror/__p3553/
+!mirror/ui/
+!mirror/classic-hud/
+!mirror/sw.js
+!mirror/manifest.webmanifest
+**/.DS_Store

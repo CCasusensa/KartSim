@@ -1,3 +1,8 @@
 mirror/p3553/*.rho5 filter=lfs diff=lfs merge=lfs -text
 mirror/p3553/*.rho filter=lfs diff=lfs merge=lfs -text
 design/open-world/tripo/*.glb filter=lfs diff=lfs merge=lfs -text
+# Docker 一键启动：shell 脚本与进容器的文件保持 LF（Windows 上 autocrlf 也不改），Windows 脚本用 CRLF。
+*.sh text eol=lf
+client/docker/** text eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
