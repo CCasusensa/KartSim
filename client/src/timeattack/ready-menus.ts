@@ -78,7 +78,6 @@ export function openReadyQuests(controller: ReadyMenusController): Promise<void>
     now: () => ready.session.serverNow(),
     onClose: close,
     onActivate: () => ready.host.getInterfaceAudio()?.playClick(),
-    onNotice: message => { void openMessengerMessage(ready.library as never, ready.host.root, "任务信息", message, {}); },
   }));
 }
 
