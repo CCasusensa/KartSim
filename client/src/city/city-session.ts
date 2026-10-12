@@ -5,7 +5,7 @@
  * top: members' karts (CityFleet), talk balloons and name tags, the day/night
  * and weather clock, chat on the near channel, resets to the nearest road.
  */
-import { downloadRaceTrack } from "../resources/resource-manager";
+import { beginRaceLoad, downloadTrack } from "../resources/resource-manager";
 import { CityAtmosphere } from "./city-atmosphere";
 import { skyStateAt, clockLabel } from "./city-clock";
 import { CityNetwork, createCityRaceConnection, type CityClient } from "./city-connection";
@@ -117,7 +117,14 @@ export class CitySession {
     if (!loader) throw new Error("多人驾驶装配器不可用。");
     host.options.status("正在进入卡丁城…");
     registerCityTrack();
-    await downloadRaceTrack(CITY_TRACK_ID);
+    // The city downloads whole (read nearly all, kept for the next visit);
+    // the race basics are read by range as in a race (resource-manager).
+    const endCityLoad = beginRaceLoad();
+    try {
+      await downloadTrack(CITY_TRACK_ID);
+    } finally {
+      endCityLoad();
+    }
     if (host.disposed) return;
     this.raceId = uuid();
     const network = new CityNetwork(host.client, this.raceId, {

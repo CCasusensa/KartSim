@@ -1,4 +1,4 @@
-import { downloadRaceTrack } from "../resources/resource-manager";
+import { beginRaceLoad } from "../resources/resource-manager";
 import { vI } from "../generated/library.js";
 import { LicenseItemRace } from "../license/license-item-race";
 import { licenseSceneNames } from "../license/license-mission";
@@ -28,6 +28,10 @@ export interface SoloRaceSelection {
   characterPath?: string;
   characterItemId?: number;
 }
+
+/** A selection whose track, kart and character are resolved. */
+type ResolvedSoloRaceSelection = SoloRaceSelection & Required<Pick<SoloRaceSelection,
+  "mapPath" | "trackId" | "vehiclePath" | "vehicleItemId" | "characterPath" | "characterItemId">>;
 
 export interface SoloRaceBuildOptions {
   booster: number;
@@ -64,19 +68,31 @@ export async function buildSoloRaceAssets(
       !selection.characterItemId) {
     throw new Error("请先选择一辆已解析车辆、一个人物和一张已解析赛道。");
   }
-  const characterPath = selection.characterPath;
   ops.validateItemId(selection.vehicleItemId);
+  // Nothing downloads whole first: what every race reads is fetched at once,
+  // the track, kart and character by range as they load (resource-manager).
+  const endRaceLoad = beginRaceLoad();
+  try {
+    return await buildLoadedSoloRace(builder, selection as ResolvedSoloRaceSelection, raceOptions,
+      coatingStage, ops);
+  } finally {
+    endRaceLoad();
+  }
+}
+
+/** The race assets of a validated selection. */
+async function buildLoadedSoloRace(
+  builder: SoloRaceAssetBuilderAdapter,
+  selection: ResolvedSoloRaceSelection,
+  raceOptions: SoloRaceBuildOptions,
+  coatingStage: SoloRaceCoatingStage | undefined,
+  ops: Record<string, any>,
+): Promise<any> {
+  const host = builder.host;
+  const characterPath = selection.characterPath;
   const generation = host.generationValue();
   const classicHud = host.gameOptions.classicHud;
   const teamBooster = raceOptions.booster === 1;
-  // The track's own containers, theme textures and music, and the race
-  // basics download now, while the race loads (not ahead of time).
-  await Promise.all([
-    host.preloadContainers(selection.mapPath, selection.vehiclePath,
-      selection.characterPath, selection.vehicleSystemKey),
-    downloadRaceTrack(selection.mapPath),
-  ]);
-
   const catalog = await host.getLibrary()?.timeAttackGarageCatalog();
   const kart = catalog && ops.findKart(catalog.karts, selection.vehicleItemId,
     selection.vehiclePath, selection.vehicleSystemKey);

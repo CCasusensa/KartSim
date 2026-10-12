@@ -95,7 +95,7 @@ function harness(mountedExtra: object = {}) {
     bytes: (progress: Parameters<typeof byteProgress>[0]) => byteProgress?.(progress) };
 }
 
-test("startup waits for no 首页 download: reads are warmed in two tiers, 首页 downloads in the background later", async t => {
+test("startup waits for no 首页 download: reads are warmed in tiers, 首页 downloads in the background later", async t => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const ensured: Array<[string, boolean | undefined]> = [];
   const prefetched: unknown[] = [];
@@ -131,6 +131,8 @@ test("startup waits for no 首页 download: reads are warmed in two tiers, 首�
   assert.equal(state.samples.at(-1), 100);
   assert.deepEqual(state.samples, [...state.samples].sort((a, b) => a - b), "the release percentages");
   assert.deepEqual(ensured, [], "nothing downloads whole before the home screen settles");
+  await settle();
+  assert.deepEqual(prefetched.at(-1), STARTUP_READS.race, "what every race reads, once home is up");
   t.mock.timers.tick(3_000); await settle(); await settle();
   assert.deepEqual(ensured, [["gui_font.rho", true], ["stage_common.rho", true]],
     "首页 only, one background download at a time");

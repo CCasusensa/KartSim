@@ -168,17 +168,17 @@ function installHomeResources(mounted: MountedStartupSources, library: unknown,
  * Starts fetching what startup is known to read (resources/startup-reads.ts)
  * so the decoders find it in memory instead of waiting one round trip per
  * file: the catalogs' and login window's part now, the home screen's part
- * from the returned function (called at the login gate), after the first.
+ * at the login gate (`home`), after the first, and what every race reads
+ * once the home screen is up (`race`: most players race next).
  */
-function warmStartupReads(mounted: MountedStartupSources): () => void {
+function warmStartupReads(mounted: MountedStartupSources): { home(): void; race(): void } {
   const store = (mounted as { store?: unknown }).store;
-  if (!isPrefetchStore(store)) return () => undefined;
+  if (!isPrefetchStore(store)) return { home: () => undefined, race: () => undefined };
   const early = prefetchStartupReads(store, "early");
-  let late = false;
-  return () => {
-    if (late) return;
-    late = true;
-    void early.then(() => prefetchStartupReads(store, "late"));
+  let home: Promise<void> | undefined;
+  return {
+    home: () => { home ??= early.then(() => prefetchStartupReads(store, "late")); },
+    race: () => { void (home ?? early).then(() => prefetchStartupReads(store, "race")); },
   };
 }
 
@@ -222,7 +222,7 @@ export async function loadStartupResources(
       localSource,
     );
     if (!host.assets.isCurrent(generation)) return;
-    const warmHome = warmStartupReads(mounted);
+    const warm = warmStartupReads(mounted);
     report("sources", 1, 1, "正在解析资源索引");
 
     const library = await dependencies.loadLibrary(mounted.sources, mounted.archiveIndexes,
@@ -250,7 +250,7 @@ export async function loadStartupResources(
     ]);
     if (!host.assets.isCurrent(generation)) return;
 
-    warmHome();
+    warm.home();
     report("account", 0, 1, "正在连接账号服务，请完成登录");
     if (dependencies.ensureAccount) {
       await dependencies.ensureAccount();
@@ -312,6 +312,7 @@ export async function loadStartupResources(
     host.hud.finishLoading();
     finished = true;
     releaseRaceMusic();
+    warm.race();
     if (downloadHome) setTimeout(() => {
       if (host.assets.isCurrent(generation)) downloadHome();
     }, HOME_DOWNLOAD_DELAY_MS);

@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { inflateSync } from "node:zlib";
 
-import { ContainerStore, type ContainerProgress, type DirectoryHandle } from "./container-store";
+import { ContainerStore, DownloadPausedError, type ContainerProgress, type DirectoryHandle } from "./container-store";
 import { buildResourceGroups, findResourceGroup, trackThemeOf } from "./resource-groups";
 import { ResourceManager, type ResourceStoreApi } from "./resource-manager";
 
@@ -155,6 +155,41 @@ test("background (low) containers take one download slot; pages and races get th
   assert.equal(store.started.at(-1), "stage_common.rho");
 });
 
+test("a race holds background downloads: the running one pauses, none starts, all resume after", async () => {
+  const store = new FakeStore();
+  let paused = 0;
+  (store as ResourceStoreApi).pauseBackground = () => {
+    paused++;
+    for (const [name, waiting] of store.waiting) {
+      if (!store.cached.has(name)) waiting.reject(new DownloadPausedError(name));
+    }
+  };
+  const manager = new ResourceManager(store, packs, undefined, 3);
+  await manager.ready;
+  const home = manager.download(["myRoom.rho", "stage_common.rho"], { label: "首页资源", priority: "low" });
+  assert.deepEqual(store.started, ["myRoom.rho"]);
+  const release = manager.holdBackground();
+  const again = manager.holdBackground();
+  assert.equal(paused, 1, "paused once for nested holds");
+  await tick();
+  assert.equal(home.state, "running", "a pause is not a failure");
+  assert.deepEqual(store.started, ["myRoom.rho"], "nothing starts while held");
+  const page = manager.download(["effect.rho"], { label: "比赛", priority: "high" });
+  assert.equal(store.started.at(-1), "effect.rho", "pages and races still download");
+  store.finish("effect.rho");
+  await page.done;
+  release();
+  await tick();
+  assert.equal(store.started.length, 2, "still held by the other race");
+  again();
+  await tick();
+  assert.deepEqual(store.started.slice(2), ["myRoom.rho"], "the paused container resumes");
+  store.finish("myRoom.rho");
+  await tick();
+  store.finish("stage_common.rho");
+  await home.done;
+});
+
 test("cancel, failures, deletes and a race's track containers", async () => {
   const store = new FakeStore();
   const manager = new ResourceManager(store, packs, {
@@ -174,9 +209,10 @@ test("cancel, failures, deletes and a race's track containers", async () => {
   await assert.rejects(failing.done, /OPFS/);
   assert.equal(manager.lastFailure(), "OPFS 空间不足");
 
-  // The track's own part, its theme's textures and music, and 比赛通用 (effect.rho).
-  assert.deepEqual(manager.raceContainers("track_/forest_R09/track.1s").sort(),
-    ["DataPack3_00001.rho5", "effect.rho", "sound_bgm_forest.rho", "theme_forest.rho"]);
+  // The containers of the track's own folder.
+  assert.deepEqual(manager.trackContainers("track_/forest_R09/track.1s"), ["DataPack3_00001.rho5"]);
+  assert.deepEqual(manager.trackContainers("forest_R09_rvs"), ["DataPack3_00001.rho5"]);
+  assert.deepEqual(manager.trackContainers("unknown_R01"), []);
 
   store.cached.add("myRoom.rho");
   store.cached.add("stage_myRoom.rho");

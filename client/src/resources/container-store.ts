@@ -21,13 +21,24 @@ export interface ContainerProgress {
 // Small structural interfaces let tests substitute in-memory OPFS handles.
 export interface WritableHandle {
   write(chunk: Uint8Array): Promise<void>;
+  /** Moves the write position (OPFS); without it paused downloads start over. */
+  seek?(position: number): Promise<void>;
   close(): Promise<void>;
   abort(): Promise<void>;
 }
 
 export interface FileHandle {
   getFile(): Promise<Blob>;
-  createWritable?(): Promise<WritableHandle>;
+  createWritable?(options?: { keepExistingData?: boolean }): Promise<WritableHandle>;
+}
+
+/**
+ * A background download stopped by pauseBackground(). The bytes it wrote
+ * stay in OPFS (shorter than the container, so it does not count as
+ * cached), and the next download of the container resumes after them.
+ */
+export class DownloadPausedError extends Error {
+  override readonly name = "DownloadPausedError";
 }
 
 export interface DirectoryHandle {
@@ -130,6 +141,8 @@ export class ContainerStore {
   private readonly inFlight = new Map<string, Promise<Blob>>();
   /** In-flight whole downloads that nobody waits for (their progress says background). */
   private readonly backgroundLoads = new Set<string>();
+  /** Stops an in-flight whole download (pauseBackground). */
+  private readonly loadControllers = new Map<string, AbortController>();
   private readonly listeners = new Set<(progress: ContainerProgress) => void>();
   private directoryPromise?: Promise<DirectoryHandle>;
   private rangeReads: boolean;
@@ -315,7 +328,11 @@ export class ContainerStore {
     if (!pending) {
       if (options.background) this.backgroundLoads.add(key);
       this.progress("checking", file, 0);
-      pending = this.load(file);
+      const controller = new AbortController();
+      this.loadControllers.set(key, controller);
+      pending = this.load(file, controller.signal).finally(() => {
+        if (this.loadControllers.get(key) === controller) this.loadControllers.delete(key);
+      });
       this.inFlight.set(key, pending);
     } else if (!options.background) {
       this.backgroundLoads.delete(key);
@@ -334,6 +351,14 @@ export class ContainerStore {
       this.inFlight.delete(key);
       throw error;
     }
+  }
+
+  /**
+   * Stops the whole downloads only background callers wait for: they reject
+   * with DownloadPausedError and keep what they wrote, for a later resume.
+   */
+  pauseBackground(): void {
+    for (const key of this.backgroundLoads) this.loadControllers.get(key)?.abort();
   }
 
   /** Whether reads of this part of the container go by HTTP Range. */
@@ -540,7 +565,7 @@ export class ContainerStore {
     return this.directoryPromise;
   }
 
-  private async load(file: ContainerSpec): Promise<Blob> {
+  private async load(file: ContainerSpec, signal?: AbortSignal): Promise<Blob> {
     const directory = await this.directory();
     const cached = await this.existing(directory, file.name);
     if (cached?.size === file.size) return cached;
@@ -554,10 +579,10 @@ export class ContainerStore {
       if (!handle.createWritable) {
         await this.fallbackWriter(file, url, bytes => this.progress("downloading", file, bytes));
       } else {
-        await this.download(directory, file, url);
+        await this.download(directory, file, url, signal);
       }
     } else {
-      await this.download(directory, file, url);
+      await this.download(directory, file, url, signal);
     }
     const written = await this.existing(directory, file.name);
     if (written?.size !== file.size) {
@@ -598,16 +623,43 @@ export class ContainerStore {
     }
   }
 
-  private async download(directory: DirectoryHandle, file: ContainerSpec, url: string): Promise<void> {
+  private async download(directory: DirectoryHandle, file: ContainerSpec, url: string,
+    signal?: AbortSignal): Promise<void> {
     const handle = await directory.getFileHandle(file.name, { create: true });
     if (!handle.createWritable) throw new Error("当前 OPFS 不支持异步写入，请提供 fallbackWriter。");
-    const response = await this.fetcher(url, { cache: "no-store" });
-    if (response.status !== 200 || !response.body) {
+    // A paused download (a shorter copy) resumes after the bytes it kept.
+    const kept = this.rangeReads ? (await handle.getFile()).size : 0;
+    const resume = kept > 0 && kept < file.size;
+    let response: Response;
+    try {
+      response = await this.fetcher(url, {
+        cache: "no-store", signal,
+        ...(resume ? { headers: { Range: `bytes=${kept}-` } } : {}),
+        // A background download yields the connection to the reads pages wait for.
+        ...(this.backgroundLoads.has(file.name.toLowerCase()) ? { priority: "low" as const } : {}),
+      });
+    } catch (error) {
+      if (signal?.aborted) throw new DownloadPausedError(`${file.name} 后台下载已暂停。`);
+      throw error;
+    }
+    const range = response.headers.get("content-range");
+    const appending = resume && response.status === 206 &&
+      (range === null || range.trim() === `bytes ${kept}-${file.size - 1}/${file.size}`);
+    if ((response.status !== 200 && !appending) || !response.body) {
+      await response.body?.cancel().catch(() => undefined);
       throw new Error(`${file.name} 完整读取失败：HTTP ${response.status}。`);
     }
-    const writable = await handle.createWritable();
+    const writable = await handle.createWritable(appending ? { keepExistingData: true } : undefined);
+    if (appending && !writable.seek) {
+      // This OPFS cannot append: drop the partial copy and download it whole.
+      await writable.abort().catch(() => {});
+      await response.body.cancel().catch(() => undefined);
+      await directory.removeEntry?.(file.name).catch(() => {});
+      return this.download(directory, file, url, signal);
+    }
+    if (appending) await writable.seek!(kept);
     const reader = response.body.getReader();
-    let bytes = 0;
+    let bytes = appending ? kept : 0;
     try {
       for (;;) {
         const { done, value } = await reader.read();
@@ -624,6 +676,11 @@ export class ContainerStore {
       }
       await writable.close();
     } catch (error) {
+      if (signal?.aborted) {
+        // Paused: keep what arrived for the resume.
+        await writable.close().catch(() => {});
+        throw new DownloadPausedError(`${file.name} 后台下载已暂停。`);
+      }
       await writable.abort().catch(() => {});
       await directory.removeEntry?.(file.name).catch(() => {});
       throw error;

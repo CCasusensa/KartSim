@@ -33,12 +33,21 @@ export async function assembleTrackScene(model, library, label, resolveTexture,
   const inspections = roots.map(inspectRoot);
   inspections.forEach(validateInspection);
   const matrixOnlyRoots = new Set(options.matrixOnlyRoots ?? []);
-  const ownsEnvironment = options.environment === undefined;
-  const environment = options.environment ?? await loadEnvironment(library);
-  const stageBinding = options.stageBinding ?? new StageBinding();
   const candidateByNode = new Map(inspections.flatMap((inspection, index) =>
     matrixOnlyRoots.has(roots[index]) ? [] :
       inspection.candidates.map(candidate => [candidate.node, candidate])));
+  // The nodes load their textures one by one (their order matters below);
+  // the textures' bytes are fetched together first, so each load finds its
+  // file read instead of waiting a network round trip of its own.
+  for (const candidate of candidateByNode.values()) {
+    try {
+      const resolution = resolveTexture(candidate.state.texture.value);
+      if (resolution.status === "found") resolution.entry.bytes?.().catch(() => undefined);
+    } catch { /* The build below reports it in node order. */ }
+  }
+  const ownsEnvironment = options.environment === undefined;
+  const environment = options.environment ?? await loadEnvironment(library);
+  const stageBinding = options.stageBinding ?? new StageBinding();
   const ownsTextureCache = options.textureCache === undefined;
   const textureCache = options.textureCache ?? new Map();
   const toonMaterials = new Set();

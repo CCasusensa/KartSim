@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ContainerStore, type ContainerProgress, type DirectoryHandle } from "./container-store";
+import { ContainerStore, DownloadPausedError, type ContainerProgress, type DirectoryHandle } from "./container-store";
 
 const MiB = 1024 * 1024;
 
@@ -16,16 +16,19 @@ function memoryDirectory(): DirectoryHandle & { files: Map<string, Uint8Array> }
       if (!files.has(name)) files.set(name, new Uint8Array());
       return {
         getFile: async () => new Blob([files.get(name)! as Uint8Array<ArrayBuffer>]),
-        createWritable: async () => {
-          const chunks: Uint8Array[] = [];
+        // Like OPFS: writes go to a copy (the existing data with keepExistingData) committed on close.
+        createWritable: async (options?: { keepExistingData?: boolean }) => {
+          let copy = options?.keepExistingData ? files.get(name)!.slice() : new Uint8Array();
+          let position = 0;
           return {
-            write: async (chunk: Uint8Array) => { chunks.push(chunk.slice()); },
-            close: async () => {
-              const bytes = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
-              let offset = 0;
-              for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-              files.set(name, bytes);
+            write: async (chunk: Uint8Array) => {
+              const end = position + chunk.length;
+              if (end > copy.length) { const grown = new Uint8Array(end); grown.set(copy); copy = grown; }
+              copy.set(chunk, position);
+              position = end;
             },
+            seek: async (offset: number) => { position = offset; },
+            close: async () => { files.set(name, copy); },
             abort: async () => {},
           };
         },
@@ -41,25 +44,42 @@ function content(size: number, seed: number): Uint8Array {
   return Uint8Array.from({ length: size }, (_, index) => (index * 31 + seed) & 255);
 }
 
-/** Serves the containers like a static server; `ranges: false` ignores Range like python http.server. */
-function server(containers: Record<string, Uint8Array>, options: { ranges?: boolean; total?: number } = {}) {
+/**
+ * Serves the containers like a static server; `ranges: false` ignores Range
+ * like python http.server. Bodies stream in 64 KiB chunks, each after
+ * `gate` (a pause test holds the stream).
+ */
+function server(containers: Record<string, Uint8Array>,
+  options: { ranges?: boolean; total?: number; gate?: () => Promise<void> } = {}) {
   const requests: string[] = [];
+  const body = (bytes: Uint8Array, signal?: AbortSignal | null) => {
+    let offset = 0;
+    return new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        await options.gate?.();
+        if (signal?.aborted) return controller.error(new DOMException("aborted", "AbortError"));
+        if (offset >= bytes.length) return controller.close();
+        controller.enqueue(bytes.slice(offset, offset += 65536));
+      },
+    });
+  };
   const fetcher = async (url: string, init?: RequestInit) => {
     const name = decodeURIComponent(url.slice(url.lastIndexOf("/") + 1));
     const bytes = containers[name]!;
     const range = new Headers(init?.headers).get("range");
     requests.push(range ? `${name} ${range}` : name);
-    const match = /^bytes=(\d+)-(\d+)$/.exec(range ?? "");
-    if (!match || options.ranges === false) return new Response(bytes as Uint8Array<ArrayBuffer>);
+    const match = /^bytes=(\d+)-(\d*)$/.exec(range ?? "");
+    if (!match || options.ranges === false) return new Response(body(bytes, init?.signal));
     const start = Number(match[1]);
-    const end = Math.min(bytes.length - 1, Number(match[2]));
+    const end = Math.min(bytes.length - 1, match[2] ? Number(match[2]) : Infinity);
     return new Response(bytes.slice(start, end + 1), { status: 206, headers: {
       "content-range": `bytes ${start}-${end}/${options.total ?? bytes.length}` } });
   };
   return { requests, fetcher };
 }
 
-function store(containers: Record<string, Uint8Array>, serverOptions: { ranges?: boolean; total?: number } = {}) {
+function store(containers: Record<string, Uint8Array>,
+  serverOptions: { ranges?: boolean; total?: number; gate?: () => Promise<void> } = {}) {
   const directory = memoryDirectory();
   const { requests, fetcher } = server(containers, serverOptions);
   const progress: ContainerProgress[] = [];
@@ -169,4 +189,39 @@ test("a container that finished downloading is read from OPFS, not by range", as
   assert.equal(await containers.remove("big.rho"), true);
   assert.deepEqual(await read(containers, "big.rho", MiB, MiB + 10), big.slice(MiB, MiB + 10));
   assert.equal(requests.at(-1), "big.rho bytes=1048576-1081343", "removed: by range again");
+});
+
+test("a paused background download keeps its bytes and resumes after them", async () => {
+  const big = content(3 * MiB, 12);
+  let release: (() => void) | undefined;
+  let chunks = 0;
+  const { store: containers, requests, directory, progress } = store({ "big.rho": big }, {
+    // The fourth chunk waits until the test lets it go.
+    gate: () => ++chunks === 4 ? new Promise<void>(resolve => { release = resolve; }) : Promise.resolve(),
+  });
+  const background = containers.ensure("big.rho", { background: true });
+  while (!release) await new Promise(resolve => setTimeout(resolve, 0));
+  containers.pauseBackground();
+  release();
+  await assert.rejects(background, DownloadPausedError);
+  const kept = directory.files.get("big.rho")!;
+  assert.equal(kept.length, 3 * 65536, "what arrived stays");
+  assert.deepEqual(kept, big.slice(0, kept.length));
+  assert.deepEqual([...await containers.cachedNames()], [], "a shorter copy is not cached");
+  // A read meanwhile goes by range; the next download resumes.
+  assert.deepEqual(await read(containers, "big.rho", MiB, MiB + 5), big.slice(MiB, MiB + 5));
+  const blob = await containers.ensure("big.rho", { background: true });
+  assert.equal(requests.at(-1), `big.rho bytes=${3 * 65536}-`);
+  assert.deepEqual(new Uint8Array(await blob.arrayBuffer()), big);
+  assert.equal(progress.filter(event => event.phase === "downloading").at(-1)!.loadedBytes, big.length);
+});
+
+test("a foreground download is not paused; a server without Range restarts a paused one", async () => {
+  const big = content(2 * MiB, 13);
+  const { store: containers, requests, directory } = store({ "big.rho": big }, { ranges: false });
+  directory.files.set("big.rho", big.slice(0, 1000)); // a copy a pause left
+  const foreground = containers.ensure("big.rho");
+  containers.pauseBackground();
+  assert.deepEqual(new Uint8Array(await (await foreground).arrayBuffer()), big);
+  assert.deepEqual(requests, ["big.rho bytes=1000-"], "asked to resume, got the whole file");
 });

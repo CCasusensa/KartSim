@@ -57,11 +57,21 @@ async function run(kind, scenario) {
   return { events, error };
 }
 
+/**
+ * The release downloads the race's containers whole before building
+ * (preloadContainers); the rewrite reads them by range as they load
+ * (resources/README.md), so that step is the one difference.
+ */
+function withoutPreload(outcome) {
+  return { ...outcome, events: outcome.events.filter(event => !(Array.isArray(event) && event[0] === "preload")) };
+}
+
 test("solo race asset selection and identity checks match the release", async () => {
   for (const scenario of ["incomplete", "no-catalog", "no-character",
     "no-character-item"]) {
-    assert.deepEqual(await run("readable", scenario),
-      await run("original", scenario), scenario);
+    const readable = await run("readable", scenario);
+    assert.ok(!readable.events.some(event => Array.isArray(event) && event[0] === "preload"));
+    assert.deepEqual(readable, withoutPreload(await run("original", scenario)), scenario);
   }
 });
 
@@ -181,7 +191,7 @@ async function runBgmFailure(kind, failureStage = "bgm", hasSky = true) {
 
 test("solo race audio and map cleanup on BGM failure matches the release", async () => {
   assert.deepEqual(await runBgmFailure("readable"),
-    await runBgmFailure("original"));
+    withoutPreload(await runBgmFailure("original")));
 });
 
 test("solo map and optional sky upload geometry after fog setup before race UI loading", async () => {
