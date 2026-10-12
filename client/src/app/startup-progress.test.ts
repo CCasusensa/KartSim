@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { currentResourceManager } from "../resources/resource-manager";
+import { STARTUP_READS } from "../resources/startup-reads";
 import { StartupProgress } from "./startup-progress";
 import { loadStartupResources, type ResourceLoadingDependencies, type StartupHost,
   type StartupLibrary } from "./startup-resources";
@@ -90,35 +91,49 @@ function harness(mountedExtra: object = {}) {
   return { host, dependencies, gates, samples, errors, bars,
     counts: () => ({ finishes, starts, downloads }), cancel: () => generation++,
     lateIndex: () => indexProgress?.({ current: 100, total: 100, filename: "test" }),
-    lateBytes: () => byteProgress?.({ file: "test.rho", loadedBytes: 100, totalBytes: 100 }) };
+    lateBytes: () => byteProgress?.({ file: "test.rho", loadedBytes: 100, totalBytes: 100 }),
+    bytes: (progress: Parameters<typeof byteProgress>[0]) => byteProgress?.(progress) };
 }
 
-test("首页 resources download before the catalogs, on the 当前下载 bar, keeping the release percentages", async () => {
-  const ensured: string[] = [];
-  const gate = deferred();
+test("startup waits for no 首页 download: reads are warmed in two tiers, 首页 downloads in the background later", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const ensured: Array<[string, boolean | undefined]> = [];
+  const prefetched: unknown[] = [];
   const store = {
+    manifest: { version: STARTUP_READS.version, revision: STARTUP_READS.revision },
+    prefetch: async (ranges: unknown) => { prefetched.push(ranges); },
     list: () => [{ name: "gui_font.rho", size: 10 }, { name: "stage_common.rho", size: 20 },
       { name: "effect.rho", size: 5 }],
-    ensure: async (name: string) => { ensured.push(name); await gate.promise; },
+    ensure: async (name: string, options?: { background?: boolean }) => { ensured.push([name, options?.background]); },
     cachedNames: async () => new Set<string>(),
     remove: async () => false,
     addProgressListener: () => () => undefined,
   };
   const state = harness({ store, archiveIndexes: { rho5: [] } });
   const run = loadStartupResources(state.host, state.dependencies);
-  state.gates.sources.resolve(); state.gates.library.resolve(); await settle();
-  assert.deepEqual(ensured.sort(), ["gui_font.rho", "stage_common.rho"], "only 首页, all at once");
+  state.gates.sources.resolve(); await settle();
+  assert.deepEqual(prefetched, [STARTUP_READS.early], "the catalogs' and login window's reads, at once");
+  state.gates.library.resolve(); await settle();
   assert.equal(currentResourceManager()?.group("home")?.bytes, 30);
-  assert.deepEqual(state.bars.at(-1), ["resource:首页", 0, 30, "首页资源"]);
-  assert.equal(state.samples.at(-1), 20, "the catalogs wait for 首页");
-  gate.resolve(); await settle();
-  assert.deepEqual(state.bars.at(-1), ["resource:首页", 30, 30, "首页资源"]);
-  for (const name of ["maps", "garage", "account", "profile", "ready"] as const) {
+  assert.equal(state.samples.at(-1), 20, "the catalogs start without waiting for 首页");
+  state.gates.maps.resolve(); state.gates.garage.resolve(); await settle();
+  assert.deepEqual(prefetched, [STARTUP_READS.early, STARTUP_READS.late], "the home screen's reads during login");
+  // Background downloads stay off the 当前下载 bar; range reads share one entry.
+  const bars = state.bars.length;
+  state.bytes({ phase: "downloading", file: "x.rho", loadedBytes: 1, totalBytes: 2, background: true });
+  assert.equal(state.bars.length, bars);
+  state.bytes({ phase: "partial", file: "x.rho", loadedBytes: 1, totalBytes: 2 });
+  assert.deepEqual(state.bars.at(-1), ["resource:分段读取", 1, 2, "正在加载 x.rho"]);
+  for (const name of ["account", "profile", "ready"] as const) {
     state.gates[name].resolve(); await settle();
   }
   await run;
   assert.equal(state.samples.at(-1), 100);
-  assert.deepEqual(ensured.sort(), ["gui_font.rho", "stage_common.rho"], "nothing else ahead of time");
+  assert.deepEqual(state.samples, [...state.samples].sort((a, b) => a - b), "the release percentages");
+  assert.deepEqual(ensured, [], "nothing downloads whole before the home screen settles");
+  t.mock.timers.tick(3_000); await settle(); await settle();
+  assert.deepEqual(ensured, [["gui_font.rho", true], ["stage_common.rho", true]],
+    "首页 only, one background download at a time");
 });
 
 test("startup tracks archive parsing, both catalogs, login, profile and scene before reaching 100", async () => {

@@ -3,9 +3,10 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
-  loadRaceBgm, prepareMultiplayerBgm, selectRaceBgm,
+  holdRacePlaylists, loadRaceBgm, prepareMultiplayerBgm, racePlaylistReady, selectRaceBgm,
   type RaceBgmLoadingDependencies, type RaceBgmLoadingHost,
 } from "./race-bgm-loading";
+import { restartRaceBgm, type RaceBgmHost } from "./race-bgm-playback";
 
 const release = readFileSync(new URL("../../../recovered/formatted/index.js", import.meta.url), "utf8");
 const start = release.indexOf("class P7 {");
@@ -100,10 +101,73 @@ test("static BGM load preserves shared and separate garage buffer cases", async 
       const bgm = rewritten
         ? await loadRaceBgm("library", "track-a", "random", "context", dependencies) as Bgm
         : await Original.load("library", "track-a", "random", "context");
-      return { events, bgm: snapshot(bgm) };
+      // The race playlist is not waited for: it lands after the owner, and
+      // starts after the other decodes, so the events match as a set.
+      await bgm.racePlaylistLoad;
+      return { events: events.map(event => JSON.stringify(event)).sort(), bgm: snapshot(bgm) };
     };
     assert.deepEqual(await inspect(true), await inspect(false), mode);
   }
+});
+
+test("the race playlist decodes after the owner returns, held back while startup asks", async () => {
+  const { dependencies, events } = makeFixture("normal");
+  const release = holdRacePlaylists();
+  const bgm = await loadRaceBgm("library", "track-a", "random", "context", dependencies) as Bgm;
+  assert.deepEqual(bgm.raceBuffers, []);
+  assert.ok(bgm.racePlaylistLoad);
+  assert.equal(events.some(event => event[0] === "playlist"), false, "held until released");
+  release();
+  await bgm.racePlaylistLoad;
+  assert.deepEqual(bgm.raceBuffers, ["race:track-a"]);
+  assert.deepEqual(bgm.raceNames, ["name:track-a"]);
+  assert.equal(bgm.racePlaylistLoad, undefined);
+
+  // A selectRace made meanwhile wins over the playlist still decoding.
+  let finish!: () => void;
+  const slow = { ...dependencies, racePlaylist: async (library: unknown, track: unknown, context: unknown) => {
+    await new Promise<void>(resolve => { finish = resolve; });
+    return dependencies.racePlaylist(library, track, context);
+  } };
+  const owner = await loadRaceBgm("library", "track-a", "random", "context", slow) as Bgm;
+  const pending = owner.racePlaylistLoad;
+  await selectRaceBgm(owner, "library", "track-b", dependencies);
+  finish();
+  await pending;
+  assert.deepEqual(owner.raceBuffers, ["race:track-b"]);
+});
+
+test("a race waits for the playlist; a failed one loads again, a started race plays it when it lands", async () => {
+  const { dependencies } = makeFixture("normal");
+  const failing = { ...dependencies, racePlaylist: async () => { throw new Error("decode failed"); } };
+  const owner = await loadRaceBgm("library", "track-a", "random", "context", failing) as Bgm;
+  const selected: unknown[] = [];
+  owner.selectRace = async (_library, track) => {
+    selected.push(track);
+    await selectRaceBgm(owner, "library", track, dependencies);
+  };
+  await racePlaylistReady(owner, "library", "track-a");
+  assert.deepEqual(selected, ["track-a"]);
+  assert.deepEqual(owner.raceBuffers, ["race:track-a"]);
+
+  let land!: () => void;
+  const started: unknown[] = [];
+  const host = {
+    raceBuffers: [] as unknown[], raceNames: [] as unknown[], current: undefined,
+    random: { next: () => 0 },
+    racePlaylistLoad: new Promise<void>(resolve => { land = resolve; }).then(() => {
+      host.raceBuffers = ["race"];
+      host.raceNames = ["name"];
+      host.racePlaylistLoad = undefined;
+    }),
+    start(buffer: unknown) { started.push(buffer); },
+  } as unknown as RaceBgmHost;
+  restartRaceBgm(host);
+  assert.deepEqual(started, []);
+  land();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(started, ["race"]);
+  assert.equal(host.currentRaceNameValue, "name");
 });
 
 test("multiplayer music loads once, refreshes lobby only, and retains state on failure", async () => {

@@ -711,7 +711,8 @@ server {
     client_max_body_size 8m;
 
     # 压缩：npm run build 已为 JS、CSS、wasm 等生成 .gz，gzip_static 直接发送（主包约 4 MB → 0.45 MB）；
-    # 其余文本与数据服务返回的 JSON 现场压缩。.rho/.rho5 等游戏资源本身已压缩，不在 gzip_types 中。
+    # 其余文本与数据服务返回的 JSON 现场压缩。.rho/.rho5 等游戏资源本身已压缩，不在 gzip_types 中；
+    # 客户端用 Range 请求分段读取它们（首次进入只取用到的部分），静态文件默认支持，不要设 max_ranges 0。
     # Nginx 默认只压缩 text/html，不写 gzip_types 时 JS 会原样传输。
     gzip on;
     gzip_static on;

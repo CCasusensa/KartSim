@@ -126,6 +126,35 @@ test("the queue runs the highest priority first and downloads each container onc
   assert.equal(new Set(store.started).size, store.started.length, "each container once");
 });
 
+test("background (low) containers take one download slot; pages and races get the others", async () => {
+  const store = new FakeStore();
+  const options: Array<{ name: string; background?: boolean }> = [];
+  const ensure = store.ensure.bind(store);
+  store.ensure = (name: string, flags?: { background?: boolean }) => {
+    options.push({ name, background: flags?.background });
+    return ensure(name);
+  };
+  const manager = new ResourceManager(store, packs, undefined, 3);
+  await manager.ready;
+  manager.download(["myRoom.rho", "stage_common.rho", "effect.rho"], { label: "首页资源", priority: "low" });
+  assert.deepEqual(store.started, ["myRoom.rho"]);
+  const race = manager.download(["track_forest_I01.rho", "theme_forest.rho", "sound_bgm_forest.rho"],
+    { label: "本局赛道资源", priority: "high" });
+  assert.deepEqual(store.started, ["myRoom.rho", "track_forest_I01.rho", "theme_forest.rho"]);
+  assert.deepEqual(options.map(entry => entry.background), [true, false, false]);
+  store.finish("track_forest_I01.rho");
+  await tick();
+  assert.equal(store.started.at(-1), "sound_bgm_forest.rho", "the race goes before the background queue");
+  store.finish("theme_forest.rho");
+  store.finish("sound_bgm_forest.rho");
+  await race.done;
+  await tick();
+  assert.equal(store.started.length, 4, "still one background download at a time");
+  store.finish("myRoom.rho");
+  await tick();
+  assert.equal(store.started.at(-1), "stage_common.rho");
+});
+
 test("cancel, failures, deletes and a race's track containers", async () => {
   const store = new FakeStore();
   const manager = new ResourceManager(store, packs, {

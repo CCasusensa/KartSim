@@ -12,15 +12,17 @@ import { buildResourceGroups, findResourceGroup, trackThemeOf, type ResourceFile
  *  - active downloads from the 资源下载 panel.
  *
  * Containers download three at a time, the highest priority first; a
- * container wanted by several jobs downloads once. Pages still read any
- * container on demand (the store downloads it then), so a cancelled or
- * failed job never breaks a page.
+ * container wanted by several jobs downloads once. Low-priority (background)
+ * containers take one slot at most, so a page or a race that needs a
+ * download never waits behind them. Pages still read any container on
+ * demand (the store fetches the bytes they read), so a cancelled or failed
+ * job never breaks a page.
  */
 
 /** What the manager needs of the container store. */
 export interface ResourceStoreApi {
   list(): readonly ResourceFileSpec[];
-  ensure(name: string): Promise<unknown>;
+  ensure(name: string, options?: { background?: boolean }): Promise<unknown>;
   cachedNames(): Promise<Set<string>>;
   remove(name: string): Promise<boolean>;
   addProgressListener(listener: (progress: ContainerProgress) => void): () => void;
@@ -33,6 +35,8 @@ export interface ResourceLibraryApi {
 
 export type DownloadPriority = "high" | "normal" | "low";
 const PRIORITY: Record<DownloadPriority, number> = { high: 2, normal: 1, low: 0 };
+/** Download slots low-priority containers may take together. */
+const BACKGROUND_SLOTS = 1;
 
 export type JobState = "queued" | "running" | "done" | "failed" | "cancelled";
 
@@ -370,14 +374,16 @@ export class ResourceManager {
 
   private pump(): void {
     while (this.running < this.concurrency) {
-      const waiting = this.queue.filter(item => !item.running);
+      const background = this.queue.filter(item => item.running && item.priority === PRIORITY.low).length;
+      const waiting = this.queue.filter(item => !item.running &&
+        (item.priority > PRIORITY.low || background < BACKGROUND_SLOTS));
       if (!waiting.length) return;
       waiting.sort((a, b) => b.priority - a.priority);
       const item = waiting[0]!;
       item.running = true;
       for (const job of item.jobs) if (job.state === "queued") job.state = "running";
       this.running++;
-      void this.store.ensure(item.name).then(() => {
+      void this.store.ensure(item.name, { background: item.priority === PRIORITY.low }).then(() => {
         this.cached.add(item.name);
         this.loading.delete(item.name);
         this.failures.delete(item.name);

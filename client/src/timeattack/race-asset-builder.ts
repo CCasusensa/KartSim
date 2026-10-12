@@ -8,6 +8,7 @@ import { MissionTimerPanel } from "../license/mission-timer-panel";
 import { MissionResultAction, StoryAction2D } from "../story/mission-result-action";
 import type { StoryRaceRequest } from "../story/story-race";
 import { generateNpcGhostRecord } from "./duel-npc-ghost";
+import { racePlaylistReady } from "./race-bgm-loading";
 import { ghostZCeiling } from "./ranked-race";
 
 /**
@@ -171,6 +172,8 @@ export async function buildSoloRaceAssets(
         bgm = await ops.loadRaceBgm(host.getLibrary(), map.metadata,
           host.targetRandom, audioContext);
       }
+      // The race music loadRaceBgm (here or at startup) left decoding.
+      await racePlaylistReady(bgm, host.getLibrary(), map.metadata);
     } catch (error) {
       disposeMap();
       closeNewAudio();
