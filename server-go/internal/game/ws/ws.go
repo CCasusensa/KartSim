@@ -357,6 +357,9 @@ func (s *Server) handleText(c *conn, data []byte) bool {
 	case requestID != "":
 		c.Text(reply.Encode(requestID))
 	}
+	if then := reply.Then(); err == nil && then != nil {
+		c.Text(then)
+	}
 	return true
 }
 

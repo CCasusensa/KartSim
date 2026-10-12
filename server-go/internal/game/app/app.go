@@ -150,6 +150,8 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		// A playtest switch (KART_ITEM_CHANGERS=infinite): unlimited changers.
 		ItemChangersInfinite: cfg.ItemChangersInfinite,
 		AntiCheat:            guard,
+		// Races the global lobby hands this node (GLOBAL_LOBBY.md).
+		RaceHost: raceHost{data: data, box: box, nodeID: cfg.NodeID, log: log},
 	})
 	if cfg.ItemTestGrants {
 		log.Warn("item test grants are on (KART_ITEM_TEST_GRANTS): item race clients may choose the items " +
@@ -417,5 +419,27 @@ func (r recorder) SaveRace(req contract.RaceSettlement) {
 func (r recorder) SaveAntiCheat(req contract.AntiCheatReport) {
 	if err := r.box.Enqueue("anti-cheat", contract.PathAntiCheat, req); err != nil {
 		r.log.Error("anti-cheat record not queued", "player", req.PlayerID, "check", req.Code, "error", err)
+	}
+}
+
+// raceHost fetches the rooms the global lobby hands this node and gives
+// them back through the outbox, after their settlements.
+type raceHost struct {
+	data   *cluster.DataClient
+	box    *outbox.Outbox
+	nodeID string
+	log    *slog.Logger
+}
+
+func (h raceHost) Claim(ctx context.Context, handoffID string) (contract.RoomHandoff, error) {
+	var handoff contract.RoomHandoff
+	err := h.data.Call(ctx, contract.PathRoomClaim, contract.RoomClaimRequest{NodeID: h.nodeID, HandoffID: handoffID},
+		&handoff)
+	return handoff, err
+}
+
+func (h raceHost) Return(req contract.RoomReturnRequest) {
+	if err := h.box.Enqueue("room-return", contract.PathRoomReturn, req); err != nil {
+		h.log.Error("room return not queued", "handoff", req.HandoffID, "error", err)
 	}
 }

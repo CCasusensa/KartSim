@@ -147,6 +147,9 @@ func newHarness(t *testing.T, opts harnessOptions) *harness {
 		if err := h.api.ShutdownMessenger(ctx); err != nil {
 			t.Errorf("messenger shutdown: %v", err)
 		}
+		if err := h.api.ShutdownLobby(ctx); err != nil {
+			t.Errorf("lobby shutdown: %v", err)
+		}
 	})
 	return h
 }

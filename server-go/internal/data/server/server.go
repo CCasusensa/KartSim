@@ -157,6 +157,7 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger, service 
 	background.Go(func() { caches.Run(runCtx) })
 	background.Go(func() { sweep(runCtx, st, logger) })
 	background.Go(func() { service.RunMessenger(runCtx) })
+	background.Go(func() { service.RunLobby(runCtx) })
 
 	failed := make(chan error, len(servers))
 	for i, server := range servers {
@@ -184,6 +185,9 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger, service 
 	}
 	if err := service.ShutdownMyRoom(shutdownCtx); err != nil {
 		logger.Warn("my room shutdown incomplete", "error", err)
+	}
+	if err := service.ShutdownLobby(shutdownCtx); err != nil {
+		logger.Warn("lobby shutdown incomplete", "error", err)
 	}
 	for _, server := range servers {
 		if err := server.Shutdown(shutdownCtx); err != nil {

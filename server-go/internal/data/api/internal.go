@@ -94,6 +94,8 @@ func (a *API) nodeAPI(clusterKey bool) http.Handler {
 	route(contract.PathRaces, a.saveRace)
 	route(contract.PathEquipmentVerify, a.verifyEquipment)
 	route(contract.PathAntiCheat, a.saveAntiCheat)
+	route(contract.PathRoomClaim, a.claimRoom)
+	route(contract.PathRoomReturn, a.returnRoom)
 
 	routes := jsonFallback(mux)
 	expected := sha256.Sum256(a.secret)
@@ -175,6 +177,19 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 			origin = registered.Origin
 		}
 	}
+	// The sessions of the global lobby's racers (and city visitors) are
+	// held by the lobby: they are only checked, and listed by the lobby.
+	var own, borrowed []contract.OnlinePlayer
+	for _, player := range request.Players {
+		if player.Lobby {
+			borrowed = append(borrowed, player)
+		} else {
+			own = append(own, player)
+		}
+	}
+	if own == nil {
+		own = []contract.OnlinePlayer{}
+	}
 	now := a.nowMillis()
 	result, err := a.cluster.Heartbeat(r.Context(), cache.Node{
 		Keyed:           keyed,
@@ -188,7 +203,7 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 		ProtocolVersion: request.ProtocolVersion,
 		SeenAt:          now,
 		Stats:           request.Stats,
-	}, request.Players)
+	}, own)
 	if err != nil {
 		a.log.Warn("heartbeat not stored", "node", request.NodeID, "error", err)
 		return errServiceUnavailable
@@ -197,6 +212,11 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 		// Only the admin console's online list and offline-node record are
 		// missing; the presence refresh and its conflicts stand.
 		a.log.Warn("heartbeat online list not stored", "node", request.NodeID, "error", result.ListErr)
+	}
+	if lobbyConflicts, err := a.cluster.LobbyConflicts(r.Context(), borrowed); err != nil {
+		a.log.Warn("heartbeat: lobby claims unavailable", "node", request.NodeID, "error", err)
+	} else {
+		result.Conflicts = append(result.Conflicts, lobbyConflicts...)
 	}
 	if result.Freed > 0 {
 		a.log.Info("game node restarted; released the names of its previous process", "node", request.NodeID,
@@ -247,6 +267,15 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 	if err := a.callerNode(r, request.NodeID); err != nil {
 		return err
 	}
+	if err := a.claimPresence(r.Context(), request); err != nil {
+		return err
+	}
+	return writeJSON(w, http.StatusOK, contract.OK{OK: true})
+}
+
+// claimPresence reserves a live nickname and account cluster-wide for a
+// game node's hello or the global lobby's.
+func (a *API) claimPresence(ctx context.Context, request contract.PresenceClaimRequest) error {
 	if !validASCIIID(request.PlayerID, 64) {
 		return errInvalidPlayerID
 	}
@@ -257,7 +286,7 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 		if !validName(&request.Name, 18) {
 			return errInvalidGuestName
 		}
-		taken, err := a.store.NicknameTaken(r.Context(), request.Name)
+		taken, err := a.store.NicknameTaken(ctx, request.Name)
 		if err != nil {
 			return err
 		}
@@ -270,19 +299,19 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 	if request.AccountID != "" && a.store != nil { // tests run presence without MySQL
 		// An entry ticket issued just before a ban stays valid for minutes;
 		// the banned account still does not get back into a game.
-		if err := a.store.CheckNotBanned(r.Context(), request.AccountID, a.nowMillis()); err != nil {
+		if err := a.store.CheckNotBanned(ctx, request.AccountID, a.nowMillis()); err != nil {
 			return err
 		}
 	}
 	presence := cache.Presence{NodeID: request.NodeID, PlayerID: request.PlayerID, Name: request.Name,
 		AccountID: request.AccountID}
-	outcome, err := a.cluster.ClaimPresence(r.Context(), presence)
-	if r.Context().Err() != nil && (outcome == cache.Claimed || err != nil) {
+	outcome, err := a.cluster.ClaimPresence(ctx, presence)
+	if ctx.Err() != nil && (outcome == cache.Claimed || err != nil) {
 		// The game node gave up waiting (and treats the claim as failed), but
 		// the script may have run: release it, or the name and account stay
 		// locked until they expire. The release only deletes this player's
 		// own values.
-		a.releaseLateClaim(r.Context(), presence, "request canceled")
+		a.releaseLateClaim(ctx, presence, "request canceled")
 		return errServiceUnavailable
 	}
 	if err != nil {
@@ -301,8 +330,8 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 		// the claim either finds this claim and marks it, or committed before
 		// this second check sees it. Either way the banned account is not
 		// left in the game.
-		if err := a.store.CheckNotBanned(r.Context(), request.AccountID, a.nowMillis()); err != nil {
-			a.releaseLateClaim(r.Context(), presence, "account banned")
+		if err := a.store.CheckNotBanned(ctx, request.AccountID, a.nowMillis()); err != nil {
+			a.releaseLateClaim(ctx, presence, "account banned")
 			if _, refused := apierr.As(err); !refused {
 				a.log.Warn("presence claim: ban check unavailable", "node", request.NodeID, "error", err)
 				return errServiceUnavailable
@@ -313,7 +342,7 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 	if request.AccountID != "" {
 		a.hub.GameChanged(request.AccountID) // friends see "inGame"
 	}
-	return writeJSON(w, http.StatusOK, contract.OK{OK: true})
+	return nil
 }
 
 // releaseLateClaim frees a claim that is not answered as made: its request

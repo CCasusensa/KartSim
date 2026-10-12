@@ -4,16 +4,22 @@ import type { ClientConnectDependencies, ClientConnectionHost,
 import { PROTOCOL_VERSION, ROOM_RULESET } from "./protocol";
 import { rememberConnectedClient } from "./server-latency";
 
-/** The existing lobby still asks for /offer; a game server uses one WS channel. */
+/** The data service's global lobby socket (server-go/GLOBAL_LOBBY.md). */
+export const LOBBY_OFFER_PATH = "/multiplayer/lobby/offer";
+
+/**
+ * The existing lobby still asks for /offer; a game server uses one WS
+ * channel at /multiplayer/ws, the global lobby at /multiplayer/lobby/ws.
+ */
 export function websocketUrlForOffer(offerUrl: string): string {
   const url = new URL(offerUrl);
   if ((url.protocol !== "http:" && url.protocol !== "https:") ||
-      url.pathname !== "/multiplayer/offer" || url.search || url.hash ||
-      url.username || url.password) {
+      (url.pathname !== "/multiplayer/offer" && url.pathname !== LOBBY_OFFER_PATH) ||
+      url.search || url.hash || url.username || url.password) {
     throw new Error("Invalid local multiplayer offer URL");
   }
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.pathname = "/multiplayer/ws";
+  url.pathname = url.pathname === LOBBY_OFFER_PATH ? "/multiplayer/lobby/ws" : "/multiplayer/ws";
   return url.href;
 }
 

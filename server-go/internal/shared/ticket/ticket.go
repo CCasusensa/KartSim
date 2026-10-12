@@ -46,7 +46,21 @@ type Claims struct {
 	Username  string `json:"usr,omitempty"`
 	Nickname  string `json:"nick,omitempty"`
 	Admin     bool   `json:"adm,omitempty"`
+	// PlayerID and Use are set on the tickets the global lobby hands out
+	// (GLOBAL_LOBBY.md): the session keeps the player ID it has in the
+	// lobby, and Use says what it enters on the node: UseRace with Handoff,
+	// the room the lobby handed to the node, or UseCity. The lobby's own
+	// tickets carry neither.
+	PlayerID string `json:"pid,omitempty"`
+	Use      string `json:"use,omitempty"`
+	Handoff  string `json:"rh,omitempty"`
 }
+
+// Ticket uses (Claims.Use).
+const (
+	UseRace = "race"
+	UseCity = "city"
+)
 
 // NewNonce returns 16 random bytes encoded as base64url.
 func NewNonce() string {

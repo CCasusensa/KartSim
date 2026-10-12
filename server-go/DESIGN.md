@@ -13,6 +13,7 @@
 
 - **数据服务 kart-data**：只有一个。唯一访问 MySQL 与 Redis 的进程。提供原 Java 的全部 HTTP API（账号、档案、影子记录、历史），新增“游戏服列表”“入场票据”、账号经济与好友私聊接口（好友私聊另有一个 WebSocket `/api/messenger/ws`，见第 9 节），另开内部端口供游戏节点调用（心跳注册、在线昵称占用、装备归属核对、房间规则保存、赛后结算与奖励入账）。
 - **游戏服务 kart-game**：可部署多个，无数据库。每个节点各自持有内存房间；同一房间的所有玩家连在同一个节点上，因此比赛时钟、广播、运动帧中继都在单进程内完成，与 Java 版一致。
+- **全局大厅**（2026-10，[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)）：新版浏览器不再选服。大厅与等待中的房间由数据服务运行（同一个 `internal/game/lobby` 包，`Home` 模式），所有地区共用一个房间列表；房主开始时数据服务按全房间玩家到各节点的延迟挑一个节点，房间交给它（节点 `RaceHost` 模式，经内部接口领取），比赛结束后经发件箱交还大厅。下面的入场流程是节点自己的大厅，仍然支持。
 - **入场流程**（“带上数据节点和个人信息进入游戏服”）：
   1. 浏览器向数据服务 `GET /multiplayer/game-servers` 取在线游戏服列表，玩家选择一个（只有一个时自动进入）；想一起玩的人选同一个服。
   2. 浏览器 `POST /multiplayer/game-servers/ticket {nodeId}`，带 `Authorization: Bearer <会话token>`，数据服务签发一次性票据：HMAC 签名，含目标节点、数据节点 ID、账号信息、过期时间（2 分钟）、随机 nonce。默认没有游客（`KART_ALLOW_GUESTS=false`）：不带 Bearer 401 `LOGIN_REQUIRED`；账号未领取新手礼包 403 `ONBOARDING_REQUIRED`。只有开启游客时，不带 Bearer 才签发游客票据。

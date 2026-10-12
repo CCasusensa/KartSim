@@ -17,6 +17,8 @@ import { CITY_TRACK_ID, registerCityTrack } from "./city-track";
 
 export interface CityLobbyHost {
   client: CityClient;
+  /** Called when the session ends: the lobby closes the city's node connection. */
+  onCityClosed?: () => void;
   playerId: string;
   accountNickname?: string;
   lobby?: { show(): void; hide?(): void };
@@ -387,6 +389,7 @@ export class CitySession {
     try { stage?.dispose(); } catch (error) { console.warn("城市会话释放失败", error); }
     this.fleet?.dispose();
     this.network?.dispose();
+    this.host.onCityClosed?.();
     this.host.options.onRaceVisibility?.(false);
     if (this.host.disposed) return;
     if (this.host.options.lobbyGameplay === "city" && this.host.options.onCityExit) {

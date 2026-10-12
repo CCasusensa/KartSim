@@ -1,6 +1,6 @@
-import { enterCity, type CityLobbyHost } from "../city/city-session";
 import { formatMultiplayerError } from "./errors";
-import type { GameServer, GameServerEntry } from "./game-servers";
+import { LOBBY_NODE_ID, type GameServer, type GameServerEntry } from "./game-servers";
+import { enterCityOnNode, startLatencyReports, type NodeClient, type RaceHostLobby } from "./race-host";
 import type { Gameplay, RoomSummary } from "./lobby-actions";
 
 export interface LobbyOpenView {
@@ -175,7 +175,7 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
     onCreate: () => { void host.create(); },
     onJoin: (room: RoomSummary) => { void host.join(room); },
     onQuickJoin: () => { void host.quickJoin(); },
-    onCity: () => { void enterCity(host as unknown as CityLobbyHost); },
+    onCity: () => { void enterCityOnNode(host as unknown as Parameters<typeof enterCityOnNode>[0]); },
   });
   if (host.disposed) {
     lobby.dispose();
@@ -248,10 +248,19 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
     if (response.type !== "welcome") throw new Error("房间服务身份未确认");
     host.playerId = response.playerId!;
     host.connected = true;
+    if (server.nodeId === LOBBY_NODE_ID) {
+      // The global lobby: races and the city go to game nodes it picks,
+      // helped by this player's measured round trips to them.
+      const nodeHost = host as unknown as RaceHostLobby;
+      nodeHost.lobbyClient = host.client as unknown as NodeClient;
+      nodeHost.nodeDependencies = { createClient: () => deps.createClient() as unknown as NodeClient,
+        pageUrl: () => deps.pageUrl(), endpoint: (path, page) => deps.endpoint(path, page) };
+      startLatencyReports(nodeHost);
+    }
     host.render();
     host.options.status(cityEntry ? "正在进入卡丁城…" : "请选择比赛频道。");
     // The home page's 卡丁城 entry opens the lobby only to connect: go straight into the city.
-    if (cityEntry) void enterCity(host as unknown as CityLobbyHost);
+    if (cityEntry) void enterCityOnNode(host as unknown as Parameters<typeof enterCityOnNode>[0]);
     host.refresh = setInterval(() => {
       if (host.channelName && !host.disposed && !host.state.room && !host.busy &&
           !host.modalLoading && !host.dialog && host.connected) {

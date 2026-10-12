@@ -24,6 +24,8 @@ const lan = lanCert && lanKey ? {
     "^/multiplayer/ws(?:[?#]|$)": { target: gameBackend, ws: true, xfwd: true },
     // WebRTC signaling goes to the game node too; its media path is UDP, direct.
     "^/multiplayer/offer(?:[?#]|$)": { target: gameBackend, xfwd: true },
+    // The global lobby's socket is the data service's (GLOBAL_LOBBY.md).
+    "^/multiplayer/lobby/ws(?:[?#]|$)": { target: backend, ws: true, xfwd: true },
     "^/multiplayer/": { target: backend, xfwd: true },
     "^/api/(?:messenger|myroom)/ws(?:[?#]|$)": { target: backend, ws: true, xfwd: true },
     "^/api/": { target: backend, xfwd: true },

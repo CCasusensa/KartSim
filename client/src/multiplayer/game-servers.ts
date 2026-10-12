@@ -7,6 +7,15 @@
  * token never reaches a game node.
  */
 
+/**
+ * The data service's global lobby (server-go/GLOBAL_LOBBY.md): every
+ * player enters it; rooms race on the game node the lobby picks at start.
+ */
+export const LOBBY_NODE_ID = "lobby";
+export const LOBBY_SERVER: GameServer = {
+  nodeId: LOBBY_NODE_ID, name: "多人大厅", origin: null, players: 0, rooms: 0, capacity: 1, full: false,
+};
+
 /** localStorage key of the last game server the player picked. */
 export const GAME_SERVER_STORAGE_KEY = "kartsim.multiplayer.game-server";
 export const NO_GAME_SERVER_MESSAGE = "暂无可用的游戏服务器。";
@@ -299,6 +308,8 @@ export async function requestGameServerTicket(deps: GameServerDependencies,
 export async function chooseGameServer(deps: GameServerDependencies, root: unknown,
   signal: AbortSignal, failed: ReadonlySet<string> = new Set()): Promise<GameServer> {
   if (signal.aborted) throw new Error("ACCOUNT_CANCELLED");
+  // The global lobby: no server to choose; the lobby picks each race's node.
+  if (!failed.has(LOBBY_NODE_ID)) return LOBBY_SERVER;
   const { servers } = await fetchGameServerList(deps, signal);
   const pageUrl = deps.pageUrl();
   const options = servers.map(server => {
@@ -321,6 +332,18 @@ export async function chooseGameServer(deps: GameServerDependencies, root: unkno
 export async function requestGameServerEntry(deps: GameServerDependencies,
   server: GameServer, sessionToken: string | undefined,
   signal: AbortSignal): Promise<GameServerEntry> {
+  if (server.nodeId === LOBBY_NODE_ID) {
+    const body = await requestJson(deps, "lobby/ticket", {
+      method: "POST", cache: "no-store",
+      headers: { "Content-Type": "application/json",
+        ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}) },
+      body: "{}",
+    }, signal);
+    const ticket = parseGameServerTicket(body, LOBBY_NODE_ID);
+    const offer = gameServerOfferUrl(null, deps.backendOrigin(), deps.pageUrl())
+      .replace(/\/multiplayer\/offer$/, "/multiplayer/lobby/offer");
+    return { nodeId: LOBBY_NODE_ID, ticket: ticket.ticket, offerUrl: offer };
+  }
   const ticket = await requestGameServerTicket(deps, server.nodeId, sessionToken, signal);
   return { nodeId: ticket.nodeId, ticket: ticket.ticket,
     offerUrl: gameServerOfferUrl(ticket.origin, deps.backendOrigin(), deps.pageUrl()) };

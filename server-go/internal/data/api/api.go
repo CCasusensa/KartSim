@@ -100,6 +100,8 @@ type API struct {
 	dataNode string
 	// nodeRegistry caches the nodes added in the console (nodes.go).
 	nodeRegistry nodeRegistry
+	// lobby is the global lobby (lobby_home.go).
+	lobby        *lobbyHome
 	publicOrigin string
 	log          *slog.Logger
 	now          func() time.Time
@@ -252,6 +254,7 @@ func New(opts Options) *API {
 	roomOptions.Now = now
 	roomOptions.Logger = logger
 	a.rooms = myroom.New(roomBackend{a}, roomOptions)
+	a.lobby = newLobbyHome(a, !opts.Messenger.DisableCompression)
 	if a.lottery = opts.Lottery; a.lottery == nil {
 		if a.lottery, err = lottery.Default(); err != nil {
 			panic(err) // the embedded data is checked by the lottery tests
@@ -449,6 +452,11 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/admin/economy", a.adminEconomy)
 	route("PUT /api/admin/economy", a.adminSaveEconomy)
 	mux.Handle("GET /api/myroom/ws", a.rooms)
+	// The global lobby (GLOBAL_LOBBY.md): its socket, its tickets, and the
+	// WebRTC offer browsers try first.
+	mux.Handle("GET /multiplayer/lobby/ws", a.lobby.sockets)
+	route("POST /multiplayer/lobby/ticket", a.lobbyTicket)
+	route("POST /multiplayer/lobby/offer", a.lobbyOffer)
 	// Game nodes with their own key reach the internal API through the
 	// public listener too (the reverse proxy already forwards /multiplayer/).
 	mux.Handle(contract.NodePathPrefix+"/internal/", a.nodeAPI(false))

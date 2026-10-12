@@ -105,7 +105,7 @@ func (a *API) authenticateNode(ctx context.Context, key string) (string, error) 
 // callerNode checks the nodeId a request names: a keyed node may only name
 // itself, and a cluster-secret caller may not name a node that has a key.
 func (a *API) callerNode(r *http.Request, nodeID string) error {
-	if !validNodeID(nodeID) {
+	if !validNodeID(nodeID) || nodeID == contract.LobbyNodeID {
 		return errInvalidNodeID
 	}
 	if id, keyed := keyedNode(r.Context()); keyed {
@@ -267,7 +267,7 @@ func (a *API) adminCreateGameNode(w http.ResponseWriter, r *http.Request) error 
 		_, _ = rand.Read(suffix)
 		node.ID = "node-" + hex.EncodeToString(suffix)
 	}
-	if !nodekey.ValidID(node.ID) || request.Name == nil {
+	if !nodekey.ValidID(node.ID) || node.ID == contract.LobbyNodeID || request.Name == nil {
 		return errInvalidGameNode
 	}
 	if err := request.apply(&node); err != nil {

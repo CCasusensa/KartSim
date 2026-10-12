@@ -87,7 +87,8 @@ export async function connectGameClient(host: ClientConnectionHost, offerUrl: st
   name: string, resourceVersion: string, equipment: unknown, initial: string,
   raceRuntime = false, ticket: string | undefined,
   dependencies: ClientConnectDependencies): Promise<ServerControlEvent> {
-  if (dependencies.transport === "websocket") {
+  // The data service's global lobby speaks WebSocket only.
+  if (dependencies.transport === "websocket" || new URL(offerUrl).pathname === "/multiplayer/lobby/offer") {
     const { connectWebSocketGameClient } = await import("./client-websocket");
     return connectWebSocketGameClient(host, offerUrl, name, resourceVersion,
       equipment, initial, raceRuntime, ticket, dependencies);

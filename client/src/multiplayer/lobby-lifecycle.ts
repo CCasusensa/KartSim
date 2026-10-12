@@ -1,5 +1,7 @@
 import { cheatKickMessage, cheatKickOf, type CheatKick } from "./cheat-kick";
 import type { LobbyRoom } from "./lobby-actions";
+import { disposeNodeClients, dropNodeClients, enterRaceHost, roomCameHome, type NodeAssignment,
+  type RaceHostLobby } from "./race-host";
 
 interface Disposable { dispose(): void }
 
@@ -57,14 +59,25 @@ export interface LobbyLifecycleHost {
 
 export function bindLobbyClient(host: LobbyLifecycleHost): void {
   const client = host.client;
+  const nodes = host as unknown as RaceHostLobby;
+  // With the global lobby, host.client is the node's while a room races
+  // there (race-host.ts); this lobby connection stays open meanwhile.
+  const current = () => (nodes.lobbyClient ?? host.client) === (client as unknown);
   client.subscribe(event => {
     const kick = cheatKickOf(event);
-    if (kick && host.client === client) host.cheatKick = kick;
+    if (kick && current()) host.cheatKick = kick;
+    const typed = event as { type?: string; room?: { roomId?: string } };
+    if (typed?.type === "race-host") {
+      if (current()) void enterRaceHost(nodes, event as NodeAssignment);
+      return;
+    }
     host.receive(event);
+    if (typed?.type === "room" && current()) roomCameHome(nodes, typed.room?.roomId);
   });
   client.onClose(() => {
-    if (host.disposed || host.client !== client || !host.connected) return;
+    if (host.disposed || !current() || !host.connected) return;
     host.connected = false;
+    dropNodeClients(nodes);
     host.startCoordinator?.reset();
     host.cancelDialog();
     // The server already took this player out of the room. The cached
@@ -99,7 +112,7 @@ export function disposeLobby(host: LobbyLifecycleHost): void {
   ++host.dialogGeneration;
   host.leaveConfirmation?.resolve(false);
   host.leaveConfirmation = undefined;
-  host.client.dispose();
+  disposeNodeClients(host as unknown as RaceHostLobby);
   host.dialog?.dispose();
   host.trackSelect?.dispose();
   host.garage?.dispose();

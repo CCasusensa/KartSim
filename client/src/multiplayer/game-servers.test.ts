@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { chooseGameServer, fetchGameServerList, GAME_SERVER_STORAGE_KEY,
+import { chooseGameServer, fetchGameServerList, GAME_SERVER_STORAGE_KEY, LOBBY_SERVER,
   gameServerOfferUrl, loadRememberedGameServer, NO_GAME_SERVER_MESSAGE,
   parseGameServerList, parseGameServerTicket, rememberGameServer,
   requestGameServerEntry, requestGameServerTicket, type GameServer,
@@ -223,27 +223,36 @@ test("each entry asks for a new ticket and connects where the ticket says", asyn
   assert.equal(requests.length, 2);
 });
 
+/** The picker of the node-lobby clusters, reached once the global lobby failed. */
+const LEGACY = new Set(["lobby"]);
+
+test("the global lobby is entered without choosing a server", async () => {
+  const lobby = harness([]);
+  assert.equal(await chooseGameServer(lobby.deps, "root", signal()), LOBBY_SERVER);
+  assert.equal(lobby.picks.length, 0);
+});
+
 test("no usable server is an error and a single usable server is entered directly", async () => {
   const none = harness([{ status: 200, body: { dataNode: "data-1", servers: [
     entry("game-8788", { full: true }), entry("game-8789", { players: 10 }),
   ] } }]);
-  await assert.rejects(chooseGameServer(none.deps, "root", signal()),
+  await assert.rejects(chooseGameServer(none.deps, "root", signal(), LEGACY),
     { message: `${NO_GAME_SERVER_MESSAGE}所有游戏服务器均已满，请稍后再试。` });
   const empty = harness([{ status: 200, body: { dataNode: "data-1", servers: [] } }]);
-  await assert.rejects(chooseGameServer(empty.deps, "root", signal()),
+  await assert.rejects(chooseGameServer(empty.deps, "root", signal(), LEGACY),
     { message: NO_GAME_SERVER_MESSAGE });
 
   const single = harness([{ status: 200, body: { dataNode: "data-1", servers: [
     entry("game-8788", { full: true }), entry("game-8789"),
   ] } }]);
   single.storage.setItem(GAME_SERVER_STORAGE_KEY, "game-8788");
-  assert.equal((await chooseGameServer(single.deps, "root", signal())).nodeId, "game-8789");
+  assert.equal((await chooseGameServer(single.deps, "root", signal(), LEGACY)).nodeId, "game-8789");
   assert.equal(single.picks.length, 0);
   assert.equal(single.storage.getItem(GAME_SERVER_STORAGE_KEY), "game-8788");
 
   const controller = new AbortController();
   controller.abort();
-  await assert.rejects(chooseGameServer(single.deps, "root", controller.signal),
+  await assert.rejects(chooseGameServer(single.deps, "root", controller.signal, LEGACY),
     { message: "ACCOUNT_CANCELLED" });
 });
 
@@ -253,7 +262,7 @@ test("several usable servers open the picker on the remembered choice", async ()
   ] };
   const first = harness([{ status: 200, body }]);
   first.choose(options => options[1]!.server);
-  assert.equal((await chooseGameServer(first.deps, "root", signal())).nodeId, "game-8789");
+  assert.equal((await chooseGameServer(first.deps, "root", signal(), LEGACY)).nodeId, "game-8789");
   assert.equal(first.picks[0]!.selected, "game-8788");
   assert.deepEqual(first.picks[0]!.options.map(option => [option.server.nodeId,
     option.unavailable]), [["game-8788", undefined], ["game-8789", undefined],
@@ -262,17 +271,17 @@ test("several usable servers open the picker on the remembered choice", async ()
 
   const again = harness([{ status: 200, body }]);
   again.storage.setItem(GAME_SERVER_STORAGE_KEY, "game-8789");
-  await chooseGameServer(again.deps, "root", signal());
+  await chooseGameServer(again.deps, "root", signal(), LEGACY);
   assert.equal(again.picks[0]!.selected, "game-8789");
 
   const stale = harness([{ status: 200, body }]);
   stale.storage.setItem(GAME_SERVER_STORAGE_KEY, "game-8790");
-  await chooseGameServer(stale.deps, "root", signal());
+  await chooseGameServer(stale.deps, "root", signal(), LEGACY);
   assert.equal(stale.picks[0]!.selected, "game-8788");
 
   const cancelled = harness([{ status: 200, body }]);
   cancelled.deps.pick = async () => { throw new Error("ACCOUNT_CANCELLED"); };
-  await assert.rejects(chooseGameServer(cancelled.deps, "root", signal()), /ACCOUNT_CANCELLED/);
+  await assert.rejects(chooseGameServer(cancelled.deps, "root", signal(), LEGACY), /ACCOUNT_CANCELLED/);
   assert.equal(cancelled.storage.getItem(GAME_SERVER_STORAGE_KEY), null);
 });
 
@@ -281,14 +290,14 @@ test("an HTTPS page cannot choose plain HTTP game servers", async () => {
     entry("game-8788"), { ...entry("game-8789"), origin: "https://game-2.example" },
     { ...entry("game-8790"), origin: null },
   ] } }], "https://kart.example/");
-  await chooseGameServer(deps, "root", signal());
+  await chooseGameServer(deps, "root", signal(), LEGACY);
   assert.deepEqual(picks[0]!.options.map(option => option.unavailable),
     ["需要 HTTPS", undefined, undefined]);
   assert.equal(picks[0]!.selected, "game-8789");
 
   const onlyHttp = harness([{ status: 200, body: { dataNode: "data-1",
     servers: [entry("game-8788"), entry("game-8789")] } }], "https://kart.example/");
-  await assert.rejects(chooseGameServer(onlyHttp.deps, "root", signal()),
+  await assert.rejects(chooseGameServer(onlyHttp.deps, "root", signal(), LEGACY),
     { message: `${NO_GAME_SERVER_MESSAGE}在线的游戏服务器未启用 HTTPS，HTTPS 网页无法连接` +
       "（请为游戏服务器配置 https:// 地址）。" });
 
@@ -296,7 +305,7 @@ test("an HTTPS page cannot choose plain HTTP game servers", async () => {
     entry("game-8788"), entry("game-8789"), { ...entry("game-8790"), origin: "https://game-3.example",
       full: true },
   ] } }], "https://kart.example/");
-  await assert.rejects(chooseGameServer(mixed.deps, "root", signal()),
+  await assert.rejects(chooseGameServer(mixed.deps, "root", signal(), LEGACY),
     { message: `${NO_GAME_SERVER_MESSAGE}在线的游戏服务器中，2 台未启用 HTTPS` +
       "（HTTPS 网页无法连接，请为游戏服务器配置 https:// 地址）；1 台已满。" });
 });
@@ -309,21 +318,21 @@ test("servers the lobby failed to enter are listed but not offered again", async
   repick.storage.setItem(GAME_SERVER_STORAGE_KEY, "game-8788");
   repick.choose(options => options[2]!.server);
   assert.equal((await chooseGameServer(repick.deps, "root", signal(),
-    new Set(["game-8788"]))).nodeId, "game-8790");
+    new Set(["lobby", "game-8788"]))).nodeId, "game-8790");
   assert.deepEqual(repick.picks[0]!.options.map(option => option.unavailable),
     ["连接失败", undefined, undefined, "已满"]);
   assert.equal(repick.picks[0]!.selected, "game-8789");
 
   const single = harness([{ status: 200, body }]);
   assert.equal((await chooseGameServer(single.deps, "root", signal(),
-    new Set(["game-8788", "game-8789"]))).nodeId, "game-8790");
+    new Set(["lobby", "game-8788", "game-8789"]))).nodeId, "game-8790");
   assert.equal(single.picks.length, 0);
 
   const none = harness([{ status: 200, body: { dataNode: "data-1", servers: [entry("game-8788")] } }]);
-  await assert.rejects(chooseGameServer(none.deps, "root", signal(), new Set(["game-8788"])),
+  await assert.rejects(chooseGameServer(none.deps, "root", signal(), new Set(["lobby", "game-8788"])),
     { message: `${NO_GAME_SERVER_MESSAGE}刚才无法进入所选游戏服务器，请稍后再试。` });
   const rest = harness([{ status: 200, body: { dataNode: "data-1", servers: [
     entry("game-8788"), entry("game-8789", { full: true })] } }]);
-  await assert.rejects(chooseGameServer(rest.deps, "root", signal(), new Set(["game-8788"])),
+  await assert.rejects(chooseGameServer(rest.deps, "root", signal(), new Set(["lobby", "game-8788"])),
     { message: `${NO_GAME_SERVER_MESSAGE}在线的游戏服务器中，1 台刚才无法进入；1 台已满。` });
 });

@@ -99,7 +99,7 @@ Open the client at <http://127.0.0.1:8780/> (the script prints the exact address
 - `./run-lan.sh` lets other devices on the LAN play over HTTPS.
 - `./run-local.sh` serves the untouched original release at <http://127.0.0.1:8765/>.
 - For production, use `server-go/docker-compose.yml`.
-- To run game nodes on other machines (Linux or Windows), use `kart-node`, which sizes the player limit from the hardware: [`server-go/NODE.md`](server-go/NODE.md).
+- To run game nodes on other machines (Linux or Windows), use `kart-node`, which sizes the player limit from the hardware: [`server-go/NODE.md`](server-go/NODE.md). Players share one lobby on the data service, and each race goes to the node with the lowest latency for its room: [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md).
 - More detail:
   - Environment variables, APIs, deployment and tests: [`server-go/README.md`](server-go/README.md)
   - Client development: [`client/README.md`](client/README.md)
@@ -203,7 +203,7 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 - `./run-lan.sh`：让局域网设备通过 HTTPS 访问。
 - `./run-local.sh`：在 <http://127.0.0.1:8765/> 原样运行原版发行镜像。
 - 生产部署：使用 `server-go/docker-compose.yml`。
-- 在其他机器（Linux 或 Windows）上加游戏节点：使用按硬件自动设置人数的 `kart-node`，见 [`server-go/NODE.md`](server-go/NODE.md)。
+- 在其他机器（Linux 或 Windows）上加游戏节点：使用按硬件自动设置人数的 `kart-node`，见 [`server-go/NODE.md`](server-go/NODE.md)。所有玩家共用数据服务上的一个大厅，每局比赛自动去对全房间延迟最低的节点，见 [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md)。
 - 详细说明：
   - 环境变量、接口、部署与测试：[`server-go/README.md`](server-go/README.md)
   - 客户端开发：[`client/README.md`](client/README.md)
@@ -307,7 +307,7 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 - `./run-lan.sh`: 같은 LAN의 기기가 HTTPS로 접속할 수 있습니다.
 - `./run-local.sh`: 원본 배포 미러를 <http://127.0.0.1:8765/>에서 그대로 실행합니다.
 - 운영 배포: `server-go/docker-compose.yml`을 사용합니다.
-- 다른 서버(Linux 또는 Windows)에 게임 노드를 추가하려면 하드웨어에 맞춰 인원을 자동으로 정하는 `kart-node`를 사용합니다: [`server-go/NODE.md`](server-go/NODE.md).
+- 다른 서버(Linux 또는 Windows)에 게임 노드를 추가하려면 하드웨어에 맞춰 인원을 자동으로 정하는 `kart-node`를 사용합니다: [`server-go/NODE.md`](server-go/NODE.md). 모든 플레이어는 데이터 서비스의 로비 하나를 함께 쓰고, 각 레이스는 방 전체의 지연이 가장 낮은 노드에서 진행됩니다: [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md).
 - 자세한 내용:
   - 환경 변수, API, 배포, 테스트: [`server-go/README.md`](server-go/README.md)
   - 클라이언트 개발: [`client/README.md`](client/README.md)
