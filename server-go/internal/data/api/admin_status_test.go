@@ -93,8 +93,9 @@ func TestAdminLeavingSessionsAndOfflineNodes(t *testing.T) {
 		Stats  *contract.NodeStats
 	}
 	var nodes struct {
-		Nodes []nodeBody
-		Data  struct{ HeapMB float64 }
+		Nodes   []nodeBody
+		Choices []nodeChoice
+		Data    struct{ HeapMB float64 }
 	}
 	find := func(id string) *nodeBody {
 		for i := range nodes.Nodes {
@@ -106,7 +107,7 @@ func TestAdminLeavingSessionsAndOfflineNodes(t *testing.T) {
 	}
 	h.adminGet("/api/admin/nodes", &nodes)
 	if found := find(node); found == nil || found.Status != "ok" || found.Stats == nil || found.Stats.HeapMB != 0.6 ||
-		nodes.Data.HeapMB <= 0 {
+		nodes.Data.HeapMB <= 0 || nodes.Choices == nil {
 		t.Fatalf("nodes %+v", nodes)
 	}
 	older := "node-o-" + u

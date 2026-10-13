@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { websocketUrlForOffer } from "./client-websocket";
-import { enterRaceHost, reportNodeLatency, roomCameHome, type NodeClient,
+import { enterRaceHost, measureForRoom, reportNodeLatency, roomCameHome, type NodeClient,
   type RaceHostLobby } from "./race-host";
+import { connectedServerLabel, forgetConnectedClient, rememberConnectedClient } from "./server-latency";
 import { parseServerEvent } from "./server-events";
 
 class FakeClient implements NodeClient {
@@ -112,26 +113,76 @@ test("race-host for another room is ignored", async () => {
   assert.equal(created.length, 0);
 });
 
+const listed = (...servers: [string, string | null][]) => new Response(JSON.stringify({ dataNode: "data-1",
+  servers: servers.map(([nodeId, origin]) => ({ nodeId, name: nodeId, origin, players: 0, rooms: 0, capacity: 10,
+    full: false })) }));
+
 test("the lobby learns the round trip to each node", async () => {
   const { host, lobby } = lobbyHost();
   const fetched: string[] = [];
   host.nodeDependencies!.fetch = (async (url: string) => {
     fetched.push(url);
     if (url.endsWith("/multiplayer/game-servers")) {
-      return new Response(JSON.stringify({ dataNode: "data-1", servers: [
-        { nodeId: "node-a", name: "A", origin: "https://a.example", players: 0, rooms: 0, capacity: 10, full: false },
-        { nodeId: "node-b", name: "B", origin: null, players: 0, rooms: 0, capacity: 10, full: false },
-        { nodeId: "node-c", name: "C", origin: "https://down.example", players: 0, rooms: 0, capacity: 10, full: false },
-      ] }));
+      return listed(["node-a", "https://a.example"], ["node-b", null], ["node-c", "https://down.example"]);
     }
     if (url.startsWith("https://down.example")) throw new TypeError("unreachable");
     return new Response("{}");
   }) as typeof fetch;
   await reportNodeLatency(host);
-  const report = lobby.requests[0] as { type: string; latency: Record<string, number> };
+  const report = lobby.requests.at(-1) as { type: string; latency: Record<string, number> };
   assert.equal(report.type, "node-latency");
   assert.deepEqual(Object.keys(report.latency).sort(), ["node-a", "node-b"]);
   assert.ok(fetched.includes("https://kart.example/multiplayer/healthz"));
+});
+
+test("each node is reported once measured, without waiting for a slow one", async () => {
+  const { host, lobby } = lobbyHost();
+  let releaseSlow!: () => void;
+  const slow = new Promise<void>(resolve => { releaseSlow = resolve; });
+  let gone = false;
+  host.nodeDependencies!.fetch = (async (url: string) => {
+    if (url.endsWith("/multiplayer/game-servers")) {
+      return listed(["node-fast", "https://fast.example"], ["node-slow", "https://slow.example"]);
+    }
+    if (url.startsWith("https://slow.example")) await slow;
+    if (gone && url.startsWith("https://fast.example")) throw new TypeError("unreachable");
+    return new Response("{}");
+  }) as typeof fetch;
+  const round = reportNodeLatency(host);
+  assert.equal(reportNodeLatency(host), round, "one round at a time");
+  while (lobby.requests.length === 0) await new Promise(resolve => setTimeout(resolve, 1));
+  assert.deepEqual(Object.keys((lobby.requests[0] as any).latency), ["node-fast"]);
+  releaseSlow();
+  await round;
+  assert.deepEqual(Object.keys((lobby.requests.at(-1) as any).latency).sort(), ["node-fast", "node-slow"]);
+  // The next round loses the fast node: it leaves the report.
+  gone = true;
+  await reportNodeLatency(host);
+  assert.deepEqual(Object.keys((lobby.requests.at(-1) as any).latency), ["node-slow"]);
+  const sent = lobby.requests.length;
+  // Entering a room measures again, once per room; an unchanged report is not sent.
+  gone = false;
+  measureForRoom(host, "room-1");
+  await host.latencyRound;
+  assert.equal(lobby.requests.length, sent + 1);
+  measureForRoom(host, "room-1");
+  assert.equal(host.latencyRound, undefined);
+  measureForRoom(host, undefined);
+  measureForRoom(host, "room-1");
+  await host.latencyRound;
+  assert.equal(lobby.requests.length, sent + 1);
+});
+
+test("a node connection is labelled with the node's name", async () => {
+  const { host, created } = lobbyHost();
+  await enterRaceHost(host, assignment);
+  const node = created[0]!;
+  rememberConnectedClient(node);
+  try {
+    assert.equal(connectedServerLabel(), "节点 华东一区");
+  } finally {
+    forgetConnectedClient(node);
+  }
 });
 
 test("the lobby socket and its events", () => {

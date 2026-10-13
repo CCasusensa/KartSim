@@ -215,9 +215,42 @@ export interface GameNodesResponse {
   nodes: GameNodeRow[]
 }
 
+/** A player of a node pick: its latency report (node ID → ms; null: none yet) and whether it counted. */
+export interface NodeChoicePlayer {
+  name: string
+  counted: boolean
+  latency: Record<string, number> | null
+}
+
+/** A node at the time of a pick: its score as a candidate (worst counted ms), or why it was not one. */
+export interface NodeChoiceNode {
+  nodeId: string
+  name: string
+  players: number
+  capacity: number
+  score: number | null
+  excluded?: 'protocol' | 'full' | string
+}
+
+/** One of the global lobby's latest node picks (GLOBAL_LOBBY.md 4). */
+export interface NodeChoice {
+  at: number
+  kind: 'race' | 'city' | string
+  roomId?: string
+  roomName?: string
+  /** Empty when no node could take the players. */
+  nodeId: string
+  nodeName: string
+  error?: string
+  players: NodeChoicePlayer[]
+  nodes: NodeChoiceNode[]
+}
+
 export interface NodesResponse {
   now: number
   nodes: NodeRow[]
+  /** Newest first; absent from older data services. */
+  choices?: NodeChoice[]
   data: {
     version: string
     goVersion: string

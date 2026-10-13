@@ -40,6 +40,32 @@ const offlineNodes = [
     stats: { heapMB: 61.2, goroutines: 233, connections: 13, races: 1, version: 'v1.8.1' } },
 ]
 
+// The global lobby's latest node picks, newest first.
+const choiceNodes = (scores: Record<string, number>) => [
+  ...['node-a', 'node-idle-0a1b2c3d4e5f'].map((nodeId) => nodes.find((node) => node.nodeId === nodeId)!)
+    .map((node) => ({ nodeId: node.nodeId, name: node.name, players: node.players, capacity: node.capacity,
+      score: scores[node.nodeId] ?? 0 }))
+    .sort((a, b) => a.score - b.score),
+  { nodeId: 'node-b', name: '二区', players: 100, capacity: 100, score: null, excluded: 'full' },
+  { nodeId: 'node-old', name: '', players: 0, capacity: 50, score: null, excluded: 'protocol' },
+]
+const choices = [
+  { at: now - 40_000, kind: 'race', roomId: 'room-7f3a', roomName: '一起来跑', nodeId: 'node-idle-0a1b2c3d4e5f',
+    nodeName: '三区（备用）',
+    players: [{ name: '港仔', counted: false, latency: null },
+      { name: '穗城车神', counted: true, latency: { 'node-a': 46, 'node-idle-0a1b2c3d4e5f': 9, 'node-old': 7 } }],
+    nodes: choiceNodes({ 'node-a': 46, 'node-idle-0a1b2c3d4e5f': 9 }) },
+  { at: now - 5 * 60_000, kind: 'city', nodeId: 'node-a', nodeName: '一区',
+    players: [{ name: '小明', counted: true, latency: { 'node-a': 31 } }],
+    nodes: choiceNodes({ 'node-a': 31, 'node-idle-0a1b2c3d4e5f': 250 }) },
+  { at: now - 12 * 60_000, kind: 'race', roomId: 'room-19c0', roomName: '无人测速', nodeId: 'node-idle-0a1b2c3d4e5f',
+    nodeName: '三区（备用）', players: [{ name: 'A', counted: false, latency: null }, { name: 'B', counted: false, latency: null }],
+    nodes: choiceNodes({}) },
+  { at: now - 30 * 60_000, kind: 'race', roomId: 'room-0001', roomName: '满员了', nodeId: '', nodeName: '',
+    error: 'NO_GAME_SERVER', players: [{ name: 'C', counted: false, latency: null }],
+    nodes: [{ nodeId: 'node-b', name: '二区', players: 100, capacity: 100, score: null, excluded: 'full' }] },
+]
+
 const accounts: Row[] = Array.from({ length: 137 }, (_, i) => {
   const banned = i % 23 === 5
   return {
@@ -452,7 +478,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, next: () => voi
   if (path === '/api/admin/nodes') {
     const live = nodes.map((node) => ({ ...node, seenAt: node.status === 'stale' ? node.seenAt : Date.now() - 2000,
       players: Math.max(0, node.players + (node.players ? Math.round(Math.random() * 4 - 2) : 0)) }))
-    return send(res, 200, { now: Date.now(), nodes: redisDown ? [] : [...offlineNodes, ...live],
+    return send(res, 200, { now: Date.now(), nodes: redisDown ? [] : [...offlineNodes, ...live], choices,
       data: { version: 'dev', goVersion: 'go1.26.1', startedAt: now - 2 * day, goroutines: 88, heapMB: 42.7,
         mysql: { ok: true, latencyMs: 1, error: null }, redis: { ok: false, latencyMs: null, error: 'dial tcp 127.0.0.1:6379: connect: connection refused' } } })
   }

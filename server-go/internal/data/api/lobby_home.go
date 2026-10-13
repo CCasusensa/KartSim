@@ -1,11 +1,9 @@
 package api
 
 import (
-	"cmp"
 	"context"
 	"encoding/json"
 	"net/http"
-	"slices"
 	"sync"
 	"time"
 
@@ -34,8 +32,6 @@ const (
 	unclaimedHandoff = 30 * time.Second
 	// longestRace brings back a room whose node never returned it.
 	longestRace = 45 * time.Minute
-	// unknownLatency is assumed for a node a player has not measured.
-	unknownLatency = 250
 	// lobbyMaxPlayers is how many players the lobby takes.
 	lobbyMaxPlayers = 10_000
 )
@@ -54,6 +50,8 @@ type lobbyHome struct {
 
 	mu       sync.Mutex
 	handoffs map[string]*handoffRecord
+	// choices are the latest node picks, newest last (the console's 最近分配).
+	choices []nodeChoice
 }
 
 // handoffRecord is a room handed to a node, until it comes back.
@@ -90,18 +88,16 @@ func newLobbyHome(a *API, compression bool) *lobbyHome {
 // Handoff picks the node for a room and signs its members' tickets.
 func (h *lobbyHome) Handoff(ctx context.Context, handoff contract.RoomHandoff,
 	latency map[string]map[string]int) (lobby.HandoffPlan, error) {
-	node, err := h.pickNode(ctx, len(handoff.Room.Members), func(nodeID string) int {
-		worst := 0
-		for _, m := range handoff.Room.Members {
-			ms, measured := latency[m.PlayerID][nodeID]
-			if !measured {
-				ms = unknownLatency
-			}
-			worst = max(worst, ms)
-		}
-		return worst
-	})
+	choice := nodeChoice{Kind: choiceRace, RoomID: handoff.Room.RoomID, RoomName: handoff.Room.Name}
+	reports := make([]map[string]int, len(handoff.Room.Members))
+	for i, m := range handoff.Room.Members {
+		reports[i] = latency[m.PlayerID]
+		choice.Players = append(choice.Players, choicePlayer{Name: m.Name, Latency: reports[i]})
+	}
+	node, err := h.pickNode(ctx, &choice, reports)
 	if err != nil {
+		h.a.log.Warn("no game node for a room", "room", handoff.Room.RoomID, "error", err,
+			"latency", choice.logLatency(), "scores", choice.logScores())
 		return lobby.HandoffPlan{}, err
 	}
 	plan := lobby.HandoffPlan{Node: h.entry(node), Tickets: map[string]string{}}
@@ -113,18 +109,15 @@ func (h *lobbyHome) Handoff(ctx context.Context, handoff contract.RoomHandoff,
 	h.handoffs[handoff.HandoffID] = &handoffRecord{handoff: handoff, nodeID: node.NodeID, createdAt: h.a.now()}
 	h.mu.Unlock()
 	h.a.log.Info("room handed to a game node", "room", handoff.Room.RoomID, "handoff", handoff.HandoffID,
-		"node", node.NodeID, "racers", len(handoff.Room.Members))
+		"node", node.NodeID, "racers", len(handoff.Room.Members), "latency", choice.logLatency(),
+		"scores", choice.logScores())
 	return plan, nil
 }
 
 // CityHost picks the node of a player's city line.
 func (h *lobbyHome) CityHost(ctx context.Context, player lobby.CityPlayer) (lobby.NodeEntry, error) {
-	node, err := h.pickNode(ctx, 1, func(nodeID string) int {
-		if ms, measured := player.Latency[nodeID]; measured {
-			return ms
-		}
-		return unknownLatency
-	})
+	choice := nodeChoice{Kind: choiceCity, Players: []choicePlayer{{Name: player.Name, Latency: player.Latency}}}
+	node, err := h.pickNode(ctx, &choice, []map[string]int{player.Latency})
 	if err != nil {
 		return lobby.NodeEntry{}, err
 	}
@@ -144,10 +137,9 @@ func (h *lobbyHome) sign(node cache.Node, claims ticket.Claims) string {
 	return signed
 }
 
-// pickNode chooses the game node for players: among the nodes with room
-// for them, the one whose worst latency is lowest (score), then the least
-// loaded.
-func (h *lobbyHome) pickNode(ctx context.Context, players int, score func(nodeID string) int) (cache.Node, error) {
+// pickNode chooses the game node for players (their latency reports, see
+// pickNode) from the registry and keeps the record of the choice.
+func (h *lobbyHome) pickNode(ctx context.Context, choice *nodeChoice, latency []map[string]int) (cache.Node, error) {
 	if h.a.cluster == nil {
 		return cache.Node{}, errNoGameServer
 	}
@@ -155,29 +147,14 @@ func (h *lobbyHome) pickNode(ctx context.Context, players int, score func(nodeID
 	if err != nil {
 		return cache.Node{}, errServiceUnavailable
 	}
-	best, found := pickNode(nodes, players, score)
-	if !found {
+	pick := pickNode(nodes, latency)
+	choice.At = h.a.nowMillis()
+	choice.describe(nodes, pick)
+	h.remember(*choice)
+	if !pick.found {
 		return cache.Node{}, errNoGameServer
 	}
-	return best, nil
-}
-
-// pickNode is the choice of lobbyHome.pickNode.
-func pickNode(nodes []cache.Node, players int, score func(nodeID string) int) (cache.Node, bool) {
-	var candidates []cache.Node
-	for _, node := range nodes {
-		if node.ProtocolVersion == contract.ProtocolVersion && node.Players+players <= node.Capacity {
-			candidates = append(candidates, node)
-		}
-	}
-	if len(candidates) == 0 {
-		return cache.Node{}, false
-	}
-	load := func(n cache.Node) float64 { return float64(n.Players) / float64(max(n.Capacity, 1)) }
-	return slices.MinFunc(candidates, func(a, b cache.Node) int {
-		return cmp.Or(cmp.Compare(score(a.NodeID), score(b.NodeID)), cmp.Compare(load(a), load(b)),
-			cmp.Compare(a.NodeID, b.NodeID))
-	}), true
+	return pick.node, nil
 }
 
 // claim gives a node the room it was handed (the first racer's hello).

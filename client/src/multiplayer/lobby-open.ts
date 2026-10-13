@@ -1,6 +1,7 @@
 import { formatMultiplayerError } from "./errors";
 import { LOBBY_NODE_ID, type GameServer, type GameServerEntry } from "./game-servers";
 import { enterCityOnNode, startLatencyReports, type NodeClient, type RaceHostLobby } from "./race-host";
+import { labelConnectedServer } from "./server-latency";
 import type { Gameplay, RoomSummary } from "./lobby-actions";
 
 export interface LobbyOpenView {
@@ -246,6 +247,8 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
     }
     if (host.disposed) return;
     if (response.type !== "welcome") throw new Error("房间服务身份未确认");
+    labelConnectedServer(host.client,
+      server.nodeId === LOBBY_NODE_ID ? server.name : `节点 ${server.name || server.nodeId}`);
     host.playerId = response.playerId!;
     host.connected = true;
     if (server.nodeId === LOBBY_NODE_ID) {

@@ -1,4 +1,4 @@
-import { measureGameServerLatency } from "../multiplayer/server-latency";
+import { connectedServerLabel, measureGameServerLatency } from "../multiplayer/server-latency";
 import { formatDiagnosticsLines } from "./engine-diagnostics";
 import { PerformanceCounter } from "./performance-counter";
 
@@ -43,13 +43,15 @@ function sumProgress(entries: Iterable<{ loaded: number; total: number }>) {
 }
 
 /**
- * F10 overlay text: the game-server round trip, then the frame rate. Only the
- * frame rate without a game server; `null` (no clock reply) shows `--`.
+ * F10 overlay text: the server measured (节点 华东一区), its round trip, then
+ * the frame rate. Only the frame rate without a game server; `null` (no clock
+ * reply) shows `--`.
  */
-export function formatNetStats(latencyMs: number | null | undefined, fps: number): string {
+export function formatNetStats(latencyMs: number | null | undefined, fps: number, server?: string): string {
   const frames = `FPS ${Math.round(fps)}`;
   if (latencyMs === undefined) return frames;
-  return `延迟 ${latencyMs === null ? "--" : `${Math.round(latencyMs)} ms`}  ${frames}`;
+  const latency = `延迟 ${latencyMs === null ? "--" : `${Math.round(latencyMs)} ms`}  ${frames}`;
+  return server ? `${server}  ${latency}` : latency;
 }
 
 /** Writes text to the clipboard, with a fallback for older browsers. */
@@ -147,6 +149,8 @@ export class HudOverlay {
   latencyProbing = false;
   /** Undefined without a game server; null when its clock reply failed. */
   latencyMs?: number | null;
+  /** The server latencyMs was measured on (节点 华东一区). */
+  serverLabel?: string;
   copyLabelTimer = 0;
   latestState: unknown;
   latestFps = 0;
@@ -443,6 +447,7 @@ export class HudOverlay {
     this.netStats.hidden = !visible;
     this.netStatsShowing++;
     this.latencyMs = undefined;
+    this.serverLabel = undefined;
     window.clearInterval(this.latencyTimer);
     this.latencyTimer = 0;
     if (!visible) return;
@@ -459,6 +464,7 @@ export class HudOverlay {
       this.latencyProbing = false;
       if (showing !== this.netStatsShowing) return;
       this.latencyMs = latencyMs;
+      this.serverLabel = latencyMs === undefined ? undefined : connectedServerLabel();
       this.refreshNetStats(performance.now(), true);
     });
   };
@@ -466,7 +472,7 @@ export class HudOverlay {
   refreshNetStats(now: number, force = false): void {
     if (!this.netStatsVisible || (!force && now < this.nextNetStatsRefreshMs)) return;
     this.nextNetStatsRefreshMs = now + PANEL_REFRESH_MS;
-    this.netStats.textContent = formatNetStats(this.latencyMs, this.latestFps);
+    this.netStats.textContent = formatNetStats(this.latencyMs, this.latestFps, this.serverLabel);
   }
 
   onCopyPerformance = (): void => {};

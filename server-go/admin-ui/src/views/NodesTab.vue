@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { Refresh } from '@element-plus/icons-vue'
 import { api, errorMessage } from '../api/client'
-import type { NodeRow, NodesResponse, ProbeStatus } from '../api/types'
+import type { NodeChoice, NodeChoiceNode, NodeChoicePlayer, NodeRow, NodesResponse, ProbeStatus } from '../api/types'
 import { useNarrow } from '../composables/useNarrow'
 import { useTab } from '../composables/useTabs'
 import { formatHeap, formatNumber, text, type TagType } from '../utils/format'
@@ -96,6 +96,39 @@ function usageColor(row: NodeRow) {
   if (value >= 90) return 'var(--el-color-danger)'
   if (value >= 70) return 'var(--el-color-warning)'
   return 'var(--el-color-success)'
+}
+
+// 最近分配: the global lobby's node picks, newest first (kept in memory,
+// the latest 100).
+const choices = computed(() => data.value?.choices ?? [])
+
+const excludedLabels: Record<string, string> = { protocol: '协议版本不同', full: '容量不足' }
+
+function nodeLabel(choice: NodeChoice, nodeId: string) {
+  return choice.nodes.find((node) => node.nodeId === nodeId)?.name || nodeId
+}
+
+/** A player's report, in the order of the pick's nodes: "一区（46 ms）· 三区（9 ms）". */
+function playerLatency(choice: NodeChoice, player: NodeChoicePlayer) {
+  const latency = player.latency
+  if (!latency) return '未测速'
+  const rank = (id: string) => {
+    const index = choice.nodes.findIndex((node) => node.nodeId === id)
+    return index < 0 ? choice.nodes.length : index
+  }
+  const ids = Object.keys(latency).sort((a, b) => rank(a) - rank(b))
+  return ids.map((id) => `${nodeLabel(choice, id)}（${latency[id]} ms）`).join(' · ') || '无数据'
+}
+
+/** Nobody's latency counted: every node scored 0 and the load decided. */
+function nobodyCounted(choice: NodeChoice) {
+  return choice.players.every((player) => !player.counted)
+}
+
+function nodeScore(choice: NodeChoice, node: NodeChoiceNode) {
+  if (node.score == null) return excludedLabels[node.excluded ?? ''] ?? (node.excluded || '—')
+  if (nobodyCounted(choice)) return `负载 ${node.players}/${node.capacity}`
+  return `${node.score} ms`
 }
 
 function probe(value: ProbeStatus | null | undefined) {
@@ -221,6 +254,56 @@ function probe(value: ProbeStatus | null | undefined) {
         </el-table-column>
       </el-table>
     </el-card>
+
+    <el-card shadow="never" class="page-card">
+      <template #header>
+        <div class="card-head">
+          <span>最近分配（{{ choices.length }}）</span>
+          <span class="muted small">
+            得分 = 房间里延迟最高的人到该节点的延迟，取最低；没测速的玩家不计，测过别的节点却没测到这个节点按 250 ms；同分选负载低的。保留最近 100 次，数据服务重启后清空
+          </span>
+        </div>
+      </template>
+      <el-table v-loading="loading && !data" :data="choices" border stripe size="small" empty-text="还没有分配记录">
+        <el-table-column label="时间" width="160">
+          <template #default="{ row }">
+            <div>{{ formatAgo(data?.now ?? Date.now(), row.at) }}</div>
+            <div class="muted small">{{ formatTime(row.at) }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="用途 / 房间" min-width="160">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.kind === 'race' ? 'primary' : 'success'" disable-transitions>
+              {{ row.kind === 'race' ? '比赛' : '卡丁城' }}
+            </el-tag>
+            <span v-if="row.roomName" class="room-name">{{ row.roomName }}</span>
+            <div v-if="row.roomId" class="muted mono small ellipsis" :title="row.roomId">{{ row.roomId }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="分到" min-width="140">
+          <template #default="{ row }">
+            <span v-if="row.nodeId">{{ row.nodeName || row.nodeId }}</span>
+            <span v-else class="error-text">没有可用节点</span>
+            <div v-if="row.nodeId && nobodyCounted(row)" class="muted small">无人测速，按负载选</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="玩家测到的延迟" min-width="280">
+          <template #default="{ row }">
+            <div v-for="(player, index) in row.players" :key="index" :class="{ muted: !player.counted }">
+              <strong>{{ player.name }}</strong>：{{ playerLatency(row, player) }}<span v-if="!player.counted">（不计）</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="各节点得分" min-width="220">
+          <template #default="{ row }">
+            <div v-for="node in row.nodes" :key="node.nodeId" :class="{ muted: node.score == null }">
+              {{ node.name || node.nodeId }}：{{ nodeScore(row, node) }}
+              <el-tag v-if="node.nodeId === row.nodeId" size="small" type="success" disable-transitions>选中</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
   </div>
 </template>
 
@@ -252,6 +335,9 @@ function probe(value: ProbeStatus | null | undefined) {
 .error-text {
   color: var(--el-color-danger);
   font-size: 12px;
+}
+.room-name {
+  margin-left: 6px;
 }
 .ellipsis {
   overflow: hidden;

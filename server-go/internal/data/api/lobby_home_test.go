@@ -146,6 +146,12 @@ func TestGlobalLobbyHandsRoomsToNodes(t *testing.T) {
 		claims.Handoff == "" || claims.AccountID == "" {
 		t.Fatalf("race ticket %+v %v", claims, err)
 	}
+	// The console keeps why the node was picked.
+	if choices := h.api.lobby.recent(); len(choices) != 1 || choices[0].Kind != choiceRace || choices[0].NodeID != near ||
+		choices[0].RoomID != roomID || choices[0].RoomName != "全局房间" || len(choices[0].Players) != 2 ||
+		!choices[0].Players[0].Counted || len(choices[0].Nodes) != 2 || *choices[0].Nodes[0].Score != 30 {
+		t.Fatalf("node choices %+v", choices)
+	}
 
 	// Only the chosen node may claim it, and only while it is away.
 	h.call(contract.PathRoomClaim, contract.RoomClaimRequest{NodeID: far, HandoffID: claims.Handoff}).
@@ -207,15 +213,73 @@ func TestPickNode(t *testing.T) {
 		{NodeID: "c", Capacity: 100, Players: 10, ProtocolVersion: contract.ProtocolVersion},
 		{NodeID: "old", Capacity: 100, ProtocolVersion: 39},
 	}
-	latency := map[string]int{"a": 10, "b": 40, "c": 40, "old": 1}
-	score := func(id string) int { return latency[id] }
-	if got, _ := pickNode(nodes, 2, score); got.NodeID != "c" {
-		t.Fatalf("picked %s, want c (a is full for 2, b and c tie on latency, c is emptier)", got.NodeID)
+	report := map[string]int{"a": 10, "b": 40, "c": 40, "old": 1}
+	pick := pickNode(nodes, []map[string]int{report, report})
+	if !pick.found || pick.node.NodeID != "c" {
+		t.Fatalf("picked %s, want c (a is full for 2, b and c tie on latency, c is emptier)", pick.node.NodeID)
 	}
-	if got, _ := pickNode(nodes, 1, score); got.NodeID != "a" {
-		t.Fatalf("picked %s, want a", got.NodeID)
+	if pick.excluded["a"] != excludedFull || pick.excluded["old"] != excludedProtocol || pick.scores["b"] != 40 {
+		t.Fatalf("pick %+v", pick)
 	}
-	if _, found := pickNode(nodes[3:], 1, score); found {
+	if pick := pickNode(nodes, []map[string]int{report}); pick.node.NodeID != "a" {
+		t.Fatalf("picked %s, want a", pick.node.NodeID)
+	}
+	if pick := pickNode(nodes[3:], []map[string]int{report}); pick.found {
 		t.Fatal("picked a node of another protocol")
+	}
+}
+
+// A player without a latency report does not make every node score the
+// same: the others' reports still choose the node.
+func TestPickNodeSkipsUnmeasuredPlayers(t *testing.T) {
+	nodes := []cache.Node{
+		{NodeID: "bj", Capacity: 400, ProtocolVersion: contract.ProtocolVersion},
+		{NodeID: "gz", Capacity: 100, Players: 20, ProtocolVersion: contract.ProtocolVersion},
+		{NodeID: "old", Capacity: 100, ProtocolVersion: 39},
+	}
+	gz := map[string]int{"bj": 45, "gz": 8}
+	pick := pickNode(nodes, []map[string]int{nil, gz})
+	if pick.node.NodeID != "gz" || pick.counted[0] || !pick.counted[1] || pick.scores["gz"] != 8 {
+		t.Fatalf("pick %+v, want gz on the measured player's latency", pick)
+	}
+	// A report of only nodes that cannot take the room does not count either.
+	pick = pickNode(nodes, []map[string]int{{"old": 5}, gz})
+	if pick.node.NodeID != "gz" || pick.counted[0] {
+		t.Fatalf("pick %+v", pick)
+	}
+	// A counted player who did not reach a node makes it unknownLatency.
+	hk := map[string]int{"bj": 60}
+	pick = pickNode(nodes, []map[string]int{hk, gz})
+	if pick.node.NodeID != "bj" || pick.scores["gz"] != unknownLatency || pick.scores["bj"] != 60 {
+		t.Fatalf("pick %+v, want bj (hk never reached gz)", pick)
+	}
+	// Nobody measured: every node scores 0 and the emptiest wins.
+	pick = pickNode(nodes, []map[string]int{nil, nil})
+	if pick.node.NodeID != "bj" || pick.scores["gz"] != 0 {
+		t.Fatalf("pick %+v, want the emptiest", pick)
+	}
+}
+
+// The record of a pick lists the candidates by score, then the excluded.
+func TestNodeChoiceRecord(t *testing.T) {
+	nodes := []cache.Node{
+		{NodeID: "old", Name: "旧", Capacity: 100, ProtocolVersion: 39},
+		{NodeID: "bj", Name: "北京", Capacity: 400, ProtocolVersion: contract.ProtocolVersion},
+		{NodeID: "gz", Name: "广州", Capacity: 100, ProtocolVersion: contract.ProtocolVersion},
+	}
+	choice := nodeChoice{Players: []choicePlayer{{Name: "港"}, {Name: "穗", Latency: map[string]int{"bj": 45, "gz": 8}}}}
+	choice.describe(nodes, pickNode(nodes, []map[string]int{nil, choice.Players[1].Latency}))
+	if choice.NodeID != "gz" || choice.NodeName != "广州" || choice.Players[0].Counted || !choice.Players[1].Counted {
+		t.Fatalf("choice %+v", choice)
+	}
+	if order := []string{choice.Nodes[0].NodeID, choice.Nodes[1].NodeID, choice.Nodes[2].NodeID}; order[0] != "gz" ||
+		order[1] != "bj" || order[2] != "old" || choice.Nodes[2].Excluded != excludedProtocol || choice.Nodes[2].Score != nil {
+		t.Fatalf("nodes %+v", choice.Nodes)
+	}
+	if got := choice.logLatency(); got != "港{未测速} 穗{bj:45 gz:8}" {
+		t.Fatalf("latency log %q", got)
+	}
+	if got := choice.logScores(); got != "gz=8 bj=45 old=protocol" {
+		t.Fatalf("scores log %q", got)
 	}
 }

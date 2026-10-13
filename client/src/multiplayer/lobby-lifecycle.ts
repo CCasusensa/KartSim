@@ -1,7 +1,7 @@
 import { cheatKickMessage, cheatKickOf, type CheatKick } from "./cheat-kick";
 import type { LobbyRoom } from "./lobby-actions";
-import { disposeNodeClients, dropNodeClients, enterRaceHost, roomCameHome, type NodeAssignment,
-  type RaceHostLobby } from "./race-host";
+import { disposeNodeClients, dropNodeClients, enterRaceHost, measureForRoom, roomCameHome,
+  type NodeAssignment, type RaceHostLobby } from "./race-host";
 
 interface Disposable { dispose(): void }
 
@@ -73,6 +73,7 @@ export function bindLobbyClient(host: LobbyLifecycleHost): void {
     }
     host.receive(event);
     if (typed?.type === "room" && current()) roomCameHome(nodes, typed.room?.roomId);
+    if (current() && !nodes.raceClient) measureForRoom(nodes, host.state.room?.roomId);
   });
   client.onClose(() => {
     if (host.disposed || !current() || !host.connected) return;

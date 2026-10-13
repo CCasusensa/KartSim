@@ -6,6 +6,20 @@ export interface LatencyClient {
 /** Game-server connections that finished `hello`, newest last. */
 const connectedClients = new Set<LatencyClient>();
 
+/** What the F10 readout calls each connection's server (节点 华东一区). */
+const serverLabels = new WeakMap<object, string>();
+
+/** Name the server a connection reaches, for the F10 readout. */
+export function labelConnectedServer(client: object, label: string): void {
+  serverLabels.set(client, label);
+}
+
+/** The label of the server the newest connection reaches, if it has one. */
+export function connectedServerLabel(): string | undefined {
+  const client = [...connectedClients].at(-1);
+  return client && serverLabels.get(client);
+}
+
 export function rememberConnectedClient(client: LatencyClient): void {
   connectedClients.delete(client);
   connectedClients.add(client);

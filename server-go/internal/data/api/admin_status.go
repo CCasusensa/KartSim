@@ -311,7 +311,8 @@ func (a *API) offlineNodes(ctx context.Context, live []cache.NodeOnline) []cache
 // a day that are no longer registered (offline, as their last heartbeat
 // left them), and the data service's own build, start, goroutines, heap
 // in use (MB, one decimal) and MySQL and Redis checks. nodes is empty while
-// Redis is unavailable.
+// Redis is unavailable. choices are the global lobby's latest node picks,
+// newest first (lobby_node_choice.go).
 func (a *API) adminNodes(w http.ResponseWriter, r *http.Request) error {
 	if _, err := a.requireAdmin(r); err != nil {
 		return err
@@ -355,8 +356,9 @@ func (a *API) adminNodes(w http.ResponseWriter, r *http.Request) error {
 		heapMB = contract.RoundMB(sample[0].Value.Uint64())
 	}
 	return writeJSON(w, http.StatusOK, map[string]any{
-		"now":   now,
-		"nodes": nodes,
+		"now":     now,
+		"nodes":   nodes,
+		"choices": a.lobby.recent(),
 		"data": map[string]any{
 			"version": buildinfo.Version(), "goVersion": runtime.Version(), "startedAt": a.startedAt,
 			"goroutines": runtime.NumGoroutine(), "heapMB": heapMB, "mysql": mysql, "redis": redis,

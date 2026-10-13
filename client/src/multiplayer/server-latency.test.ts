@@ -4,7 +4,7 @@ import test from "node:test";
 import { disposeClient, type ClientControlHost } from "./client-control";
 import { ClockSynchronizer, MotionRoundTripTracker } from "./network-timing";
 import { GameMotionDecoder } from "./payload";
-import { forgetConnectedClient, measureGameServerLatency,
+import { connectedServerLabel, forgetConnectedClient, labelConnectedServer, measureGameServerLatency,
   rememberConnectedClient } from "./server-latency";
 
 test("the newest game connection answers a clock request", async () => {
@@ -48,4 +48,22 @@ test("disposing a client stops it being probed", async () => {
   rememberConnectedClient(host);
   disposeClient(host);
   assert.equal(await measureGameServerLatency(() => 0), undefined);
+});
+
+test("the newest connection names the server it reaches", () => {
+  const lobby = { request: async () => ({}) };
+  const node = { request: async () => ({}) };
+  labelConnectedServer(lobby, "多人大厅");
+  labelConnectedServer(node, "节点 华南一区");
+  rememberConnectedClient(lobby);
+  try {
+    assert.equal(connectedServerLabel(), "多人大厅");
+    rememberConnectedClient(node);
+    assert.equal(connectedServerLabel(), "节点 华南一区");
+    forgetConnectedClient(node);
+    assert.equal(connectedServerLabel(), "多人大厅");
+  } finally {
+    forgetConnectedClient(lobby);
+  }
+  assert.equal(connectedServerLabel(), undefined);
 });

@@ -13,6 +13,7 @@ import { beginCityLoading } from "../city/city-loading";
 import { cheatKickMessage, cheatKickOf, type CheatKick } from "./cheat-kick";
 import { formatMultiplayerError } from "./errors";
 import { gameServerOfferUrl, parseGameServerList } from "./game-servers";
+import { labelConnectedServer } from "./server-latency";
 
 /** The connection API this module needs (the release LT client). */
 export interface NodeClient {
@@ -58,6 +59,12 @@ export interface RaceHostLobby {
   onCityClosed?: () => void;
   nodeDependencies?: NodeHostDependencies;
   latencyTimer?: ReturnType<typeof setInterval>;
+  /** The latency round under way (reportNodeLatency). */
+  latencyRound?: Promise<void>;
+  /** The last latency report the lobby got (node ID → ms). */
+  nodeLatency?: Record<string, number>;
+  /** The lobby room this player last measured for (measureForRoom). */
+  measuredRoomId?: string;
   cheatKick?: CheatKick;
   playerId: string;
   accountNickname?: string;
@@ -92,6 +99,7 @@ function nodeOfferUrl(deps: NodeHostDependencies, origin: string | null): string
 /** Connect a new client to a node with the lobby's ticket for it. */
 async function connectNode(host: RaceHostLobby, client: NodeClient, assignment: NodeAssignment): Promise<void> {
   const deps = host.nodeDependencies!;
+  labelConnectedServer(client, `节点 ${assignment.name || assignment.nodeId}`);
   const welcome = await client.connect(nodeOfferUrl(deps, assignment.origin), host.accountNickname ?? "",
     host.options.version, host.options.currentEquipment?.() ?? host.options.initialEquipment,
     host.options.initial, !!host.options.raceLoader, assignment.ticket);
@@ -201,9 +209,20 @@ export function disposeNodeClients(host: RaceHostLobby): void {
 /**
  * Measure the round trip to every game node (the best of two healthz
  * fetches) and tell the lobby, which races each room on the node that suits
- * all its players best.
+ * all its players best. Each node is reported as soon as it is measured, so a
+ * slow or unreachable one holds nothing up; a node not reached this time is
+ * dropped from the report. One round runs at a time.
  */
-export async function reportNodeLatency(host: RaceHostLobby): Promise<void> {
+export function reportNodeLatency(host: RaceHostLobby): Promise<void> {
+  if (host.latencyRound) return host.latencyRound;
+  const round = measureNodes(host).finally(() => {
+    if (host.latencyRound === round) host.latencyRound = undefined;
+  });
+  host.latencyRound = round;
+  return round;
+}
+
+async function measureNodes(host: RaceHostLobby): Promise<void> {
   const deps = host.nodeDependencies;
   const lobby = host.lobbyClient;
   if (!deps || !lobby || host.disposed) return;
@@ -213,13 +232,25 @@ export async function reportNodeLatency(host: RaceHostLobby): Promise<void> {
   try {
     const response = await fetchImpl(deps.endpoint("game-servers", page),
       { cache: "no-store", credentials: "same-origin" });
-    servers = parseGameServerList(await response.json()).servers;
+    servers = parseGameServerList(await response.json()).servers.slice(0, 64);
   } catch {
     return;
   }
   const origin = backendOrigin(deps);
+  // The listed nodes keep their last round trip until measured again.
   const latency: Record<string, number> = {};
-  await Promise.all(servers.slice(0, 64).map(async server => {
+  for (const server of servers) {
+    const last = host.nodeLatency?.[server.nodeId];
+    if (last !== undefined) latency[server.nodeId] = last;
+  }
+  const report = async () => {
+    if (host.disposed || host.lobbyClient !== lobby) return;
+    const current = { ...latency };
+    if (host.nodeLatency && sameLatency(host.nodeLatency, current)) return;
+    host.nodeLatency = current;
+    await lobby.request({ type: "node-latency", latency: current }).catch(() => {});
+  };
+  await Promise.all(servers.map(async server => {
     let best = Infinity;
     for (let attempt = 0; attempt < 2; attempt++) {
       const started = performance.now();
@@ -230,9 +261,24 @@ export async function reportNodeLatency(host: RaceHostLobby): Promise<void> {
       } catch { /* unreachable: not measured */ }
     }
     if (Number.isFinite(best)) latency[server.nodeId] = Math.min(Math.round(best), 60_000);
+    else delete latency[server.nodeId];
+    await report();
   }));
-  if (!Object.keys(latency).length || host.disposed || host.lobbyClient !== lobby) return;
-  await lobby.request({ type: "node-latency", latency }).catch(() => {});
+}
+
+function sameLatency(a: Record<string, number>, b: Record<string, number>): boolean {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every(key => a[key] === b[key]);
+}
+
+/**
+ * The player is in lobby room roomId (undefined: in none): entering a room
+ * measures again, so the room starts on fresh round trips.
+ */
+export function measureForRoom(host: RaceHostLobby, roomId: string | undefined): void {
+  if (roomId === host.measuredRoomId) return;
+  host.measuredRoomId = roomId;
+  if (roomId) void reportNodeLatency(host);
 }
 
 /** Start the periodic latency reports of a lobby that just connected. */

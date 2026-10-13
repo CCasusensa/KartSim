@@ -18,8 +18,10 @@ bundle. It can be developed independently of the original minified code.
   a second connection to the room's game node and points `host.client` at it,
   so the room and race code talks to the node; the lobby's snapshot of the
   room (or the node's `room-home`) switches back. It also measures the round
-  trip to every node for the lobby (`node-latency`) and opens the 卡丁城 on
-  the node `city-host` names.
+  trip to every node for the lobby (`node-latency`, each node reported once
+  measured, again on entering a room) and opens the 卡丁城 on the node
+  `city-host` names. Each node connection is labelled with the node's name
+  for the F10 readout (`server-latency.ts`).
 - `http.ts`: health/version check, account and guest-name API, session token,
   SDP offer/answer exchange, and sanitized ICE servers.
 - `protocol.ts`: the known control message names, core message types, and
