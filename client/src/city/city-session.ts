@@ -200,6 +200,14 @@ export class CitySession {
     presenter.hud?.ui?.setTimeInfoVisible?.(false);
     // No rank board in the city: the HUD gets no board, only the minimap markers.
     const hud = presenter.hud;
+    // The city's dense street map needs more contrast than the native 30% opacity.
+    hud?.ui?.minimap?.mapScene?.object?.traverse((node: any) => {
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      for (const material of materials) {
+        const alpha = material?.uniforms?.textureAlpha;
+        if (alpha) alpha.value = 0.85;
+      }
+    });
     if (hud && typeof hud.update === "function") {
       const update = hud.update.bind(hud);
       hud.update = (race: unknown, time: number, ghosts: unknown[]) => update(race, time, ghosts, undefined);

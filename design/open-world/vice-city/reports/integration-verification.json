@@ -16,12 +16,12 @@
     "streetDriveMeters": 24.919500203126297,
     "bridgeDriveMeters": 35.51667569461176,
     "bridgeSettledHeight": 25.1474609375,
-    "parkedAt": "spawn-main",
+    "parkedAt": "spawn-havana",
     "screenshots": [
-      "game-ocean-beach.png",
-      "game-bridge.png",
-      "preview-overview.png"
-    ]
+      "../assets/game-half-size.png"
+    ],
+    "halfSizeStreetDriveMeters": 22.282483548263475,
+    "mapOpacity": 0.85
   },
   "onlineSmoke": {
     "passed": true,
@@ -41,6 +41,11 @@
     "containerRegistration": "passed",
     "scopedTypescript": "passed",
     "groundSnapAndCity": "7 passed",
-    "clientTargetedBeforeGroundSnap": "10 passed, resource-lookup blocked by pre-existing missing recovered/formatted/index.js"
-  }
+    "clientTargetedBeforeGroundSnap": "10 passed, resource-lookup blocked by pre-existing missing recovered/formatted/index.js",
+    "postMergeClientTargeted": "19 passed",
+    "postMergeGo": "city, lobby and data/api passed",
+    "productionBuild": "passed"
+  },
+  "vehicleScale": 0.5,
+  "mergedRemoteMain": "e9d935a6"
 }

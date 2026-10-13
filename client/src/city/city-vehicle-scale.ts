@@ -1,5 +1,5 @@
 /** City karts use the same size for collision, wheel footprint and presentation. */
-export const CITY_VEHICLE_SCALE = 0.75;
+export const CITY_VEHICLE_SCALE = 0.5;
 
 interface ScaleVector { x: number; y: number; z: number }
 interface CityVehicle {
