@@ -162,3 +162,23 @@ test("roadblock races announce the local player's reward", async () => {
   announceRoadblockReward(undefined, "runner", message => shown.push(message));
   assert.deepEqual(shown, ["本局奖励 +60经验 +90金币"]);
 });
+
+test("升级名单查到后交给颁奖台；没有比赛号、会话或没人升级时不打扰", async () => {
+  const { revealRaceLevelUps } = await import("./race-presenter-results");
+  const shown: string[][] = [];
+  const award = { showLevelUps: (ids: readonly string[]) => { shown.push([...ids]); } };
+  const session = { requestJson: async () => ({}) };
+  const asked: string[] = [];
+  const fetch = async (_session: unknown, raceId: string) => {
+    asked.push(raceId);
+    return raceId === "nobody" ? [] : [{ playerId: "p3", level: 5 }, { playerId: "p1", level: 9 }];
+  };
+  revealRaceLevelUps(award, "race-1", session, fetch);
+  revealRaceLevelUps(award, "nobody", session, fetch);
+  revealRaceLevelUps(award, undefined, session, fetch);
+  revealRaceLevelUps(award, "race-2", undefined, fetch);
+  revealRaceLevelUps({}, "race-3", session, fetch);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(asked, ["race-1", "nobody"]);
+  assert.deepEqual(shown, [["p3", "p1"]]);
+});

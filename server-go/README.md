@@ -425,6 +425,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `GET /api/race-results?name=` | 最近 100 条多人比赛名次 |
 | `GET /api/race-outcomes?gameplay=` | 最近 100 局完整赛程快照（含没有名次的挡人胜负） |
 | `GET /api/room-rules` | 最近 100 份房间规则 |
+| `GET /api/races/{raceId}/level-ups` | **新增**。Bearer；这局比赛经验让谁升了级（领奖台升级特效）：`{"stored","levelUps":[{"playerId","level"}]}`，按名次排列；节点结算还没到时 `stored:false`；raceId 超过 64 位 400 `INVALID_RACE_ID` |
 | `GET /api/player-stats?name=` | **新增**。注册账号的累计统计 `{"nickname","races","wins","podiums","points","updatedAt"}`；没有时 404 `PLAYER_NOT_FOUND` |
 
 账号经济接口（ECONOMY.md 6；除商店目录外都需要 Bearer，未登录 401 `LOGIN_REQUIRED`；写接口按账号限流 429 `TOO_MANY_ATTEMPTS`）：

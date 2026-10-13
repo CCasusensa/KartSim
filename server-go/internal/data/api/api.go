@@ -318,6 +318,7 @@ func (a *API) PublicHandler() http.Handler {
 	route("PUT /api/records/{ownerId}/{recordId}", a.putRecord)
 	route("GET /api/race-results", a.raceResults)
 	route("GET /api/race-outcomes", a.raceOutcomes)
+	route("GET /api/races/{raceId}/level-ups", a.raceLevelUps)
 	route("GET /api/room-rules", a.roomRules)
 	route("GET /api/player-stats", a.playerStats)
 

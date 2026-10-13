@@ -18,6 +18,7 @@ var (
 	errInvalidName     = apierr.New(http.StatusBadRequest, "INVALID_NAME")
 	errInvalidGameplay = apierr.New(http.StatusBadRequest, "INVALID_GAMEPLAY")
 	errPlayerNotFound  = apierr.New(http.StatusNotFound, "PLAYER_NOT_FOUND")
+	errInvalidRaceID   = apierr.New(http.StatusBadRequest, "INVALID_RACE_ID")
 
 	gameplays = []string{"ordinary", "grip", "shadow", "roadblock", "lte", "giant", "rp", "item", "brawl"}
 )
@@ -100,6 +101,40 @@ func (a *API) raceOutcomes(w http.ResponseWriter, r *http.Request) error {
 		}
 		return outcomes, nil
 	})
+}
+
+// raceLevelUps answers which racers of a race reached a new level with its
+// exp, for the level-up effect of the award stand: {"stored", "levelUps":
+// [{"playerId", "level"}]} in result order. stored stays false until the
+// game node's settlement has arrived, so the result screen asks again.
+func (a *API) raceLevelUps(w http.ResponseWriter, r *http.Request) error {
+	if _, err := a.signedIn(r); err != nil {
+		return err
+	}
+	raceID := r.PathValue("raceId")
+	if !validASCIIID(raceID, 64) {
+		return errInvalidRaceID
+	}
+	stored, gains, err := a.store.RaceExpGains(r.Context(), raceID)
+	if err != nil {
+		return err
+	}
+	type levelUp struct {
+		PlayerID string `json:"playerId"`
+		Level    int    `json:"level"`
+	}
+	levels := a.economy.Levels
+	levelUps := []levelUp{}
+	for _, gain := range gains {
+		after := levels.LevelForExp(gain.ExpAfter).Level
+		if after > levels.LevelForExp(gain.ExpAfter-gain.Delta).Level {
+			levelUps = append(levelUps, levelUp{gain.PlayerID, after})
+		}
+	}
+	return writeJSON(w, http.StatusOK, struct {
+		Stored   bool      `json:"stored"`
+		LevelUps []levelUp `json:"levelUps"`
+	}{stored, levelUps})
 }
 
 func (a *API) roomRules(w http.ResponseWriter, r *http.Request) error {

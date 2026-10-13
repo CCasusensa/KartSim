@@ -303,6 +303,7 @@
 | GET | `/api/race-results?name=` | 最近 100 条多人比赛名次 `roomId,raceId,playerId,name,rank,elapsedMs,points,createdAt` |
 | GET | `/api/race-outcomes?gameplay=` | 最近 100 局完整赛程 `raceId,roomId,gameplay,trackId,snapshot,createdAt` |
 | GET | `/api/room-rules` | 最近 100 份房间规则 `roomId,settings,updatedAt` |
+| GET | `/api/races/{raceId}/level-ups` | 需登录；这局比赛经验让哪些车手升级 `stored,levelUps[playerId,level]`，结算未到时 `stored:false`（领奖台升级特效） |
 | GET | `/api/player-stats?name=` | 注册账号累计统计 `nickname,races,wins,podiums,points,updatedAt`；没有时 404 `PLAYER_NOT_FOUND` |
 
 `ownerId` 必须是 UUID，`recordId` 只接受 1–100 位字母、数字、下划线和短横线。所有资料/记录请求带 `X-Profile-Key`：首次 PUT 绑定该所有者的 43 字符密钥，之后读写需要同一密钥。前端将稳定 `ownerId` 和密钥保存在本机（`client/src/ui/profile-sync.ts:4-38,52-55`）。游客每次联机握手可能分配新的 `playerId`，不能把它当持久资料 ID。原 Ghost 记录键含 NUL 分隔符（`client/src/game/ghost-records.ts:25-33`），写入新接口前应使用稳定的 URL 安全编码或摘要。当前前端只同步 Ghost **摘要**，完整回放帧仍在浏览器 IndexedDB，见 `client/src/game/ghost-summary-sync.ts:15-36`。数据服务把这些数据保存在 MySQL，热点读取经 Redis 缓存；表结构、Redis 键与旧 SQLite（`server/data/kart.db`）迁移方法见 [`server-go/README.md`](server-go/README.md)。

@@ -2,6 +2,7 @@ import { beginRaceLoad } from "../resources/resource-manager";
 /** Resource and connection assembly for a live multiplayer race. */
 import { isItemRace, itemTrackCardModeKey } from "./lobby-item-mode";
 import { WrongWayWarning } from "../ui/wrong-way-warning";
+import { loadLevelUpSound } from "./award-level-up-sound";
 import { AutopilotPrank, loadAutopilotPrompts } from "../ui/autopilot-prank";
 export interface MultiplayerRaceLoaderDependencies {
   createToonStageBinding(): unknown;
@@ -111,6 +112,12 @@ export function createMultiplayerRaceLoader(
           roadblockFlag = await deps.loadRoadblockFlag(library, raceAssets);
           checkCancellation();
           roadblockFlag.bind(connection, raceAssets);
+          // 升级: the stand's level-up effect shows without its sound.
+          roadblockFlag.playLevelUpSound = await loadLevelUpSound(library, audio).catch((error: unknown) => {
+            console.warn("升级音效未能载入：", error);
+            return undefined;
+          });
+          checkCancellation();
         }
 
         const root = host.renderer.domElement.parentElement;

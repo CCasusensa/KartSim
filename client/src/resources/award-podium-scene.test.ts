@@ -6,7 +6,7 @@ import test from "node:test";
 import { Group, Matrix4, PerspectiveCamera, Quaternion, Vector3 } from "three";
 
 import { DrivingAction } from "../input/driving-input";
-import { AwardPodiumScene, loadAwardPodiumScene,
+import { AwardPodiumScene, LEVEL_UP_EFFECT_PATH, loadAwardPodiumScene,
   type AwardAsset, type AwardPodiumDependencies,
   type AwardSlot } from "./award-podium-scene";
 
@@ -178,4 +178,132 @@ test("颁奖资源选择、颁奖台节点检查和失败清理与发行版一�
     };
     assert.deepEqual(await run(false), await run(true), failure);
   }
+});
+
+test("升级车手：领奖者原地、其余站到 levelup 站位，特效每 1500 ms 重播、音效一次", async () => {
+  const data = fixture();
+  const scene = new AwardPodiumScene(data.asset("stand"), data.slots,
+    data.asset("confetti"), "individual", data.deps);
+  scene.levelSlots = [slot("levelup01", 0), slot("levelup02", -3)];
+  scene.levelSlots[1]!.position = [-3, -3.8, 0];
+  const effects: AwardAsset[] = [];
+  scene.createLevelUpEffect = async () => {
+    const effect = data.asset(`effect${effects.length}`);
+    effect.object.rotation.x = -Math.PI / 2; // the client-to-three.js rotation of loadScene
+    effects.push(effect);
+    return effect;
+  };
+  let sounds = 0;
+  scene.playLevelUpSound = () => { sounds++; };
+  const p3 = { ...data.race.participants[0]!, playerId: "p3" };
+  const p4 = { ...data.race.participants[0]!, playerId: "p4" };
+  const race = { participants: [...data.race.participants, p3, p4] };
+  const racers = new Map([...data.racers, ["p3", { root: { visible: false } }],
+    ["p4", { root: { visible: false } }]]);
+  scene.bind(data.connection, race);
+  scene.showLevelUps(["p2"]); // before the stand shows: ignored
+  assert.equal(scene.levelUps.size, 0);
+  scene.show(1000, data.stage, data.results, racers, data.room);
+  assert.deepEqual([...racers].map(([id, racer]) => [id, racer.root.visible]),
+    [["p1", true], ["p2", true], ["p3", false], ["p4", false]]);
+
+  data.events.length = 0;
+  scene.showLevelUps(["p1", "p3", "p4", "p9"]);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual([...scene.levelUps].map(([id, levelUp]) => [id, levelUp.slot.name, levelUp.podium]),
+    [["p1", "first", true], ["p3", "levelup01", false], ["p4", "levelup02", false]]);
+  assert.deepEqual([...racers].map(([id, racer]) => [id, racer.root.visible]),
+    [["p1", true], ["p2", true], ["p3", true], ["p4", true]]);
+  assert.deepEqual(data.events.filter(event => event[0] === "award"),
+    [["award", "enter"], ["award", "enter"]], "both standing racers take the award pose");
+  assert.equal(effects.length, 3);
+  // The effect sits on its slot inside the stand (converted to three.js axes).
+  assert.ok(effects.every(effect => effect.object.parent === scene.root));
+  assert.deepEqual(effects[2]!.object.position.toArray(), [-3, 0, 3.8]);
+  // Its own axis rotation kept, turned back by the stand's yaw to face the camera.
+  const facing = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.fround(0.9))
+    .multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2));
+  assert.ok(effects[2]!.object.quaternion.angleTo(facing) < 1e-6);
+  const world = scene.root.quaternion.clone().multiply(effects[2]!.object.quaternion);
+  const front = new Vector3(0, -1, 0).applyQuaternion(world); // the client front (-y)
+  assert.ok(front.distanceTo(new Vector3(0, 0, 1)) < 1e-6, "faces the stand's forward, toward the camera");
+
+  // Repeating a racer changes nothing; the slots are taken.
+  scene.showLevelUps(["p3"]);
+  assert.equal(effects.length, 3);
+
+  const visuals = new Map([...["p1", "p3", "p4"]].map(id => [id, {
+    root: { updateMatrixWorld: () => data.events.push(["visual", id, "matrix"]) },
+    updatePose: () => data.events.push(["visual", id, "pose"]) }]));
+  const resets = () => data.events.filter(event => event[1] === "reset" &&
+    String(event[0]).startsWith("effect"));
+  data.events.length = 0;
+  scene.update(2000, data.camera, data.stage, race, visuals);
+  assert.deepEqual(resets(), [["effect0", "reset", 2000], ["effect1", "reset", 2000],
+    ["effect2", "reset", 2000]]);
+  assert.equal(sounds, 1);
+  assert.deepEqual(data.events.filter(event => event[0] === "visual" && event[2] === "pose")
+    .map(event => event[1]), ["p1", "p3", "p4"]);
+  assert.equal(data.events.filter(event => event[0] === "kart").length, 3);
+  data.events.length = 0;
+  scene.update(3499, data.camera, data.stage, race, visuals);
+  assert.deepEqual(resets(), []);
+  scene.update(3600, data.camera, data.stage, race, visuals);
+  assert.deepEqual(resets(), [["effect0", "reset", 3500], ["effect1", "reset", 3500],
+    ["effect2", "reset", 3500]]);
+  assert.equal(sounds, 1, "levelup.flac plays once");
+
+  // Standing racers may cheer like the winners.
+  data.events.length = 0;
+  scene.request("p3", 12);
+  scene.request("p2", 12);
+  assert.deepEqual(data.events, [["award", "request", 12]]);
+
+  data.events.length = 0;
+  scene.dispose();
+  assert.ok(effects.every(effect => effect.object.parent === null));
+  assert.deepEqual(data.events.filter(event => String(event[0]).startsWith("effect")),
+    [["effect0", "dispose"], ["effect1", "dispose"], ["effect2", "dispose"]]);
+  assert.equal(scene.levelUps.size, 0);
+});
+
+test("升级特效在颁奖台关闭后才载入完成时被释放", async () => {
+  const data = fixture();
+  const scene = new AwardPodiumScene(data.asset("stand"), data.slots,
+    data.asset("confetti"), "individual", data.deps);
+  let resolve!: (asset: AwardAsset) => void;
+  scene.createLevelUpEffect = () => new Promise(done => { resolve = done; });
+  scene.bind(data.connection, data.race);
+  scene.show(1000, data.stage, data.results, data.racers, data.room);
+  scene.showLevelUps(["p1"]);
+  scene.dispose();
+  const late = data.asset("late");
+  resolve(late);
+  await new Promise(done => setTimeout(done, 0));
+  assert.equal(late.object.parent, null);
+  assert.deepEqual(data.events.filter(event => event[0] === "late"), [["late", "dispose"]]);
+});
+
+test("颁奖台载入记下 levelup 站位，升级特效按需读取", async () => {
+  const data = fixture();
+  const calls: unknown[][] = [];
+  const root = slot("root");
+  root.children = [slot("third"), slot("levelup03"), slot("levelup01"), slot("first"),
+    slot("second"), slot("levelup02")];
+  const library = { exactCanonicalCandidates: (name: string) => {
+    calls.push(["find", name]);
+    return [{ bytes: async () => new Uint8Array([name.includes("stand") ? 1 : 2]) }];
+  } };
+  const parse = (bytes: Uint8Array) => ({ root: bytes[0] === 1 ? root : slot("effect") });
+  const scene = await loadAwardPodiumScene(library,
+    { mode: "individual", map: { environment: {}, stageBinding: {} } },
+    { parseModel: parse, loadScene: async (_parsed, _library, label) => {
+      calls.push(["scene", label]);
+      return data.asset(label);
+    }, resolveTexture: () => "texture" },
+    (stand, slots, confetti, mode) => new AwardPodiumScene(stand, slots, confetti, mode, data.deps));
+  assert.deepEqual(scene.levelSlots.map(item => item.name), ["levelup01", "levelup02", "levelup03"]);
+  assert.ok(!calls.some(call => call[1] === LEVEL_UP_EFFECT_PATH));
+  await scene.createLevelUpEffect!();
+  assert.deepEqual(calls.slice(-2), [["find", LEVEL_UP_EFFECT_PATH], ["scene", "MultiplayerLevelUp"]]);
 });

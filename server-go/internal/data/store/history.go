@@ -125,6 +125,38 @@ func (s *Store) RecentRoomRules(ctx context.Context) ([]RoomRulesRow, error) {
 	return rules, rows.Err()
 }
 
+// RaceExpGain is the exp one racer's account was credited for a race.
+type RaceExpGain struct {
+	PlayerID string
+	Delta    int64
+	ExpAfter int64
+}
+
+// RaceExpGains reports whether the race is stored and the race exp each of
+// its registered racers was credited (exp_ledger reason "race"), in result
+// order. A racer whose reward was capped to nothing has no row.
+func (s *Store) RaceExpGains(ctx context.Context, raceID string) (stored bool, gains []RaceExpGain, err error) {
+	if stored, err = exists(ctx, s.db, "SELECT 1 FROM race_outcomes WHERE race_id = ?", raceID); err != nil || !stored {
+		return stored, nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `SELECT r.player_id, e.delta, e.exp_after
+		FROM race_results r JOIN exp_ledger e
+			ON e.account_id = r.account_id AND e.reason = ? AND e.ref_id = r.race_id
+		WHERE r.race_id = ? ORDER BY r.id`, ReasonRace, raceID)
+	if err != nil {
+		return true, nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var gain RaceExpGain
+		if err := rows.Scan(&gain.PlayerID, &gain.Delta, &gain.ExpAfter); err != nil {
+			return true, nil, err
+		}
+		gains = append(gains, gain)
+	}
+	return true, gains, rows.Err()
+}
+
 // StatsByNickname returns the stats of the account named nickname
 // (case-insensitive). An account that never raced has zero stats.
 func (s *Store) StatsByNickname(ctx context.Context, nickname string) (PlayerStats, bool, error) {

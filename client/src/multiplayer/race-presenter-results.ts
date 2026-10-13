@@ -1,6 +1,7 @@
 /** Ends live multiplayer presentation and opens the race result scene. */
 import { showAccountToast, type OverlayDocument } from "../account/account-dialogs";
 import { activeBrowserSession, refreshAccountAfterRace } from "../account/account-runtime";
+import { fetchRaceLevelUps, type RaceLevelUpSession } from "../account/race-level-ups";
 import { formatRaceReward, parseRaceRewards } from "../account/rewards";
 
 /**
@@ -16,8 +17,22 @@ export function announceRoadblockReward(rewards: unknown, playerId: unknown,
   if (reward) show(`本局奖励 ${formatRaceReward(reward)}`);
 }
 
+/**
+ * 升级: the racers whose race exp reached a new level join the award stand
+ * with the level-up effect, once the data service has settled the race.
+ */
+export function revealRaceLevelUps(award: { showLevelUps?(playerIds: readonly string[]): void },
+  raceId: unknown, session: RaceLevelUpSession | undefined = activeBrowserSession(),
+  fetch: typeof fetchRaceLevelUps = fetchRaceLevelUps): void {
+  if (typeof raceId !== "string" || !session || !award.showLevelUps) return;
+  void fetch(session, raceId).then(levelUps => {
+    if (levelUps.length) award.showLevelUps!(levelUps.map(levelUp => levelUp.playerId));
+  });
+}
+
 interface ResultRow { playerId: unknown; [key: string]: unknown }
 interface RaceSnapshot {
+  raceId?: unknown;
   roadblock?: { runnerId: unknown };
   roadblockOutcome?: { runnerWon: boolean };
   roster: unknown;
@@ -51,6 +66,7 @@ interface ResultScene {
   root: unknown;
   effectRoot: unknown;
   show(nowMs: number, local: unknown, ...args: unknown[]): void;
+  showLevelUps?(playerIds: readonly string[]): void;
 }
 
 export interface RacePresenterResultsHost {
@@ -178,6 +194,7 @@ export function showRacePresenterResults(host: RacePresenterResultsHost,
     linked.setMode(1);
   }
   host.award.show(nowMs, host.runtime.local, results, host.views, snapshot);
+  revealRaceLevelUps(host.award, snapshot.raceId);
   for (const participant of host.assets.participants) {
     resetResultParticipant(participant, nowMs, dependencies);
   }

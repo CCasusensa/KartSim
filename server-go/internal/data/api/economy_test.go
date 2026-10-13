@@ -695,6 +695,49 @@ func raceWithRewards(raceID string, finishedAt int64, entries ...contract.RaceRe
 	}
 }
 
+func TestRaceLevelUpsListTheRacersWhoReachedANewLevel(t *testing.T) {
+	clock := newFakeClock(economyNoon)
+	h := newHarness(t, harnessOptions{mysql: true, now: clock.now})
+	u := datatest.Unique()
+	a := h.account("la_"+u, "La"+u, password, false)
+	b := h.account("lb_"+u, "Lb"+u, password, false)
+	c := h.account("lc_"+u, "Lc"+u, password, false)
+	h.setExp(a, 120)  // level 2 [70, 148); +145 reaches 265, level 4
+	h.setExp(b, 2600) // level 10 [2500, 3200); +66 stays there
+	h.setExp(c, 60)   // level 1; +20 reaches 80, level 2
+	token := h.login("lb_"+u, password)
+	raceID := "lu-1-" + u
+	path := "/api/races/" + raceID + "/level-ups"
+	type answer struct {
+		Stored   bool
+		LevelUps []struct {
+			PlayerID string
+			Level    int
+		}
+	}
+
+	h.get(path, nil).expect(t, http.StatusUnauthorized, "LOGIN_REQUIRED")
+	h.get("/api/races/"+strings.Repeat("r", 65)+"/level-ups", bearerHeader(token)).
+		expect(t, http.StatusBadRequest, "INVALID_RACE_ID")
+	var before answer
+	h.get(path, bearerHeader(token)).expect(t, http.StatusOK, "").json(t, &before)
+	if before.Stored || before.LevelUps == nil || len(before.LevelUps) != 0 {
+		t.Fatalf("before the settlement %+v", before)
+	}
+
+	h.settle(raceWithRewards(raceID, clock.millis(),
+		contract.RaceReward{PlayerID: "pb", AccountID: b, Exp: 66, Lucci: 100},
+		contract.RaceReward{PlayerID: "pa", AccountID: a, Exp: 145, Lucci: 150},
+		contract.RaceReward{PlayerID: "pg", Exp: 500, Lucci: 10}, // a guest is never credited
+		contract.RaceReward{PlayerID: "pc", AccountID: c, Exp: 20, Lucci: 10}))
+	var after answer
+	h.get(path, bearerHeader(token)).expect(t, http.StatusOK, "").json(t, &after)
+	if !after.Stored || len(after.LevelUps) != 2 || after.LevelUps[0].PlayerID != "pa" || after.LevelUps[0].Level != 4 ||
+		after.LevelUps[1].PlayerID != "pc" || after.LevelUps[1].Level != 2 {
+		t.Fatalf("after the settlement %+v", after)
+	}
+}
+
 func TestRaceRewardsAreCreditedOnce(t *testing.T) {
 	clock := newFakeClock(economyNoon)
 	h := newHarness(t, harnessOptions{mysql: true, now: clock.now})
