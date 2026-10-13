@@ -60,10 +60,16 @@ test("真实 p3553：生成的赛道包能被游戏读成闭合路线，挂进�
   assert.equal(built.containerName, "track_custom_test000001.rho");
   for (const name of ["track.1s", "skydome.1s", "track.xml", "xt_minimap.png", "xt_trackCard.png", "xt_trackThumb.png"])
     assert.ok(built.files.some(file => file.path === name), name);
+  // 起终点线：城镇主题用原版 cement06_start，贴图一起打进赛道包
+  assert.ok(built.files.some(file => /^cement06_start\.(dds|png|tga)$/i.test(file.path)), built.files.map(file => file.path).join(","));
 
   // 游戏的路线与碰撞解析（formats.YW，与比赛载入相同）
   const trackFile = built.files.find(file => file.path === "track.1s")!;
   const parsed = formats.y9(trackFile.bytes);
+  const names: string[] = [];
+  const walk = (node: any) => { if (node?.name) names.push(node.name); for (const child of node?.children ?? []) walk(child); };
+  walk(parsed.root.scene);
+  assert.ok(names.some(name => name.startsWith("startline_r1")), "比赛路线上有起跑线");
   const road = formats.YW(parsed, "speed-individual", { forceReverse: false, roadExtent: built.roadExtent });
   assert.deepEqual(road.roadIssues ?? [], []);
   assert.equal(road.sections.length, built.stats.gates);
@@ -118,4 +124,17 @@ test("真实 p3553：生成的赛道包能被游戏读成闭合路线，挂进�
   }
   assert.equal(library.files.length, before);
   assert.equal(library.get(customTrackPath(customTrackId(design.id))), undefined);
+});
+
+test("真实 p3553：每个主题的起跑线贴图都找得到", { skip: !mirrorReady }, async () => {
+  const { loadResourceLibrary } = await import("../../tools/economy-export/resource-library.mjs");
+  const { library, formats } = await loadResourceLibrary(root, "p3553", root);
+  const { allStartLines } = await import("./start-line");
+  const { sourceTrackPath } = await import("./source-tracks");
+  for (const line of allStartLines()) {
+    const metadata = await library.trackMetadata(line.track);
+    const found = formats.sn(library, sourceTrackPath(line.track), metadata ?? { id: line.track }, { name: line.name });
+    assert.equal(found.status, "found", `${line.track}/${line.name}`);
+    assert.ok(line.v0 >= 0 && line.v1 <= 1 && line.v1 > line.v0);
+  }
 });

@@ -10,6 +10,7 @@ import {
 import type { MapDesign, PieceDesign, RoadDesign, Vec3 } from "../design";
 import { pointAtDistance, roadEdge, sampleRoad } from "../road-geometry";
 import { buildRoad, itemRowPositions, type TextureResolver } from "../track-builder";
+import { startLineFor } from "../start-line";
 import type { PieceInfo } from "../source-tracks";
 import type { AssembledScene, EditorAssets } from "./assets";
 import type { Viewport } from "./viewport";
@@ -70,20 +71,6 @@ function itemBoxMaterial(): Material {
   return new MeshBasicMaterial({ map: new CanvasTexture(canvas), transparent: true, opacity: 0.92 });
 }
 
-/** 起点线贴图：黑白格。 */
-function checkerTexture(): Texture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 64; canvas.height = 16;
-  const context = canvas.getContext("2d")!;
-  for (let y = 0; y < 2; y++) for (let x = 0; x < 8; x++) {
-    context.fillStyle = (x + y) % 2 ? "#111" : "#fff";
-    context.fillRect(x * 8, y * 8, 8, 8);
-  }
-  const texture = new CanvasTexture(canvas);
-  texture.wrapS = texture.wrapT = RepeatWrapping;
-  return texture;
-}
-
 export class MapViews {
   readonly pieces = new Group();
   readonly roads = new Group();
@@ -98,7 +85,6 @@ export class MapViews {
   private roadVersion = 0;
   private builtRoads = "";
   private builtGround = "";
-  private readonly checker = checkerTexture();
   /** 正在被手柄拖动的摆件不要被同步覆盖。 */
   draggingPieces = new Set<string>();
   /** 下次出现时要弹一下的摆件（刚放下的）。 */
@@ -242,8 +228,9 @@ export class MapViews {
 
   // ------------------------------------------------------------------ 道路
 
-  private material(key: string, alpha: number | undefined, doubleSided: boolean): Material {
-    const id = `${key}|${alpha ?? 0}|${doubleSided}`;
+  /** decal：贴在路面上的一层（起跑线），远看时不和路面打架。 */
+  private material(key: string, alpha: number | undefined, doubleSided: boolean, decal = false): Material {
+    const id = `${key}|${alpha ?? 0}|${doubleSided}|${decal}`;
     let material = this.roadMaterials.get(id);
     if (material) return material;
     if (key.startsWith("gen:")) {
@@ -251,6 +238,7 @@ export class MapViews {
     } else {
       const lambert = new MeshLambertMaterial({ color: 0xffffff, side: doubleSided ? DoubleSide : FrontSide });
       if (alpha === 1) lambert.alphaTest = 0.5;
+      if (decal) { lambert.polygonOffset = true; lambert.polygonOffsetFactor = -2; lambert.polygonOffsetUnits = -2; }
       if (alpha === 2) lambert.transparent = true;
       const [track, name] = key.split("\n") as [string, string];
       void this.assets.texture(track, name).then(texture => {
@@ -273,7 +261,8 @@ export class MapViews {
     const group = new Group();
     const warnings: string[] = [];
     for (const road of design.roads) {
-      const built = await buildRoad(road, resolver, warnings);
+      // 起跑线和生成的赛道包一模一样（原版起跑线贴图）
+      const built = await buildRoad(road, resolver, warnings, { start: { offset: design.start.offset, texture: startLineFor(design.theme) } });
       if (version !== this.roadVersion) return;
       for (const node of built.nodes) {
         const data = node.vertexData!;
@@ -286,7 +275,8 @@ export class MapViews {
         const alpha = node.slots[3] as { blendEnable: number; alphaTestEnable: number } | undefined;
         const backface = node.slots[4] as { cull: number } | undefined;
         const mesh = new Mesh(geometry, this.material(texture?.name ?? "gen:none",
-          alpha ? alpha.blendEnable ? 2 : alpha.alphaTestEnable ? 1 : 0 : undefined, backface?.cull === 1));
+          alpha ? alpha.blendEnable ? 2 : alpha.alphaTestEnable ? 1 : 0 : undefined, backface?.cull === 1,
+          String(node.name ?? "").startsWith("startline_")));
         mesh.userData.roadId = road.id;
         group.add(mesh);
       }
@@ -300,25 +290,10 @@ export class MapViews {
     if (group.children.length) this.roads.add(...group.children);
   }
 
-  /** 起点线（黑白格）和沿路的方向箭头。 */
+  /** 沿路的方向箭头（起跑线在 buildRoad 里，与赛道包相同）。 */
   private routeMarkers(road: RoadDesign, startOffset: number, group: Group): void {
     const sample = sampleRoad(road, 2);
     if (sample.points.length < 3) return;
-    const start = pointAtDistance(sample, startOffset);
-    const width = sample.widths[start.index]!;
-    const left = roadEdge(sample, start.index, width / 2), right = roadEdge(sample, start.index, -width / 2);
-    const forward: Vec3 = [sample.lefts[start.index]![1], -sample.lefts[start.index]![0], 0];
-    const depth = 2;
-    const corners: Vec3[] = [left, right,
-      [right[0] + forward[0] * depth, right[1] + forward[1] * depth, right[2]],
-      [left[0] + forward[0] * depth, left[1] + forward[1] * depth, left[2]]];
-    const geometry = new BufferGeometry();
-    geometry.setAttribute("position", new BufferAttribute(new Float32Array(corners.flatMap(c => [c[0], c[1], c[2] + 0.08])), 3));
-    geometry.setAttribute("uv", new BufferAttribute(new Float32Array([0, 0, width / 4, 0, width / 4, 1, 0, 1]), 2));
-    geometry.setIndex([0, 1, 2, 0, 2, 3]);
-    const line = new Mesh(geometry, new MeshBasicMaterial({ map: this.checker, side: DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }));
-    line.userData.roadId = road.id;
-    group.add(line);
     // 方向箭头：每 30 米一个
     const arrows: number[] = [];
     for (let d = 15; d < sample.total; d += 30) {

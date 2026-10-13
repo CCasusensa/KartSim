@@ -21,6 +21,7 @@ import {
 import { MeshBuilder, type Corner } from "./mesh-builder";
 import { RgbaCanvas, encodePng, type Rgba } from "./png";
 import { pointAtDistance, rotateClosedSample, roadEdge, sampleRoad, type RoadSample } from "./road-geometry";
+import { startLineDepth, startLineFor, type StartLineTexture } from "./start-line";
 import {
   applyAffine, loadSourceModel, measureSubtree, nodeAtPath, parentMatrix, placementMatrix,
   rotationRows, sourceTrackPath, type SourceEntry, type SourceFormats, type SourceLibrary,
@@ -145,10 +146,28 @@ function meshNodes(name: string, mesh: MeshBuilder, surface: Surface): TrackNode
 
 export interface BuiltRoad { sample: RoadSample; nodes: TrackNode[] }
 
+/** 比赛路线上起跑线的位置（沿路距离）和贴图。 */
+export interface RoadStartLine { offset: number; texture: StartLineTexture }
+
+/** 沿中线距离 distance 处、偏离中线 lateral（占半路宽的比例，正值向左）的路面点。 */
+function edgeAt(sample: RoadSample, distance: number, lateral: number): Vec3 {
+  const m = sample.points.length;
+  const { index: i } = pointAtDistance(sample, distance);
+  const j = sample.closed ? (i + 1) % m : Math.min(i + 1, m - 1);
+  let d = distance;
+  if (sample.closed) d = ((d % sample.total) + sample.total) % sample.total;
+  const end = j === 0 && sample.closed ? sample.total : sample.s[j]!;
+  const span = end - sample.s[i]!;
+  const t = span > 1e-9 ? Math.min(1, Math.max(0, (d - sample.s[i]!) / span)) : 0;
+  const a = roadEdge(sample, i, lateral * sample.widths[i]! / 2), b = roadEdge(sample, j, lateral * sample.widths[j]! / 2);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+
 export const TRANSPARENT_TEXTURE = TRANSPARENT_PNG;
 
 /** 一条道路的路面、侧壁和护墙网格（编辑器预览与生成共用）。 */
-export async function buildRoad(road: RoadDesign, textures: TextureResolver, warnings: string[]): Promise<BuiltRoad> {
+export async function buildRoad(road: RoadDesign, textures: TextureResolver, warnings: string[],
+  options: { start?: RoadStartLine } = {}): Promise<BuiltRoad> {
   const sample = sampleRoad(road, SAMPLE_STEP);
   const nodes: TrackNode[] = [];
   const m = sample.points.length;
@@ -204,6 +223,27 @@ export async function buildRoad(road: RoadDesign, textures: TextureResolver, war
       mesh.pushQuad([l0, [0, u0]], [r0, [1, u0]], [r1, [1, u1]], [l1, [0, u1]], [0, 0, -1]);
     }
     nodes.push(...meshNodes(`road_${road.id}_side`, mesh, side));
+  }
+
+  // 起终点线：比赛路线起点处铺一条原版起跑线贴图（只显示，不碰撞），沿着路面弯和坡
+  const start = options.start;
+  if (start && road.route && sample.closed) {
+    const stem = await textures.resolve(start.texture.track, start.texture.name);
+    if (stem) {
+      const { index } = pointAtDistance(sample, start.offset);
+      const depth = startLineDepth(sample.widths[index]!, start.texture);
+      const rows = Math.max(2, Math.ceil(depth / 1));
+      const lift = (p: Vec3): Vec3 => [p[0], p[1], p[2] + 0.06];
+      const mesh = new MeshBuilder();
+      const { v0, v1 } = start.texture;
+      for (let k = 0; k < rows; k++) {
+        const d0 = start.offset - depth / 2 + (depth * k) / rows, d1 = start.offset - depth / 2 + (depth * (k + 1)) / rows;
+        const t0 = v0 + ((v1 - v0) * k) / rows, t1 = v0 + ((v1 - v0) * (k + 1)) / rows;
+        mesh.pushQuad([lift(edgeAt(sample, d0, 0.98)), [0, t0]], [lift(edgeAt(sample, d0, -0.98)), [1, t0]],
+          [lift(edgeAt(sample, d1, -0.98)), [1, t1]], [lift(edgeAt(sample, d1, 0.98)), [0, t1]], [0, 0, 1]);
+      }
+      nodes.push(...meshNodes(`startline_${road.id}`, mesh, surfaceSlots(stem, {})));
+    } else warnings.push(`起跑线贴图 ${start.texture.name} 找不到，起点不画起跑线。`);
   }
 
   // 护墙：带碰撞（road 属性为空），面朝路面
@@ -427,7 +467,8 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   // 道路
   progress("生成道路");
   const roads: { design: RoadDesign; built: BuiltRoad }[] = [];
-  for (const road of design.roads) roads.push({ design: road, built: await buildRoad(road, textures, warnings) });
+  const startLine: RoadStartLine = { offset: design.start.offset, texture: startLineFor(design.theme) };
+  for (const road of design.roads) roads.push({ design: road, built: await buildRoad(road, textures, warnings, { start: startLine }) });
 
   // 摆件：按来源赛道分组读取模型
   progress("复制官方摆件");
