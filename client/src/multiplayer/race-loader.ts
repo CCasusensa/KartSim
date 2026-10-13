@@ -1,6 +1,7 @@
 import { beginRaceLoad } from "../resources/resource-manager";
 /** Resource and connection assembly for a live multiplayer race. */
 import { isItemRace, itemTrackCardModeKey } from "./lobby-item-mode";
+import { WrongWayWarning } from "../ui/wrong-way-warning";
 export interface MultiplayerRaceLoaderDependencies {
   createToonStageBinding(): unknown;
   loadRaceAssets(assets: unknown, config: any, room: any, audio: unknown,
@@ -179,6 +180,12 @@ export function createMultiplayerRaceLoader(
         await presenter.prepareFlyingPet(library, audio);
         checkCancellation();
         await presenter.prepareTrackEvents(library, audio);
+        checkCancellation();
+        // 逆向提示 is a bonus: race on without it.
+        presenter.wrongWay = await WrongWayWarning.load(library, audio).catch((error: unknown) => {
+          console.warn("逆向提示未能载入：", error);
+          return undefined;
+        });
         checkCancellation();
         presenter.warm(host.renderer, deps.now());
         checkCancellation();

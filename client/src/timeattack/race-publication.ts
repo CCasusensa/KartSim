@@ -70,6 +70,8 @@ export interface SoloRaceResources {
   nextGhosts: GhostResource[];
   /** 驾照考试 item steps: the item race (license-item-race.ts). */
   nextLicenseItems?: SceneResource;
+  /** 逆向提示 (ui/wrong-way-warning.ts), when it loaded. */
+  nextWrongWay?: RaceDisposable;
   rankColors: unknown;
   selectedVehicle: { title: string };
   particleModificationBanner?: RaceDisposable;
@@ -88,6 +90,7 @@ export interface SoloRaceSession {
   kartEffects?: RaceDisposable;
   ghosts: GhostResource[];
   licenseItems?: SceneResource;
+  wrongWay?: RaceDisposable;
   balloonDecoration?: RaceDisposable;
   characterDecorations: CharacterDecoration[];
   raceAura?: RaceDisposable;
@@ -184,6 +187,7 @@ export async function publishSoloRace(
     nextTrackEventAudio, nextTrackDummyAudio, nextLinkedCharacterPresentation,
     nextFlyingPet, nextGhosts, rankColors, selectedVehicle,
     particleModificationBanner, particleModificationBannerRequest, outlineBatch, nextLicenseItems,
+    nextWrongWay,
   } = resources;
   const session = host.session;
   const audio = host.audio;
@@ -204,6 +208,10 @@ export async function publishSoloRace(
   if (session.licenseItems) {
     session.licenseItems.dispose();
     session.licenseItems = undefined;
+  }
+  if (session.wrongWay) {
+    session.wrongWay.dispose();
+    session.wrongWay = undefined;
   }
   session.balloonDecoration?.dispose();
   session.characterDecorations.forEach(({ render }) => render.dispose());
@@ -298,6 +306,7 @@ export async function publishSoloRace(
     session.licenseItems = nextLicenseItems;
     host.scene.add(nextLicenseItems.object);
   }
+  if (nextWrongWay) session.wrongWay = nextWrongWay;
   session.rankColors = rankColors;
   session.localName = host.getLocalNickname();
   session.outlineBatch = outlineBatch;

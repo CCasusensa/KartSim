@@ -1,5 +1,7 @@
 /** Publishes rank, time gap, tachometer and the final multiplayer scene frame. */
 import { feedRacePresenterItemHud, type RacePresenterItemHudHost } from "./race-presenter-items";
+import { sampleWrongWay, type WrongWayPhysics, type WrongWaySample,
+  type WrongWayTrack } from "../ui/wrong-way-warning";
 
 interface RaceRankRow { participantId: unknown; [key: string]: unknown }
 interface RaceRankBoard {
@@ -19,13 +21,13 @@ export interface RacePresenterHudHost {
   runtime: RacePresenterItemHudHost["runtime"] & {
     local: {
       lifecycle: { state: unknown };
-      physics: {
+      physics: WrongWayPhysics & {
         giant?: { setRank(rank: number | undefined): void };
         consumeTeamGaugeFullAnimation(): boolean;
         consumeTimeAttackTachometerGaugePreserve(): unknown;
         consumeTimeAttackTachometerNormalBooster(): unknown;
       };
-      track: { skydome?: unknown };
+      track: WrongWayTrack & { skydome?: unknown };
       raceProgress(): RaceProgress | undefined;
     };
     remotes: {
@@ -57,6 +59,8 @@ export interface RacePresenterHudHost {
         progress: RaceProgress | undefined }>, playerId: unknown): void;
   };
   action2d: { setFinishDeadline(deadline: number | undefined): void };
+  /** 逆向提示 (ui/wrong-way-warning.ts), when it loaded. */
+  wrongWay?: { update(nowMs: number, sample: WrongWaySample): void };
   warpHudHidden: boolean;
   gaugePreserve: { update(nowMs: number, value: unknown): unknown };
   tachometer: unknown;
@@ -125,6 +129,8 @@ export function finishRacePresenterFrame(host: RacePresenterHudHost,
   };
   host.action2d.setFinishDeadline(local.lifecycle.state === dependencies.racingState
     ? runtime.finishDeadline : undefined);
+  host.wrongWay?.update(nowMs, sampleWrongWay(physics, track,
+    local.lifecycle.state === dependencies.racingState && !host.warpHudHidden));
   if (physics.consumeTeamGaugeFullAnimation()) hud.startTeamBoostGaugeFull();
   feedRacePresenterItemHud(host, nowMs);
   hud.update(local, nowMs, remotePoses, board);

@@ -6,6 +6,7 @@ import { itemRaceVehicleSpec } from "../physics/item-race-tuning";
 import { LicenseScenes } from "../license/license-scenes";
 import { MissionTimerPanel } from "../license/mission-timer-panel";
 import { MissionResultAction, StoryAction2D } from "../story/mission-result-action";
+import { WrongWayWarning } from "../ui/wrong-way-warning";
 import type { StoryRaceRequest } from "../story/story-race";
 import { generateNpcGhostRecord } from "./duel-npc-ghost";
 import { racePlaylistReady } from "./race-bgm-loading";
@@ -254,6 +255,7 @@ async function buildLoadedSoloRace(
         raceOptions.speed === 4);
     let track: any, rain: any, rainAudio: any, snow: any;
     let licenseItems: LicenseItemRace | undefined;
+    let wrongWay: WrongWayWarning | undefined;
     let gameplayUi: any, action2D: any, result: any, trackInfoCard: any;
     let pause: any, countdownAudio: any, eventEffects: any, eventAudio: any;
     let dummyAudio: any, linkedPresentation: any, flyingPet: any;
@@ -357,6 +359,14 @@ async function buildLoadedSoloRace(
           host.hud.showDebugText(`任务结果动画未能载入：${
             error instanceof Error ? error.message : String(error)}`, "error");
         }
+      }
+      // 逆向提示 is a bonus too; an OB replay has no local kart to warn.
+      if (!selection.story?.observe) {
+        wrongWay = await WrongWayWarning.load(host.getLibrary(), audioContext).catch(error => {
+          host.hud.showDebugText(`逆向提示未能载入：${
+            error instanceof Error ? error.message : String(error)}`, "error");
+          return undefined;
+        });
       }
       result = ops.createResult(await ops.loadResult(host.getLibrary()));
       if (ops.versionTag("p3553") === "p3553") {
@@ -509,6 +519,7 @@ async function buildLoadedSoloRace(
     } catch (error) {
       disposeNewBgm();
       licenseItems?.dispose();
+      wrongWay?.dispose();
       flyingPet?.dispose();
       for (const ghost of ghosts) ghost.view.dispose();
       track?.dispose();
@@ -555,6 +566,7 @@ async function buildLoadedSoloRace(
       nextLinkedCharacterPresentation: linkedPresentation,
       nextFlyingPet: flyingPet, nextGhosts: ghosts, rankColors,
       nextLicenseItems: licenseItems,
+      nextWrongWay: wrongWay,
       selectedVehicle: kart, generation,
       particleModificationBanner: particleBanner,
       particleModificationBannerRequest: particleRequest,

@@ -3,6 +3,7 @@ import { updateLicenseMission, type LicenseMissionStage } from "../license/licen
 import { updateLicenseTimer, type LicenseTimerStage } from "../license/license-race";
 import { licenseItemsOf } from "../license/license-item-race";
 import { observeOf } from "./replay-observe";
+import { sampleWrongWay, wrongWayOf } from "../ui/wrong-way-warning";
 
 // Presentation owners still come from the generated client. Their renderer,
 // physics and asset types will be narrowed as those systems are migrated.
@@ -57,6 +58,7 @@ export interface TimeAttackUpdateDependencies {
   particleRatio(nowMs: number, startAtMs: number, inCountdown: boolean): number;
   roadDescriptorName(descriptor: any): unknown;
   countdownPhase: number;
+  racingPhase: number;
   worldAxis: unknown;
   depthAxis: unknown;
 }
@@ -93,6 +95,13 @@ export function updateTimeAttackStage(
     if (!host.shell.started) {
       stage.released = true;
       return;
+    }
+    // 逆向提示 while racing; not during a warp or an OB replay's hidden kart.
+    const wrongWay = wrongWayOf(host.session);
+    if (wrongWay) {
+      const racing = host.session.lifecycle.phase === dependencies.racingPhase &&
+        !host.session.warpHud?.hidden && !observeOf(host.session);
+      wrongWay.update(effectiveNowMs, sampleWrongWay(host.getPhysics(), host.getTrack(), racing));
     }
     if (host.session.warpCameraFrozen) host.session.warpNextCamera(host.camera);
   }

@@ -23,6 +23,8 @@ export interface RacePresenterRenderHost {
   camera: unknown;
   hud: { render(renderer: RacePresenterRenderer): void };
   tachometer: unknown;
+  /** 逆向提示 (ui/wrong-way-warning.ts), when it loaded. */
+  wrongWay?: { render(renderer: RacePresenterRenderer, nowMs: number): void };
   size: { y: number };
   warpBlackBar: { renderRatio(renderer: RacePresenterRenderer,
     ratio: number): void };
@@ -69,6 +71,7 @@ export function renderRacePresenterFrame(host: RacePresenterRenderHost,
       host.runtime.local.lifecycle.state < dependencies.postFinishState) {
       host.hud.render(renderer);
       dependencies.renderTachometer(host.tachometer, renderer);
+      host.wrongWay?.render(renderer, nowMs);
     }
     const blackBarPixels = Math.floor(
       host.size.y * dependencies.blackBarFraction + 0.5);

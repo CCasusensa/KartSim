@@ -25,6 +25,8 @@ export interface TimeAttackRenderStage {
       lifecycle: RenderLifecycle;
       warpHud?: { hidden: boolean };
       tachometer?: unknown;
+      /** 逆向提示 (ui/wrong-way-warning.ts). */
+      wrongWay?: { render(renderer: Renderer, nowMs: number): void };
       outlineBatch?: { flush(): void };
       kartMotionBlur?: { render(renderer: Renderer, nowMs: number): void };
     };
@@ -115,6 +117,7 @@ export function renderTimeAttackStage(
         }
         host.workProfiler?.mark("tacho-render", dependencies.nowMs());
       }
+      if (gameplayVisible) host.session.wrongWay?.render(host.renderer, effectiveNowMs);
       stage.ui?.result?.render(host.renderer, dependencies.worldAxis, dependencies.depthAxis);
       stage.ui?.action2D?.render(host.renderer, effectiveNowMs,
         dependencies.worldAxis, dependencies.depthAxis);

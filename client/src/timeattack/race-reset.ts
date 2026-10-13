@@ -53,6 +53,7 @@ export interface RaceResetStage {
       coordinator?: { dispose(): void } | unknown;
       kartDriftEffects?: Resettable;
       kartMotionBlur?: Resettable;
+      wrongWay?: Resettable;
       zetAirEffect?: Resettable;
       shockWaveEffect?: Resettable;
       exhaustEffect?: Resettable;
@@ -134,6 +135,7 @@ export function restartTimeAttackRace(
   host.audio.countdownAudio?.reset();
   host.session.kartDriftEffects?.reset();
   host.session.kartMotionBlur?.reset();
+  host.session.wrongWay?.reset();
   host.session.zetAirEffect?.reset();
   host.session.shockWaveEffect?.reset();
   host.session.exhaustEffect?.reset();

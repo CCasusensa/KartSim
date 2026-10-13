@@ -15,6 +15,8 @@ interface RaceSession {
   ghosts: Array<{ view: Disposable }>;
   /** 驾照考试 item steps' item race. */
   licenseItems?: Disposable;
+  /** 逆向提示. */
+  wrongWay?: Disposable;
   outlineBatch?: Disposable;
   vehicleRender?: Disposable;
   flyingPet?: Disposable;
@@ -111,6 +113,10 @@ export function releaseRaceForReady(
   if (session.licenseItems) {
     session.licenseItems.dispose();
     session.licenseItems = undefined;
+  }
+  if (session.wrongWay) {
+    session.wrongWay.dispose();
+    session.wrongWay = undefined;
   }
   session.outlineBatch?.dispose();
   session.outlineBatch = undefined;
