@@ -156,3 +156,16 @@ test("balloon and accessory reset, sockets and toon setup match release", () => 
     assert.deepEqual(inspect(true, withDriver), inspect(false, withDriver));
   }
 });
+
+test("a solid story rival keeps its loaded toon materials", () => {
+  const { visual, events, imported, character, visualInfo,
+    sceneObject } = makeFixture("scaled", true);
+  visual.solid = true;
+  visual.setAssets(imported, character, 0.8, undefined, visualInfo, false, "p3553", 7);
+  visual.setDecorations({ scene: { reset() {}, object: sceneObject("balloon") } },
+    [{ kind: "headBand", render: { scene: { reset() {}, object: sceneObject("headBand") } } }]);
+  assert.deepEqual(events.filter(event => event[0] === "toon"), []);
+  assert.deepEqual(visual.toonPairs, []);
+  assert.ok(visual.balloon);
+  assert.deepEqual(visual.accessories.map(item => item.kind), ["headBand"]);
+});

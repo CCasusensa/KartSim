@@ -368,9 +368,10 @@ export function storyGhostSources(bytes: Uint8Array, track: string, mission: Sto
       if (kart !== undefined) equipment.kart = kart;
       if (character !== undefined) equipment.character = character;
     }
-    // The player takes slot 0 of the time attack grid.
-    if (!Number.isInteger(equipment.startSlot) || equipment.startSlot === 0)
-      equipment.startSlot = index + 1;
+    // The playback drives from the slot it was recorded in (slot 0 for all
+    // but three story .ksv files); the player takes the first slot left free
+    // (the release pf0), so the two never start on top of each other.
+    if (!Number.isInteger(equipment.startSlot)) equipment.startSlot = index;
     return { equipment, record: raw.records[index], timeBase: "countdown" };
   });
   return { sources, timeMs: raw.bestTimeMs ?? 0 };
@@ -411,7 +412,8 @@ async function startStoryRace(controller: ReadyStoryController, chapter: StoryCh
     if (mission.rival) {
       const decoded = storyGhostSources(
         await story.loadGhost(chapter.name, step, mission.rival.ksv), track.id, mission, catalog);
-      ghosts = decoded.sources;
+      // The rival is a story character racing the player, not a see-through Ghost.
+      ghosts = decoded.sources.map(source => ({ ...source, solid: true }));
       rivalTimeMs = decoded.timeMs;
     }
     if (stale(controller, started)) return;

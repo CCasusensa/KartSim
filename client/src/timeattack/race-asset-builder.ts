@@ -285,7 +285,8 @@ async function buildLoadedSoloRace(
             continue;
           }
           ghostSources.push({ equipment: participant.equipment,
-            record: participant.record, timeOffsetMs: participant.timeOffsetMs });
+            record: participant.record, timeOffsetMs: participant.timeOffsetMs,
+            solid: participant.solid });
         }
       }
       // 赛道对决: the NPC drives the course line in the stage's time (duel-npc-ghost.ts),
@@ -493,6 +494,8 @@ async function buildLoadedSoloRace(
           map.environment, map.stageBinding, ops.speed(raceOptions),
           version, outlineBatch);
         const ghostView = ops.createGhostView();
+        // Read by setAssets / setDecorations (ghost-visual-assets.ts).
+        if (source.solid) ghostView.solid = true;
         ghosts.push({ view: ghostView,
           playback: ops.createGhostPlayback(source.record,
             () => host.ghostSamplingMode),

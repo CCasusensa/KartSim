@@ -48,6 +48,11 @@ export interface GhostVisualAssetHost {
   attachmentNodes: Array<SceneObject | undefined>;
   balloon?: GhostBalloon;
   accessories: GhostDecoration[];
+  /**
+   * Story rivals race as solid karts: their toon materials stay as loaded
+   * instead of the release's see-through Ghost clones (collectToonPairs).
+   */
+  solid?: boolean;
 }
 
 export interface GhostVisualAssetDependencies {
@@ -99,7 +104,7 @@ export function setGhostVisualAssets(host: GhostVisualAssetHost,
   host.motorcycle = motorcycle;
   host.modelMount.add(imported.object);
   host.toonPairs.length = 0;
-  dependencies.collectToonPairs(host.modelMount, host.toonPairs);
+  if (!host.solid) dependencies.collectToonPairs(host.modelMount, host.toonPairs);
   const attachments = visual.attachments.map(name =>
     imported.scene.nodes.get(name)?.object);
   if (!attachments[16] && visual.attachments[16] === "balloon") {
@@ -116,7 +121,7 @@ export function setGhostVisualDecorations(host: GhostVisualAssetHost,
   if (balloon && balloonMount) {
     balloon.scene.reset(dependencies.nowMs());
     balloonMount.add(balloon.scene.object);
-    dependencies.collectToonPairs(balloon.scene.object);
+    if (!host.solid) dependencies.collectToonPairs(balloon.scene.object);
     host.balloon = balloon;
   }
   for (const accessory of accessories) {
@@ -125,7 +130,7 @@ export function setGhostVisualDecorations(host: GhostVisualAssetHost,
     if (mount) {
       accessory.render.scene.reset(dependencies.nowMs());
       mount.add(accessory.render.scene.object);
-      dependencies.collectToonPairs(accessory.render.scene.object);
+      if (!host.solid) dependencies.collectToonPairs(accessory.render.scene.object);
       host.accessories = [...host.accessories, accessory];
     }
   }

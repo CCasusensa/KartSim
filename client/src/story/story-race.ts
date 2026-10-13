@@ -16,6 +16,8 @@ export interface StoryGhostSource {
   timeBase?: string;
   /** Tracing / Escape: the rival's playback runs this many ms ahead (+) or behind (−). */
   timeOffsetMs?: number;
+  /** A story rival drawn as a solid kart, not the time attack's see-through Ghost. */
+  solid?: boolean;
 }
 
 export interface StoryRaceOutcome {
