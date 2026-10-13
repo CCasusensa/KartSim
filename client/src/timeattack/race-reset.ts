@@ -59,6 +59,7 @@ export interface RaceResetStage {
       exhaustEffect?: Resettable;
       crashEffect?: Resettable;
       chargerEffect?: Resettable;
+      kartRoadDust?: Resettable;
       flyingPet?: Resettable;
       characterRender?: Resettable;
       linkedCharacterRender?: Resettable;
@@ -141,6 +142,7 @@ export function restartTimeAttackRace(
   host.session.exhaustEffect?.reset();
   host.session.crashEffect?.reset();
   host.session.chargerEffect?.reset();
+  host.session.kartRoadDust?.reset();
   host.kartView.resetAnimation();
   host.session.flyingPet?.reset();
   host.session.characterRender?.reset();

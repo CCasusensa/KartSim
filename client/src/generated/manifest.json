@@ -1860,7 +1860,7 @@
     {
       "file": "library.js",
       "bytes": 222736,
-      "sha256": "d1325d55a1a231ca60a1d56ce62f0c9e7cb21cb808ccb85babecc7ae927bb322",
+      "sha256": "44edbf26b63b1934233623765535eecf948b475aeabd776eb4a8f2834c6541be",
       "imports": 128,
       "exports": 156
     },
@@ -1880,8 +1880,8 @@
     },
     {
       "file": "vehicle.js",
-      "bytes": 186321,
-      "sha256": "9553a5551ba1c18bbe43906e10d8ab04559f1e2a7694340b32585f180015cbf2",
+      "bytes": 186548,
+      "sha256": "4643767a457b8de66583dab38ee2208738d224a323af9805cde754bcfedcd230",
       "imports": 183,
       "exports": 104
     },
@@ -1894,8 +1894,8 @@
     },
     {
       "file": "world.js",
-      "bytes": 123366,
-      "sha256": "659e364a1fa6c64f47623f53cb23cecb5914b24cbacf70c69a3c3c8339fdd620",
+      "bytes": 123488,
+      "sha256": "26ff96a013b84ffe95809220ddc128eb5570d5029b2ce6462df33d4c37f506d8",
       "imports": 186,
       "exports": 81
     },

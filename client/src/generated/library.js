@@ -1156,7 +1156,7 @@ const GQ = {
     bgmVolume: 1,
     fxEnabled: !0,
     fxVolume: 1,
-    enableRoadSound: !1,
+    enableRoadSound: !0,
   },
   HM = new WeakMap(),
   Zp = new WeakMap(),

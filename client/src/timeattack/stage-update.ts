@@ -3,6 +3,7 @@ import { updateLicenseMission, type LicenseMissionStage } from "../license/licen
 import { updateLicenseTimer, type LicenseTimerStage } from "../license/license-race";
 import { licenseItemsOf } from "../license/license-item-race";
 import { observeOf } from "./replay-observe";
+import { vehicleRoadDust } from "../vehicle/road-dust-effect";
 import { sampleWrongWay, wrongWayOf } from "../ui/wrong-way-warning";
 
 // Presentation owners still come from the generated client. Their renderer,
@@ -231,6 +232,9 @@ export function updateTimeAttackStage(
   const charger = host.getPhysics().timeAttackTachometerCharger();
   host.session.chargerEffect?.update(effectiveNowMs, charger.active,
     charger.durationMs, host.camera, dependencies.worldAxis, dependencies.depthAxis);
+  host.session.kartRoadDust?.update(effectiveNowMs,
+    vehicleRoadDust(host.getPhysics(), host.kartView.root.visible),
+    host.camera, dependencies.worldAxis, dependencies.depthAxis);
   host.session.particleModification?.update(effectiveNowMs,
     dependencies.particleRatio(effectiveNowMs, host.session.lifecycle.startAtMs,
       host.session.lifecycle.phase === dependencies.countdownPhase),

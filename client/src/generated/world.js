@@ -3985,7 +3985,8 @@ const _P = {
     bgmVolume: 1,
     fxEnabled: !0,
     fxVolume: 1,
-    enableRoadSound: !1,
+    enableRoadSound: !0,
+    roadSoundDefaultOn: !0,
     verticalSync: false,
     boostBlur: !1,
     dualBoostAuto: !0,
@@ -4023,6 +4024,8 @@ function la0() {
             gamepadMap: TP,
             ...JSON.parse(n),
           };
+  e.roadSoundDefaultOn !== !0 &&
+    ((e.enableRoadSound = !0), (e.roadSoundDefaultOn = !0));
   return (RP(e), e);
 }
 

@@ -26,6 +26,7 @@
 | `mv`、`wv` 滑流视听 | `SlipstreamVisual`、`SlipstreamAudio`，`slipstream-effects.ts` | 模型来源、启停、爆发动画、音频循环/结束回调和释放；发行版差分通过，已接入 |
 | `iL`、`rL` 多人起跑位 | `validateRaceStartGrid`、`raceStartPosition`，`race-start-slots.ts` | 0 至 7 号位唯一性、双列间距、路面投影及 float32 坐标；发行版差分通过，已接入。50人乱斗另传位数与起跑朝向：8 至 49 号每 8 个一排向后 5 米（`server-go/BRAWL.md`） |
 | `vL`、`U40`、`yL` 比赛正常对象调度 | `LapTiming`、`NormalObjectCoordinator`、`NormalRaceCoordinator`，`normal-coordinator.ts`、`normal-race-coordinator.ts` | 圈速、赛道/车辆/障碍/事件/远端对象更新顺序、配对、路线标签与复位；发行版差分通过，已接入 |
+| 无（发行版未实现）路面沙尘与水花 | `RoadDustEffect`，`road-dust-effect.ts` | 路面 `dust` 属性即原版特效 `effect/dust/<dust>.1s`（desertdust、valleydust、water、waterspark、citywaterspark），车轮着地且速度达到 `dustVel`（缺省 10 km/h）时挂在车上循环播放；首次用到时才载入。计时赛与多人赛本地车用车轮路面，远端车用位姿下方的射线 |
 | `$40`、`DC` 车辆帧时钟 | `VehicleFrameClock`、`normalizeVehicleTime`，`frame-clock.ts` | 最大 500 ms 帧、2 ms 子步、节奏检查、时间同步和 uint32 回绕；发行版差分通过，已接入 |
 
 生成器已接入表中标为“已接入”的类和函数，精确符号见 `src/generated/manifest.json`。`y10` 和 `H10` 无额外运行时依赖，由导入别名替代原类。`v10` 注入 XML 解析 `s2` 和属性读取 `T`；`A10` 调用 `loadTrackCoinSource(archive, track, bytes => v10(bytes))`。`jw` 使用 `CoinOwnerOps` 注入原模块的场景对象、`nl` 唯一资源、模型与音效解码、模型加载、`y10` 接触对象和音频路由。

@@ -3,6 +3,9 @@ import { drivenPose, type KartPoseVectors } from "../item/item-kart-motion";
 import { Frustum, Matrix4, Object3D, Sphere, Vector3, type Camera } from "three";
 import { applyItemKartPresentation } from "../item/item-kart-presentation";
 import { updateRacePresenterItems, type RacePresenterItemsHost } from "./race-presenter-items";
+import { roadSound } from "../resources/track-road-descriptor";
+import { groundRoadDust, PoseSpeed, vehicleRoadDust, type RoadDustTrack,
+  type RoadDustVehicle } from "../vehicle/road-dust-effect";
 
 interface Vec3 { x: number; y: number; z: number }
 interface RacePose { position: Vec3; visualScale?: unknown; [key: string]: unknown }
@@ -44,6 +47,11 @@ interface VehicleAsset {
   decoration?: { scene: SceneUpdater & { object?: { visible: boolean } } };
   /** The booster effects (kart-booster-effects.ts), magnet state look included. */
   effects?: { setMagnetSuppressed?(suppressed: boolean, nowMs: number): void };
+  /** 沙尘/水花 behind the wheels (road-dust-effect.ts). */
+  roadDust?: { update(nowMs: number, name: string | undefined, camera: unknown,
+    width: number, height: number): void };
+  /** The kart's KartAudioRuntime: only the local racer's plays. */
+  audio?: { updateRoad?(name: string | undefined, speed: number, elapsedSeconds: number): void };
 }
 interface RacerAsset {
   playerId: unknown;
@@ -73,6 +81,9 @@ interface LocalPhysics {
     up: unknown;
   };
   state: Record<string, unknown>;
+  wheels?: { roadDescriptor?: Parameters<typeof roadSound>[0] };
+  runtime?: { contactWorking: boolean };
+  displaySpeedKmh?(): number;
   giant?: { main: number; extra: unknown };
   consumeKartAnimationInput(): unknown;
   setAnimationSlot(slot: unknown): void;
@@ -99,7 +110,7 @@ export interface RacePresenterParticipantsHost {
     local: {
       physics: LocalPhysics;
       track: { updateRender(nowMs: number, camera: unknown,
-        width: number, height: number): void };
+        width: number, height: number): void } & Partial<RoadDustTrack>;
       resetVisible(nowMs: number): boolean;
       warpNext: { presentationVisible(nowMs: number): boolean };
     };
@@ -310,11 +321,52 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
       dependencies.updateLocalVehicleEffects(racer.vehicle, runtime.local,
         view, camera, nowMs, animationSlot,
         linked?.simpleShadowEnabled() ?? true);
+      updateLocalRoadAudio(racer.vehicle, physics, nowMs);
+      if (physics.runtime && physics.wheels && physics.displaySpeedKmh)
+        racer.vehicle.roadDust?.update(nowMs,
+          vehicleRoadDust(physics as RoadDustVehicle, view.root.visible),
+          camera, width, height);
+    } else if (racer.vehicle.roadDust) {
+      updateRemoteRoadDust(racer.vehicle, view.root.visible,
+        runtime.remotes.copyWebPose(racer.playerId), track, nowMs, camera, width, height);
     }
     racer.vehicle.decoration?.scene.update(nowMs, camera, width, height);
     if (inView) updateVisibleWorldMatrices(view.root as unknown as Object3D);
   }
   return remotePoses;
+}
+
+/**
+ * Road sounds (sand, water, bridges...) for the local kart. Not in the
+ * release: its multiplayer frame (Mr0) never called updateRoad, so only time
+ * attack had them. Same inputs as the time attack frame (stage-update.ts).
+ */
+const roadAudioClock = new WeakMap<object, number>();
+function updateLocalRoadAudio(vehicle: VehicleAsset, physics: LocalPhysics, nowMs: number): void {
+  const audio = vehicle.audio;
+  if (!audio?.updateRoad) return;
+  const previous = roadAudioClock.get(audio);
+  roadAudioClock.set(audio, nowMs);
+  const elapsedSeconds = previous === undefined ? 0
+    : Math.min(0.5, Math.max(0, (nowMs - previous) / 1000));
+  const descriptor = physics.wheels?.roadDescriptor;
+  const { vx, vy, vz } = physics.state as { vx: number; vy: number; vz: number };
+  audio.updateRoad(descriptor ? roadSound(descriptor) : undefined,
+    Math.hypot(vx, vy, vz), elapsedSeconds);
+}
+
+/** 沙尘/水花 behind a remote kart, from the road under its drawn pose. */
+const remoteSpeeds = new WeakMap<object, PoseSpeed>();
+function updateRemoteRoadDust(vehicle: VehicleAsset, visible: boolean,
+  pose: RacePose | undefined, track: Partial<RoadDustTrack>, nowMs: number,
+  camera: unknown, width: number, height: number): void {
+  const dust = vehicle.roadDust!;
+  let speed = remoteSpeeds.get(dust);
+  if (!speed) remoteSpeeds.set(dust, speed = new PoseSpeed());
+  const kmh = pose ? speed.update(nowMs, pose.position) : 0;
+  const name = visible && pose && track.rayQuery
+    ? groundRoadDust(track as RoadDustTrack, pose.position, kmh) : undefined;
+  dust.update(nowMs, name, camera, width, height);
 }
 
 /**

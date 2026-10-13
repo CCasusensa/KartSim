@@ -41,6 +41,7 @@ export interface ApplicationDisposalHost {
     exhaustEffect?: AppDisposable;
     crashEffect?: AppDisposable;
     chargerEffect?: AppDisposable;
+    kartRoadDust?: AppDisposable;
     particleModification?: AppDisposable;
     particleModificationBanner?: AppDisposable;
     particleModificationBannerRequest?: unknown;
@@ -135,6 +136,7 @@ export function disposeApplicationRuntime(
   session.exhaustEffect?.dispose();
   session.crashEffect?.dispose();
   session.chargerEffect?.dispose();
+  session.kartRoadDust?.dispose();
   session.particleModification?.dispose();
   session.particleModification = undefined;
   session.particleModificationBanner?.dispose();

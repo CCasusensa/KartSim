@@ -39,6 +39,7 @@ export interface SoloRaceResources {
     exhaustEffect: SceneResource;
     crashEffect: SceneResource;
     chargerEffect?: RaceDisposable;
+    roadDust?: RaceDisposable;
     particleModification?: RaceDisposable;
     lampFlares?: RaceDisposable;
     simpleShadow: SceneResource;
@@ -102,6 +103,7 @@ export interface SoloRaceSession {
   exhaustEffect?: SceneResource;
   crashEffect?: SceneResource;
   chargerEffect?: RaceDisposable;
+  kartRoadDust?: RaceDisposable;
   particleModification?: RaceDisposable;
   particleModificationBanner?: RaceDisposable;
   particleModificationBannerRequest?: unknown;
@@ -225,6 +227,7 @@ export async function publishSoloRace(
   session.exhaustEffect?.dispose();
   session.crashEffect?.dispose();
   session.chargerEffect?.dispose();
+  session.kartRoadDust?.dispose();
   session.particleModification?.dispose();
   session.particleModificationBanner?.dispose();
   session.particleModificationBanner = undefined;
@@ -272,6 +275,7 @@ export async function publishSoloRace(
   session.exhaustEffect = loadedVehicle.exhaustEffect;
   session.crashEffect = loadedVehicle.crashEffect;
   session.chargerEffect = loadedVehicle.chargerEffect;
+  session.kartRoadDust = loadedVehicle.roadDust;
   session.particleModification = loadedVehicle.particleModification;
   session.particleModificationBanner = particleModificationBanner;
   session.particleModificationBannerRequest = particleModificationBannerRequest;

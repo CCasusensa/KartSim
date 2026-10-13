@@ -12,6 +12,7 @@ const originalClass = release.slice(declaration.start, declaration.end);
 
 function fixture(options = {}) {
   const calls = [];
+  const roadDust = [];
   const disposable = name => ({ name, dispose(...args) { calls.push(["dispose", name, ...args]); } });
   const make = name => async (...args) => {
     calls.push([name, ...args.map(value =>
@@ -145,6 +146,12 @@ function fixture(options = {}) {
     loadExhaust: dependencies.rv.load,
     loadCrash: dependencies.nv.load,
     loadCharger: dependencies.tv.load,
+    // Not in the release: 沙尘/水花 (road-dust-effect.ts). It loads nothing up
+    // front, so it adds no call to the release order.
+    createRoadDust: (_library, parent, environment, stageBinding) => {
+      roadDust.push([parent.name, environment, stageBinding]);
+      return { name: "road dust", dispose() { roadDust.push("dispose"); } };
+    },
     loadLampFlares: dependencies.s6.load,
     kartModelRoot: dependencies.J5,
     loadShadow: dependencies.fr.load,
@@ -156,7 +163,7 @@ function fixture(options = {}) {
     collisionShape: dependencies.v90,
     disposeObject: dependencies.u5,
   };
-  return { calls, original, owner, ops };
+  return { calls, original, owner, ops, roadDust };
 }
 
 function simplify(value) {
@@ -181,6 +188,11 @@ async function exercise(kind, options = {}) {
     const result = kind === "original"
       ? await f.original.loadVehicleAsset(...args)
       : await loadVehicleAsset(f.owner, ...args, f.ops);
+    if (kind !== "original") {
+      assert.equal(result.roadDust.name, "road dust");
+      assert.deepEqual(f.roadDust, [["render scene", "environment", "stage binding"]]);
+      delete result.roadDust;
+    }
     return { result: simplify(result), calls: simplify(f.calls) };
   } catch (error) {
     return { error: error.message, calls: simplify(f.calls) };

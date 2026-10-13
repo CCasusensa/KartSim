@@ -2252,18 +2252,39 @@ const iv = createDriftEffectClass(driftEffectDependencies);`,
   }
   // Browser presentation controls extend the verified release settings without
   // changing the stored audio, input, or gameplay preferences.
+  // Road sounds (原版选项 环境音效 / 바닥 효과음 듣기) are on by default here; the
+  // release shipped them off, so sand and water were silent. Stored options
+  // without roadSoundDefaultOn are switched on once; a later save keeps the
+  // player's own choice together with the marker.
   if (node.type === "VariableDeclaration" && node.declarations[0]?.id?.name === "_P") {
     const original = source.slice(node.start, node.end);
-    assert(original.includes("boostBlur: !1"), "Default graphics options changed.");
+    assert(original.includes("boostBlur: !1") && original.includes("enableRoadSound: !1"),
+      "Default graphics options changed.");
     bodies.get("world").push({ at: node.start,
-      text: original.replace("boostBlur: !1", "verticalSync: false,\n    boostBlur: !1") });
+      text: original.replace("boostBlur: !1", "verticalSync: false,\n    boostBlur: !1")
+        .replace("enableRoadSound: !1", "enableRoadSound: !0,\n    roadSoundDefaultOn: !0") });
+    continue;
+  }
+  if (node.type === "VariableDeclaration" && node.declarations[0]?.id?.name === "GQ") {
+    const original = source.slice(node.start, node.end);
+    assert(originalSection(node.start) === "library" && original.includes("enableRoadSound: !1"),
+      "Default audio options changed.");
+    bodies.get("library").push({ at: node.start,
+      text: original.replace("enableRoadSound: !1", "enableRoadSound: !0") });
     continue;
   }
   if (declarationName === "la0") {
     const original = source.slice(node.start, node.end);
-    assert(original.includes("dualBoostAuto: !0"), "Stored graphics defaults changed.");
+    const storedOptions = `...JSON.parse(n),
+          };`;
+    assert(original.includes("dualBoostAuto: !0") && original.includes(storedOptions),
+      "Stored graphics defaults changed.");
     bodies.get("world").push({ at: node.start,
-      text: original.replace("dualBoostAuto: !0", "verticalSync: false,\n            dualBoostAuto: !0") });
+      text: original.replace("dualBoostAuto: !0", "verticalSync: false,\n            dualBoostAuto: !0")
+        .replace(storedOptions, `...JSON.parse(n),
+          };
+  e.roadSoundDefaultOn !== !0 &&
+    ((e.enableRoadSound = !0), (e.roadSoundDefaultOn = !0));`) });
     continue;
   }
   if (declarationName === "RP") {
@@ -2278,6 +2299,16 @@ const iv = createDriftEffectClass(driftEffectDependencies);`,
     assert(original.includes('boostBlur: "boostBlur"'), "Graphics control mapping changed.");
     bodies.get("ui").push({ at: node.start,
       text: original.replace('boostBlur: "boostBlur"', 'verticalSync: "verticalSync",\n    boostBlur: "boostBlur"') });
+    continue;
+  }
+  // Multiplayer racers' karts also release their 沙尘/水花 effects
+  // (road-dust-effect.ts, not in the release).
+  if (declarationName === "y40") {
+    const original = source.slice(node.start, node.end);
+    assert(originalSection(node.start) === "vehicle" && original.includes("n.chargerEffect,"),
+      "Vehicle asset disposal changed.");
+    bodies.get("vehicle").push({ at: node.start,
+      text: original.replace("n.chargerEffect,", "n.chargerEffect,\n    n.roadDust,") });
     continue;
   }
   // Individual rooms dress each racer in its slot's dye (not in the
@@ -4802,6 +4833,7 @@ function renderModule(name) {
     lines.push('import { loadTrackCoinSource, parseTrackCoinResources, uniqueOriginalCoinAsset } from "../vehicle/track-coin-source.ts";');
     lines.push('import { TrackCoinOwner } from "../vehicle/track-coin-owner.ts";');
     lines.push('import { ChargerEffect } from "../vehicle/charger-effect.ts";');
+    lines.push('import { RoadDustEffect } from "../vehicle/road-dust-effect.ts";');
     lines.push('import { CoatingOwner } from "../vehicle/coating-owner.ts";');
   }
   if (name === "driving") {
@@ -5196,7 +5228,7 @@ function awardPodiumLoadDependencies() { return {
     lines.push('const vehicleRuntimeOps = { resolveResources: t3, wheelAssets: yw, palette: We, prepareAppearance: vw, garageKart: p5, parseParameters: cv, makeVisual: wk, shortAssetName: a40, loadCoating: (...args) => d7.load(...args), needsParticleModification: Bk, loadXunModification: (...args) => Do.loadXun(...args), loadParticleModification: (...args) => c6.load(...args), disposeObject: u5 };');
     lines.push('const kartAudioOps = { route: S9, setGain: he, setLoop: w4, roadSoundEnabled: BQ };');
     lines.push('const kartAudioLoadOps = { decodeMotor: (context, bytes) => decodeMotorAudio(context, bytes, S30), decodeAudio: Q9, parseRoadConfig: bytes => parseRoadSoundConfig(bytes, s2, T), createContext: () => new AudioContext() };');
-    lines.push('const vehicleAssetOps = { resolveKartIdentity: b4, tachometerSelection: O50, useClassicHud: E50, resourceVersion: Bt, loadClassicTachometer: () => uv.load(), loadTachometerConfig: $50, makeTacho1: config => new fv(config), makeMqTacho: config => new Fk(config), loadNineTacho: (...args) => p7.load(...args), loadV1Tacho: (...args) => Ta.load(...args), loadXGenTacho: (...args) => Gr.load(...args), loadAudio: (...args) => pv.load(...args), loadEffects: (...args) => Ca.load(...args), loadTrails: (...args) => Ea.load(...args), makeDriftSetup: Ze0, loadDriftEffects: (...args) => iv.load(...args), loadMotionBlur: (...args) => sv.load(...args), loadZetAir: (...args) => lv.load(...args), loadShockWave: (...args) => av.load(...args), loadExhaust: (...args) => rv.load(...args), loadCrash: (...args) => nv.load(...args), loadCharger: (...args) => tv.load(...args), loadLampFlares: (...args) => s6.load(...args), kartModelRoot: J5, loadShadow: (...args) => fr.load(...args), paintColor: We, loadDecoration: Jw, loadAccessory: hr, physicsParams: jt0, rootExtent: el, collisionShape: v90, disposeObject: u5 };');
+    lines.push('const vehicleAssetOps = { resolveKartIdentity: b4, tachometerSelection: O50, useClassicHud: E50, resourceVersion: Bt, loadClassicTachometer: () => uv.load(), loadTachometerConfig: $50, makeTacho1: config => new fv(config), makeMqTacho: config => new Fk(config), loadNineTacho: (...args) => p7.load(...args), loadV1Tacho: (...args) => Ta.load(...args), loadXGenTacho: (...args) => Gr.load(...args), loadAudio: (...args) => pv.load(...args), loadEffects: (...args) => Ca.load(...args), loadTrails: (...args) => Ea.load(...args), makeDriftSetup: Ze0, loadDriftEffects: (...args) => iv.load(...args), loadMotionBlur: (...args) => sv.load(...args), loadZetAir: (...args) => lv.load(...args), loadShockWave: (...args) => av.load(...args), loadExhaust: (...args) => rv.load(...args), loadCrash: (...args) => nv.load(...args), loadCharger: (...args) => tv.load(...args), createRoadDust: (library, parent, environment, stageBinding) => new RoadDustEffect(library, parent, environment, stageBinding, chargerEffectOps), loadLampFlares: (...args) => s6.load(...args), kartModelRoot: J5, loadShadow: (...args) => fr.load(...args), paintColor: We, loadDecoration: Jw, loadAccessory: hr, physicsParams: jt0, rootExtent: el, collisionShape: v90, disposeObject: u5 };');
     lines.push('const trackMapOps = { decodeModel: y9, assetProvenance: X30, loadLteCoins: A10, loadWeather: A30, loadWarp: b30, validateCourse: Y30, lensFlareAnchor: c30, dummySounds: Vn0, extractRoad: YW, mapMovingObjects: K30, additionalMatrixRoots: j30, admitMovingObject: Um, parseEventProjection: $k, makeEventRuntime: projection => new Kn0(projection), hasDeferredRoad: mo, isDeferredRoadMaterial: Fl, unsupportedRoad: NG, hasRail: Ri, loadRailConfig: w30, loadRailCapture: y30, resourceVersion: Bt, isLteTrack: Vw, loadAdmission: J30, loadMultiplayerAdmission: Z30, makeReadyCamera: model => new I30(model), loadAdvertisements: Ln0, textureCandidates: hB, textureStatus: sn, loadEnvironment: library => rn.load(library), loadScene: c5, warpNextCamera: O30, configureSkydome: i40 };');
     lines.push(...itemWorldVehicleOps); // item-mode(world)
     lines.push('const characterAssetOps = { resolveIdentity: pk, chooseCostume: CR, decodeMotion: FI, linkedMotionNames: qp, specialMotionNames: HY, standardMotionNames: WY, linkedController: s40, specialController: o40, standardController: r40, awardController: (...args) => new b10(...args), faceTextureSources: SR, collectFaceMotionAssets: xR, palette: We, parseModel: xa, createScene: TR };');

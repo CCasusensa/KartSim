@@ -227,6 +227,7 @@ async function buildLoadedSoloRace(
       vehicle.exhaustEffect.dispose();
       vehicle.crashEffect.dispose();
       vehicle.chargerEffect.dispose();
+      vehicle.roadDust?.dispose();
       vehicle.lampFlares.dispose();
       vehicle.simpleShadow.dispose();
       vehicle.tachometerRenderer.dispose();

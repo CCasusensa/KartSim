@@ -15,6 +15,8 @@ export interface LoadedVehicleAsset {
   exhaustEffect: any;
   crashEffect: any;
   chargerEffect: any;
+  /** 沙尘/水花 on dust roads (road-dust-effect.ts); not in the release. */
+  roadDust: any;
   lampFlares: any;
   simpleShadow: any;
   decoration: any;
@@ -59,6 +61,7 @@ export interface VehicleAssetOps {
   loadExhaust(...args: any[]): Promise<any>;
   loadCrash(...args: any[]): Promise<any>;
   loadCharger(...args: any[]): Promise<any>;
+  createRoadDust(library: any, parent: any, environment: any, stageBinding: any): any;
   loadLampFlares(...args: any[]): Promise<any>;
   kartModelRoot(model: any): any;
   loadShadow(...args: any[]): Promise<any>;
@@ -147,7 +150,7 @@ export async function loadVehicleAsset(
   const accessories: { kind: string; render: any }[] = [];
   let audio: any, effects: any, trails: any, driftEffects: any;
   let motionBlur: any, zetAirEffect: any, shockWaveEffect: any;
-  let exhaustEffect: any, crashEffect: any, chargerEffect: any;
+  let exhaustEffect: any, crashEffect: any, chargerEffect: any, roadDust: any;
   let lampFlares: any, simpleShadow: any, decoration: any;
   let tachometerRenderer: any;
 
@@ -183,6 +186,7 @@ export async function loadVehicleAsset(
     crashEffect = await ops.loadCrash(
       library, owner.assetHost.targetRandom, environment, stageBinding);
     chargerEffect = await ops.loadCharger(library, scene, environment, stageBinding);
+    roadDust = ops.createRoadDust(library, scene, environment, stageBinding);
     lampFlares = await ops.loadLampFlares(
       library, runtime.visual, scene, suppressClassic);
 
@@ -224,7 +228,7 @@ export async function loadVehicleAsset(
           body.footprintExtent1),
         { scaleX: 1, scaleY: 1, height: 1 }),
       audio, effects, trails, driftEffects, motionBlur, zetAirEffect,
-      shockWaveEffect, exhaustEffect, crashEffect, chargerEffect, lampFlares,
+      shockWaveEffect, exhaustEffect, crashEffect, chargerEffect, roadDust, lampFlares,
       simpleShadow, decoration, accessories, coating, particleModification,
       tachometerSelection: tachometer.selection,
       classicHud: tachometer.classicHud, tachometerRenderer,
@@ -240,6 +244,7 @@ export async function loadVehicleAsset(
     exhaustEffect?.dispose();
     crashEffect?.dispose();
     chargerEffect?.dispose();
+    roadDust?.dispose();
     lampFlares?.dispose();
     simpleShadow?.dispose();
     decoration?.dispose();

@@ -36,6 +36,7 @@ interface RaceSession {
   exhaustEffect?: Disposable;
   crashEffect?: Disposable;
   chargerEffect?: Disposable;
+  kartRoadDust?: Disposable;
   particleModification?: Disposable;
   particleModificationBanner?: Disposable;
   particleModificationBannerRequest?: unknown;
@@ -155,6 +156,11 @@ export function releaseRaceForReady(
   session.crashEffect = undefined;
   session.chargerEffect?.dispose();
   session.chargerEffect = undefined;
+  // Not in the release (road-dust-effect.ts): only a race that loaded one has the field.
+  if (session.kartRoadDust) {
+    session.kartRoadDust.dispose();
+    session.kartRoadDust = undefined;
+  }
   session.particleModification?.dispose();
   session.particleModification = undefined;
   session.particleModificationBanner?.dispose();
