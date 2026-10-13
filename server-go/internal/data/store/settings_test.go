@@ -14,6 +14,7 @@ import (
 // "racebonus"), while an unfinished racer gets only the formula reward.
 func TestEconomySettingsAndGrants(t *testing.T) {
 	db := datatest.MySQL(t)
+	datatest.LockEconomySettings(t, db)
 	st := store.New(db)
 	ctx := context.Background()
 	u := datatest.Unique()
@@ -98,6 +99,7 @@ func TestEconomySettingsAndGrants(t *testing.T) {
 // and a disabled button refuses.
 func TestShopClaimGrant(t *testing.T) {
 	db := datatest.MySQL(t)
+	datatest.LockEconomySettings(t, db)
 	st := store.New(db)
 	ctx := context.Background()
 	u := datatest.Unique()

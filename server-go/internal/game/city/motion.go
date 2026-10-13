@@ -143,8 +143,8 @@ func (inst *instance) relay(c *lobby.Client, frame []byte) {
 	inst.mu.Lock()
 	defer inst.mu.Unlock()
 	m := inst.members[c]
-	if m == nil {
-		return
+	if m == nil || m.seat == SeatPassenger {
+		return // a passenger rides along: its kart's driver moves it
 	}
 	now := inst.svc.clock.Now()
 	if !ok || (!m.skipCheck && !inst.plausible(m, pose, now)) {
@@ -153,8 +153,20 @@ func (inst *instance) relay(c *lobby.Client, frame []byte) {
 		}
 		return
 	}
+	checked := !m.skipCheck
 	m.skipCheck = false
+	m.speed = 0
+	if checked {
+		m.speed = horizontal(pose, m.pose) / float64(max(now-m.lastFrame, minIntervalMs)) * 1000
+		if t := m.drivenTank(); t != nil && !inst.burn(m, t, pose, now) {
+			return // a stalled kart past its coast: not relayed
+		}
+	}
+	m.lastFrame = now
 	inst.place(m, pose, now)
+	if m.seat == SeatDriver && m.vehicle != nil {
+		inst.carryLocked(m.vehicle, pose, now)
+	}
 	if m.state == StateAFK {
 		inst.setState(m, StateDriving, now)
 	}

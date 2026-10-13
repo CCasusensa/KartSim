@@ -1,4 +1,4 @@
-import { CITY_EVENT_TYPES, parseCityEvent, parseCitySnapshot } from "../city/city-protocol";
+import { CITY_EVENT_TYPES, CITY_REPLY_TYPES, parseCityEvent, parseCitySnapshot } from "../city/city-protocol";
 import { roomSlotCount } from "./lobby-brawl-mode";
 import {
   ITEM_HIT_BLOCKERS, ITEM_HIT_VARIANTS, PROTOCOL_VERSION, ROOM_RULESET, validHitOutcome,
@@ -56,7 +56,7 @@ export function parseServerEvent(value: unknown,
   // city events are validated by the city module; a malformed one is dropped
   // without closing the connection.
   if (typeof event.type === "string" && (event.type === "city" || event.type === "ok" ||
-      CITY_EVENT_TYPES.has(event.type))) {
+      CITY_EVENT_TYPES.has(event.type) || CITY_REPLY_TYPES.has(event.type))) {
     try {
       // The node answers city-join with the snapshot fields on the reply itself;
       // other replies (city-left …) only carry the requestId.

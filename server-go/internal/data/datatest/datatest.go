@@ -60,3 +60,27 @@ func Exec(t testing.TB, db *sql.DB, query string, args ...any) {
 		t.Fatalf("%s: %v", query, err)
 	}
 }
+
+// LockEconomySettings serializes the tests that change the shared
+// app_settings "economy" row (the admin's grants and the city fuel prices)
+// across test packages, which `go test ./...` runs in parallel: it takes a
+// MySQL advisory lock on its own connection and releases it after the
+// test's other cleanups. Call it before registering cleanups that restore
+// the row.
+func LockEconomySettings(t testing.TB, db *sql.DB) {
+	t.Helper()
+	ctx := context.Background()
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got sql.NullInt64
+	if err := conn.QueryRowContext(ctx, "SELECT GET_LOCK('kartsim_test_economy_settings', 120)").Scan(&got); err != nil || got.Int64 != 1 {
+		conn.Close()
+		t.Fatalf("economy settings test lock: %v (%v)", got, err)
+	}
+	t.Cleanup(func() {
+		conn.ExecContext(ctx, "DO RELEASE_LOCK('kartsim_test_economy_settings')")
+		conn.Close()
+	})
+}

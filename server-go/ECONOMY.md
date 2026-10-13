@@ -76,6 +76,7 @@
 - 商城左上原版“充值”按钮的位置放一个“点击获取点券”按钮：后台开关打开时显示，每次点击按后台设置入账（默认开启、每次 10,000 点券、金币与 K币为 0；每项 0–1,000,000,000）。设置随 `GET`/`PUT /api/admin/economy` 的 `shopClaim{enabled,coupon,lucci,koin}` 读写（PUT 不带 `shopClaim` 时保持原样）；没有保存过、或保存于此功能之前的行都按默认值。
 - `GET /api/shop/free-coupon`（需登录）→ `{enabled, coupon, lucci, koin, serverTime}`，商城打开时读取，决定按钮是否显示与提示的数额。
 - `POST /api/shop/free-coupon/claim` `{requestId}` → `{wallet, granted{coupon,lucci,koin}, duplicate}`：在钱包锁内按当时的设置入账，每种货币一行流水（原因 `shopclaim`、关联 = requestId），所以同一 `requestId` 重发只回 `duplicate: true`，不重复入账；浏览器每次点击一个新的 `requestId`。开关关闭时 403 `SHOP_CLAIM_CLOSED`，余额将超过 10^12 时 409 `BALANCE_LIMIT`，受每账号写接口限流（429 `TOO_MANY_ATTEMPTS`）。不计每日上限，也不乘倍率。
+- 卡丁城加油（`FUEL.md`）：在加油站加油时扣金币，流水原因 `cityfuel`；叫道路救援时扣救援费，流水原因 `cityrescue`。两者的关联号都是游戏节点下单时的 `requestId`。价格放在同一行经济设置的 `cityFuel` 字段里。
 
 ## 3. 商店数据
 

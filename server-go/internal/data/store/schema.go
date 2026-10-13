@@ -922,6 +922,21 @@ var migrations = []migration{
 	{version: 21, columns: []tableColumn{
 		{table: "custom_maps", name: "items", definition: "INT NOT NULL DEFAULT 0"},
 	}},
+	// v22: 卡丁城 fuel (FUEL.md 3): what each kart of an account has left in
+	// its tank, in millilitres; a kart without a row is full. rev counts the
+	// writes so a node's late or repeated call never applies twice.
+	{version: 22, statements: []string{
+		`CREATE TABLE IF NOT EXISTS kart_fuel (
+			account_id CHAR(36) ` + idColumn + ` NOT NULL,
+			kart_key VARCHAR(72) ` + idColumn + ` NOT NULL,
+			fuel_ml INT NOT NULL,
+			rev BIGINT NOT NULL DEFAULT 0,
+			updated_at BIGINT NOT NULL,
+			PRIMARY KEY (account_id, kart_key),
+			CONSTRAINT chk_kart_fuel_ml CHECK (fuel_ml >= 0),
+			CONSTRAINT fk_kart_fuel_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

@@ -63,7 +63,7 @@ interface FollowingPet {
   dispose(): void;
 }
 
-interface WalkingAvatar {
+export interface WalkingAvatar {
   scene: WalkingScene;
   motion: InstanceType<typeof ag>;
   /** The character's own meshes (ground and head height ignore what it wears). */
@@ -150,14 +150,14 @@ async function dressWalkingAvatar(library: MyRoomSceneLibrary, subject: MyRoomSc
   character.reset?.();
 }
 
-function updateWalkingAvatar(avatar: WalkingAvatar, elapsed: number, camera: unknown, width: number,
+export function updateWalkingAvatar(avatar: WalkingAvatar, elapsed: number, camera: unknown, width: number,
   height: number): void {
   avatar.scene.update(elapsed, camera as never, width, height);
   for (const worn of avatar.worn) worn.scene?.update?.(elapsed, camera, width, height);
   avatar.pet?.update(elapsed, camera, width, height);
 }
 
-function disposeWalkingAvatar(avatar: WalkingAvatar | undefined): void {
+export function disposeWalkingAvatar(avatar: WalkingAvatar | undefined): void {
   if (!avatar) return;
   for (const worn of avatar.worn) worn.dispose();
   avatar.pet?.dispose();
@@ -165,7 +165,7 @@ function disposeWalkingAvatar(avatar: WalkingAvatar | undefined): void {
 }
 
 /** The character's own meshes in world space. */
-function bodyBounds(avatar: WalkingAvatar): Box3 {
+export function bodyBounds(avatar: WalkingAvatar): Box3 {
   const bounds = new Box3();
   for (const mesh of avatar.body) bounds.expandByObject(mesh, false);
   return bounds.isEmpty() ? new Box3().setFromObject(avatar.scene.object) : bounds;
@@ -245,8 +245,17 @@ function subjectKey(subject: MyRoomSceneSubject): string {
     subject.profile.garage, subject.profile.initial]);
 }
 
+/**
+ * The rider colours a walking avatar of `equipment` wears (its 车手颜色,
+ * slot 70), as My Room loads them.
+ */
+export function walkingAvatarColors(library: MyRoomSceneLibrary,
+  equipment: { itemIds: Record<string | number, number | undefined> }): Promise<{ primary: number; high: number } | null> {
+  return Yb(library, equipment.itemIds[70] ?? 0, 70);
+}
+
 /** Build the selected ordinary character with its original standing and walking motions. */
-async function loadWalkingAvatar(library: MyRoomSceneLibrary,
+export async function loadWalkingAvatar(library: MyRoomSceneLibrary,
   subject: MyRoomSceneSubject,
   colors: { primary: number; high: number } | null): Promise<WalkingAvatar> {
   const source = library.get(subject.character.path) as CharacterFile | undefined;

@@ -65,6 +65,8 @@ export const reasonNames: Record<string, string> = {
   expedition: '赛车探险队',
   license: '驾照考试',
   rewardbox: '奖励箱',
+  cityfuel: '卡丁城加油',
+  cityrescue: '道路救援',
 }
 
 export function reasonName(reason: string | null | undefined): string {

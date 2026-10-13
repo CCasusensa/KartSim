@@ -30,6 +30,8 @@ node --import ./src/physics/node-raw-test-hook.mjs --import tsx \
 
 验证通过后，可在导入命令后加 `--register`，同步原生容器、索引和三份地图 JSON。设计预览地址为 `/tools/city/blender/preview.html?map=vice-city`。
 
+`city-map.json` 的顶层 `props` 列出加油站模型和路缘坡道。导入时会读取 `design/open-world/tripo/c_gasstation.glb`（同样使用 LFS）。验证脚本同时检查 7 个加油站的停车点、开出和开入。若要重新推导加油站数据，在导入前执行 `node --max-old-space-size=12000 tools/city/blender/fuel-stations.mjs`，它会改写 `build/vice-city/out/kartcity-design.json`。说明见上级 [PLAN.md](../PLAN.md) 的“加油站与设计道具管线”。
+
 若要重新导出 Blender 工程，把 `kartcity.blend`、`vice-city-source-report.json` 一起复制到 `client/build/vice-city/out/`，再按上级 [PLAN.md](../PLAN.md) 的 `--resume-blend` 命令执行。重建导航时将归档的 `source-road-surfaces.json` 复制到 `client/build/vice-city/`；`navigation-exclusions.json` 对输入道路做哈希检查，修改道路后需要重新进行碰撞验收。
 
 ## 来源与记录

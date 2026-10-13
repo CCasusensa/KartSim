@@ -65,6 +65,8 @@ type Options struct {
 	Map *Map
 	// Random supplies the weather rolls, uniform in [0, 1) (nil: math/rand).
 	Random func() float64
+	// Fuel is the data service's tank API (FUEL.md); nil drives without fuel.
+	Fuel   Fuel
 	Logger *slog.Logger
 }
 
@@ -111,12 +113,13 @@ const (
 // Limits of the chat and emote commands (per member, node ms): chat 1/s
 // burst 5 then muted 10 s like the My Room hub; emotes 2/s; respawns 2/s.
 const (
-	chatRate, chatBurst       = 1.0, 5
-	chatMuteMs                = 10_000
-	emoteRate, emoteBurst     = 2.0, 4
-	respawnRate, respawnBurst = 2.0, 4
-	maxChatRunes              = 60
-	maxEmote                  = 16
+	chatRate, chatBurst         = 1.0, 5
+	chatMuteMs                  = 10_000
+	emoteRate, emoteBurst       = 2.0, 4
+	respawnRate, respawnBurst   = 2.0, 4
+	fuelCallRate, fuelCallBurst = 1.0, 3
+	maxChatRunes                = 60
+	maxEmote                    = 16
 	// Garage changes (city-equipment): one per two seconds, burst 3; the
 	// lobby also bounds the data service checks they cause.
 	equipRate, equipBurst = 0.5, 3
@@ -128,7 +131,8 @@ const (
 
 // commands are the requests this package handles (ws routes them here).
 var commands = map[string]bool{"city-join": true, "city-leave": true, "city-chat": true, "city-emote": true,
-	"city-state": true, "city-respawn": true, "city-equipment": true}
+	"city-state": true, "city-respawn": true, "city-equipment": true, "city-refuel": true, "city-rescue": true,
+	"city-exit": true, "city-enter": true, "city-lock": true}
 
 // Handles reports whether a request type is a city command.
 func Handles(typ string) bool { return commands[typ] }
@@ -142,6 +146,9 @@ type Service struct {
 	log      *slog.Logger
 	lines    []*instance
 	closed   atomic.Bool
+	fuel     Fuel
+	// saves counts the fuel saves in flight (Close waits for them).
+	saves sync.WaitGroup
 
 	// mutes are admin and flood mutes by player ID (node ms until), kept
 	// at the service so leaving a line does not lift them; a leaf lock.
@@ -192,7 +199,7 @@ func New(opts Options) (*Service, error) {
 		opts.Map = m
 	}
 	s := &Service{opts: opts, clock: opts.Clock, profiles: opts.Profiles, cityMap: opts.Map, log: opts.Logger,
-		mutes: map[string]int64{}}
+		mutes: map[string]int64{}, fuel: opts.Fuel}
 	now := s.clock.Now()
 	for line := 1; line <= opts.Lines; line++ {
 		s.lines = append(s.lines, newInstance(s, line, now))
@@ -207,9 +214,13 @@ func (s *Service) Start() {
 	}
 }
 
-// Close stops the housekeeping timers; it is called at shutdown after the
-// connections are closed.
-func (s *Service) Close() { s.closed.Store(true) }
+// Close stops the housekeeping timers and waits briefly for the fuel saves
+// of the members who left; it is called at shutdown after the connections
+// are closed.
+func (s *Service) Close() {
+	s.closed.Store(true)
+	s.waitSaves()
+}
 
 // Lines reports how many lines the service runs.
 func (s *Service) Lines() int { return len(s.lines) }
@@ -232,8 +243,14 @@ func (s *Service) Handle(ctx context.Context, c *lobby.Client, in lobby.Request)
 	if inst == nil {
 		return lobby.Reply{}, errNotInCity()
 	}
-	if typ == "city-equipment" {
+	// These commands call the lobby or the data service and take the line lock themselves.
+	switch typ {
+	case "city-equipment":
 		return s.equip(ctx, c, inst, in)
+	case "city-refuel":
+		return inst.refuel(c, in)
+	case "city-rescue":
+		return inst.rescue(c, in)
 	}
 	return inst.handle(c, typ, in)
 }
@@ -250,7 +267,15 @@ func (s *Service) equip(ctx context.Context, c *lobby.Client, inst *instance, in
 	if err != nil {
 		return lobby.Reply{}, err
 	}
-	return inst.applyEquipment(c, equipment)
+	// A kart not driven this visit brings its tank from the data service.
+	var fuel *tank
+	if key := kartKeyOf(equipment); key != "" && !inst.hasTank(c, key) {
+		if profile, ok := s.profiles.Profile(c); ok {
+			profile.Equipment = equipment
+			fuel = s.loadTank(profile)
+		}
+	}
+	return inst.applyEquipment(c, equipment, fuel)
 }
 
 // lineOf is the line c is in, nil outside the city.
@@ -303,10 +328,15 @@ func (s *Service) join(c *lobby.Client, profile lobby.Profile, in lobby.Request)
 			// Already there: answer with a fresh snapshot.
 			return current.snapshotOf(c)
 		}
-		current.leave(c, "")
+		if old := current.leaveMember(c, ""); old != nil {
+			for _, t := range old.tanks {
+				t.pending.Wait() // its last save lands before the new line reads the tank
+			}
+		}
 	}
+	fuel := s.loadTank(profile)
 	for _, inst := range candidates {
-		reply, ok := inst.join(c, profile)
+		reply, ok := inst.join(c, profile, fuel)
 		if ok {
 			return reply, nil
 		}
@@ -372,6 +402,25 @@ func horizontal(a, b Pose) float64 { return math.Hypot(a.X-b.X, a.Z-b.Z) }
 
 // member is one connection in a line.
 type member struct {
+	accountID string
+	// lucci is the member's 金币 as the data service last reported it.
+	lucci int64
+	// seat is where the member sits (SeatDriver, SeatPassenger, SeatFoot);
+	// vehicle is the kart it sits in (nil on foot); own is its own kart.
+	seat    string
+	vehicle *vehicle
+	own     *vehicle
+	// tanks are the fuel tanks of the member's karts loaded this visit, by
+	// kart key (a garage change back to a kart reuses its tank); own.tank
+	// is one of them. Empty with fuel off.
+	tanks map[string]*tank
+	// speed (m/s, ground plane) between the last two accepted frames, and
+	// when the last one came.
+	speed     float64
+	lastFrame int64
+	fuelCalls limiter
+	seats     limiter
+
 	c         *lobby.Client
 	id        uint16
 	playerID  string
@@ -398,8 +447,13 @@ type member struct {
 }
 
 func (m *member) object() lobby.Object {
+	vehicleID := 0
+	if m.vehicle != nil {
+		vehicleID = int(m.vehicle.id)
+	}
 	return lobby.Object{lobby.F("id", int(m.id)), lobby.F("playerId", m.playerID), lobby.F("name", m.name),
-		lobby.F("equipment", m.equipment), lobby.F("state", m.state), lobby.F("pose", m.pose.object())}
+		lobby.F("equipment", m.equipment), lobby.F("state", m.state), lobby.F("pose", m.pose.object()),
+		lobby.F("seat", m.seat), lobby.F("vehicle", vehicleID)}
 }
 
 // instance is one line.
@@ -412,6 +466,7 @@ type instance struct {
 	mu       sync.Mutex
 	members  map[*lobby.Client]*member
 	byID     map[uint16]*member
+	vehicles map[uint16]*vehicle
 	nextID   uint16
 	freeIDs  []uint16 // released ids, reused oldest first
 	grid     grid
@@ -425,7 +480,7 @@ type instance struct {
 
 func newInstance(s *Service, line int, now int64) *instance {
 	return &instance{svc: s, line: line, id: "city-" + strconv.Itoa(line), name: "卡丁城 线路 " + strconv.Itoa(line),
-		members: map[*lobby.Client]*member{}, byID: map[uint16]*member{}, grid: newGrid(),
+		members: map[*lobby.Client]*member{}, byID: map[uint16]*member{}, vehicles: map[uint16]*vehicle{}, grid: newGrid(),
 		clock: newCityClock(now, s.opts.DayLength.Milliseconds(), !s.opts.WeatherOff, s.opts.RainPercent,
 			s.opts.SnowPercent, s.opts.Random),
 		lastTick: now}
@@ -453,8 +508,9 @@ func (inst *instance) allocateID() (uint16, bool) {
 	return inst.nextID, true
 }
 
-// join adds c to the line; false when it is full or closed.
-func (inst *instance) join(c *lobby.Client, profile lobby.Profile) (lobby.Reply, bool) {
+// join adds c to the line; false when it is full or closed. A kart whose
+// tank is empty starts at the gas station nearest its spawn point.
+func (inst *instance) join(c *lobby.Client, profile lobby.Profile, fuel *tank) (lobby.Reply, bool) {
 	inst.mu.Lock()
 	defer inst.mu.Unlock()
 	if inst.closed || len(inst.members) >= inst.svc.opts.LinePlayers {
@@ -470,17 +526,31 @@ func (inst *instance) join(c *lobby.Client, profile lobby.Profile) (lobby.Reply,
 	now := inst.svc.clock.Now()
 	spawn := inst.svc.cityMap.Spawns[inst.spawnAt%len(inst.svc.cityMap.Spawns)]
 	inst.spawnAt++
+	if fuel != nil && fuel.empty() {
+		if station := inst.svc.cityMap.NearestStation(spawn.X, spawn.Z); station != nil {
+			spawn = station.Park
+		}
+	}
 	m := &member{c: c, id: id, playerID: profile.PlayerID, name: profile.Name, equipment: profile.Equipment,
 		state: StateDriving, pose: Pose{X: spawn.X, Y: spawn.Y, Z: spawn.Z, Heading: spawn.Heading},
-		lastMotion: now, skipCheck: true,
+		lastMotion: now, skipCheck: true, accountID: profile.AccountID, seat: SeatDriver, tanks: map[string]*tank{},
 		chat: newLimiter(chatRate, chatBurst), emotes: newLimiter(emoteRate, emoteBurst),
-		respawns: newLimiter(respawnRate, respawnBurst), equips: newLimiter(equipRate, equipBurst)}
+		respawns: newLimiter(respawnRate, respawnBurst), equips: newLimiter(equipRate, equipBurst),
+		fuelCalls: newLimiter(fuelCallRate, fuelCallBurst), seats: newLimiter(seatRate, seatBurst)}
+	m.own = &vehicle{id: id, owner: m, equipment: profile.Equipment, pose: m.pose, driver: m, tank: fuel}
+	m.vehicle = m.own
+	inst.vehicles[id] = m.own
+	if fuel != nil {
+		fuel.stall, fuel.savedAt, fuel.sentAt = m.pose, now, now
+		m.tanks[fuel.kartKey] = fuel
+		m.lucci = fuel.lucci
+	}
 	m.cell = inst.grid.insert(m)
 	inst.members[c] = m
 	inst.byID[id] = m
 	c.SetCityLine(inst.line)
 	inst.broadcast(lobby.Encode(lobby.Object{lobby.F("type", "city-joined"), lobby.F("instanceId", inst.id),
-		lobby.F("member", m.object())}), m)
+		lobby.F("member", m.object()), lobby.F("vehicle", m.own.object())}), m)
 	return inst.snapshotLocked(m, spawn), true
 }
 
@@ -502,6 +572,16 @@ func (inst *instance) snapshotLocked(you *member, spawn Spawn) lobby.Reply {
 	for _, m := range sorted {
 		members = append(members, m.object())
 	}
+	self := lobby.Object{lobby.F("id", int(you.id)), lobby.F("spawn", lobby.Object{
+		lobby.F("id", spawn.ID), lobby.F("x", spawn.X), lobby.F("y", spawn.Y), lobby.F("z", spawn.Z),
+		lobby.F("heading", spawn.Heading)})}
+	if t := you.drivenTank(); t != nil {
+		self = append(self, lobby.F("fuel", t.object(you.lucci)))
+	}
+	vehicles := make([]lobby.Object, 0, len(inst.vehicles))
+	for _, v := range slices.SortedFunc(mapValues(inst.vehicles), func(a, b *vehicle) int { return int(a.id) - int(b.id) }) {
+		vehicles = append(vehicles, v.object())
+	}
 	return lobby.NewReply(lobby.Object{
 		lobby.F("type", "city"),
 		lobby.F("instanceId", inst.id),
@@ -509,24 +589,28 @@ func (inst *instance) snapshotLocked(you *member, spawn Spawn) lobby.Reply {
 		lobby.F("name", inst.name),
 		lobby.F("capacity", inst.svc.opts.LinePlayers),
 		lobby.F("clock", inst.clock.snapshot(inst.svc.clock.Now())),
-		lobby.F("you", lobby.Object{lobby.F("id", int(you.id)), lobby.F("spawn", lobby.Object{
-			lobby.F("id", spawn.ID), lobby.F("x", spawn.X), lobby.F("y", spawn.Y), lobby.F("z", spawn.Z),
-			lobby.F("heading", spawn.Heading)})}),
+		lobby.F("you", self),
 		lobby.F("members", members),
+		lobby.F("vehicles", vehicles),
 	})
 }
 
 // leave removes c from the line, with a city-kicked event first when
 // reason is set; false when c was not a member.
 func (inst *instance) leave(c *lobby.Client, reason string) bool {
+	return inst.leaveMember(c, reason) != nil
+}
+
+// leaveMember is leave returning the member that left (nil when none).
+func (inst *instance) leaveMember(c *lobby.Client, reason string) *member {
 	inst.mu.Lock()
 	defer inst.mu.Unlock()
 	m := inst.members[c]
 	if m == nil {
-		return false
+		return nil
 	}
 	inst.removeLocked(m, reason)
-	return true
+	return m
 }
 
 func (inst *instance) removeLocked(m *member, reason string) {
@@ -534,6 +618,7 @@ func (inst *instance) removeLocked(m *member, reason string) {
 		m.c.Text(lobby.Encode(lobby.Object{lobby.F("type", "city-kicked"), lobby.F("instanceId", inst.id),
 			lobby.F("reason", reason)}))
 	}
+	inst.releaseLocked(m, inst.svc.clock.Now())
 	inst.grid.remove(m)
 	delete(inst.members, m.c)
 	delete(inst.byID, m.id)
@@ -590,6 +675,12 @@ func (inst *instance) handle(c *lobby.Client, typ string, in lobby.Request) (lob
 		return okReply(), nil
 	case "city-respawn":
 		return inst.respawn(m, in, now)
+	case "city-exit":
+		return inst.exit(m, in, now)
+	case "city-enter":
+		return inst.enter(m, in, now)
+	case "city-lock":
+		return inst.lock(m, in, now)
 	}
 	return lobby.Reply{}, fail(http.StatusBadRequest, "UNSUPPORTED_COMMAND")
 }
@@ -602,14 +693,26 @@ func (inst *instance) allowEquip(c *lobby.Client) error {
 	if m == nil {
 		return errNotInCity()
 	}
+	// The garage changes the member's own kart: only from its driver's seat.
+	if m.seat != SeatDriver || m.vehicle != m.own {
+		return fail(http.StatusConflict, "NOT_IN_OWN_KART")
+	}
 	if !m.equips.allow(inst.svc.clock.Now()) {
 		return errRateLimited()
 	}
 	return nil
 }
 
+// hasTank reports whether the member loaded the tank of kart key this visit.
+func (inst *instance) hasTank(c *lobby.Client, key string) bool {
+	inst.mu.Lock()
+	defer inst.mu.Unlock()
+	m := inst.members[c]
+	return m != nil && m.tanks[key] != nil
+}
+
 // applyEquipment stores a checked equipment and tells the rest of the line.
-func (inst *instance) applyEquipment(c *lobby.Client, equipment json.RawMessage) (lobby.Reply, error) {
+func (inst *instance) applyEquipment(c *lobby.Client, equipment json.RawMessage, fuel *tank) (lobby.Reply, error) {
 	inst.mu.Lock()
 	defer inst.mu.Unlock()
 	m := inst.members[c]
@@ -618,6 +721,32 @@ func (inst *instance) applyEquipment(c *lobby.Client, equipment json.RawMessage)
 		return lobby.Reply{}, errNotInCity()
 	}
 	m.equipment = equipment
+	m.own.equipment = equipment
+	// The new kart's tank replaces the old one, which is saved.
+	key := kartKeyOf(equipment)
+	t := m.tanks[key]
+	if t == nil && fuel != nil {
+		now := inst.svc.clock.Now()
+		t, fuel.savedAt = fuel, now
+		m.tanks[key] = t
+	}
+	if t != nil && t != m.own.tank {
+		now := inst.svc.clock.Now()
+		if old := m.own.tank; old != nil {
+			inst.queueSave(old)
+		}
+		m.own.tank = t
+		t.stall = m.pose
+		if m.vehicle == m.own && m.seat == SeatDriver {
+			inst.fuelEvent(m, t, "equip", now)
+		}
+	} else if t == nil && m.own.tank != nil && m.own.tank.kartKey != key {
+		// The data service could not answer for the new kart: it drives
+		// without fuel rather than on the old kart's tank.
+		inst.queueSave(m.own.tank)
+		m.own.tank = nil
+	}
+	inst.vehicleEvent(m.own, m) // the reply tells the member
 	fields := lobby.Object{lobby.F("type", "city-equipment"), lobby.F("instanceId", inst.id),
 		lobby.F("id", int(m.id)), lobby.F("playerId", m.playerID), lobby.F("equipment", equipment)}
 	inst.broadcast(lobby.Encode(fields), m)
@@ -722,9 +851,27 @@ func (inst *instance) respawn(m *member, in lobby.Request, now int64) (lobby.Rep
 	default:
 		return lobby.Reply{}, lobby.Invalid("spawn")
 	}
+	if m.seat == SeatPassenger {
+		return lobby.Reply{}, fail(http.StatusConflict, "PASSENGER")
+	}
+	// A stalled kart may reset to a nearby road, not drive off by respawning.
+	if t := m.drivenTank(); t != nil && t.empty() && (in.HasNonNull("spawn") || horizontal(pose, m.pose) > emptyRespawn) {
+		return lobby.Reply{}, fail(http.StatusConflict, "FUEL_EMPTY")
+	}
 	if !m.respawns.allow(now) {
 		return lobby.Reply{}, errRateLimited()
 	}
+	inst.moveLocked(m, pose, now)
+	if t := m.drivenTank(); t != nil && t.empty() {
+		t.stall = pose
+	}
+	return okReply(), nil
+}
+
+// moveLocked puts a member at pose and tells the members near its old and
+// new pose (city-respawn), as a declared respawn: the next frame is not
+// checked against the old pose.
+func (inst *instance) moveLocked(m *member, pose Pose, now int64) {
 	// Those who were predicting the member near its old pose reset, and
 	// those near the new pose see it appear.
 	recipients := map[*member]struct{}{}
@@ -743,7 +890,9 @@ func (inst *instance) respawn(m *member, in lobby.Request, now int64) (lobby.Rep
 			other.c.Text(payload)
 		}
 	}
-	return okReply(), nil
+	if m.seat == SeatDriver && m.vehicle != nil {
+		inst.carryLocked(m.vehicle, pose, now)
+	}
 }
 
 // place records a member's pose (and its grid cell).
@@ -785,6 +934,7 @@ func (inst *instance) tick() {
 	if inst.clock.advance(now) || now-inst.lastTick >= clockBroadcastMs {
 		inst.broadcastClockLocked(now)
 	}
+	inst.saveDue(now)
 	if len(inst.members) > 0 {
 		packet := inst.radarPacket()
 		for _, m := range inst.members {

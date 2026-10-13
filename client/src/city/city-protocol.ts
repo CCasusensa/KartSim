@@ -15,6 +15,9 @@ export interface CityPose { x: number; y: number; z: number; heading: number }
 export type CityMemberState = "driving" | "parked" | "afk";
 export type CityWeather = "clear" | "rain" | "snow";
 
+/** Where a member sits (server-go/CITY.md 7): its kart's driver seat, someone's back seat, or on foot. */
+export type CitySeat = "driver" | "passenger" | "foot";
+
 export interface CityMember {
   id: number;
   playerId: string;
@@ -22,6 +25,25 @@ export interface CityMember {
   equipment: unknown;
   state: CityMemberState;
   pose?: CityPose;
+  /** Absent from older nodes and fixtures: driving. */
+  seat?: CitySeat;
+  /** The kart the member sits in (0 on foot). */
+  vehicle?: number;
+}
+
+/** A member's kart in the city: parked where its driver got out, or driven. */
+export interface CityVehicle {
+  /** Its owner's member id. */
+  id: number;
+  owner: number;
+  playerId: string;
+  ownerName: string;
+  equipment: unknown;
+  pose: CityPose;
+  locked: boolean;
+  /** Member ids of who sits in it (0: empty seat). */
+  driver: number;
+  passenger: number;
 }
 
 export interface CityClock {
@@ -32,18 +54,45 @@ export interface CityClock {
   weatherUntilTick: number;
 }
 
+/** A member's fuel tank (server-go/FUEL.md); absent while fuel is off. */
+export interface CityFuel {
+  kartName: string;
+  /** small | medium | large | huge */
+  sizeClass: string;
+  capacityMl: number;
+  fuelMl: number;
+  useMlPerKm: number;
+  /** 金币 per litre; a refill costs ceil(ml × price / 1000). */
+  pricePerLiter: number;
+  rescueFee: number;
+  lucci: number;
+  empty: boolean;
+}
+
 export interface CitySnapshot {
   instanceId: string;
   line: number;
   name: string;
   capacity: number;
   clock: CityClock;
-  you: { id: number; spawn: CityPose & { id?: string } };
+  you: { id: number; spawn: CityPose & { id?: string }; fuel?: CityFuel };
   members: CityMember[];
+  vehicles: CityVehicle[];
+}
+
+/** city-exit's and city-enter's reply: where the member sits now. */
+export interface CitySeatReply { seat: CitySeat; pose?: CityPose; vehicle?: CityVehicle; fuel?: CityFuel }
+
+/** city-refuel's reply: what was bought at which station. */
+export interface CityRefuelReply { station: string; addedMl: number; cost: number; stale: boolean; fuel: CityFuel }
+
+/** city-rescue's reply: the tow (pose at the station) or a stale tank. */
+export interface CityRescueReply {
+  station?: string; stationName?: string; pose?: CityPose; cost: number; free: boolean; stale: boolean; fuel: CityFuel;
 }
 
 export type CityEvent =
-  | { type: "city-joined"; instanceId: string; member: CityMember }
+  | { type: "city-joined"; instanceId: string; member: CityMember; vehicle?: CityVehicle }
   | { type: "city-left"; instanceId: string; id: number; playerId: string }
   | { type: "city-chat"; instanceId: string; sequence: number; id: number; playerId: string; name: string; channel: string; text: string }
   | { type: "city-emote"; instanceId: string; id: number; emote: number }
@@ -51,12 +100,20 @@ export type CityEvent =
   | { type: "city-respawn"; instanceId: string; id: number; pose: CityPose }
   | { type: "city-equipment"; instanceId: string; id: number; playerId: string; equipment: unknown }
   | { type: "city-clock"; instanceId: string; clock: CityClock }
+  | { type: "city-fuel"; instanceId: string; reason: string; fuel: CityFuel }
+  | { type: "city-vehicle"; instanceId: string; vehicle: CityVehicle }
+  | { type: "city-vehicle-gone"; instanceId: string; id: number }
+  | { type: "city-seat"; instanceId: string; id: number; playerId: string; seat: CitySeat; vehicle: number;
+      pose?: CityPose; reason?: string }
   | { type: "city-kicked"; instanceId: string; reason: string };
 
 export const CITY_EVENT_TYPES = new Set([
   "city-joined", "city-left", "city-chat", "city-emote", "city-state", "city-respawn", "city-equipment",
-  "city-clock", "city-kicked",
+  "city-clock", "city-fuel", "city-vehicle", "city-vehicle-gone", "city-seat", "city-kicked",
 ]);
+
+/** Reply-only types (they always carry the requestId; CityNetwork parses them). */
+export const CITY_REPLY_TYPES = new Set(["city-refuel", "city-rescue"]);
 
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const text = (value: unknown): value is string => typeof value === "string";
@@ -77,6 +134,76 @@ export function parseCityMember(value: unknown): CityMember {
   return {
     id: member.id as number, playerId: member.playerId, name: member.name,
     equipment: member.equipment, state, pose: parseCityPose(member.pose),
+    seat: parseCitySeat(member.seat), vehicle: Number.isInteger(member.vehicle) ? member.vehicle as number : 0,
+  };
+}
+
+/** Older nodes have no seats: everyone drives. */
+export function parseCitySeat(value: unknown): CitySeat {
+  return value === "passenger" || value === "foot" ? value : "driver";
+}
+
+export function parseCityVehicle(value: unknown): CityVehicle {
+  const vehicle = value as Record<string, unknown>;
+  const pose = vehicle && typeof vehicle === "object" ? parseCityPose(vehicle.pose) : undefined;
+  if (!pose || !Number.isInteger(vehicle.id) || (vehicle.id as number) < 1 || !Number.isInteger(vehicle.owner))
+    throw new Error("城市车辆数据无效。");
+  const seat = (key: string) => Number.isInteger(vehicle[key]) ? vehicle[key] as number : 0;
+  return {
+    id: vehicle.id as number, owner: vehicle.owner as number,
+    playerId: text(vehicle.playerId) ? vehicle.playerId : "", ownerName: text(vehicle.ownerName) ? vehicle.ownerName : "",
+    equipment: vehicle.equipment, pose, locked: vehicle.locked === true, driver: seat("driver"), passenger: seat("passenger"),
+  };
+}
+
+export function parseCitySeatReply(value: unknown): CitySeatReply {
+  const reply = value as Record<string, unknown>;
+  if (!reply || typeof reply !== "object") throw new Error("上下车回复无效。");
+  const pose = parseCityPose(reply.pose);
+  const fuel = parseCityFuel(reply.fuel);
+  return {
+    seat: parseCitySeat(reply.seat), ...(pose ? { pose } : {}),
+    ...(reply.vehicle ? { vehicle: parseCityVehicle(reply.vehicle) } : {}), ...(fuel ? { fuel } : {}),
+  };
+}
+
+export function parseCityFuel(value: unknown): CityFuel | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const fuel = value as Record<string, unknown>;
+  const numbers = ["capacityMl", "fuelMl", "useMlPerKm", "pricePerLiter", "rescueFee", "lucci"] as const;
+  if (!numbers.every(key => finite(fuel[key]) && (fuel[key] as number) >= 0) || (fuel.capacityMl as number) <= 0)
+    return undefined;
+  const capacityMl = fuel.capacityMl as number;
+  const fuelMl = Math.min(fuel.fuelMl as number, capacityMl);
+  return {
+    kartName: text(fuel.kartName) ? fuel.kartName : "卡丁车",
+    sizeClass: text(fuel.sizeClass) ? fuel.sizeClass : "medium",
+    capacityMl, fuelMl, useMlPerKm: fuel.useMlPerKm as number, pricePerLiter: fuel.pricePerLiter as number,
+    rescueFee: fuel.rescueFee as number, lucci: fuel.lucci as number,
+    empty: fuel.empty === true || fuelMl <= 0,
+  };
+}
+
+export function parseCityRefuelReply(value: unknown): CityRefuelReply {
+  const reply = value as Record<string, unknown>;
+  const fuel = reply && typeof reply === "object" ? parseCityFuel(reply.fuel) : undefined;
+  if (!fuel) throw new Error("加油回复无效。");
+  return {
+    station: text(reply.station) ? reply.station : "", addedMl: finite(reply.addedMl) ? reply.addedMl : 0,
+    cost: finite(reply.cost) ? reply.cost : 0, stale: reply.stale === true, fuel,
+  };
+}
+
+export function parseCityRescueReply(value: unknown): CityRescueReply {
+  const reply = value as Record<string, unknown>;
+  const fuel = reply && typeof reply === "object" ? parseCityFuel(reply.fuel) : undefined;
+  if (!fuel) throw new Error("救援回复无效。");
+  const pose = parseCityPose(reply.pose);
+  return {
+    ...(text(reply.station) ? { station: reply.station } : {}),
+    ...(text(reply.stationName) ? { stationName: reply.stationName } : {}),
+    ...(pose ? { pose } : {}),
+    cost: finite(reply.cost) ? reply.cost : 0, free: reply.free === true, stale: reply.stale === true || !pose, fuel,
   };
 }
 
@@ -102,11 +229,13 @@ export function parseCitySnapshot(value: unknown): CitySnapshot {
   const spawn = you ? parseCityPose(you.spawn) : undefined;
   if (!you || !Number.isInteger(you.id) || !spawn) throw new Error("城市快照缺少本人信息。");
   const spawnId = (you.spawn as Record<string, unknown>).id;
+  const fuel = parseCityFuel(you.fuel);
   return {
     instanceId: city.instanceId, line: city.line as number, name: city.name, capacity: city.capacity as number,
     clock: parseCityClock(city.clock),
-    you: { id: you.id as number, spawn: { ...spawn, ...(text(spawnId) ? { id: spawnId } : {}) } },
+    you: { id: you.id as number, spawn: { ...spawn, ...(text(spawnId) ? { id: spawnId } : {}) }, ...(fuel ? { fuel } : {}) },
     members: city.members.map(parseCityMember),
+    vehicles: Array.isArray(city.vehicles) ? city.vehicles.map(parseCityVehicle) : [],
   };
 }
 
@@ -116,7 +245,19 @@ export function parseCityEvent(message: Record<string, unknown>): CityEvent | un
   if (!text(type) || !CITY_EVENT_TYPES.has(type)) return undefined;
   const instanceId = text(message.instanceId) ? message.instanceId : "";
   switch (type) {
-    case "city-joined": return { type, instanceId, member: parseCityMember(message.member) };
+    case "city-joined": return { type, instanceId, member: parseCityMember(message.member),
+      ...(message.vehicle ? { vehicle: parseCityVehicle(message.vehicle) } : {}) };
+    case "city-vehicle": return { type, instanceId, vehicle: parseCityVehicle(message.vehicle) };
+    case "city-vehicle-gone":
+      if (!Number.isInteger(message.id)) throw new Error("city-vehicle-gone 缺少车辆编号。");
+      return { type, instanceId, id: message.id as number };
+    case "city-seat": {
+      if (!Number.isInteger(message.id)) throw new Error("city-seat 数据无效。");
+      const pose = parseCityPose(message.pose);
+      return { type, instanceId, id: message.id as number, playerId: text(message.playerId) ? message.playerId : "",
+        seat: parseCitySeat(message.seat), vehicle: Number.isInteger(message.vehicle) ? message.vehicle as number : 0,
+        ...(pose ? { pose } : {}), ...(text(message.reason) ? { reason: message.reason } : {}) };
+    }
     case "city-left":
       if (!Number.isInteger(message.id)) throw new Error("city-left 缺少成员编号。");
       return { type, instanceId, id: message.id as number, playerId: text(message.playerId) ? message.playerId : "" };
@@ -146,6 +287,11 @@ export function parseCityEvent(message: Record<string, unknown>): CityEvent | un
       return { type, instanceId, id: message.id as number,
         playerId: text(message.playerId) ? message.playerId : "", equipment: message.equipment };
     case "city-clock": return { type, instanceId, clock: parseCityClock(message.clock) };
+    case "city-fuel": {
+      const fuel = parseCityFuel(message.fuel);
+      if (!fuel) throw new Error("city-fuel 数据无效。");
+      return { type, instanceId, reason: text(message.reason) ? message.reason : "", fuel };
+    }
     case "city-kicked": return { type, instanceId, reason: text(message.reason) ? message.reason : "UNKNOWN" };
     default: return undefined;
   }

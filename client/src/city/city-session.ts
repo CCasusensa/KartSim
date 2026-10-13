@@ -20,6 +20,8 @@ import { groundHeightAt } from "./city-ground";
 import { applyCityVehicleScale, CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
 import { setTetherUnit } from "../vehicle/tether-motion";
 import { beginCityLoading, firstCityFrame, type CityLoadingHandle } from "./city-loading";
+import { CityFuelController } from "./city-fuel-controller";
+import { CityOnFoot } from "./city-onfoot";
 import type { RaceChatMessage } from "../multiplayer/race-chat-overlay";
 import type { GarageChoice, GarageView, GarageViewOptions } from "../multiplayer/lobby-garage";
 import { formatMultiplayerError } from "../multiplayer/errors";
@@ -92,6 +94,10 @@ export class CitySession {
   fleet?: CityFleet;
   labels?: CityLabels;
   atmosphere?: CityAtmosphere;
+  /** 加油 (FUEL.md); absent while the node runs without fuel. */
+  fuel?: CityFuelController;
+  /** 下车步行 (CITY.md 7). */
+  onFoot?: CityOnFoot;
   snapshot?: CitySnapshot;
   clockMapping?: { offsetMs: number };
   readonly abort = new AbortController();
@@ -150,6 +156,7 @@ export class CitySession {
       this.snapshot = snapshot;
       host.options.status(`已进入 ${snapshot.name}，正在装配城市…`);
       const equipment = host.options.currentEquipment?.() ?? host.options.initialEquipment;
+      this.ownEquipment = equipment;
       const { room, race } = fabricateCityRace(snapshot, host.playerId, host.accountNickname ?? "车手", equipment);
       this.raceId = race.raceId;
       // The network re-frames incoming frames with the encoder's race tag, so it must share the race id.
@@ -162,6 +169,7 @@ export class CitySession {
       const connection = createCityRaceConnection(this.network, host.playerId, room.roomId, race.raceId, {
         leave: async () => { await this.leave(); },
         onChat: listener => { this.chatListeners.add(listener); return () => { this.chatListeners.delete(listener); }; },
+        allowMotion: () => this.onFoot?.allowRaceMotion() ?? true,
       });
       loading.stage("正在准备城市、车辆和界面…");
       const stage = await loader.prepare(room, race, this.abort.signal, connection);
@@ -178,6 +186,7 @@ export class CitySession {
       stage.updateRoom(room);
       this.installCity(snapshot);
       this.teleportLocal(snapshot.you.spawn);
+      this.fuel?.greet();
       host.lobby?.hide?.();
       host.options.onRaceVisibility?.(true);
       // Start seven seconds in the past: the countdown has already happened.
@@ -218,13 +227,20 @@ export class CitySession {
     this.labels = new CityLabels({
       root, library: this.host.options.library, camera: presenter.camera,
       heads: () => {
-        const local = runtime.local.physics.body.position;
-        const heads = [{ id: this.host.playerId, name: this.host.accountNickname ?? "我", position: { x: local.x, y: local.y, z: local.z } }];
+        const onFoot = this.onFoot;
+        const kart = runtime.local.physics.body.position;
+        const local = onFoot?.footWorld() ?? (onFoot?.seat === "passenger" ? undefined : kart);
+        const heads = local
+          ? [{ id: this.host.playerId, name: this.host.accountNickname ?? "我", position: { x: local.x, y: local.y, z: local.z } }]
+          : [];
         for (const peer of this.fleet!.peers.values()) {
+          const walking = onFoot?.headOf(peer.playerId);
+          if (walking) { heads.push({ id: peer.playerId, name: peer.member.name, position: walking }); continue; }
           if (!this.fleet!.presentationVisible(peer.playerId, performance.now())) continue;
           const position = this.fleet!.worldPosition(peer.playerId);
           if (position) heads.push({ id: peer.playerId, name: peer.member.name, position });
         }
+        if (onFoot) heads.push(...onFoot.parkedHeads());
         return heads;
       },
     });
@@ -239,12 +255,14 @@ export class CitySession {
     });
     this.atmosphere.setClock(snapshot.clock);
 
-    // Chat stays open while driving; the city has no finish.
+    // Chat stays open while driving (the city has no finish), but not under
+    // a city window: its Enter belongs to the window's OK button.
     const chat = stage.chat;
     if (chat) {
       chat.element?.setAttribute("aria-label", "卡丁城聊天");
       const setAllowed = chat.setAllowed.bind(chat);
-      chat.setAllowed = () => setAllowed(true);
+      this.chatAllowed = setAllowed;
+      chat.setAllowed = () => setAllowed(!this.windowOpen());
       if (chat.input) chat.input.maxLength = 60;
     }
     presenter.hud?.ui?.setTimeInfoVisible?.(false);
@@ -274,18 +292,60 @@ export class CitySession {
       if (!this.disposed && stage.active) this.frame(performance.now());
     };
 
+    if (snapshot.you.fuel) {
+      this.fuel = new CityFuelController({
+        library: this.host.options.library, root,
+        network: () => this.network,
+        physics: () => this.stage?.runtime?.local?.physics,
+        pose: () => this.localDesignPose(),
+        teleport: pose => this.teleportLocal(pose, false),
+        notice: text => { this.stage?.chat?.notice?.(text); this.host.options.status(text); },
+      }, snapshot.you.fuel);
+    }
+
+    this.onFoot = new CityOnFoot({
+      library: this.host.options.library, playerId: this.host.playerId, name: this.host.accountNickname ?? "车手",
+      stage: () => this.stage,
+      network: () => this.network,
+      fleet: () => this.fleet,
+      equipment: () => this.ownEquipment,
+      notice: text => { this.stage?.chat?.notice?.(text); this.host.options.status(text); },
+      teleport: (pose, notify) => this.teleportLocal(pose, notify),
+      kartPose: () => this.localDesignPose(),
+      setFuel: fuel => this.fuel?.setTank(fuel),
+      setDriving: driving => this.setDriving(driving),
+      viewport: () => ({ width: root.clientWidth, height: root.clientHeight }),
+      root,
+    });
+    this.onFoot.install(snapshot.you.id, snapshot.members, snapshot.vehicles);
+    this.footKeyUp = (event: KeyboardEvent) => this.onFoot?.keyup(event);
+    this.footBlur = () => this.onFoot?.blur();
+    window.addEventListener("keyup", this.footKeyUp);
+    window.addEventListener("blur", this.footBlur);
+
     // Esc twice within two seconds leaves the city (the race's Esc only
-    // cancels input); G opens the garage.
+    // cancels input); G opens the garage, F the gas station or the rescue,
+    // E gets out of / into a kart, L locks it.
     this.escapeListener = (event: KeyboardEvent) => {
-      if (event.repeat || this.disposed || this.garageView || this.garageOpening) return;
+      if (this.disposed || this.garageView || this.garageOpening) return;
       const target = event.target as HTMLElement | null;
       if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+      if (!this.fuel?.windowOpen && this.onFoot?.keydown(event)) return;
+      if (event.repeat) return;
       if (event.code === "KeyG" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        if (this.fuel?.windowOpen) return;
         event.preventDefault();
+        if (this.onFoot && (this.onFoot.seat !== "driver" || this.onFoot.localKartVehicle !== this.onFoot.myId)) {
+          this.stage?.chat?.notice?.("坐回自己的车里才能打开车库。");
+          return;
+        }
         void this.openGarage();
         return;
       }
+      if (event.code === "KeyF") { this.fuel?.keydown(event); return; }
       if (event.code !== "Escape") return;
+      if (this.fuel?.consumesEscape(performance.now())) return; // it closes a fuel window
+      if (this.onFoot?.consumesEscape(performance.now())) return; // it closes the map
       const now = performance.now();
       if (now - this.lastEscape < 2000) {
         this.lastEscape = -Infinity;
@@ -301,7 +361,21 @@ export class CitySession {
   }
 
   private escapeListener?: (event: KeyboardEvent) => void;
+  private footKeyUp?: (event: KeyboardEvent) => void;
+  private footBlur?: () => void;
   private lastEscape = -Infinity;
+  /** The member's own equipment (its kart and rider), as the garage last set it. */
+  private ownEquipment: unknown;
+
+  /** The race keys drive the kart only while the rider sits at its wheel. */
+  private setDriving(driving: boolean): void {
+    const stage = this.stage;
+    stage?.host?.input?.setEnabled?.(driving);
+    if (!driving) {
+      stage?.runtime?.local?.cancelModeDrivingInput?.();
+      stage?.runtime?.local?.physics?.hardCancelControls?.();
+    }
+  }
 
   // ---- 车库: change karts, character and accessories in the city ----
   garageView?: GarageView;
@@ -377,6 +451,7 @@ export class CitySession {
       loaded = undefined;
       if (pose) this.teleportLocal(pose);
       host.options.garage?.apply({ ...choice, equipment });
+      this.ownEquipment = equipment;
       this.closeGarage();
       void loadLocalFlyingPet(stage, host.options.library).catch(error => console.warn("飞宠载入失败", error));
       stage.chat?.notice?.("已换上新的装备");
@@ -403,10 +478,19 @@ export class CitySession {
   }
 
   private statusLine?: HTMLDivElement;
+  /** The chat overlay's own setAllowed (the city's override keeps it on outside windows). */
+  private chatAllowed?: (allowed: boolean) => void;
+
+  /** A city window (refuel, rescue, map, garage) is up or opening. */
+  private windowOpen(): boolean {
+    return !!(this.fuel?.windowOpen || this.onFoot?.mapOpen || this.garageView || this.garageOpening);
+  }
 
   private frame(now: number): void {
+    this.chatAllowed?.(!this.windowOpen());
     this.atmosphere?.update(now);
     this.labels?.draw(now);
+    this.fuel?.frame(now);
     if (now - this.lastStatus > 1000) {
       this.lastStatus = now;
       const state = this.atmosphere?.state;
@@ -446,8 +530,8 @@ export class CitySession {
     return { ...design, heading: designHeading(physics.body.forward) };
   }
 
-  /** Puts the local kart at a design pose (ground-snapped) and tells the node. */
-  teleportLocal(pose: CityPose): void {
+  /** Puts the local kart at a design pose (ground-snapped) and tells the node (unless it moved it). */
+  teleportLocal(pose: CityPose, notify = true): void {
     const runtime = this.stage?.runtime;
     if (!runtime) return;
     const { physics, track } = runtime.local;
@@ -457,7 +541,11 @@ export class CitySession {
     runtime.local.coordinator?.synchronizePositionAnchor?.();
     track.resetRouteState(physics, physics.body.position);
     physics.state.trackProgress = track.getRouteState(physics).distance;
-    void this.network?.respawn(pose).catch(() => undefined);
+    this.fuel?.jump();
+    if (notify) void this.network?.respawn(pose).catch((error: unknown) => {
+      if (error instanceof Error && error.message === "FUEL_EMPTY")
+        this.stage?.chat?.notice?.("油箱空了，车已熄火，请按 F 呼叫道路救援。");
+    });
   }
 
   private checkReset(): void {
@@ -490,6 +578,11 @@ export class CitySession {
     const design = this.localDesignPose();
     if (!design) return false;
     road ??= nearestRoadPoint(design.x, design.z);
+    // A stalled kart may only reset nearby (the node refuses farther, FUEL.md 4.3).
+    if (this.fuel?.fuel.empty && Math.hypot(road.x - design.x, road.z - design.z) > 140) {
+      this.stage?.chat?.notice?.("油箱空了，车已熄火，请按 F 呼叫道路救援。");
+      return false;
+    }
     const heading = ((Math.atan2(road.tx, -road.tz) * 180) / Math.PI + 360) % 360;
     local.cancelModeDrivingInput();
     this.teleportLocal({ x: road.x, y: road.y, z: road.z, heading });
@@ -504,10 +597,21 @@ export class CitySession {
     switch (event.type) {
       case "city-joined":
         this.fleet?.add(event.member);
+        this.onFoot?.memberJoined(event.member, event.vehicle);
         this.pushChat(`${event.member.name} 进入了卡丁城`);
         break;
       case "city-left":
+        this.onFoot?.memberLeft(event.id, event.playerId);
         this.fleet?.remove(event.playerId);
+        break;
+      case "city-vehicle":
+        this.onFoot?.vehicleChanged(event.vehicle);
+        break;
+      case "city-vehicle-gone":
+        this.onFoot?.vehicleGone(event.id);
+        break;
+      case "city-seat":
+        this.onFoot?.seatChanged(event);
         break;
       case "city-chat": {
         const mine = event.playerId === this.host.playerId;
@@ -523,6 +627,10 @@ export class CitySession {
         break;
       case "city-equipment":
         this.fleet?.reequip(event.id, event.equipment);
+        this.onFoot?.equipmentChanged(event.id, event.equipment);
+        break;
+      case "city-fuel":
+        this.fuel?.apply(event.fuel, event.reason);
         break;
       case "city-clock":
         this.atmosphere?.setClock(event.clock);
@@ -566,6 +674,12 @@ export class CitySession {
     try { garage?.dispose(); } catch (error) { console.warn("卡丁城车库关闭失败", error); }
     this.stage?.host?.input?.setEnabled?.(true);
     this.labels?.dispose();
+    this.onFoot?.dispose();
+    this.onFoot = undefined;
+    if (this.footKeyUp) window.removeEventListener("keyup", this.footKeyUp);
+    if (this.footBlur) window.removeEventListener("blur", this.footBlur);
+    this.fuel?.dispose();
+    this.fuel = undefined;
     this.atmosphere?.dispose();
     this.statusLine?.remove();
     this.statusLine = undefined;

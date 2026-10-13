@@ -9,8 +9,8 @@ import { MOTION_HEADER_BYTES, motionRaceTag } from "../multiplayer/motion";
 import type { RaceChatChannel, RaceChatMessage } from "../multiplayer/race-chat-overlay";
 import {
   CITY_MOTION_HEADER_BYTES, CITY_MOTION_MARKER, CITY_RADAR_MARKER,
-  decodeCityMotionFrame, decodeCityRadar, parseCityEvent, parseCitySnapshot,
-  type CityEvent, type CityRadarEntry, type CitySnapshot,
+  decodeCityMotionFrame, decodeCityRadar, parseCityEvent, parseCityRefuelReply, parseCityRescueReply, parseCitySeatReply, parseCitySnapshot, parseCityVehicle,
+  type CityEvent, type CityRadarEntry, type CityRefuelReply, type CityRescueReply, type CitySeatReply, type CitySnapshot, type CityVehicle,
 } from "./city-protocol";
 
 export interface CityClient {
@@ -71,6 +71,27 @@ export class CityNetwork {
     const reply = await this.client.request({ type: "city-equipment", equipment }) as Record<string, unknown>;
     return reply?.equipment ?? equipment;
   }
+  /** Gets out of the kart (pose: where to stand, near it). */
+  async exit(pose?: { x: number; y: number; z: number; heading: number }): Promise<CitySeatReply> {
+    return parseCitySeatReply(await this.client.request(pose ? { type: "city-exit", pose } : { type: "city-exit" }));
+  }
+  /** Gets into a kart nearby: its driver's seat when empty, else its back seat. */
+  async enter(vehicle: number): Promise<CitySeatReply> {
+    return parseCitySeatReply(await this.client.request({ type: "city-enter", vehicle }));
+  }
+  /** Locks or unlocks the member's own kart. */
+  async lock(locked: boolean): Promise<CityVehicle> {
+    const reply = await this.client.request({ type: "city-lock", locked }) as Record<string, unknown>;
+    return parseCityVehicle(reply.vehicle);
+  }
+  /** Buys addMl at the gas station the kart stands at (0 fills the tank). */
+  async refuel(requestId: string, addMl = 0): Promise<CityRefuelReply> {
+    return parseCityRefuelReply(await this.client.request({ type: "city-refuel", requestId, addMl }));
+  }
+  /** Pays the tow of a stalled kart to the nearest gas station. */
+  async rescue(requestId: string): Promise<CityRescueReply> {
+    return parseCityRescueReply(await this.client.request({ type: "city-rescue", requestId }));
+  }
 
   /** Encodes a race motion sample as a city frame and sends it. */
   sendMotion(sample: unknown): boolean {
@@ -126,7 +147,9 @@ export class CityNetwork {
 
 /** The connection object the multiplayer race loader and its session expect. */
 export function createCityRaceConnection(network: CityNetwork, playerId: string, roomId: string,
-  raceId: string, hooks: { leave(): Promise<unknown>; onChat(listener: (message: RaceChatMessage) => void): () => void }) {
+  raceId: string, hooks: { leave(): Promise<unknown>; onChat(listener: (message: RaceChatMessage) => void): () => void;
+    /** False while the rider walks or rides: the race sender's kart frames stay home. */
+    allowMotion?(): boolean }) {
   const resolved = () => Promise.resolve(undefined);
   const noSubscription = () => () => {};
   return {
@@ -153,7 +176,7 @@ export function createCityRaceConnection(network: CityNetwork, playerId: string,
     subscribeRaceChat: (listener: (message: RaceChatMessage) => void) => hooks.onChat(listener),
     returnToRoom: resolved,
     reportFinish: resolved,
-    sendMotion: (sample: unknown) => network.sendMotion(sample),
+    sendMotion: (sample: unknown) => (hooks.allowMotion?.() ?? true) && network.sendMotion(sample),
     subscribeMotion: noSubscription,
     leaveRace: () => hooks.leave(),
     presentationClosed: () => {},

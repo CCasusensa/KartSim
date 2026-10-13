@@ -16,7 +16,8 @@ export class SurfaceMinimap {
     const up=(b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]);
     if(up<.01 || /WATER/i.test(name)) return;
     const road=/ROAD2|ROAD1256|DT_ROAD|TARMAC|RUNWAY|STOPLINE|ROADJUNCT|ROOSVELTBRIDGE|BOW_ROAD/i.test(name);
-    const color=road?[220,220,201]:/GRASS|LEAF|TREE|BUSH/i.test(name)?[99,143,103]:/SAND|BEACH/i.test(name)?[201,188,146]:[136,157,150];
+    // Design props are named PROP_<asset>; fuel stations show as an orange roof.
+    const color=/^PROP_c_gasstation/.test(name)?[240,150,40]:road?[220,220,201]:/GRASS|LEAF|TREE|BUSH/i.test(name)?[99,143,103]:/SAND|BEACH/i.test(name)?[201,188,146]:[136,157,150];
     const p=[a,b,c].map(v=>[512+(v[0]-this.cx)*this.scale,512+(v[2]-this.cz)*this.scale,v[1]]);
     const [u,v,w]=p;
     const den=(v[1]-w[1])*(u[0]-w[0])+(w[0]-v[0])*(u[1]-w[1]);

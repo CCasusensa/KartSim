@@ -567,13 +567,23 @@ export interface ShopClaimSettings extends CurrencyGrant {
   enabled: boolean
 }
 
+/** 卡丁城加油 (FUEL.md 4): prices of fuel and of the tow, and the burn rate. */
+export interface CityFuelSettings {
+  enabled: boolean
+  pricePerLiter: number
+  rescueFee: number
+  /** Percent of the FUEL.md burn rate; 0 means the default 100. */
+  consumptionPercent: number
+}
+
 export interface EconomySettings {
   register: CurrencyGrant
   race: CurrencyGrant
   shopClaim: ShopClaimSettings
+  cityFuel: CityFuelSettings
   updatedAt: number
   updatedBy: string
-  defaults: { register: CurrencyGrant; race: CurrencyGrant; shopClaim: ShopClaimSettings }
+  defaults: { register: CurrencyGrant; race: CurrencyGrant; shopClaim: ShopClaimSettings; cityFuel: CityFuelSettings }
   serverTime: number
 }
 

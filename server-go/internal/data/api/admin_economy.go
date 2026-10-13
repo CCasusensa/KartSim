@@ -8,8 +8,8 @@ import (
 )
 
 // The admin console's 经济设置 page (ADMIN.md 3, ECONOMY.md 2.3–2.5): what
-// a new account receives, what every finished online race adds, and the
-// shop's 点击获取点券 button.
+// a new account receives, what every finished online race adds, the shop's
+// 点击获取点券 button and the 卡丁城 fuel prices (FUEL.md 4).
 
 var errInvalidEconomySettings = apierr.New(http.StatusBadRequest, "INVALID_ECONOMY_SETTINGS")
 
@@ -17,6 +17,7 @@ type economySettingsJSON struct {
 	Register  store.CurrencyGrant     `json:"register"`
 	Race      store.CurrencyGrant     `json:"race"`
 	ShopClaim store.ShopClaimSettings `json:"shopClaim"`
+	CityFuel  store.CityFuelSettings  `json:"cityFuel"`
 	UpdatedAt int64                   `json:"updatedAt"`
 	UpdatedBy string                  `json:"updatedBy"`
 	// Defaults are the settings in effect before any were saved.
@@ -24,6 +25,7 @@ type economySettingsJSON struct {
 		Register  store.CurrencyGrant     `json:"register"`
 		Race      store.CurrencyGrant     `json:"race"`
 		ShopClaim store.ShopClaimSettings `json:"shopClaim"`
+		CityFuel  store.CityFuelSettings  `json:"cityFuel"`
 	} `json:"defaults"`
 	ServerTime int64 `json:"serverTime"`
 }
@@ -31,8 +33,9 @@ type economySettingsJSON struct {
 func (a *API) economySettingsJSON(settings store.EconomySettings, now int64) economySettingsJSON {
 	defaults := a.store.DefaultEconomySettings()
 	out := economySettingsJSON{Register: settings.Register, Race: settings.Race, ShopClaim: settings.ShopClaim,
-		UpdatedAt: settings.UpdatedAt, UpdatedBy: settings.UpdatedBy, ServerTime: now}
+		CityFuel: settings.CityFuel, UpdatedAt: settings.UpdatedAt, UpdatedBy: settings.UpdatedBy, ServerTime: now}
 	out.Defaults.Register, out.Defaults.Race, out.Defaults.ShopClaim = defaults.Register, defaults.Race, defaults.ShopClaim
+	out.Defaults.CityFuel = defaults.CityFuel
 	return out
 }
 
@@ -49,15 +52,18 @@ func (a *API) adminEconomy(w http.ResponseWriter, r *http.Request) error {
 }
 
 // adminSaveEconomy stores {register{coupon,lucci,koin}, race{…},
-// shopClaim{enabled,coupon,lucci,koin}}, each amount 0–contract.MaxCurrencyGrant,
-// and answers what is now in effect. A body without shopClaim keeps the
-// button as it is. Game nodes pick the per-race grant up with their next
-// heartbeat; the shop button follows on its next opening.
+// shopClaim{enabled,coupon,lucci,koin}, cityFuel{enabled,pricePerLiter,
+// rescueFee,consumptionPercent}}, each amount 0–contract.MaxCurrencyGrant,
+// and answers what is now in effect. A body without shopClaim or cityFuel
+// keeps that part as it is. Game nodes pick the per-race grant up with their
+// next heartbeat; the shop button follows on its next opening and the fuel
+// prices with the next city entry.
 func (a *API) adminSaveEconomy(w http.ResponseWriter, r *http.Request) error {
 	var request struct {
 		Register  store.CurrencyGrant      `json:"register"`
 		Race      store.CurrencyGrant      `json:"race"`
 		ShopClaim *store.ShopClaimSettings `json:"shopClaim"`
+		CityFuel  *store.CityFuelSettings  `json:"cityFuel"`
 	}
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
@@ -70,9 +76,13 @@ func (a *API) adminSaveEconomy(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	settings := store.EconomySettings{Register: request.Register, Race: request.Race, ShopClaim: current.ShopClaim}
+	settings := store.EconomySettings{Register: request.Register, Race: request.Race, ShopClaim: current.ShopClaim,
+		CityFuel: current.CityFuel}
 	if request.ShopClaim != nil {
 		settings.ShopClaim = *request.ShopClaim
+	}
+	if request.CityFuel != nil {
+		settings.CityFuel = *request.CityFuel
 	}
 	if !settings.Valid() {
 		return errInvalidEconomySettings
@@ -87,6 +97,8 @@ func (a *API) adminSaveEconomy(w http.ResponseWriter, r *http.Request) error {
 		"registerKoin", settings.Register.Koin, "raceCoupon", settings.Race.Coupon,
 		"raceLucci", settings.Race.Lucci, "raceKoin", settings.Race.Koin,
 		"shopClaim", settings.ShopClaim.Enabled, "shopClaimCoupon", settings.ShopClaim.Coupon,
-		"shopClaimLucci", settings.ShopClaim.Lucci, "shopClaimKoin", settings.ShopClaim.Koin)
+		"shopClaimLucci", settings.ShopClaim.Lucci, "shopClaimKoin", settings.ShopClaim.Koin,
+		"cityFuel", settings.CityFuel.Enabled, "fuelPrice", settings.CityFuel.PricePerLiter,
+		"rescueFee", settings.CityFuel.RescueFee, "fuelConsumption", settings.CityFuel.ConsumptionPercent)
 	return writeJSON(w, http.StatusOK, a.economySettingsJSON(settings, now))
 }

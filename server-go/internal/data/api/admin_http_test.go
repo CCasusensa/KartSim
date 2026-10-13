@@ -861,6 +861,7 @@ func TestAdminOnlineAndNodes(t *testing.T) {
 // who changed it and is what new wallets and settlements use.
 func TestAdminEconomySettings(t *testing.T) {
 	h := newAdminHarness(t, harnessOptions{})
+	datatest.LockEconomySettings(t, h.db)
 	t.Cleanup(func() { h.cleanup("DELETE FROM app_settings WHERE name = 'economy'") })
 	h.cleanup("DELETE FROM app_settings WHERE name = 'economy'")
 	var got economySettingsJSON

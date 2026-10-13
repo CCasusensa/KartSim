@@ -293,6 +293,9 @@ func (r Request) Integer(key string, min, max int) (int, error) { return r.integ
 // a number).
 func (r Request) Number(key string) (float64, bool) { return r.number(key) }
 
+// Bool is booleanField: a JSON true or false, else INVALID_<KEY>.
+func (r Request) Bool(key string) (bool, error) { return r.booleanField(key) }
+
 // HasNonNull is hasNonNull: the key is present and not null.
 func (r Request) HasNonNull(key string) bool { return r.hasNonNull(key) }
 

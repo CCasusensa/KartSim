@@ -96,6 +96,10 @@ func (a *API) nodeAPI(clusterKey bool) http.Handler {
 	route(contract.PathAntiCheat, a.saveAntiCheat)
 	route(contract.PathRoomClaim, a.claimRoom)
 	route(contract.PathRoomReturn, a.returnRoom)
+	route(contract.PathCityFuelState, a.cityFuelState)
+	route(contract.PathCityFuelSave, a.cityFuelSave)
+	route(contract.PathCityFuelRefuel, a.cityFuelRefuel)
+	route(contract.PathCityFuelRescue, a.cityFuelRescue)
 
 	routes := jsonFallback(mux)
 	expected := sha256.Sum256(a.secret)

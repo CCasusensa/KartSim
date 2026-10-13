@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Refresh, RefreshLeft } from '@element-plus/icons-vue'
 import { api, errorMessage } from '../api/client'
-import type { CurrencyGrant, EconomySettings, ShopClaimSettings } from '../api/types'
+import type { CityFuelSettings, CurrencyGrant, EconomySettings, ShopClaimSettings } from '../api/types'
 import { useNarrow } from '../composables/useNarrow'
 import { useTab } from '../composables/useTabs'
 import { formatTime } from '../utils/time'
@@ -11,11 +11,13 @@ import { showError } from '../utils/ui'
 
 // 经济设置 (ECONOMY.md 2.3–2.5): GET /api/admin/economy, PUT
 // /api/admin/economy {register{coupon,lucci,koin}, race{coupon,lucci,koin},
-// shopClaim{enabled,coupon,lucci,koin}}. The registration grant is credited
+// shopClaim{enabled,coupon,lucci,koin}, cityFuel{enabled,pricePerLiter,
+// rescueFee,consumptionPercent}}. The registration grant is credited
 // when an account's wallet is created; the per-race grant goes to every racer
 // who finishes an online race (game nodes show it with their next heartbeat,
 // within about 10 seconds); the shop's 点击获取点券 button credits its amounts
-// on every click while it is enabled.
+// on every click while it is enabled. The 卡丁城 fuel prices (FUEL.md 4)
+// apply from a player's next city entry.
 
 const MAX = 1_000_000_000
 const CURRENCIES: { key: keyof CurrencyGrant; label: string }[] = [
@@ -33,16 +35,25 @@ const form = reactive({
   register: { coupon: 0, lucci: 0, koin: 0 } as CurrencyGrant,
   race: { coupon: 0, lucci: 0, koin: 0 } as CurrencyGrant,
   shopClaim: { enabled: false, coupon: 0, lucci: 0, koin: 0 } as ShopClaimSettings,
+  cityFuel: { enabled: true, pricePerLiter: 0, rescueFee: 0, consumptionPercent: 100 } as CityFuelSettings,
 })
 
-function fill(from: { register: CurrencyGrant; race: CurrencyGrant; shopClaim: ShopClaimSettings }) {
+function fill(from: { register: CurrencyGrant; race: CurrencyGrant; shopClaim: ShopClaimSettings; cityFuel?: CityFuelSettings }) {
   for (const { key } of CURRENCIES) {
     form.register[key] = from.register[key]
     form.race[key] = from.race[key]
     form.shopClaim[key] = from.shopClaim[key]
   }
   form.shopClaim.enabled = from.shopClaim.enabled
+  if (from.cityFuel) {
+    form.cityFuel.enabled = from.cityFuel.enabled
+    form.cityFuel.pricePerLiter = from.cityFuel.pricePerLiter
+    form.cityFuel.rescueFee = from.cityFuel.rescueFee
+    form.cityFuel.consumptionPercent = from.cityFuel.consumptionPercent || 100
+  }
 }
+
+const FUEL_PRICE_MAX = 100_000
 
 async function load() {
   loading.value = true
@@ -64,6 +75,10 @@ onMounted(load)
 const dirty = computed(() => {
   const saved = settings.value
   if (!saved) return false
+  const fuel = saved.cityFuel
+  if (fuel && (form.cityFuel.enabled !== fuel.enabled || form.cityFuel.pricePerLiter !== fuel.pricePerLiter ||
+    form.cityFuel.rescueFee !== fuel.rescueFee || form.cityFuel.consumptionPercent !== (fuel.consumptionPercent || 100)))
+    return true
   return form.shopClaim.enabled !== saved.shopClaim.enabled ||
     CURRENCIES.some(({ key }) => form.register[key] !== saved.register[key] || form.race[key] !== saved.race[key] ||
       form.shopClaim[key] !== saved.shopClaim[key])
@@ -79,12 +94,20 @@ async function save() {
     failure.value = `每项须为 0–${MAX.toLocaleString('zh-CN')} 的整数`
     return
   }
+  const fuel = form.cityFuel
+  if (!Number.isInteger(fuel.pricePerLiter) || fuel.pricePerLiter < 0 || fuel.pricePerLiter > FUEL_PRICE_MAX ||
+    !Number.isInteger(fuel.rescueFee) || fuel.rescueFee < 0 || fuel.rescueFee > MAX ||
+    !Number.isInteger(fuel.consumptionPercent) || fuel.consumptionPercent < 10 || fuel.consumptionPercent > 1000) {
+    failure.value = `油价须为 0–${FUEL_PRICE_MAX.toLocaleString('zh-CN')}，救援费 0–${MAX.toLocaleString('zh-CN')}，油耗倍率 10–1000%`
+    return
+  }
   saving.value = true
   try {
     settings.value = await api.put<EconomySettings>('/api/admin/economy', {
       register: { ...form.register },
       race: { ...form.race },
       shopClaim: { ...form.shopClaim },
+      cityFuel: { ...form.cityFuel },
     })
     fill(settings.value)
     failure.value = ''
@@ -134,6 +157,23 @@ function restoreDefaults() {
       <el-form-item v-for="currency in CURRENCIES" :key="'claim-' + currency.key" :label="'每次' + currency.label">
         <el-input-number v-model="form.shopClaim[currency.key]" :min="0" :max="MAX" :step="1000" :precision="0" controls-position="right" class="amount" :disabled="!form.shopClaim.enabled" />
         <span v-if="settings" class="hint">默认 {{ settings.defaults.shopClaim[currency.key].toLocaleString('zh-CN') }}</span>
+      </el-form-item>
+      <el-divider content-position="left">卡丁城加油</el-divider>
+      <el-form-item label="开启加油">
+        <el-switch v-model="form.cityFuel.enabled" inline-prompt active-text="开" inactive-text="关" />
+        <span class="hint">关闭后卡丁城里不耗油、不显示油表，也不能加油和叫救援</span>
+      </el-form-item>
+      <el-form-item label="每升油价">
+        <el-input-number v-model="form.cityFuel.pricePerLiter" :min="0" :max="FUEL_PRICE_MAX" :step="1" :precision="0" controls-position="right" class="amount" :disabled="!form.cityFuel.enabled" />
+        <span v-if="settings?.defaults.cityFuel" class="hint">金币/升，默认 {{ settings.defaults.cityFuel.pricePerLiter }}；按加的油量向上取整收费</span>
+      </el-form-item>
+      <el-form-item label="救援费用">
+        <el-input-number v-model="form.cityFuel.rescueFee" :min="0" :max="MAX" :step="50" :precision="0" controls-position="right" class="amount" :disabled="!form.cityFuel.enabled" />
+        <span v-if="settings?.defaults.cityFuel" class="hint">金币/次，默认 {{ settings.defaults.cityFuel.rescueFee }}；余额不足时免费拖到最近的加油站</span>
+      </el-form-item>
+      <el-form-item label="油耗倍率">
+        <el-input-number v-model="form.cityFuel.consumptionPercent" :min="10" :max="1000" :step="10" :precision="0" controls-position="right" class="amount" :disabled="!form.cityFuel.enabled" />
+        <span class="hint">%，100 为标准：每公里耗油 1.6 升 + 油箱每升 0.03 升；玩家下次进入卡丁城生效</span>
       </el-form-item>
     </el-form>
   </el-card>

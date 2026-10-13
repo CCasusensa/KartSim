@@ -197,7 +197,9 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		SnowPercent:    cfg.CitySnowPercent,
 		Clock:          opts.Clock,
 		Profiles:       rooms,
-		Logger:         log,
+		// Tanks and the 金币 they cost live on the data service (FUEL.md).
+		Fuel:   cluster.NewCityFuel(data),
+		Logger: log,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("city zone: %w", err)

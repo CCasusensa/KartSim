@@ -68,6 +68,48 @@ type ShopClaimSettings struct {
 	CurrencyGrant
 }
 
+// CityFuelSettings are the 卡丁城 fuel prices (FUEL.md 4): whether karts
+// burn fuel in the city at all, the 金币 one litre costs, what a tow to a
+// station costs and how fast karts burn it (percent of the FUEL.md rate).
+type CityFuelSettings struct {
+	Enabled            bool  `json:"enabled"`
+	PricePerLiter      int64 `json:"pricePerLiter"`
+	RescueFee          int64 `json:"rescueFee"`
+	ConsumptionPercent int64 `json:"consumptionPercent"`
+}
+
+// Defaults and bounds of CityFuelSettings.
+const (
+	DefaultFuelPricePerLiter = 5
+	DefaultFuelRescueFee     = 300
+	MaxFuelPricePerLiter     = 100_000
+	MinFuelConsumption       = 10
+	MaxFuelConsumption       = 1_000
+)
+
+// Valid reports whether the prices and the consumption are in range (a
+// consumption of 0 is the default 100%).
+func (f CityFuelSettings) Valid() bool {
+	return f.PricePerLiter >= 0 && f.PricePerLiter <= MaxFuelPricePerLiter &&
+		f.RescueFee >= 0 && f.RescueFee <= MaxGrantAmount &&
+		(f.ConsumptionPercent == 0 ||
+			f.ConsumptionPercent >= MinFuelConsumption && f.ConsumptionPercent <= MaxFuelConsumption)
+}
+
+// Consumption is the consumption percent in effect.
+func (f CityFuelSettings) Consumption() int64 {
+	if f.ConsumptionPercent == 0 {
+		return 100
+	}
+	return f.ConsumptionPercent
+}
+
+// DefaultCityFuelSettings are the fuel settings before the admin saves any.
+func DefaultCityFuelSettings() CityFuelSettings {
+	return CityFuelSettings{Enabled: true, PricePerLiter: DefaultFuelPricePerLiter,
+		RescueFee: DefaultFuelRescueFee, ConsumptionPercent: 100}
+}
+
 // EconomySettings are the grants the admin console sets.
 type EconomySettings struct {
 	// Register is credited when an account's wallet is created (reason
@@ -79,13 +121,15 @@ type EconomySettings struct {
 	Race CurrencyGrant `json:"race"`
 	// ShopClaim is the shop's free grant button.
 	ShopClaim ShopClaimSettings `json:"shopClaim"`
-	UpdatedAt int64             `json:"updatedAt"`
-	UpdatedBy string            `json:"updatedBy"`
+	// CityFuel are the 卡丁城 fuel prices.
+	CityFuel  CityFuelSettings `json:"cityFuel"`
+	UpdatedAt int64            `json:"updatedAt"`
+	UpdatedBy string           `json:"updatedBy"`
 }
 
 // Valid reports whether every grant is within 0 and MaxGrantAmount.
 func (e EconomySettings) Valid() bool {
-	return e.Register.Valid() && e.Race.Valid() && e.ShopClaim.Valid()
+	return e.Register.Valid() && e.Race.Valid() && e.ShopClaim.Valid() && e.CityFuel.Valid()
 }
 
 var errInvalidEconomySettings = errors.New("economy settings out of range")
@@ -98,6 +142,7 @@ func (s *Store) DefaultEconomySettings() EconomySettings {
 		Race:     CurrencyGrant{Coupon: s.rules.RaceCoupon},
 		ShopClaim: ShopClaimSettings{Enabled: true,
 			CurrencyGrant: CurrencyGrant{Coupon: DefaultShopClaimCoupon}},
+		CityFuel: DefaultCityFuelSettings(),
 	}
 }
 
@@ -125,6 +170,8 @@ func (s *Store) economySettings(ctx context.Context, q settingsQuerier) (Economy
 		Race     CurrencyGrant `json:"race"`
 		// Rows saved before the shop button existed keep its default.
 		ShopClaim *ShopClaimSettings `json:"shopClaim"`
+		// Rows saved before city fuel existed keep its defaults.
+		CityFuel *CityFuelSettings `json:"cityFuel"`
 	}
 	if err := json.Unmarshal([]byte(raw), &stored); err != nil {
 		return settings, fmt.Errorf("economy settings: %w", err)
@@ -132,6 +179,9 @@ func (s *Store) economySettings(ctx context.Context, q settingsQuerier) (Economy
 	settings.Register, settings.Race = stored.Register, stored.Race
 	if stored.ShopClaim != nil {
 		settings.ShopClaim = *stored.ShopClaim
+	}
+	if stored.CityFuel != nil {
+		settings.CityFuel = *stored.CityFuel
 	}
 	return settings, nil
 }
@@ -146,7 +196,8 @@ func (s *Store) SaveEconomySettings(ctx context.Context, settings EconomySetting
 		Register  CurrencyGrant     `json:"register"`
 		Race      CurrencyGrant     `json:"race"`
 		ShopClaim ShopClaimSettings `json:"shopClaim"`
-	}{settings.Register, settings.Race, settings.ShopClaim})
+		CityFuel  CityFuelSettings  `json:"cityFuel"`
+	}{settings.Register, settings.Race, settings.ShopClaim, settings.CityFuel})
 	if err != nil {
 		return EconomySettings{}, err
 	}

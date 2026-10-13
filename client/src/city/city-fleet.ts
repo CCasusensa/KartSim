@@ -76,6 +76,8 @@ export interface CityFleetHost {
 export class CityFleet {
   readonly peers = new Map<string, Peer>();
   readonly byId = new Map<number, Peer>();
+  /** Members whose kart is not drawn here: on foot or on a back seat (city-onfoot.ts draws them). */
+  readonly hidden = new Set<string>();
   clock?: MotionClockMapping;
   disposed = false;
 
@@ -287,7 +289,7 @@ export class CityFleet {
 
   presentationVisible(playerId: string, now: number): boolean {
     const peer = this.peers.get(playerId);
-    if (!peer || !peer.participant) return false;
+    if (!peer || !peer.participant || this.hidden.has(playerId)) return false;
     if (peer.receivedAt === undefined) return peer.member.state !== "afk" && !!peer.member.pose;
     return now - peer.receivedAt < 5000 || peer.member.state === "parked";
   }

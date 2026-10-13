@@ -7,6 +7,8 @@
 //
 //   cd client && node --import tsx tools/city/blender/import-city.mjs [--in DIR] [--out DIR] [--mirror CHECKOUT] [--register --register-into CHECKOUT] [--validate]
 //   --source-glbs DIR reads the audited Vice City source parts directly.
+//   The design's top-level `props` (Tripo assets from design/open-world/tripo and
+//   dropped-kerb ramps, see design-props.mjs) are added as solid meshes; --props-dir DIR overrides the asset folder.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +24,7 @@ import { CityModel, renderMinimap, writeContainer } from "./city-container.mjs";
 import { readGlb, transformDirection, transformPoint } from "./glb.mjs";
 import { SurfaceMinimap } from "./surface-minimap.mjs";
 import { coplanarRoadFilter } from "./road-collision-repair.mjs";
+import { loadPropAsset, PROP_ASSET_DIR, propPrimitives, rampPrimitive } from "./design-props.mjs";
 
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const projectRoot = path.resolve(clientDir, "..");
@@ -38,7 +41,7 @@ const argb = (r, g, b) => ((255 << 24) | (Math.round(r * 255) << 16) | (Math.rou
 /** A fully transparent 4×4 texture: alpha-tested away, so a collider mesh is invisible but solid. */
 const TRANSPARENT_PNG = encodePng(4, 4, new Uint8Array(64));
 
-export async function importCity({ library, formats, design, glb }) {
+export async function importCity({ library, formats, design, glb, propDir = PROP_ASSET_DIR }) {
   const city = new CityModel(design, library, formats);
   const surfaces = new Map();
   const images = new Map();
@@ -46,11 +49,14 @@ export async function importCity({ library, formats, design, glb }) {
   const suppressRoadShell = design.meta.drivableMaterials ? coplanarRoadFilter(glb, design.meta.drivableMaterials) : undefined;
   let instances = 0, triangles = 0, suppressedCoplanarFaces = 0;
 
-  const surfaceFor = (material, index, renderOnly = false) => {
-    const key = `${index ?? -1}${renderOnly ? '_visual' : ''}`;
+  // `source` is the glb holding the material's images; props pass their own
+  // asset glb, a key prefix and extras (collision) for the Tripo material.
+  const surfaceFor = (material, index, renderOnly = false, source = { glb, key: '', extras: undefined }) => {
+    const key = `${source.key}${index ?? -1}${renderOnly ? '_visual' : ''}`;
     if (surfaces.has(key)) return surfaces.get(key);
-    const extras = renderOnly ? { ...material?.extras, kr_road: '', kr_collider: '' } : material?.extras ?? {};
-    const name = safe(material?.name ?? `material_${key}`) + (renderOnly ? '_visual' : '');
+    const baseExtras = { ...material?.extras, ...source.extras };
+    const extras = renderOnly ? { ...baseExtras, kr_road: '', kr_collider: '' } : baseExtras;
+    const name = source.key + safe(material?.name ?? `material_${key}`) + (renderOnly ? '_visual' : '');
     let surface;
     if (extras.kr_collider) {
       surface = city.surface("collider", "", [], { road: {}, test: true, generated: { stem: "kr_collider", extension: "png", bytes: TRANSPARENT_PNG } });
@@ -61,15 +67,16 @@ export async function importCity({ library, formats, design, glb }) {
       surface = city.surface(name, extras.kr_texture, [theme], { road, blend: extras.kr_alpha === "blend", test: extras.kr_alpha === "test", cull: extras.kr_cull >= 0 ? extras.kr_cull : undefined, textureOp: extras.kr_textureop || undefined, colors: !!extras.kr_colors, prefixes });
     } else {
       // A Tripo (or any textured) material: its base colour image becomes a generated texture.
-      const imageIndex = material?.pbrMetallicRoughness?.baseColorTexture?.index !== undefined ? glb.json.textures[material.pbrMetallicRoughness.baseColorTexture.index].source : undefined;
+      const imageIndex = material?.pbrMetallicRoughness?.baseColorTexture?.index !== undefined ? source.glb.json.textures[material.pbrMetallicRoughness.baseColorTexture.index].source : undefined;
       let generated;
       if (imageIndex !== undefined) {
-        if (!images.has(imageIndex)) {
-          const image = glb.image(imageIndex);
+        const imageKey = `${source.key}${imageIndex}`;
+        if (!images.has(imageKey)) {
+          const image = source.glb.image(imageIndex);
           const extension = image.mimeType === "image/jpeg" ? "jpg" : image.mimeType === "image/png" ? "png" : "png";
-          images.set(imageIndex, { stem: `t_${safe(image.name ?? `image${imageIndex}`).slice(0, 40)}_${imageIndex}`, extension, bytes: image.bytes });
+          images.set(imageKey, { stem: `t_${source.key}${safe(image.name ?? `image${imageIndex}`).slice(0, 40)}_${imageIndex}`, extension, bytes: image.bytes });
         }
-        generated = images.get(imageIndex);
+        generated = images.get(imageKey);
       } else {
         const c = material?.pbrMetallicRoughness?.baseColorFactor ?? [0.8, 0.8, 0.8, 1];
         const rgba = new Uint8Array(64); for (let i = 0; i < 16; i++) { rgba[i * 4] = c[0] * 255; rgba[i * 4 + 1] = c[1] * 255; rgba[i * 4 + 2] = c[2] * 255; rgba[i * 4 + 3] = 255; }
@@ -128,6 +135,48 @@ export async function importCity({ library, formats, design, glb }) {
     }
   }
 
+  // The design's top-level `props`: Tripo assets (fuel stations) are solid
+  // (kr_road "{}") with their texture as a generated one; ramps reuse a city material.
+  let props = 0, propTriangles = 0;
+  for (const prop of design.props ?? []) {
+    props++;
+    if (prop.kind === "ramp") {
+      // A dropped kerb in an existing city material (its texture and collision).
+      const index = glb.json.materials.findIndex(m => m.name === prop.material);
+      if (index < 0) throw new Error(`ramp ${prop.id}: material ${prop.material} is not in the city glb`);
+      const { name, positions, normals, uvs, indices } = rampPrimitive(prop);
+      const builder = city.mesh(name, surfaceFor(glb.json.materials[index], index), prop.at[0], prop.at[1]);
+      const v = positions.map((p, i) => builder.vertex(city.client(p[0], p[2], p[1]), uvs[i], [normals[i][0], -normals[i][2], normals[i][1]]));
+      for (let i = 0; i + 2 < indices.length; i += 3) {
+        builder.triangle(v[indices[i]], v[indices[i + 1]], v[indices[i + 2]]);
+        surfaceMinimap?.triangle(positions[indices[i]], positions[indices[i + 1]], positions[indices[i + 2]], prop.material);
+        propTriangles++;
+      }
+      continue;
+    }
+    const entry = loadPropAsset(prop.asset, propDir);
+    for (const { name, positions, normals, uvs, colors, indices, material, primitive } of propPrimitives(prop, entry)) {
+      const surface = surfaceFor(material, primitive.material, false, { glb: entry.glb, key: `${prop.asset}_`, extras: { kr_road: "{}" } });
+      const builder = city.mesh(name, surface, prop.at[0], prop.at[1]);
+      const map = new Map();
+      const vertex = i => {
+        let v = map.get(i);
+        if (v === undefined) {
+          const p = positions[i], n = normals?.[i] ?? [0, 1, 0], c = colors?.[i];
+          v = builder.vertex(city.client(p[0], p[2], p[1]), uvs?.[i] ? [uvs[i][0], uvs[i][1]] : [0, 0], [n[0], -n[2], n[1]], c ? argb(c[0], c[1], c[2]) : undefined);
+          map.set(i, v);
+        }
+        return v;
+      };
+      for (let i = 0; i + 2 < indices.length; i += 3) {
+        builder.triangle(vertex(indices[i]), vertex(indices[i + 1]), vertex(indices[i + 2]));
+        surfaceMinimap?.triangle(positions[indices[i]], positions[indices[i + 1]], positions[indices[i + 2]], `PROP_${prop.asset}`);
+        propTriangles++;
+      }
+    }
+  }
+  triangles += propTriangles;
+
   // Route: the ring road of the design.
   const terrain = createTerrain(design);
   const ringRoad = design.roads.find(r => r.route) ?? design.roads.find(r => r.id === "ring");
@@ -147,7 +196,7 @@ export async function importCity({ library, formats, design, glb }) {
   ]));
   const { root, meshCount, triangles: assembled, chunks } = city.assemble();
   const model = trackContainer("", root, [route, minimap, settings]);
-  return { city, model, minimapPng, stats: { instances, triangles, suppressedCoplanarFaces, meshCount, assembled, chunks, textures: city.textures.files.size, records: records.length, surfaces: surfaces.size } };
+  return { city, model, minimapPng, stats: { instances, triangles, props, propTriangles, suppressedCoplanarFaces, meshCount, assembled, chunks, textures: city.textures.files.size, records: records.length, surfaces: surfaces.size } };
 }
 
 async function main() {
@@ -156,7 +205,7 @@ async function main() {
     ? await (await import("./vice-city-source.mjs")).loadViceCitySource({ sourceDir: path.resolve(option("--source-glbs")), classificationPath: path.join(inDir, "vice-city-surface-classes.json"), reportPath: path.join(outDir, "source-adapter-report.json") })
     : readGlb(path.join(inDir, "kartcity.glb"));
   const { library, formats } = await loadResourceLibrary(projectRoot, "p3553", mirrorRoot);
-  const built = await importCity({ library, formats, design, glb });
+  const built = await importCity({ library, formats, design, glb, propDir: option("--props-dir") ? path.resolve(option("--props-dir")) : PROP_ASSET_DIR });
   console.log("model", JSON.stringify(built.stats));
   const [[minX, minZ], [maxX, maxZ]] = design.meta.extent;
   const report = validateModel(formats, built.model, { roadExtent: Math.max(maxX - minX, maxZ - minZ) + 1 });
