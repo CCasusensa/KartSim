@@ -6,6 +6,7 @@ import { loadLevelUpSound } from "./award-level-up-sound";
 import { AutopilotPrank, loadAutopilotPrompts } from "../ui/autopilot-prank";
 import { isCustomTrackId } from "../mapeditor/design";
 import { ensurePublishedMap } from "../mapeditor/custom-map-loader";
+import { isCityRace } from "../city/city-track";
 export interface MultiplayerRaceLoaderDependencies {
   createToonStageBinding(): unknown;
   loadRaceAssets(assets: unknown, config: any, room: any, audio: unknown,
@@ -195,12 +196,14 @@ export function createMultiplayerRaceLoader(
         checkCancellation();
         await presenter.prepareTrackEvents(library, audio);
         checkCancellation();
-        // 逆向提示 is a bonus: race on without it.
-        presenter.wrongWay = await WrongWayWarning.load(library, audio).catch((error: unknown) => {
-          console.warn("逆向提示未能载入：", error);
-          return undefined;
-        });
-        checkCancellation();
+        // 逆向提示 is a bonus: race on without it. 卡丁城 is free roam, no wrong way.
+        if (!isCityRace({ trackId })) {
+          presenter.wrongWay = await WrongWayWarning.load(library, audio).catch((error: unknown) => {
+            console.warn("逆向提示未能载入：", error);
+            return undefined;
+          });
+          checkCancellation();
+        }
         // 创世 9 自动版: its prompts only for the racer driving it.
         if (presenter.autopilotSeats?.size) {
           presenter.autopilot = new AutopilotPrank(presenter.autopilotSeats.has(connection.playerId)

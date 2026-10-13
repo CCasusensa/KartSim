@@ -183,3 +183,24 @@ test("item races name their mode on the track card and drop TP from team results
     assert.deepEqual(log.find(entry => entry[0] === "resultLayout"), ["resultLayout", layout]);
   }
 });
+
+test("卡丁城 loads no 逆向提示; ordinary races still do", async () => {
+  for (const [trackId, expected] of [[9, true], ["kartcity", false]]) {
+    const { host, config, room, signal, connection, dependencies } = fixture();
+    const requested = [];
+    const library = {
+      canonicalCandidates(path) { requested.push(path); throw new Error("no archive"); },
+    };
+    host.assets = () => ({ getLibrary: () => library, targetRandom: "random" });
+    room.trackId = trackId;
+    config.race = { trackId };
+    const warn = console.warn;
+    console.warn = () => {};
+    try {
+      await createMultiplayerRaceLoader(host, dependencies).prepare(config, room, signal, connection);
+    } finally {
+      console.warn = warn;
+    }
+    assert.equal(requested.some(path => /wrongway/.test(path)), expected, String(trackId));
+  }
+});
