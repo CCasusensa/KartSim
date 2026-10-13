@@ -16,7 +16,8 @@ import type { CityEvent, CityPose, CitySnapshot } from "./city-protocol";
 import { CITY_MAP, CITY_TRACK_ID, registerCityTrack } from "./city-track";
 import { cityWaterLevel, type CityWaterMap } from "./city-water";
 import { groundHeightAt } from "./city-ground";
-import { applyCityVehicleScale } from "./city-vehicle-scale";
+import { applyCityVehicleScale, CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
+import { setTetherUnit } from "../vehicle/tether-motion";
 import { beginCityLoading, firstCityFrame, type CityLoadingHandle } from "./city-loading";
 import type { RaceChatMessage } from "../multiplayer/race-chat-overlay";
 export { groundHeightAt } from "./city-ground";
@@ -187,6 +188,8 @@ export class CitySession {
     const runtime = stage.runtime;
     const presenter = stage.scene;
     applyCityVehicleScale(runtime.local.physics);
+    // Every kart here is drawn at the city size; balloon ropes keep that proportion.
+    setTetherUnit(CITY_VEHICLE_SCALE);
     const root = stage.host.renderer.domElement.parentElement as HTMLElement;
     this.fleet = new CityFleet({
       assets: runtime.assets, presenter, track: runtime.local.track,
@@ -433,6 +436,7 @@ export class CitySession {
     if (debug.__kartcity === this) delete debug.__kartcity;
     if (this.disposed) return;
     this.disposed = true;
+    setTetherUnit(1);
     this.unbindHostAbort?.();
     this.unbindHostAbort = undefined;
     this.abort.abort();

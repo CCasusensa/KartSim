@@ -22,26 +22,60 @@ function transformPoint(matrix: Affine3x4, row: number, point: readonly number[]
     + matrix[offset + 3]!);
 }
 
+let tetherUnit = 1;
+
 /**
- * The frame a balloon tether simulates in: the marker's world matrix with its
- * scale divided out (replaces the release `he0`, which copied it as is).
+ * The lasting kart size balloon ropes are measured in: 1 in races, the city's
+ * 0.5 while 卡丁城 is open, so a city kart's rope keeps its proportion.
+ * Temporary size changes (giant stages, track scale events, the press squash)
+ * are not lasting: they enlarge the balloon with the kart but not its rope.
+ */
+export function setTetherUnit(unit: number): void {
+  if (!(unit > 0)) throw new Error(`气球绳长基准必须为正数：${unit}`);
+  tetherUnit = unit;
+}
+
+/**
+ * The frame a balloon tether simulates in: the marker's world matrix in units
+ * of the lasting kart size (replaces the release `he0`, which is this copy at
+ * unit 1).
  *
- * `TetherMotion` keeps the rope length in world units and maps the balloon back
- * with the transposed matrix, which is only the inverse of a rigid one. Under
- * the giant-mode stages (1.5–4.4×), the press squash or the 0.5× city karts the
- * balloon sat s² too far from the marker, so the rope grew with the kart and
- * shrank with it far faster than the kart. Simulating the unscaled balloon in
- * the rigid frame lets the marker's own scale size the balloon and its rope
- * exactly like the rest of the kart.
+ * The rope length, float and drag are world quantities, so when the kart grows
+ * the balloon model grows with its marker while the rope stays as long as
+ * before, as in the original (a 3.2× kart in the 大城堡 robot beam carries a
+ * big balloon on a short rope). `TetherMotion` maps the balloon back through
+ * the frame's inverse, so the marker's scale is applied exactly once.
  */
 export function tetherFrameFromMatrix(matrix: { elements: ArrayLike<number> }, out: number[]): void {
   const t = matrix.elements;
-  const sx = Math.hypot(t[0]!, t[1]!, t[2]!) || 1;
-  const sy = Math.hypot(t[4]!, t[5]!, t[6]!) || 1;
-  const sz = Math.hypot(t[8]!, t[9]!, t[10]!) || 1;
-  out[0] = t[0]! / sx; out[1] = t[4]! / sy; out[2] = t[8]! / sz; out[3] = t[12]!;
-  out[4] = t[1]! / sx; out[5] = t[5]! / sy; out[6] = t[9]! / sz; out[7] = t[13]!;
-  out[8] = t[2]! / sx; out[9] = t[6]! / sy; out[10] = t[10]! / sz; out[11] = t[14]!;
+  const unit = tetherUnit;
+  out[0] = t[0]! / unit; out[1] = t[4]! / unit; out[2] = t[8]! / unit; out[3] = t[12]! / unit;
+  out[4] = t[1]! / unit; out[5] = t[5]! / unit; out[6] = t[9]! / unit; out[7] = t[13]! / unit;
+  out[8] = t[2]! / unit; out[9] = t[6]! / unit; out[10] = t[10]! / unit; out[11] = t[14]! / unit;
+}
+
+/** A rotation, whose transpose (the release's mapping back) is its inverse. */
+function rigidFrame(m: Affine3x4): boolean {
+  const dot = (j: number, k: number) => m[j]! * m[k]! + m[4 + j]! * m[4 + k]! + m[8 + j]! * m[8 + k]!;
+  const near = (value: number, expected: number) => Math.abs(value - expected) <= 1e-5;
+  return near(dot(0, 0), 1) && near(dot(1, 1), 1) && near(dot(2, 2), 1)
+    && near(dot(0, 1), 0) && near(dot(0, 2), 0) && near(dot(1, 2), 0);
+}
+
+/** Solve frame · local = offset for a scaled frame. */
+function inverseLocal(m: Affine3x4, dx: number, dy: number, dz: number, out: number[]): void {
+  const [a, b, c] = [m[0]!, m[1]!, m[2]!];
+  const [d, e, f] = [m[4]!, m[5]!, m[6]!];
+  const [g, h, i] = [m[8]!, m[9]!, m[10]!];
+  const ei = e * i - f * h, fg = f * g - d * i, dh = d * h - e * g;
+  const det = a * ei + b * fg + c * dh;
+  if (det === 0) {
+    out[0] = 0; out[1] = 0; out[2] = 0;
+    return;
+  }
+  out[0] = f32((ei * dx + (c * h - b * i) * dy + (b * f - c * e) * dz) / det);
+  out[1] = f32((fg * dx + (a * i - c * g) * dy + (c * d - a * f) * dz) / det);
+  out[2] = f32((dh * dx + (b * g - a * h) * dy + (a * e - b * d) * dz) / det);
 }
 
 /** Spring-like decoration movement attached to a kart, matching the released H10. */
@@ -117,6 +151,10 @@ export class TetherMotion {
     const dx = f32(this.world[0]! - transform[3]!);
     const dy = f32(this.world[1]! - transform[7]!);
     const dz = f32(this.world[2]! - transform[11]!);
+    if (!rigidFrame(transform)) {
+      inverseLocal(transform, dx, dy, dz, this.output);
+      return this.output;
+    }
     this.output[0] = f32(f32(f32(dy * transform[4]!) + f32(dx * transform[0]!)) + f32(dz * transform[8]!));
     this.output[1] = f32(f32(f32(dy * transform[5]!) + f32(dx * transform[1]!)) + f32(dz * transform[9]!));
     this.output[2] = f32(f32(f32(dy * transform[6]!) + f32(dx * transform[2]!)) + f32(dz * transform[10]!));

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { Matrix4, Quaternion, Vector3 } from "three";
-import { TetherMotion, tetherFrameFromMatrix, type TetherParameters } from "./tether-motion";
+import { TetherMotion, setTetherUnit, tetherFrameFromMatrix, type TetherParameters } from "./tether-motion";
 
 const release = readFileSync(new URL("../../../recovered/formatted/index.js", import.meta.url), "utf8");
 function sourceBetween(start: string, end: string): string {
@@ -23,9 +23,10 @@ const parameters: TetherParameters = {
   floatingForce: 2.3,
   viscousDrag: 0.27,
 };
+// A rigid frame: the release's transposed mapping back is exact only there.
 const transform = [
-  0.9, 0.1, 0, 12,
-  -0.1, 0.9, 0, 3,
+  0.6, 0.8, 0, 12,
+  -0.8, 0.6, 0, 3,
   0, 0, 1, -4,
 ];
 
@@ -92,40 +93,73 @@ test("hitch median and stretch force branches match release", () => {
   });
 });
 
-/** Settled balloon position in world space for a marker with the given scale, as the decoration draws it. */
-function settledBalloon(scale: Vector3): Vector3 {
-  const marker = new Matrix4().compose(new Vector3(12, 3, -4),
+const anchor = new Vector3(0, 0.7, 0);
+
+function markerMatrix(scale: Vector3): Matrix4 {
+  return new Matrix4().compose(new Vector3(12, 3, -4),
     new Quaternion().setFromAxisAngle(new Vector3(0.3, 1, 0.2).normalize(), 0.7), scale);
-  const motion = new TetherMotion({ pos: [0, 0.7, 1], wireLengthLimit: 1.3, floatingForce: 80, viscousDrag: 3 });
+}
+
+/** Settled rope, from the marker's hitch to the balloon in world space, as the decoration draws it. */
+function settledRope(scale: Vector3): Vector3 {
+  const marker = markerMatrix(scale);
+  const motion = new TetherMotion({ pos: [anchor.x, anchor.y, 1], wireLengthLimit: 1.3, floatingForce: 80, viscousDrag: 3 });
   const frame = new Array(12).fill(0);
   let local = motion.reset().slice();
-  for (let time = 1000; time < 6000; time += 16) {
+  for (let time = 1000; time < 21000; time += 16) {
     tetherFrameFromMatrix(marker, frame);
     local = motion.update(frame, local, time).slice();
   }
-  return new Vector3(local[0], local[1], local[2]).applyMatrix4(marker);
+  return new Vector3(local[0], local[1], local[2]).applyMatrix4(marker)
+    .sub(anchor.clone().applyMatrix4(marker));
 }
 
-test("balloon and rope scale with the kart instead of stretching", () => {
-  const origin = new Vector3(12, 3, -4);
-  const unit = settledBalloon(new Vector3(1, 1, 1)).sub(origin);
-  for (const scale of [0.5, 1.5, 2.8, 4.4]) {
-    const offset = settledBalloon(new Vector3(scale, scale, scale)).sub(origin);
-    assert.ok(offset.distanceTo(unit.clone().multiplyScalar(scale)) < 1e-3 * scale,
-      `${scale}x: ${offset.toArray()} vs ${unit.toArray()}`);
+test("a grown or shrunk kart carries its balloon on a rope of the same length", () => {
+  const unit = settledRope(new Vector3(1, 1, 1));
+  // Track scale events 60/180/320, giant stages and the press squash.
+  for (const scale of [[0.6, 0.6, 0.6], [1.8, 1.8, 1.8], [3.2, 3.2, 3.2], [4.4, 4.4, 4.4], [1.2, 1.2, 0.2]]) {
+    const rope = settledRope(new Vector3(...scale));
+    assert.ok(rope.distanceTo(unit) < 1e-3, `${scale}: ${rope.toArray()} vs ${unit.toArray()}`);
   }
 });
 
-test("tether frame drops scale and keeps the release copy for rigid markers", () => {
-  const rigid = new Matrix4().compose(new Vector3(1, 2, 3),
-    new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), 1.1), new Vector3(1, 1, 1));
-  const scaled = rigid.clone().scale(new Vector3(4.4, 1.2, 0.2));
-  const expected = new Array(12).fill(0), actual = new Array(12).fill(0);
-  tetherFrameFromMatrix(rigid, expected);
-  tetherFrameFromMatrix(scaled, actual);
-  const t = rigid.elements;
-  assert.deepEqual(expected.map(value => Math.round(value * 1e6)),
-    [t[0], t[4], t[8], t[12], t[1], t[5], t[9], t[13], t[2], t[6], t[10], t[14]]
-      .map(value => Math.round(value * 1e6)));
-  actual.forEach((value, index) => assert.ok(Math.abs(value - expected[index]!) < 1e-6, `element ${index}`));
+test("city karts keep their rope in proportion to the city size", () => {
+  const unit = settledRope(new Vector3(1, 1, 1));
+  setTetherUnit(0.5);
+  try {
+    for (const scale of [0.5, 1.6]) {
+      const rope = settledRope(new Vector3(scale, scale, scale));
+      assert.ok(rope.distanceTo(unit.clone().multiplyScalar(0.5)) < 1e-3, `${scale}x: ${rope.toArray()}`);
+    }
+  } finally {
+    setTetherUnit(1);
+  }
+});
+
+test("tether frame is the release copy in races and divides out the city size", () => {
+  const scaled = markerMatrix(new Vector3(3.2, 1.2, 0.2));
+  const t = scaled.elements;
+  const release = [t[0], t[4], t[8], t[12], t[1], t[5], t[9], t[13], t[2], t[6], t[10], t[14]];
+  const frame = new Array(12).fill(0);
+  tetherFrameFromMatrix(scaled, frame);
+  assert.deepEqual(frame, release);
+  setTetherUnit(0.5);
+  try {
+    tetherFrameFromMatrix(scaled, frame);
+    assert.deepEqual(frame, release.map(value => value / 0.5));
+  } finally {
+    setTetherUnit(1);
+  }
+  assert.throws(() => setTetherUnit(0));
+});
+
+test("a scaled frame maps the balloon back through its inverse", () => {
+  const marker = markerMatrix(new Vector3(3.2, 1.2, 0.2));
+  const frame = new Array(12).fill(0);
+  tetherFrameFromMatrix(marker, frame);
+  const motion = new TetherMotion(parameters);
+  motion.world = [13, 4, -5];
+  const local = motion.integrate(frame, 0);
+  const drawn = new Vector3(local[0], local[1], local[2]).applyMatrix4(marker);
+  assert.ok(drawn.distanceTo(new Vector3(13, 4, -5)) < 1e-4, drawn.toArray().join(","));
 });
