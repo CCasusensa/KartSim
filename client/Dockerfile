@@ -32,6 +32,9 @@ COPY mirror/ui /srv/web/ui
 COPY mirror/classic-hud /srv/web/classic-hud
 COPY client/docker/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --chmod=0755 client/docker/tls.sh /docker-entrypoint.d/05-kart-tls.sh
+# 启动时核对挂载的 mirror/p3553 与上面复制的资源清单是同一版本（不一致只在日志里警告）。
+COPY --chmod=0755 client/docker/check-resources.sh /docker-entrypoint.d/06-kart-resources.sh
 # 在 Windows 上检出时可能被改成 CRLF：去掉行尾的 \r，否则 sh 无法运行它。
-RUN sed -i 's/\r$//' /docker-entrypoint.d/05-kart-tls.sh /etc/nginx/templates/default.conf.template
+RUN sed -i 's/\r$//' /docker-entrypoint.d/05-kart-tls.sh /docker-entrypoint.d/06-kart-resources.sh \
+  /etc/nginx/templates/default.conf.template
 EXPOSE 8780 8443

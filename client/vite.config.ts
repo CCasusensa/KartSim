@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
-import { readFileSync } from "node:fs";
+import { defineConfig, type Plugin } from "vite";
+import { readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 // Reuse the downloaded assets during development without copying 3.49 GiB
@@ -32,7 +32,36 @@ const lan = lanCert && lanKey ? {
   },
 } : {};
 
+/**
+ * Warns when mirror/p3553 holds other versions of the containers than
+ * mirror/__p3553/resources names (a worktree's hand-cloned mirror after a
+ * rebase): the game fails on them with "…与资源清单版本不一致". Missing
+ * containers (a sparse checkout) are not reported.
+ */
+function mirrorCheck(): Plugin {
+  return {
+    name: "kart-mirror-check",
+    configureServer(server) {
+      let files: Array<{ name: string; size: number }>;
+      try {
+        files = JSON.parse(readFileSync(new URL("../mirror/__p3553/resources", import.meta.url), "utf8")).files;
+      } catch {
+        return;
+      }
+      const wrong: string[] = [];
+      for (const file of files) {
+        let size: number;
+        try { size = statSync(new URL(`../mirror/p3553/${file.name}`, import.meta.url)).size; } catch { continue; }
+        if (size !== file.size) wrong.push(`${file.name}（清单 ${file.size}，实际 ${size}）`);
+      }
+      if (wrong.length) server.config.logger.warn(`mirror/p3553 有 ${wrong.length} 个资源与资源清单版本不一致：` +
+        `${wrong.slice(0, 5).join("、")}${wrong.length > 5 ? "…" : ""}`);
+    },
+  };
+}
+
 export default defineConfig({
+  plugins: [mirrorCheck()],
   publicDir: mirrorDir,
   build: {
     copyPublicDir: false, target: "es2022",

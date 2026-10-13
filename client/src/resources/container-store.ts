@@ -45,6 +45,29 @@ export class DownloadPausedError extends Error {
   override readonly name = "DownloadPausedError";
 }
 
+/**
+ * The server holds another version of a container than the manifest names
+ * (its size differs): the server's resources and the page are out of step.
+ * Downloading again cannot help; a reload (the page out of date) or an
+ * update of the server's resources can.
+ */
+export class ContainerMismatchError extends Error {
+  override readonly name = "ContainerMismatchError";
+
+  constructor(readonly file: string, readonly expectedBytes: number, readonly servedBytes: number) {
+    super(`服务器上的 ${file} 与资源清单版本不一致：清单 ${expectedBytes} 字节，服务器 ${servedBytes} 字节。`);
+  }
+}
+
+/** The ContainerMismatchError behind an error (its cause chain), if any. */
+export function containerMismatch(error: unknown): ContainerMismatchError | undefined {
+  for (let current = error, depth = 0; current instanceof Error && depth < 8;
+    current = current.cause, depth++) {
+    if (current instanceof ContainerMismatchError) return current;
+  }
+  return undefined;
+}
+
 export interface DirectoryHandle {
   getDirectoryHandle(name: string, options?: { create?: boolean }): Promise<DirectoryHandle>;
   getFileHandle(name: string, options?: { create?: boolean }): Promise<FileHandle>;
@@ -214,7 +237,7 @@ export class ContainerStore {
           return await this.readBlocks(file, start, end);
         } catch (error) {
           if (error instanceof RangeUnsupportedError) break;
-          if (attempt > 0) throw error;
+          if (attempt > 0 || error instanceof ContainerMismatchError) throw error;
         }
       }
     }
@@ -516,8 +539,11 @@ export class ContainerStore {
     // Cross-origin servers may not expose Content-Range; the length check below still holds.
     const range = response.headers.get("content-range");
     const parts = range === null ? undefined : /^bytes (\d+)-(\d+)\/(\d+|\*)$/i.exec(range.trim());
-    if (range !== null && (!parts || Number(parts[1]) !== start || Number(parts[2]) !== end - 1 ||
-        (parts[3] !== "*" && Number(parts[3]) !== file.size))) {
+    if (parts && parts[3] !== "*" && Number(parts[3]) !== file.size) {
+      await response.body.cancel().catch(() => undefined);
+      throw new ContainerMismatchError(file.name, file.size, Number(parts[3]));
+    }
+    if (range !== null && (!parts || Number(parts[1]) !== start || Number(parts[2]) !== end - 1)) {
       await response.body.cancel().catch(() => undefined);
       throw new Error(`${file.name} 分段读取范围不符：请求 ${start}-${end - 1}/${file.size}，响应 ${range}。`);
     }
@@ -556,8 +582,12 @@ export class ContainerStore {
     return bytes;
   }
 
+  /**
+   * The container's URL names its version, so a cache between here and the
+   * server (a CDN, a proxy) never answers with the copy of an older build.
+   */
   private url(file: ContainerSpec): string {
-    return `${this.baseUrl}/${encodeURIComponent(file.name)}`;
+    return `${this.baseUrl}/${encodeURIComponent(file.name)}?v=${file.sha256.slice(0, 16)}`;
   }
 
   private async directory(): Promise<DirectoryHandle> {
@@ -678,6 +708,13 @@ export class ContainerStore {
       throw error;
     }
     const range = response.headers.get("content-range");
+    const served = response.status === 206 ? Number(/\/(\d+)\s*$/.exec(range ?? "")?.[1] ?? file.size)
+      : response.status === 200 && !response.headers.get("content-encoding")
+        ? Number(response.headers.get("content-length") ?? file.size) : file.size;
+    if (served !== file.size) {
+      await response.body?.cancel().catch(() => undefined);
+      throw new ContainerMismatchError(file.name, file.size, served);
+    }
     const appending = resume && response.status === 206 &&
       (range === null || range.trim() === `bytes ${kept}-${file.size - 1}/${file.size}`);
     if ((response.status !== 200 && !appending) || !response.body) {

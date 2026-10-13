@@ -80,19 +80,21 @@ export function settingsResourceEntry(root: HTMLElement, options: ResourcePanelO
 
 /**
  * Why a page did not open, in a game-style window: with `group`, the reason
- * may be its resources and 资源下载 opens the window on that group. Resolves
- * false when no window can be drawn (the caller shows the text instead).
+ * may be its resources and 资源下载 opens the window on that group; with
+ * `reload`, the page is out of step with the server and 刷新页面 reloads
+ * it. Resolves false when no window can be drawn (the caller shows the
+ * text instead).
  */
 export async function showResourceFailureNotice(root: HTMLElement, title: string, message: string,
-  options: ResourcePanelOptions & { group?: string } = {}): Promise<boolean> {
+  options: ResourcePanelOptions & { group?: string; reload?: boolean } = {}): Promise<boolean> {
   const manager = currentResourceManager();
   const library = manager && windowLibrary(manager);
   if (!manager || !library) return false;
+  const action = options.reload ? { label: "刷新页面", run: () => { globalThis.location?.reload(); } }
+    : options.group ? { label: "资源下载", run: () => { void openResourcePanel(root, manager, options); } }
+    : undefined;
   try {
-    await showResourceFailure(library, root, {
-      title, message, onActivate: options.onActivate,
-      onResources: options.group ? () => { void openResourcePanel(root, manager, options); } : undefined,
-    });
+    await showResourceFailure(library, root, { title, message, onActivate: options.onActivate, action });
     return true;
   } catch (error) {
     console.warn("失败提示窗口打开失败", error);

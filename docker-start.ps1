@@ -190,6 +190,12 @@ for ($i = 0; $i -lt 60; $i++) {
 }
 if (-not $ok) { Fail "网页客户端 $base 没有响应：docker compose logs client kart-data" }
 
+# 镜像里的资源清单与挂载的 mirror/p3553 是否同一版本（-Pull 拉到的镜像可能比这份检出新或旧）。
+$ErrorActionPreference = 'Continue'
+$check = '/docker-entrypoint.d/06-kart-resources.sh'
+$resourceWarning = (& docker compose exec -T client sh -c "[ ! -x $check ] || $check 2>&1" 2>$null | Out-String).Trim()
+$ErrorActionPreference = 'Stop'
+
 function Send-Json([string]$path, $body, [hashtable]$headers = @{}) {
   $json = [System.Text.Encoding]::UTF8.GetBytes(($body | ConvertTo-Json -Compress))
   try {
@@ -236,3 +242,7 @@ Write-Host ""
 Write-Host "  在其他机器加游戏节点：后台「游戏节点 → 添加节点」拿到密钥，再按 server-go/NODE.md 的「Docker」一节运行 kartsim-node"
 Write-Host "  停止：docker-stop.cmd    日志：docker compose logs -f"
 Write-Host "  局域网的其他设备连不上时，在 Windows 防火墙放行 TCP $httpPort、$httpsPort 与 UDP $(if (Get-EnvValue 'KART_GAME_PORT') { Get-EnvValue 'KART_GAME_PORT' } else { '8788' })。"
+if ($resourceWarning) {
+  Write-Host ""
+  Write-Host $resourceWarning -ForegroundColor Yellow
+}

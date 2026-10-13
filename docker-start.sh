@@ -180,6 +180,10 @@ for _ in $(seq 1 60); do
 done
 [ -n "$ok" ] || die "网页客户端 $base 没有响应：docker compose logs client kart-data"
 
+# 镜像里的资源清单与挂载的 mirror/p3553 是否同一版本（--pull 拉到的镜像可能比这份检出新或旧）。
+check=/docker-entrypoint.d/06-kart-resources.sh
+resource_warning=$(docker compose exec -T client sh -c "[ ! -x $check ] || $check 2>&1" 2>/dev/null || true)
+
 # 管理员账号：用后台登录（不会顶掉游戏里的会话）判断是否已注册，没有就用引导邀请码注册。
 admin=$(env_value KART_ADMIN_USERNAMES | cut -d, -f1 | tr -d ' ')
 admin_password=$(env_value KART_ADMIN_PASSWORD)
@@ -220,3 +224,7 @@ say "  管理后台：  http://localhost:$http_port/multiplayer/admin"
 say ""
 say "  在其他机器加游戏节点：后台“游戏节点 → 添加节点”拿到密钥，再按 server-go/NODE.md 的“Docker”一节运行 kartsim-node"
 say "  停止：./docker-stop.sh    日志：docker compose logs -f"
+if [ -n "$resource_warning" ]; then
+  say ""
+  say "$resource_warning"
+fi

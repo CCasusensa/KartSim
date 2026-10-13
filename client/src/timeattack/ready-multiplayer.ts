@@ -1,3 +1,4 @@
+import type { ContainerMismatchError } from "../resources/container-store";
 import { ensureFeatureResources, showResourceFailureNotice } from "../ui/resource-panel";
 import { showAccountMessage, showAccountToast, type OverlayDocument } from "../account/account-dialogs";
 import { activeBrowserSession } from "../account/account-runtime";
@@ -205,15 +206,22 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
         if (error) host.hud.showDebugText(message, "error");
       },
       // The status line is easy to miss: a failed city entry gets a window, with
-      // 资源下载 on the 卡丁城 group when its resources may be the cause.
-      onCityFailed: (reason: string, resources: boolean) => {
+      // 资源下载 on the 卡丁城 group when its resources may be the cause, or
+      // 刷新页面 when the server holds other versions of them (no download helps).
+      onCityFailed: (reason: string, resources: boolean, mismatch?: ContainerMismatchError) => {
+        const onActivate = () => host.getInterfaceAudio()?.playClick();
+        if (mismatch) {
+          void showResourceFailureNotice(host.root, "进入卡丁城失败",
+            `服务器上的游戏资源 ${mismatch.file} 和当前游戏版本不一致\n` +
+            `（需要 ${mismatch.expectedBytes} 字节，服务器上是 ${mismatch.servedBytes} 字节），\n` +
+            "重新下载也无法解决。\n\n先点“刷新页面”再试；仍然这样时，\n" +
+            "请服务器管理员更新游戏资源（git pull、git lfs pull）后重启服务。", { reload: true, onActivate });
+          return;
+        }
         void showResourceFailureNotice(host.root, "进入卡丁城失败", resources
           ? `${reason}\n\n可能是卡丁城资源下载出错。\n点“资源下载”删除卡丁城资源后重新下载，\n` +
             "以后也可以在 设置 → 变更设置 里打开资源下载。"
-          : reason, {
-          ...(resources ? { group: "city" } : {}),
-          onActivate: () => host.getInterfaceAudio()?.playClick(),
-        });
+          : reason, { ...(resources ? { group: "city" } : {}), onActivate });
       },
       // The lobby's status bar stays above the room, as in the original; its
       // "+" opens the shop like the home's.

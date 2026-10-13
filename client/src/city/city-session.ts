@@ -6,6 +6,7 @@
  * and weather clock, city/near chat channels, resets to the nearest road and
  * the garage (G) for changing karts, character and accessories on the spot.
  */
+import { containerMismatch, type ContainerMismatchError } from "../resources/container-store";
 import { beginRaceLoad, downloadTrack } from "../resources/resource-manager";
 import { CityAtmosphere } from "./city-atmosphere";
 import { skyStateAt, clockLabel } from "./city-clock";
@@ -61,9 +62,11 @@ export interface CityLobbyHost {
     status(message: string, error?: boolean): void;
     /**
      * Entering failed (shown in a window by ready-multiplayer.ts); `resources`:
-     * while the city loaded its resources, which may be a broken download.
+     * while the city loaded its resources, which may be a broken download;
+     * `mismatch`: the server holds another version of a container than the
+     * page's manifest names, which no download can fix.
      */
-    onCityFailed?(reason: string, resources: boolean): void;
+    onCityFailed?(reason: string, resources: boolean, mismatch?: ContainerMismatchError): void;
     /** Set when the lobby was opened only for the city: leaving closes it. */
     onCityExit?(): void;
     lobbyGameplay?: string;
@@ -897,7 +900,7 @@ export async function enterCity(host: CityLobbyHost): Promise<void> {
       console.error("进入卡丁城失败", error);
       const reason = error instanceof Error ? error.message : String(error);
       host.options.status(`进入卡丁城失败：${reason}`, true);
-      host.options.onCityFailed?.(reason, session.loadingResources);
+      host.options.onCityFailed?.(reason, session.loadingResources, containerMismatch(error));
     }
     await session.cleanup();
   }

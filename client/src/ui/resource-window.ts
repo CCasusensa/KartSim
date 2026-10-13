@@ -1,8 +1,8 @@
 import { C8, te } from "../generated/library.js";
 import type { DownloadJob, GroupStatus, ResourceManager } from "../resources/resource-manager";
 import type { ResourceGroup } from "../resources/resource-groups";
-import { FONT, ImageCache, indexRows, node, nodeName, paintText, prepare, type BmlLibrary, type Node, type NodeState,
-  type Rect, type Texture, type WindowView } from "./bml-kit";
+import { FONT, ImageCache, indexRows, node, nodeName, paintText, prepare, wrapText, type BmlLibrary, type Node,
+  type NodeState, type Rect, type Texture, type WindowView } from "./bml-kit";
 
 /**
  * 资源下载 drawn by the release window renderer in the 任务 dialog's look
@@ -640,13 +640,35 @@ export async function waitForResources(library: BmlLibrary, root: HTMLElement, m
   }
 }
 
+/** The failure text's face and the label width it wraps to. */
+const FAILURE_TEXT = { size: 14, lineGap: 8, width: 440, minHeight: 112 };
+
+/**
+ * The failure label's height: the release window's 112 unless the text
+ * needs more (a long reason ran over the caption bar), wrapped as paintText
+ * wraps it.
+ */
+export function failureTextHeight(message: string): number {
+  const { size, lineGap, width, minHeight } = FAILURE_TEXT;
+  const context = globalThis.document?.createElement("canvas").getContext("2d");
+  let lines: number;
+  if (context) {
+    context.font = `${size}px ${FONT}`;
+    lines = wrapText(context, message, width).length;
+  } else {
+    lines = message.split(/\||\n/).reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length * size / width)), 0);
+  }
+  return Math.max(minHeight, lines * (size + lineGap) + lineGap);
+}
+
 /**
  * A failure that may come from broken resources (进入卡丁城失败): the reason
- * in the 删除资源 window's look, with 资源下载 (onResources) when given and
- * 确定. Resolves when it closes; throws when the window cannot load.
+ * in the 删除资源 window's look, with an action button (资源下载, 刷新页面)
+ * when given and 确定. The window grows with the text. Resolves when it
+ * closes; throws when the window cannot load.
  */
 export async function showResourceFailure(library: BmlLibrary, root: HTMLElement, options: {
-  title: string; message: string; onActivate?(): void; onResources?(): void;
+  title: string; message: string; onActivate?(): void; action?: { label: string; run(): void };
 }): Promise<void> {
   let view: WindowView | undefined;
   let closed!: () => void;
@@ -656,32 +678,35 @@ export async function showResourceFailure(library: BmlLibrary, root: HTMLElement
     view?.dispose();
     closed();
   };
-  const resources = options.onResources && (() => {
+  const action = options.action && (() => {
     close();
-    options.onResources!();
+    options.action!.run();
   });
+  const textHeight = failureTextHeight(options.message);
   const definition = node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
-    node("CaptionWindow", { name: "failureDialog", windowRect: "0 0 480 240", frame: "CaptionDialog",
-      caption: options.title, captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
-      node("Label", { name: "failureText", windowSize: "440 112", adjust: "0 16", align: "hcenter" }),
-      ...(resources ? [node("TextButton", { name: "failureResources", leftTopWH: "0 0 100 30", align: "hcenter;bottom",
+    node("CaptionWindow", { name: "failureDialog", windowRect: `0 0 480 ${240 - FAILURE_TEXT.minHeight + textHeight}`,
+      frame: "CaptionDialog", caption: options.title, captionPos: "0 1", align: "center", setCloseButton: "closeButton",
+      textRender: "bold" }, [
+      node("Label", { name: "failureText", windowSize: `${FAILURE_TEXT.width} ${textHeight}`, adjust: "0 16",
+        align: "hcenter" }),
+      ...(action ? [node("TextButton", { name: "failureAction", leftTopWH: "0 0 100 30", align: "hcenter;bottom",
         adjust: "-56 10", textRender: "bold14" })] : []),
       node("TextButton", { name: "failureOk", leftTopWH: "0 0 100 30", align: "hcenter;bottom",
-        adjust: resources ? "56 10" : "0 10", textRender: "bold14" }),
+        adjust: action ? "56 10" : "0 10", textRender: "bold14" }),
     ]),
   ]);
   view = await loadWindow(library, root, definition, options.title, close, entry => {
     switch (nodeName(entry)) {
       case "failureDialog": return { text: options.title };
-      case "failureText": return paintText(options.message, { size: 14, color: TEXT, align: "center", middle: true,
-        lineGap: 8 });
-      case "failureResources": return button("资源下载", resources);
+      case "failureText": return paintText(options.message, { size: FAILURE_TEXT.size, color: TEXT, align: "center",
+        middle: true, lineGap: FAILURE_TEXT.lineGap });
+      case "failureAction": return button(options.action!.label, action);
       case "closeButton": return { label: "确定", action: close };
       case "failureOk": return button("确定", close);
     }
     return {};
   });
   view.show();
-  view.focus(resources ? "failureResources" : "failureOk");
+  view.focus(action ? "failureAction" : "failureOk");
   await done;
 }

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ContainerStore, DownloadPausedError, type ContainerProgress, type DirectoryHandle } from "./container-store";
+import { ContainerMismatchError, ContainerStore, DownloadPausedError, containerMismatch, type ContainerProgress,
+  type DirectoryHandle } from "./container-store";
 
 const MiB = 1024 * 1024;
 
@@ -52,6 +53,7 @@ function content(size: number, seed: number): Uint8Array {
 function server(containers: Record<string, Uint8Array>,
   options: { ranges?: boolean; total?: number; gate?: () => Promise<void> } = {}) {
   const requests: string[] = [];
+  const urls: string[] = [];
   const body = (bytes: Uint8Array, signal?: AbortSignal | null) => {
     let offset = 0;
     return new ReadableStream<Uint8Array>({
@@ -64,33 +66,38 @@ function server(containers: Record<string, Uint8Array>,
     });
   };
   const fetcher = async (url: string, init?: RequestInit) => {
-    const name = decodeURIComponent(url.slice(url.lastIndexOf("/") + 1));
+    urls.push(url);
+    const path = url.split("?")[0]!;
+    const name = decodeURIComponent(path.slice(path.lastIndexOf("/") + 1));
     const bytes = containers[name]!;
     const range = new Headers(init?.headers).get("range");
     requests.push(range ? `${name} ${range}` : name);
     const match = /^bytes=(\d+)-(\d*)$/.exec(range ?? "");
-    if (!match || options.ranges === false) return new Response(body(bytes, init?.signal));
+    if (!match || options.ranges === false) return new Response(body(bytes, init?.signal),
+      { headers: { "content-length": String(bytes.length) } });
     const start = Number(match[1]);
     const end = Math.min(bytes.length - 1, match[2] ? Number(match[2]) : Infinity);
     return new Response(bytes.slice(start, end + 1), { status: 206, headers: {
       "content-range": `bytes ${start}-${end}/${options.total ?? bytes.length}` } });
   };
-  return { requests, fetcher };
+  return { requests, urls, fetcher };
 }
 
+/** `sizes` are manifest sizes that differ from the served containers (another version on the server). */
 function store(containers: Record<string, Uint8Array>,
-  serverOptions: { ranges?: boolean; total?: number; gate?: () => Promise<void> } = {}) {
+  serverOptions: { ranges?: boolean; total?: number; gate?: () => Promise<void> } = {},
+  sizes: Record<string, number> = {}) {
   const directory = memoryDirectory();
-  const { requests, fetcher } = server(containers, serverOptions);
+  const { requests, urls, fetcher } = server(containers, serverOptions);
   const progress: ContainerProgress[] = [];
   const instance = new ContainerStore({
     manifest: { version: "p3553", revision: "r1", files: Object.entries(containers).map(([name, bytes]) =>
-      ({ name, size: bytes.length, mtimeMs: 0, sha256: "" })) } as never,
+      ({ name, size: sizes[name] ?? bytes.length, mtimeMs: 0, sha256: "" })) } as never,
     storage: { getDirectory: async () => directory, estimate: async () => ({ quota: 1e12, usage: 0 }) },
     fetcher: fetcher as never,
     onProgress: event => progress.push(event),
   });
-  return { store: instance, directory, requests, progress };
+  return { store: instance, directory, requests, urls, progress };
 }
 
 const read = async (store: ContainerStore, name: string, start: number, end: number) =>
@@ -148,10 +155,42 @@ test("a server that ignores Range turns range reads off: containers download who
   assert.deepEqual(requests.slice(2), ["other.rho"]);
 });
 
-test("a mismatched Content-Range is an error and nothing is cached", async () => {
+test("a Content-Range for another container size says the server's copy is another version", async () => {
   const big = content(2 * MiB, 5);
-  const { store: containers } = store({ "big.rho": big }, { total: 123 });
-  await assert.rejects(() => containers.readRange("big.rho", 0, 10), /分段读取范围不符/);
+  const { store: containers, requests, directory } = store({ "big.rho": big }, { total: 123 });
+  const error = await containers.readRange("big.rho", 0, 10).catch((thrown: unknown) => thrown);
+  assert.ok(error instanceof ContainerMismatchError);
+  assert.deepEqual([error.file, error.expectedBytes, error.servedBytes], ["big.rho", 2 * MiB, 123]);
+  assert.match(error.message, /big\.rho 与资源清单版本不一致：清单 2097152 字节，服务器 123 字节/);
+  // Asking again cannot help: one request, nothing cached.
+  assert.equal(requests.length, 1);
+  assert.equal(directory.files.has("big.rho"), false);
+  // Found behind the errors that wrap it (赛道…加载失败).
+  assert.equal(containerMismatch(new Error("赛道加载失败", { cause: error })), error);
+  assert.equal(containerMismatch(new Error("x")), undefined);
+});
+
+test("a whole download of another container size fails before writing", async () => {
+  const small = content(1000, 3);
+  const { store: containers, directory } = store({ "small.rho": small }, {}, { "small.rho": 900 });
+  await assert.rejects(() => containers.ensure("small.rho"),
+    (error: unknown) => error instanceof ContainerMismatchError && error.servedBytes === 1000);
+  assert.equal(directory.files.get("small.rho")?.length ?? 0, 0);
+});
+
+test("container URLs name the manifest's version, so caches never answer with an older build", async () => {
+  const big = content(2 * MiB, 9);
+  const { urls, fetcher } = server({ "big.rho": big });
+  const directory = memoryDirectory();
+  const containers = new ContainerStore({
+    manifest: { version: "p3553", revision: "r1",
+      files: [{ name: "big.rho", size: big.length, mtimeMs: 0, sha256: "0123456789abcdef".repeat(4) }] },
+    storage: { getDirectory: async () => directory, estimate: async () => ({ quota: 1e12, usage: 0 }) },
+    fetcher: fetcher as never,
+  });
+  await read(containers, "big.rho", 0, 10);
+  await containers.ensure("big.rho");
+  assert.deepEqual(urls, ["/p3553/big.rho?v=0123456789abcdef", "/p3553/big.rho?v=0123456789abcdef"]);
 });
 
 test("prefetched ranges answer later reads without requests", async () => {

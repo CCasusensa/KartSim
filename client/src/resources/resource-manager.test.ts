@@ -259,7 +259,7 @@ test("the store lists its cached containers, removes them and reports to listene
   const store = new ContainerStore({
     manifest: manifest as never,
     storage: { getDirectory: async () => directory, estimate: async () => ({ quota: 1e9, usage: 0 }) },
-    fetcher: (async (url: string) => new Response(url.endsWith("a.rho") ? "abc" : "xy")) as never,
+    fetcher: (async (url: string) => new Response(url.includes("/a.rho") ? "abc" : "xy")) as never,
   });
   const events: string[] = [];
   const release = store.addProgressListener(progress => events.push(`${progress.phase}:${progress.file}`));
