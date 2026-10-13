@@ -1,0 +1,15 @@
+{
+ "prompt": "a cute round cottage with a fluffy white wool-like roof and a pair of big curly brown ram horns on the roof, cream walls, a round wooden door and round windows, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 2500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "1360dc8e-90a3-4684-a0b5-9e77e18d7d52",
+ "bytes": 701120,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:36:17.449Z"
+}

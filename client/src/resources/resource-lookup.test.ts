@@ -12,6 +12,7 @@ import {
   resourceResolveContainerPath, type ResourceEntry, type ResourceLibraryInput,
   type ResourceLookup,
 } from "./resource-lookup";
+import { XYY_TRACK_CONTAINERS } from "./xyy-tracks";
 
 const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const release = readFileSync(path.resolve(project, "../recovered/formatted/index.js"), "utf8");
@@ -151,8 +152,11 @@ test("真实 p3553 Rho/Rho5 索引的规范路径与资源查询逐项等同 rel
     sourceKind: "rho5", containerId: `rho5:${archive.name.toLowerCase()}`,
     absenceAuthoritative: true,
   })));
-  const cityFiles = index.rho.find(archive => archive.name === "track_kartcity.rho")?.files.length ?? 0;
-  assert.equal(files.length - cityFiles, 137609); // Release baseline; generated city textures vary by build.
+  // Release baseline; the generated city and the rebuilt 喜羊羊 tracks vary by build.
+  const generated = new Set(["track_kartcity.rho", ...XYY_TRACK_CONTAINERS]);
+  const generatedFiles = index.rho.filter(archive => generated.has(archive.name))
+    .reduce((count, archive) => count + archive.files.length, 0);
+  assert.equal(files.length - generatedFiles, 137609);
   const setup = input(files, mounts);
   const original = new ReleaseLibrary(setup);
   const authored = new AuthoredLibrary(setup);

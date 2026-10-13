@@ -1,0 +1,15 @@
+{
+ "prompt": "a cute scarecrow made of straw wearing a straw hat and a patched shirt on a wooden pole, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 800,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "a6d5cddb-775b-4ef1-880e-1e756a499050",
+ "bytes": 695460,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:40:22.697Z"
+}

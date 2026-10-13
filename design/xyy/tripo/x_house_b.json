@@ -1,0 +1,15 @@
+{
+ "prompt": "a cute two-story cottage with a pink tiled roof decorated with a pair of curly ram horns, light yellow walls, round windows and a small brick chimney, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 2500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "0ec87fcb-f217-4a0b-8aff-f6c1ce734125",
+ "bytes": 706188,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:36:16.351Z"
+}

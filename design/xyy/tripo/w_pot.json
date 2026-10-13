@@ -1,0 +1,15 @@
+{
+ "prompt": "a big black iron cooking cauldron on a pile of burning firewood, in the art style of the game KartRider (跑跑卡丁车): a spooky but cute cartoon wolf castle, chunky simplified shapes, dark grey stone and purple hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1000,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "7a61ec9d-cd7b-4b74-9fe9-8848d95ca648",
+ "bytes": 648600,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:42:15.338Z"
+}

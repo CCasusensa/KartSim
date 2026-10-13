@@ -1,0 +1,15 @@
+{
+ "prompt": "a cute round stone water well with a small wooden roof, a crank and a bucket, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1200,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "a9fe5b57-7bff-4140-b654-891ebec2f67b",
+ "bytes": 735112,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:38:11.499Z"
+}

@@ -37,16 +37,16 @@ async function api(config, method, route, body) {
 }
 
 /** One sidecar <id>.json per asset (concurrent generators never clobber each other); the manifest is their union. */
-export function manifest() {
+export function manifest(dir = TRIPO_DIR) {
   const out = {};
-  if (!existsSync(TRIPO_DIR)) return out;
-  for (const name of readdirSync(TRIPO_DIR).sort()) {
+  if (!existsSync(dir)) return out;
+  for (const name of readdirSync(dir).sort()) {
     if (!name.endsWith(".json") || name === "manifest.json") continue;
-    try { out[name.slice(0, -5)] = JSON.parse(readFileSync(path.join(TRIPO_DIR, name), "utf8")); } catch {}
+    try { out[name.slice(0, -5)] = JSON.parse(readFileSync(path.join(dir, name), "utf8")); } catch {}
   }
   return out;
 }
-function saveEntry(id, entry) { mkdirSync(TRIPO_DIR, { recursive: true }); writeFileSync(path.join(TRIPO_DIR, `${id}.json`), JSON.stringify(entry, null, 1) + "\n"); }
+function saveEntry(id, entry, dir) { mkdirSync(dir, { recursive: true }); writeFileSync(path.join(dir, `${id}.json`), JSON.stringify(entry, null, 1) + "\n"); }
 
 /** Create a text-to-model task and wait for it; returns the task data (with output urls). */
 export async function generateModel(config, { prompt, model = "v3.1-20260211", ...options }, { log = () => {}, pollMs = 3000, timeoutMs = 20 * 60e3 } = {}) {
@@ -75,23 +75,23 @@ export async function generateModel(config, { prompt, model = "v3.1-20260211", .
   throw new Error(`task ${taskId} timed out`);
 }
 
-/** Generate (or reuse) the GLB for `id`; returns { file, entry }. */
-export async function ensureModel(id, prompt, options = {}, { log = () => {}, force = false } = {}) {
-  const m = manifest();
-  const file = path.join(TRIPO_DIR, `${id}.glb`);
+/** Generate (or reuse) the GLB for `id` (kept in `dir`); returns { file, entry }. */
+export async function ensureModel(id, prompt, options = {}, { log = () => {}, force = false, dir = TRIPO_DIR } = {}) {
+  const m = manifest(dir);
+  const file = path.join(dir, `${id}.glb`);
   if (!force && m[id] && existsSync(file) && m[id].prompt === prompt) return { file, entry: m[id], cached: true };
   const config = tripoConfig();
   const task = await generateModel(config, { prompt, ...options }, { log });
   const url = task.output?.model_url ?? task.output?.pbr_model ?? task.output?.model;
   if (!url) throw new Error(`task ${task.task_id}: no model url in ${JSON.stringify(task.output)}`);
   const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
-  mkdirSync(TRIPO_DIR, { recursive: true });
+  mkdirSync(dir, { recursive: true });
   writeFileSync(file, bytes);
   if (task.output?.rendered_image_url ?? task.output?.rendered_image) {
-    try { writeFileSync(path.join(TRIPO_DIR, `${id}.webp`), new Uint8Array(await (await fetch(task.output.rendered_image_url ?? task.output.rendered_image)).arrayBuffer())); } catch {}
+    try { writeFileSync(path.join(dir, `${id}.webp`), new Uint8Array(await (await fetch(task.output.rendered_image_url ?? task.output.rendered_image)).arrayBuffer())); } catch {}
   }
   const entry = { prompt, options, taskId: task.task_id, bytes: bytes.length, credits: task.credits_consumed, generatedAt: new Date().toISOString() };
-  saveEntry(id, entry);
+  saveEntry(id, entry, dir);
   return { file, entry, cached: false };
 }
 

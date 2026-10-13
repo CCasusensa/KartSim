@@ -1,0 +1,15 @@
+{
+ "prompt": "a wooden signpost with three blank arrow-shaped boards pointing in different directions, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 600,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "68f557ae-0f71-49a6-bca6-0b0e7db04b3f",
+ "bytes": 656592,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:39:15.269Z"
+}

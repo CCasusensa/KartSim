@@ -212,6 +212,9 @@
     {"gameType":"speed","id":"nymph_R02","title":"精灵 木桶惊险跳跃"},
     {"gameType":"item","id":"mechanic_I01","title":"机械 烽火战场"},
     {"gameType":"speed","id":"mechanic_R01","title":"机械 遗忘孤城"},
+    {"gameType":"item","id":"xyy_I01","title":"喜羊羊 青青草原"},
+    {"gameType":"speed","id":"xyy_R01","title":"喜羊羊 狼堡"},
+    {"gameType":"speed","id":"xyy_R02","title":"喜羊羊 羊村"},
     {"gameType":"speed","id":"wkc_R01","title":"WKC 狮城狂飙"},
     {"gameType":"speed","id":"wkc_R02","title":"WKC 沙场拉力"},
     {"gameType":"speed","id":"wkc_R11","title":"WKC 丹娜美拉码头"},
@@ -370,5 +373,5 @@
     {"gameType":"item","id":"mabi_I01_rvs","reverse":true,"title":"[反]洛奇 迪尔科内尔"},
     {"gameType":"speed","id":"mabi_R01_rvs","reverse":true,"title":"[反]洛奇 艾明马恰"}
   ],
-  "version": "f7b0fb74a59608fde9038cee41053bac83f13677bd079eca5df0f79541065c05"
+  "version": "41b9577a23ffa5849d9c46ae36e0ecc3ea3b15714f4260ed59183cc5fa26e5f2"
 }

@@ -1,0 +1,15 @@
+{
+ "prompt": "a huge cartoon broadleaf tree with a thick twisted trunk and a round bright green canopy, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "925c2621-a016-4775-9c7d-8ef9bd99fac7",
+ "bytes": 634596,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:39:14.553Z"
+}

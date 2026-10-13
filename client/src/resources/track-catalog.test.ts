@@ -8,10 +8,11 @@ import { inflateSync } from "node:zlib";
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
 import { RhoReader } from "../codecs/rho";
 import type { RhoArchiveIndex } from "./archive-index";
+import { XYY_TRACK_TITLES } from "./xyy-tracks";
 import {
   itemRandomTrackGroups, itemTrackCatalog, mapAssets, mapCatalog, timeAttackRandomTrackGroups,
   timeAttackRandomTrackNames, timeAttackTrackCatalog, trackLocaleRules, trackMetadata,
-  trackMetadataCatalog, trackTitles, type TrackLibrary, type TrackResource,
+  trackMetadataCatalog, trackTitles, type RandomTrackGroup, type TrackLibrary, type TrackResource,
 } from "./track-catalog";
 
 const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -224,15 +225,30 @@ test("真实 p3553 赛道档案索引及 BML 与原始 release 生成相同赛�
   const authored = library(AuthoredLibrary, files);
   const originalMetadata = await original.trackMetadataCatalog();
   const authoredMetadata = await authored.trackMetadataCatalog();
-  assert.deepEqual(authoredMetadata, originalMetadata);
+  // 喜羊羊三张图（xyy-tracks.ts）：原版没有名字也没有模型，release 把它们
+  // 滤掉；重建后多了名字和这三条赛道，其余逐项相同
+  const restored = (id: string) => id.replace(/_rvs$/i, "") in XYY_TRACK_TITLES;
+  assert.deepEqual(authoredMetadata.map(track => restored(track.id) ? { ...track, cnTitle: undefined } : track), originalMetadata);
   const originalTracks = await original.timeAttackTrackCatalog();
   const authoredTracks = await authored.timeAttackTrackCatalog();
-  assert.deepEqual(authoredTracks, originalTracks);
+  assert.deepEqual(authoredTracks.filter(track => !restored(track.id)), originalTracks);
+  assert.deepEqual(authoredTracks.filter(track => restored(track.id)).map(track => [track.id, track.title, track.theme, track.gameType]), [
+    ["xyy_I01", "喜羊羊 青青草原", "xyy", "item"], ["xyy_R01", "喜羊羊 狼堡", "xyy", "speed"], ["xyy_R02", "喜羊羊 羊村", "xyy", "speed"],
+  ]);
   assert.equal(authoredMetadata.length, 391);
-  assert.equal(authoredTracks.length, 262);
-  assert.deepEqual(await authored.mapCatalog(), await original.mapCatalog());
-  assert.deepEqual(await authored.timeAttackRandomTrackGroups(), await original.timeAttackRandomTrackGroups());
-  assert.deepEqual(await authored.timeAttackRandomTrackNames(), await original.timeAttackRandomTrackNames());
+  assert.equal(originalTracks.length, 262);
+  assert.deepEqual((await authored.mapCatalog()).map(map => restored(map.internalId) ? { ...map, name: map.internalId } : map),
+    await original.mapCatalog());
+  // 随机组按目录抽图：重建的三张也进「全部」等组
+  const withoutRestored = (groups: RandomTrackGroup[]) => groups.map(group => ({ ...group,
+    displayTrackIds: group.displayTrackIds.filter(id => !restored(id)), trackIds: group.trackIds.filter(id => !restored(id)) }));
+  const authoredGroups = await authored.timeAttackRandomTrackGroups();
+  assert.deepEqual(withoutRestored(authoredGroups), await original.timeAttackRandomTrackGroups());
+  assert.ok(authoredGroups.some(group => group.trackIds.includes("xyy_R02")));
+  const names = new Map(await authored.timeAttackRandomTrackNames());
+  assert.equal(names.get("xyy_R02"), "喜羊羊 羊村");
+  for (const id of names.keys()) if (restored(id)) names.set(id, id.endsWith("_rvs") ? `[反]${id.slice(0, -4)}` : id);
+  assert.deepEqual(names, await original.timeAttackRandomTrackNames());
   assert.ok(authoredTracks.some(track => track.id === "forest_I01" && track.title === "森林 木桶"));
   assert.ok(authoredTracks.some(track => track.id.endsWith("_rvs") && track.reverse === true));
 });

@@ -1,0 +1,15 @@
+{
+ "prompt": "a green topiary hedge bush trimmed into the shape of a cute fluffy sheep, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1000,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "d6b5a10d-3cc8-433f-afb4-d1d714bc928a",
+ "bytes": 503636,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:38:12.551Z"
+}

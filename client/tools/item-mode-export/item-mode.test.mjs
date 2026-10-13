@@ -203,7 +203,8 @@ test("itemmode.json tracks honour trackLocale@cn and the hot1 default", { skip: 
   }
   for (const id of ["village_C01", "mine_C04", "china_C01", "world_C02", "nemo_C02"])
     assert.equal(data.tracks.find(track => track.id === id)?.onlyItem, true, id);
-  assert.equal(data.tracks.filter(track => !track.reverse).length, 158);
+  // 158 条原版道具赛道 + 按原版 AI 线重建的喜羊羊 青青草原（xyy_I01）
+  assert.equal(data.tracks.filter(track => !track.reverse).length, 159);
   assert.equal(data.tracks.filter(track => track.reverse).length, 29);
   assert.ok(data.tracks.every(track => track.cubes > 0));
   const random = readFileSync(path.join(common, "randomTrack@cn.bml.xml"), "utf8");

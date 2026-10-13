@@ -1,6 +1,7 @@
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
 import { customItemTrackChoices, customMapMetadata, customTrackChoices } from "../mapeditor/custom-tracks";
 import { isCustomTrackId } from "../mapeditor/design";
+import { XYY_TRACK_TITLES } from "./xyy-tracks";
 
 /** A virtual file mounted from a Rho/Rho5 archive or a loose Data file. */
 export interface TrackResource {
@@ -167,7 +168,8 @@ function metadataFromNode(
     bgmFile: attribute(node, "bgmFile"),
     choosable: booleanAttribute(attribute(node, "choosable")),
     blocked: booleanAttribute(attribute(node, "blocked")),
-    cnTitle: titles.get(id),
+    // 喜羊羊赛道在 trackLocale@cn 里没有名字（xyy-tracks.ts）
+    cnTitle: titles.get(id) ?? XYY_TRACK_TITLES[id],
     speedPool: speedPool.has(id),
     crazy: booleanAttribute(attribute(node, "crazy")),
     isOnlyItemTrack: booleanAttribute(attribute(node, "isOnlyItemTrack")),

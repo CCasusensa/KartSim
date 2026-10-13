@@ -13,6 +13,7 @@ import { ContainerStore } from "./container-store.ts";
 import { ArchiveCatalog, decodeArchiveIndex } from "./archive-index.ts";
 import { Sha256, sha256Blob } from "./sha256.ts";
 import { loadLegacyResourceBundle } from "./legacy-adapter.ts";
+import { XYY_TRACK_CONTAINERS } from "./xyy-tracks.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const manifestPath = path.join(root, "mirror/__p3553/resources");
@@ -60,10 +61,13 @@ test("真实 p3553 清单和索引相互匹配", async () => {
   const manifest = parseResourceManifest(
     JSON.parse(await readFile(manifestPath, "utf8")), "p3553",
   );
-  assert.equal(manifest.files.length, 1695);
+  // 1695 release containers plus the generated ones (卡丁城, the rebuilt 喜羊羊 tracks)
+  const generated = new Set(["track_kartcity.rho", ...XYY_TRACK_CONTAINERS]);
+  const extra = manifest.files.filter(file => generated.has(file.name)).length;
+  assert.equal(manifest.files.length - extra, 1695);
   const stream = Readable.toWeb(createReadStream(archivePath));
   const index = await decodeArchiveIndex(stream, manifest);
-  assert.equal(index.rho.length, 1630);
+  assert.equal(index.rho.length - extra, 1630);
   assert.equal(index.rho5.length, 4);
 
   const storage = { getDirectory: async () => new MemoryDirectory() };

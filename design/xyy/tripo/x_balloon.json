@@ -1,0 +1,15 @@
+{
+ "prompt": "a single purple hot air balloon floating in the air with a cartoon grey wolf face painted on it and a small wicker basket hanging under it by ropes, nothing else, no buildings, in the art style of the game KartRider (跑跑卡丁车): a spooky but cute cartoon wolf castle, chunky simplified shapes, dark grey stone and purple hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "9f19c78c-6f5d-4180-a62f-304bcc1e2d6f",
+ "bytes": 746904,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:46:44.533Z"
+}

@@ -1,0 +1,15 @@
+{
+ "prompt": "a cluster of giant cartoon daisies and pink tulips with big leaves, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1000,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "3cf1933c-a25a-4988-ac35-35e78459dd80",
+ "bytes": 612788,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:39:13.798Z"
+}

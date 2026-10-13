@@ -8,3 +8,4 @@ design/open-world/vice-city/assets/*.glb filter=lfs diff=lfs merge=lfs -text
 client/docker/** text eol=lf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
+design/xyy/tripo/*.glb filter=lfs diff=lfs merge=lfs -text

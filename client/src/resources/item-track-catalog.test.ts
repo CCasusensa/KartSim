@@ -60,8 +60,9 @@ const library = mirrorTrackLibrary();
 const items = await itemTrackCatalog(library);
 const ids = new Set(items.map(track => track.id));
 
-test("p3553 道具赛赛道目录：158 条道具赛道与 29 条反向赛道", async () => {
-  assert.equal(items.filter(track => !track.reverse).length, 158);
+test("p3553 道具赛赛道目录：159 条道具赛道（含重建的喜羊羊 青青草原）与 29 条反向赛道", async () => {
+  assert.equal(items.filter(track => !track.reverse).length, 159);
+  assert.ok(ids.has("xyy_I01"), "xyy_I01");
   assert.equal(items.filter(track => track.reverse).length, 29);
   assert.ok(items.every(track => track.gameType === "item"));
   // The five isOnlyItemTrack tracks (track@zz.bml) are item rooms' own.
@@ -94,7 +95,7 @@ test("p3553 道具赛随机组：人气 1-5、全部、新图、反向都只抽�
     assert.ok(group.trackIds.length > 0, group.id);
     assert.ok(group.trackIds.every(id => ids.has(id)), group.id);
   }
-  assert.equal(groups.find(group => group.id === "item:all:0")!.trackIds.length, 158);
+  assert.equal(groups.find(group => group.id === "item:all:0")!.trackIds.length, 159);
   assert.ok(groups.find(group => group.id === "item:reverse:0")!.trackIds
     .every(id => id.endsWith("_rvs")));
 });

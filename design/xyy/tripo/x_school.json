@@ -1,0 +1,15 @@
+{
+ "prompt": "a small cute village schoolhouse with a bell tower, a big round clock and curly ram horn decorations on the roof, white walls and a green roof, in the art style of the game KartRider (跑跑卡丁车): a cheerful cartoon sheep village on a green meadow, cute chunky simplified shapes, bright pastel hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 3000,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "2a9662e7-def5-4c12-aa1f-424139fb4b7c",
+ "bytes": 799700,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:37:14.892Z"
+}

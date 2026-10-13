@@ -109,7 +109,8 @@ func TestEmbeddedTracksAndPools(t *testing.T) {
 		}
 	}
 	// The tracks of the client's item catalog (client/src/resources/track-catalog.ts
-	// itemTrackCatalog): 158 item tracks and the 29 reverse tracks with an open
+	// itemTrackCatalog): 159 item tracks (喜羊羊 青青草原 xyy_I01 rebuilt from the
+	// original AI paths included) and the 29 reverse tracks with an open
 	// trackLocale@cn track_rvs row.
 	reverse := 0
 	for _, track := range d.Tracks {
@@ -117,8 +118,11 @@ func TestEmbeddedTracksAndPools(t *testing.T) {
 			reverse++
 		}
 	}
-	if len(d.Tracks) != 187 || reverse != 29 {
-		t.Errorf("%d item tracks, %d reverse; the client catalog has 187 and 29", len(d.Tracks), reverse)
+	if len(d.Tracks) != 188 || reverse != 29 {
+		t.Errorf("%d item tracks, %d reverse; the client catalog has 188 and 29", len(d.Tracks), reverse)
+	}
+	if track, ok := d.Track("xyy_I01"); !ok || track.Cubes == 0 {
+		t.Errorf("xyy_I01 = %+v %v", track, ok)
 	}
 	// Speed tracks, trackLocale-blocked tracks, tracks without cubes or a CN
 	// title, and reverse tracks without a cn track_rvs row are out.

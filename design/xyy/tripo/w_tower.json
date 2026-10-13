@@ -1,0 +1,15 @@
+{
+ "prompt": "a tall dark grey stone castle watchtower with a purple pointed roof, a small balcony and glowing yellow windows, in the art style of the game KartRider (跑跑卡丁车): a spooky but cute cartoon wolf castle, chunky simplified shapes, dark grey stone and purple hand-painted colors, clean flat textures, game-ready prop, single isolated object, centered, no ground plane, no base, no text, no people, no characters",
+ "options": {
+  "model": "P1-20260311",
+  "face_limit": 1500,
+  "texture": true,
+  "pbr": false,
+  "auto_size": true,
+  "negative_prompt": "realistic, photorealistic, text, letters, watermark, ground plane, base, scenery, multiple objects, people, characters, animals"
+ },
+ "taskId": "e67c6ccc-19ea-4b90-930c-4d41cc276d8c",
+ "bytes": 781720,
+ "credits": 40,
+ "generatedAt": "2026-10-13T08:41:20.047Z"
+}
