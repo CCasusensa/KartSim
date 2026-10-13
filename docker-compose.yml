@@ -1,0 +1,179 @@
+# KartSim 一键启动：三个镜像 kartsim-client（网页客户端）、kartsim-data（数据服务，含全局大厅与
+# 管理后台）、kartsim-node（游戏节点），加上 MySQL 8.4 与 Redis 7。
+#
+#   ./docker-start.sh            # macOS / Linux：生成 .env（随机密码与管理员）、构建、启动、打印地址
+#   ./docker-start.sh --pull     # 不在本机构建，直接用 Docker Hub 上的 kbl13350/kartsim-…（docker-push.sh 推送）
+#   docker-start.cmd             # Windows（Docker Desktop；-Pull 同上）
+#
+# 也可以手动：先按 .env 的说明准备好变量，再 docker compose up -d --build。
+# 浏览器只连客户端（http 8780 / https 8443）：页面、账号、大厅、比赛都经它同源转发；
+# 游戏节点另外发布一个 UDP 端口给 WebRTC（与 KART_GAME_PORT 同号）。数据服务、MySQL、
+# Redis 不对外发布。游戏资源 mirror/p3553（git LFS）挂载进客户端。
+# 其他机器上加节点：在后台添加节点得到密钥，在那台机器上 docker run kartsim-node（server-go/NODE.md）。
+# 只要服务端（自己配 Nginx、两个节点）时用 server-go/docker-compose.yml。
+name: kartsim-stack
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+
+services:
+  mysql:
+    image: mysql:8.4
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_as_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?缺少 .env，请运行 ./docker-start.sh 或 docker-start.cmd}
+      MYSQL_DATABASE: kartsim
+      MYSQL_USER: kart
+      MYSQL_PASSWORD: ${KART_MYSQL_PASSWORD:?缺少 KART_MYSQL_PASSWORD}
+    networks: [backend]
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./server-go/scripts/docker-mysql-init.sql:/docker-entrypoint-initdb.d/10-kartsim.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$${MYSQL_ROOT_PASSWORD}\" mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    restart: unless-stopped
+    logging: *logging
+
+  redis:
+    image: redis:7
+    # 只有缓存、在线昵称与节点注册，可重建，不持久化。
+    command: ["sh", "-c", "exec redis-server --requirepass \"$${REDISCLI_AUTH}\" --save '' --appendonly no"]
+    environment:
+      REDISCLI_AUTH: ${KART_REDIS_PASSWORD:?缺少 KART_REDIS_PASSWORD}
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    logging: *logging
+
+  kart-data:
+    # 本机构建时是 kartsim-data:local；--pull 时 KART_IMAGE_PREFIX=kbl13350/kartsim、KART_IMAGE_TAG=latest。
+    image: ${KART_IMAGE_PREFIX:-kartsim}-data:${KART_IMAGE_TAG:-local}
+    build:
+      context: ./server-go
+      target: data
+    environment:
+      KART_MYSQL_DSN: kart:${KART_MYSQL_PASSWORD}@tcp(mysql:3306)/kartsim?charset=utf8mb4&collation=utf8mb4_0900_as_ci
+      KART_REDIS_ADDR: redis:6379
+      KART_REDIS_PASSWORD: ${KART_REDIS_PASSWORD}
+      KART_CLUSTER_SECRET: ${KART_CLUSTER_SECRET:?缺少 KART_CLUSTER_SECRET}
+      KART_DATA_NODE_ID: data-1
+      # 页面与接口同源，经客户端访问；玩家用什么主机名或 IP 打开都接受。
+      KART_LAN_HOSTS: ${KART_LAN_HOSTS:-*}
+      # 只信任客户端（固定地址）转发的 X-Forwarded-For（注册与登录按玩家的真实 IP 限流）。
+      KART_TRUSTED_PROXIES: 172.31.250.2/32
+      KART_ADMIN_USERNAMES: ${KART_ADMIN_USERNAMES:-admin}
+      KART_BOOTSTRAP_INVITE: ${KART_BOOTSTRAP_INVITE:-}
+      KART_REGISTRATION: ${KART_REGISTRATION:-open}
+      KART_EXP_RATE: ${KART_EXP_RATE:-1}
+      KART_LUCCI_RATE: ${KART_LUCCI_RATE:-1}
+      KART_STARTING_LUCCI: ${KART_STARTING_LUCCI:-20000}
+      KART_STARTING_COUPON: ${KART_STARTING_COUPON:-20000}
+      KART_STARTING_KOIN: ${KART_STARTING_KOIN:-20000}
+      KART_RACE_COUPON: ${KART_RACE_COUPON:-100}
+    networks: [backend, cluster, edge]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 15s
+    logging: *logging
+
+  kart-node:
+    image: ${KART_IMAGE_PREFIX:-kartsim}-node:${KART_IMAGE_TAG:-local}
+    build:
+      context: ./server-go
+      target: node
+    # 人数等上限按容器分到的 CPU 与内存自动计算（server-go/NODE.md“自动人数”）。
+    environment:
+      KART_DATA_URL: http://kart-data:8790
+      KART_DATA_NODE_ID: data-1
+      KART_CLUSTER_SECRET: ${KART_CLUSTER_SECRET}
+      KART_NODE_ID: game-1
+      KART_NODE_NAME: ${KART_GAME_NAME:-游戏服 1}
+      KART_GAME_PORT: ${KART_GAME_PORT:-8788}
+      KART_WEBRTC_UDP_PORT: ${KART_GAME_PORT:-8788}
+      # 浏览器经客户端同源连接节点。
+      KART_PUBLIC_ORIGIN: same-origin
+      KART_LAN_HOSTS: ${KART_LAN_HOSTS:-*}
+      # WebRTC 候选地址：浏览器访问这台机器所用的 IP（docker-start 自动填本机与局域网地址）。
+      KART_WEBRTC_PUBLIC_IPS: ${KART_WEBRTC_PUBLIC_IPS:-127.0.0.1}
+      KART_MAX_PLAYERS: ${KART_MAX_PLAYERS:-auto}
+      KART_UPLINK_MBPS: ${KART_UPLINK_MBPS:-}
+      KART_ANTICHEAT: ${KART_ANTICHEAT:-kick}
+    ports:
+      - "${KART_BIND_ADDR:-0.0.0.0}:${KART_GAME_PORT:-8788}:${KART_GAME_PORT:-8788}/udp"
+    volumes:
+      - game-outbox:/var/lib/kart/outbox
+    networks: [cluster, edge]
+    depends_on:
+      kart-data:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 15s
+    logging: *logging
+
+  client:
+    image: ${KART_IMAGE_PREFIX:-kartsim}-client:${KART_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    environment:
+      KART_GAME_PORT: ${KART_GAME_PORT:-8788}
+      KART_HOST: ${KART_HOST:-}
+    ports:
+      - "${KART_BIND_ADDR:-0.0.0.0}:${KART_HTTP_PORT:-8780}:8780"
+      - "${KART_BIND_ADDR:-0.0.0.0}:${KART_HTTPS_PORT:-8443}:8443"
+    volumes:
+      - ./mirror/p3553:/srv/web/p3553:ro
+      # 放自己的 cert.pem 与 key.pem 就用它们，否则自动生成自签名证书。
+      - ./docker-data/tls:/etc/nginx/tls
+    networks:
+      edge:
+        ipv4_address: 172.31.250.2
+    depends_on:
+      kart-data:
+        condition: service_healthy
+      kart-node:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 3 -O /dev/null http://127.0.0.1:8780/multiplayer/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging: *logging
+
+networks:
+  # 没有出网路由：只有 MySQL、Redis 与数据服务。
+  backend:
+    internal: true
+  # 数据服务的内部端口给游戏节点。
+  cluster: {}
+  # 客户端到数据服务与游戏节点。客户端用固定地址 .2（数据服务只信任它转发的玩家地址），
+  # 其他容器的地址从 .8 起自动分配，不会占用它。
+  edge:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/28
+          ip_range: 172.31.250.8/29
+
+volumes:
+  mysql-data:
+  game-outbox:

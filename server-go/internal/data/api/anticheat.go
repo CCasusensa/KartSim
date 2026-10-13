@@ -23,8 +23,8 @@ func (a *API) saveAntiCheat(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &report); err != nil {
 		return err
 	}
-	if !validNodeID(report.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, report.NodeID); err != nil {
+		return err
 	}
 	optionalID := func(value string, max int) bool { return value == "" || validASCIIID(value, max) }
 	if !validASCIIID(report.EventID, 36) || !validASCIIID(report.PlayerID, 64) ||

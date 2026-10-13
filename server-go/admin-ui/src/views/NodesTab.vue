@@ -8,6 +8,7 @@ import { useTab } from '../composables/useTabs'
 import { formatHeap, formatNumber, text, type TagType } from '../utils/format'
 import { formatAgo, formatDuration, formatTime } from '../utils/time'
 import { showError } from '../utils/ui'
+import GameNodesCard from '../components/GameNodesCard.vue'
 
 // 服务器节点: GET /api/admin/nodes. Refreshes every 5 seconds while this tab
 // is on screen; relative times use the server's `now`. Nodes that left the
@@ -16,6 +17,7 @@ import { showError } from '../utils/ui'
 
 const INTERVAL = 5000
 const data = ref<NodesResponse | null>(null)
+const managed = ref<InstanceType<typeof GameNodesCard> | null>(null)
 const loading = ref(false)
 const failure = ref('')
 const auto = ref(true)
@@ -25,6 +27,7 @@ let timer: ReturnType<typeof setInterval> | undefined
 async function load(silent = false) {
   if (silent && loading.value) return
   loading.value = true
+  void managed.value?.load(silent)
   try {
     data.value = await api.get<NodesResponse>('/api/admin/nodes')
     failure.value = ''
@@ -141,6 +144,8 @@ function probe(value: ProbeStatus | null | undefined) {
       </el-descriptions>
       <el-skeleton v-else-if="loading" :rows="2" animated />
     </el-card>
+
+    <GameNodesCard ref="managed" :now="data?.now" />
 
     <el-card shadow="never" class="page-card">
       <template #header>

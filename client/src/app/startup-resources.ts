@@ -1,5 +1,7 @@
 import { installResourceManager, type ResourceLibraryApi, type ResourceStoreApi } from "../resources/resource-manager";
 import type { Rho5PackSpec } from "../resources/resource-groups";
+import { isPrefetchStore, prefetchStartupReads } from "../resources/startup-reads";
+import { holdRacePlaylists } from "../timeattack/race-bgm-loading";
 import { StartupProgress, type StartupWork } from "./startup-progress";
 
 /** Resource bootstrap, first-rider registration, and Ready-stage preparation. */
@@ -97,7 +99,8 @@ export interface ResourceLoadingDependencies {
   versionId(version: string): string;
   loadVersionedSources(
     version: string,
-    onProgress: (progress: { file: string; loadedBytes: number; totalBytes: number }) => void,
+    onProgress: (progress: { phase?: string; file: string; loadedBytes: number; totalBytes: number;
+      background?: boolean }) => void,
     source: StartupSource | undefined,
   ): Promise<MountedStartupSources>;
   loadLibrary(sources: unknown, archiveIndexes: unknown,
@@ -128,39 +131,55 @@ export interface ResourceLoadingDependencies {
   retryProfile?(error: unknown): Promise<void>;
 }
 
+/** How long after the home screen opens the 首页 group starts downloading (its own reads go first). */
+const HOME_DOWNLOAD_DELAY_MS = 3_000;
+
 /**
- * Installs the resource manager over the mounted container store and
- * downloads the 首页 group before the rest of startup reads it, showing its
- * bytes on the startup screen's 当前下载 bar (the overall percentages stay
- * the release's). A failure (no space) is reported and startup goes on:
- * pages then read on demand. Returns whether it waited (a manager was
- * installed).
+ * Installs the resource manager over the mounted container store. Startup
+ * does not wait for the 首页 group: the store reads only the bytes startup
+ * needs (HTTP Range) — about 40 MiB instead of the 870 MiB of containers
+ * those reads touch. The returned function downloads the missing 首页
+ * containers whole in the background (one download slot, low priority), so
+ * the next start reads them from OPFS. A failure (no space) is reported;
+ * pages keep reading on demand.
  */
-async function prefetchHomeResources(mounted: MountedStartupSources, library: unknown,
-  status: (message: string) => void, bytes: (loaded: number, total: number) => void,
-  warn: (message: string) => void): Promise<boolean> {
+function installHomeResources(mounted: MountedStartupSources, library: unknown,
+  warn: (message: string) => void): (() => void) | undefined {
   const store = (mounted as { store?: ResourceStoreApi }).store;
   const indexes = mounted.archiveIndexes as { rho5?: readonly Rho5PackSpec[] } | undefined;
-  if (!store || typeof store.cachedNames !== "function") return false;
+  if (!store || typeof store.cachedNames !== "function") return undefined;
   const lookup = library as Partial<ResourceLibraryApi>;
   const manager = installResourceManager(store, indexes?.rho5 ?? [],
     typeof lookup.entriesUnderCanonicalPrefix === "function" ? lookup as ResourceLibraryApi : undefined);
-  await manager.ready;
-  const home = manager.group("home");
-  if (!home || !manager.missing(home.containers).length) return true;
-  const job = manager.download(home.containers, { label: "首页资源", priority: "high", groupId: "home" });
-  status("正在优先下载首页资源");
-  const show = () => bytes(job.doneBytes(), job.totalBytes);
-  const release = manager.subscribe(show);
-  show();
-  try {
-    await job.done;
-  } catch (error) {
-    warn(`首页资源预下载未完成（${error instanceof Error ? error.message : String(error)}），进入后按需下载。`);
-  } finally {
-    release();
-  }
-  return true;
+  return () => {
+    void manager.ready.then(() => {
+      const home = manager.group("home");
+      if (!home || !manager.missing(home.containers).length) return;
+      manager.download(home.containers, { label: "首页资源", priority: "low", groupId: "home" }).done
+        .catch(error => {
+          if (error instanceof Error && error.message === "CANCELLED") return;
+          warn(`首页资源后台下载未完成（${error instanceof Error ? error.message : String(error)}），使用时按需读取。`);
+        });
+    });
+  };
+}
+
+/**
+ * Starts fetching what startup is known to read (resources/startup-reads.ts)
+ * so the decoders find it in memory instead of waiting one round trip per
+ * file: the catalogs' and login window's part now, the home screen's part
+ * at the login gate (`home`), after the first, and what every race reads
+ * once the home screen is up (`race`: most players race next).
+ */
+function warmStartupReads(mounted: MountedStartupSources): { home(): void; race(): void } {
+  const store = (mounted as { store?: unknown }).store;
+  if (!isPrefetchStore(store)) return { home: () => undefined, race: () => undefined };
+  const early = prefetchStartupReads(store, "early");
+  let home: Promise<void> | undefined;
+  return {
+    home: () => { home ??= early.then(() => prefetchStartupReads(store, "late")); },
+    race: () => { void (home ?? early).then(() => prefetchStartupReads(store, "race")); },
+  };
 }
 
 /** Ignore results from superseded generations at every asynchronous boundary. */
@@ -173,8 +192,8 @@ export async function loadStartupResources(
   const progress = new StartupProgress();
   let active = true;
   let finished = false;
-  // While the 首页 group downloads, its total replaces the per-container bytes.
-  let prefetching = false;
+  // The startup track's race music decodes once the home screen is up.
+  let releaseRaceMusic: (() => void) | undefined;
   const report = (work: StartupWork, current: number, total: number, message: string): void => {
     if (active && host.hud.setStartupProgress && host.assets.isCurrent(generation))
       host.hud.setStartupProgress(progress.update(work, current, total), message);
@@ -189,10 +208,12 @@ export async function loadStartupResources(
     const mounted = await dependencies.loadVersionedSources(
       dependencies.versionId("p3553"),
       progress => {
-        if (prefetching || (!active && !finished) ||
+        // Background downloads show on the 资源下载 button, not the loading badge.
+        if (progress.background || (!active && !finished) ||
             (host.hud.setStartupProgress && !host.assets.isCurrent(generation))) return;
+        // Range reads share one entry: their bytes are counted together.
         host.hud.setLoadingProgress(
-          `resource:${progress.file.toLowerCase()}`,
+          progress.phase === "partial" ? "resource:分段读取" : `resource:${progress.file.toLowerCase()}`,
           progress.loadedBytes,
           progress.totalBytes,
           `正在加载 ${progress.file}`,
@@ -201,6 +222,7 @@ export async function loadStartupResources(
       localSource,
     );
     if (!host.assets.isCurrent(generation)) return;
+    const warm = warmStartupReads(mounted);
     report("sources", 1, 1, "正在解析资源索引");
 
     const library = await dependencies.loadLibrary(mounted.sources, mounted.archiveIndexes,
@@ -209,22 +231,11 @@ export async function loadStartupResources(
     if (library.files.length === 0) {
       throw new Error(library.errors[0] ?? "没有成功读取任何资源文件。");
     }
-    // 首页优先: the home screen's containers download first, in parallel and
-    // with their bytes shown; everything else downloads when a page needs it
+    // Startup reads what it needs by range; the 首页 group downloads whole
+    // once the home screen is open, everything else when a page needs it
     // (tracks when a race loads) or from the 资源下载 panel.
-    prefetching = true;
-    let prefetched = false;
-    try {
-      prefetched = await prefetchHomeResources(mounted, library,
-        message => report("library", 1, 1, message),
-        (loaded, total) => {
-          if (host.assets.isCurrent(generation)) host.hud.setLoadingProgress("resource:首页", loaded, total, "首页资源");
-        },
-        message => host.hud.showDebugText(message, "error"));
-    } finally {
-      prefetching = false;
-    }
-    if (prefetched && !host.assets.isCurrent(generation)) return;
+    const downloadHome = installHomeResources(mounted, library,
+      message => host.hud.showDebugText(message, "error"));
     report("library", 1, 1, "正在加载车辆与赛道目录");
 
     const [garageCatalog, maps] = await Promise.all([
@@ -239,6 +250,7 @@ export async function loadStartupResources(
     ]);
     if (!host.assets.isCurrent(generation)) return;
 
+    warm.home();
     report("account", 0, 1, "正在连接账号服务，请完成登录");
     if (dependencies.ensureAccount) {
       await dependencies.ensureAccount();
@@ -273,6 +285,7 @@ export async function loadStartupResources(
     report("profile", 1, 1, "正在初始化音频与游戏场景");
     const startup = dependencies.resolveSelection(garageCatalog, maps, host.userProfile);
     host.assets.install(library, mounted);
+    releaseRaceMusic = holdRacePlaylists();
     await host.prepareStartupReady(library, startup.selection, startup.vehicleTitle,
       (current, total) => report("ready", current, total, "正在初始化音频与游戏场景"));
     if (!host.assets.isCurrent(generation)) return;
@@ -298,6 +311,11 @@ export async function loadStartupResources(
     }
     host.hud.finishLoading();
     finished = true;
+    releaseRaceMusic();
+    warm.race();
+    if (downloadHome) setTimeout(() => {
+      if (host.assets.isCurrent(generation)) downloadHome();
+    }, HOME_DOWNLOAD_DELAY_MS);
     const registerRider = dependencies.needsRiderRegistration
       ? dependencies.needsRiderRegistration() : dependencies.localNickname() === "";
     if (registerRider) await host.applyNewRiderRegistration();
@@ -307,6 +325,7 @@ export async function loadStartupResources(
     }
   } finally {
     active = false;
+    releaseRaceMusic?.();
   }
 }
 

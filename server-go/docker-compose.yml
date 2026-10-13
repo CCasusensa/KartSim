@@ -1,4 +1,7 @@
-# KartSim 单机集群：MySQL 8.4 + Redis 7 + 数据服务 kart-data + 两个游戏节点 kart-game。
+# KartSim 单机集群（只有服务端）：MySQL 8.4 + Redis 7 + 数据服务 kart-data + 两个游戏节点 kart-node。
+# 镜像 kartsim-data 与 kartsim-node 都由本目录的 Dockerfile 构建（target data / node）。不想构建时在 .env 写
+# KART_IMAGE_PREFIX=kbl13350/kartsim 与 KART_IMAGE_TAG=latest，再 docker compose pull && docker compose up -d --no-build。
+# 想连网页客户端一起一键启动，用仓库根目录的 docker-compose.yml（./docker-start.sh）。
 #
 #   install -m 600 .env.example .env    # 只有自己可读；填写密码、KART_CLUSTER_SECRET 与 KART_ADMIN_USERNAMES
 #   docker compose up -d --build
@@ -13,11 +16,6 @@
 # （8790）不发布到宿主机。分布式部署与反向代理见 README.md。
 name: kartsim
 
-x-image: &image
-  image: kartsim-server:local
-  build:
-    context: .
-
 x-logging: &logging
   driver: json-file
   options:
@@ -25,8 +23,10 @@ x-logging: &logging
     max-file: "5"
 
 x-game: &game
-  <<: *image
-  command: ["kart-game"]
+  image: ${KART_IMAGE_PREFIX:-kartsim}-node:${KART_IMAGE_TAG:-local}
+  build:
+    context: .
+    target: node
   restart: unless-stopped
   # 只在 cluster 网络：能访问 kart-data，访问不到 MySQL 与 Redis。
   networks: [cluster]
@@ -44,20 +44,19 @@ x-game: &game
     start_period: 10s
 
 x-game-env: &game-env
-  KART_GAME_ADDR: 0.0.0.0
-  KART_DATA_INTERNAL_URL: http://kart-data:8790
+  KART_DATA_URL: http://kart-data:8790
   KART_DATA_NODE_ID: data-1
   KART_CLUSTER_SECRET: ${KART_CLUSTER_SECRET:?请在 .env 中设置 KART_CLUSTER_SECRET（至少 32 个字符）}
-  KART_MAX_PLAYERS: ${KART_MAX_PLAYERS:-400}
-  KART_MAX_ROOMS: ${KART_MAX_ROOMS:-200}
-  KART_MEMORY_LIMIT_MB: ${KART_MEMORY_LIMIT_MB:-0}
+  # auto：按容器分到的 CPU 与内存计算人数、房间数与内存上限（NODE.md“自动人数”）。
+  KART_MAX_PLAYERS: ${KART_MAX_PLAYERS:-auto}
+  KART_MAX_ROOMS: ${KART_MAX_ROOMS:-}
+  KART_MEMORY_LIMIT_MB: ${KART_MEMORY_LIMIT_MB:-}
   # 留空时使用程序默认值（见 README“kart-game”变量表）。
   KART_MAX_CONNECTIONS: ${KART_MAX_CONNECTIONS:-}
   KART_SEND_BUFFER_BYTES: ${KART_SEND_BUFFER_BYTES:-}
   KART_HELLO_TIMEOUT: ${KART_HELLO_TIMEOUT:-}
   # WebSocket 压缩（大的 JSON 消息），与数据服务取相同的值。
   KART_WS_COMPRESSION: ${KART_WS_COMPRESSION:-true}
-  KART_OUTBOX_DIR: /var/lib/kart/outbox
   KART_LAN_HOSTS: ${KART_LAN_HOSTS:-}
   # 游客开关与数据服务取相同的值。奖励倍率不用传：游戏节点从数据服务的心跳响应得到
   # KART_EXP_RATE/KART_LUCCI_RATE，结束快照 race.rewards 显示乘倍率后的数值（与入账一致）。
@@ -66,7 +65,7 @@ x-game-env: &game-env
   # 浏览器连不上时自动改用 WebSocket。
   KART_WEBRTC: ${KART_WEBRTC:-true}
   KART_WEBRTC_PUBLIC_IPS: ${KART_WEBRTC_PUBLIC_IPS:-127.0.0.1}
-  KART_WEBRTC_LOOPBACK: "false"
+  KART_ANTICHEAT: ${KART_ANTICHEAT:-kick}
 
 services:
   mysql:
@@ -109,13 +108,13 @@ services:
     logging: *logging
 
   kart-data:
-    <<: *image
-    command: ["kart-data"]
+    image: ${KART_IMAGE_PREFIX:-kartsim}-data:${KART_IMAGE_TAG:-local}
+    build:
+      context: .
+      target: data
+    # 镜像里已设 KART_DATA_ADDR=0.0.0.0、KART_DATA_PORT=8787、KART_INTERNAL_LISTEN=0.0.0.0:8790：
+    # 内部 API 必须对游戏节点容器可达；它没有出现在 ports 中，宿主机与公网访问不到。
     environment:
-      KART_DATA_ADDR: 0.0.0.0
-      KART_DATA_PORT: "8787"
-      # 内部 API 必须对游戏节点容器可达，所以监听 0.0.0.0；它没有出现在 ports 中，宿主机与公网访问不到。
-      KART_INTERNAL_LISTEN: 0.0.0.0:8790
       KART_MYSQL_DSN: kart:${KART_MYSQL_PASSWORD}@tcp(mysql:3306)/kartsim?charset=utf8mb4&collation=utf8mb4_0900_as_ci
       KART_REDIS_ADDR: redis:6379
       KART_REDIS_PASSWORD: ${KART_REDIS_PASSWORD}

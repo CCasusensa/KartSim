@@ -153,6 +153,11 @@ func clubByID(ctx context.Context, q queryer, id int64, now int64, lock bool) (C
 	return info, err
 }
 
+// ClubMembership is an account's club and grade (0 when none).
+func (s *Store) ClubMembership(ctx context.Context, accountID string) (clubID int64, grade int, err error) {
+	return membership(ctx, s.db, accountID, false)
+}
+
 // membership reads an account's club and grade (0 when none), locking the row.
 func membership(ctx context.Context, q queryer, accountID string, lock bool) (clubID int64, grade int, err error) {
 	query := "SELECT club_id, grade FROM club_members WHERE account_id = ?"

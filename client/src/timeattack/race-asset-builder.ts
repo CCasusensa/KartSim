@@ -1,4 +1,4 @@
-import { downloadRaceTrack } from "../resources/resource-manager";
+import { beginRaceLoad } from "../resources/resource-manager";
 import { vI } from "../generated/library.js";
 import { LicenseItemRace } from "../license/license-item-race";
 import { licenseSceneNames } from "../license/license-mission";
@@ -7,6 +7,9 @@ import { LicenseScenes } from "../license/license-scenes";
 import { MissionTimerPanel } from "../license/mission-timer-panel";
 import { MissionResultAction, StoryAction2D } from "../story/mission-result-action";
 import type { StoryRaceRequest } from "../story/story-race";
+import { generateNpcGhostRecord } from "./duel-npc-ghost";
+import { racePlaylistReady } from "./race-bgm-loading";
+import { ghostZCeiling } from "./ranked-race";
 
 /**
  * Construct every owner needed by a solo race before the application publishes it.
@@ -25,6 +28,10 @@ export interface SoloRaceSelection {
   characterPath?: string;
   characterItemId?: number;
 }
+
+/** A selection whose track, kart and character are resolved. */
+type ResolvedSoloRaceSelection = SoloRaceSelection & Required<Pick<SoloRaceSelection,
+  "mapPath" | "trackId" | "vehiclePath" | "vehicleItemId" | "characterPath" | "characterItemId">>;
 
 export interface SoloRaceBuildOptions {
   booster: number;
@@ -61,19 +68,31 @@ export async function buildSoloRaceAssets(
       !selection.characterItemId) {
     throw new Error("请先选择一辆已解析车辆、一个人物和一张已解析赛道。");
   }
-  const characterPath = selection.characterPath;
   ops.validateItemId(selection.vehicleItemId);
+  // Nothing downloads whole first: what every race reads is fetched at once,
+  // the track, kart and character by range as they load (resource-manager).
+  const endRaceLoad = beginRaceLoad();
+  try {
+    return await buildLoadedSoloRace(builder, selection as ResolvedSoloRaceSelection, raceOptions,
+      coatingStage, ops);
+  } finally {
+    endRaceLoad();
+  }
+}
+
+/** The race assets of a validated selection. */
+async function buildLoadedSoloRace(
+  builder: SoloRaceAssetBuilderAdapter,
+  selection: ResolvedSoloRaceSelection,
+  raceOptions: SoloRaceBuildOptions,
+  coatingStage: SoloRaceCoatingStage | undefined,
+  ops: Record<string, any>,
+): Promise<any> {
+  const host = builder.host;
+  const characterPath = selection.characterPath;
   const generation = host.generationValue();
   const classicHud = host.gameOptions.classicHud;
   const teamBooster = raceOptions.booster === 1;
-  // The track's own containers, theme textures and music, and the race
-  // basics download now, while the race loads (not ahead of time).
-  await Promise.all([
-    host.preloadContainers(selection.mapPath, selection.vehiclePath,
-      selection.characterPath, selection.vehicleSystemKey),
-    downloadRaceTrack(selection.mapPath),
-  ]);
-
   const catalog = await host.getLibrary()?.timeAttackGarageCatalog();
   const kart = catalog && ops.findKart(catalog.karts, selection.vehicleItemId,
     selection.vehiclePath, selection.vehicleSystemKey);
@@ -169,6 +188,8 @@ export async function buildSoloRaceAssets(
         bgm = await ops.loadRaceBgm(host.getLibrary(), map.metadata,
           host.targetRandom, audioContext);
       }
+      // The race music loadRaceBgm (here or at startup) left decoding.
+      await racePlaylistReady(bgm, host.getLibrary(), map.metadata);
     } catch (error) {
       disposeMap();
       closeNewAudio();
@@ -258,8 +279,18 @@ export async function buildSoloRaceAssets(
             continue;
           }
           ghostSources.push({ equipment: participant.equipment,
-            record: participant.record });
+            record: participant.record, timeOffsetMs: participant.timeOffsetMs });
         }
+      }
+      // 赛道对决: the NPC drives the course line in the stage's time (duel-npc-ghost.ts),
+      // setting off advantageMs later at a 难度设定 level above 无.
+      // OB 观看: the console's 退出 leaves like the pause menu's 菜单.
+      if (selection.story?.observe) selection.story.observe.exit = () => { host.returnToReady(); };
+      if (selection.story?.npc) {
+        const npc = selection.story.npc;
+        ghostSources.push({ equipment: npc.equipment,
+          record: generateNpcGhostRecord(map.data, map.data.lapTarget ?? 1, npc.targetMs, ghostZCeiling(selection.trackId)),
+          timeOffsetMs: -npc.advantageMs });
       }
 
       if (map.lensFlarePoint)
@@ -445,7 +476,8 @@ export async function buildSoloRaceAssets(
           playback: ops.createGhostPlayback(source.record,
             () => host.ghostSamplingMode),
           startSlot: source.equipment.startSlot,
-          name: source.equipment.playerName?.trim() || "Ghost" });
+          name: source.equipment.playerName?.trim() || "Ghost",
+          ...(source.timeOffsetMs ? { timeOffsetMs: source.timeOffsetMs } : {}) });
         ghostView.setAssets(assets.imported, assets.character,
           assets.onCharacterSize, assets.linkedCharacter, assets.visual,
           assets.motorcycle, ops.versionTag("p3553"), assets.engineGrade);

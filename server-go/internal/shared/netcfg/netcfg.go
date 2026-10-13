@@ -43,6 +43,34 @@ func FromEnv() *Network {
 	return New(value)
 }
 
+// Hosts lists the trusted hosts besides loopback ("*" when any host is).
+func (n *Network) Hosts() []string {
+	var hosts []string
+	if n.anyHost {
+		hosts = append(hosts, "*")
+	}
+	for host := range n.hosts {
+		if host != "127.0.0.1" && host != "localhost" {
+			hosts = append(hosts, host)
+		}
+	}
+	return hosts
+}
+
+// With returns a copy that also trusts hosts (entries as in New).
+func (n *Network) With(hosts []string) *Network {
+	merged := &Network{hosts: make(map[string]bool, len(n.hosts)+len(hosts)), anyHost: n.anyHost}
+	for host := range n.hosts {
+		merged.hosts[host] = true
+	}
+	extra := New(strings.Join(hosts, ","))
+	for host := range extra.hosts {
+		merged.hosts[host] = true
+	}
+	merged.anyHost = merged.anyHost || extra.anyHost
+	return merged
+}
+
 // LoopbackOnly trusts only 127.0.0.1 and localhost.
 func LoopbackOnly() *Network { return New("") }
 

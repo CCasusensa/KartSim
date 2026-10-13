@@ -434,6 +434,21 @@ async function handle(req: IncomingMessage, res: ServerResponse, next: () => voi
       .concat([{ playerId: 'g-1', name: '游客甲', guest: true, accountId: '', username: '', nodeId: 'node-a', nodeName: '一区', room: '新手房', leaving: false }])
     return send(res, 200, list(online, params, { search: ['name', 'username'], filters: ['node'] }))
   }
+  if (path === '/api/admin/game-nodes' && method === 'GET') {
+    return send(res, 200, { nodes: [
+      { id: 'node-a1b2c3', name: '华东一区', origin: 'https://game1.example.com', note: '上海 100M', disabled: false, createdBy: 'admin',
+        createdAt: now - 3 * day, keyCreatedAt: now - 3 * day, registeredAt: Date.now() - 60_000, registeredIp: '203.0.113.7',
+        status: 'online', players: 37, capacity: 160, liveOrigin: 'https://game1.example.com', seenAt: Date.now() - 2000 },
+      { id: 'hk-1', name: '香港一区', disabled: false, createdBy: 'admin', createdAt: now - day, keyCreatedAt: now - day,
+        status: 'never', players: 0, capacity: 0 },
+    ] })
+  }
+  if (path === '/api/admin/game-nodes' && method === 'POST') {
+    return send(res, 200, { node: { id: 'node-ffee01', name: '新节点', disabled: false, createdBy: 'admin', createdAt: Date.now(),
+      keyCreatedAt: Date.now(), status: 'never', players: 0, capacity: 0 }, key: 'kn1.node-ffee01.' + 'x'.repeat(43) })
+  }
+  if (/^\/api\/admin\/game-nodes\/[^/]+\/key$/.test(path)) return send(res, 200, { key: 'kn1.hk-1.' + 'y'.repeat(43) })
+  if (/^\/api\/admin\/game-nodes\/[^/]+$/.test(path)) return send(res, 200, { ok: true, node: {} })
   if (path === '/api/admin/nodes') {
     const live = nodes.map((node) => ({ ...node, seenAt: node.status === 'stale' ? node.seenAt : Date.now() - 2000,
       players: Math.max(0, node.players + (node.players ? Math.round(Math.random() * 4 - 2) : 0)) }))

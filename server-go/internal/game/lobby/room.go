@@ -31,11 +31,18 @@ type room struct {
 	kickVote        *kickVote
 	// randomTeam (team rooms, not in Java): the host lets the server deal
 	// the teams at random when the race starts (隊伍隨機分配).
-	randomTeam   bool
-	members      []*member
-	chat         []obj
+	randomTeam bool
+	members    []*member
+	// chat holds the last 32 lines: obj, or json.RawMessage for the lines a
+	// room brought from the other side of the global lobby.
+	chat         []any
 	chatSequence int
 	closedSlots  []int
+	// away (global lobby, Home): the room races on a game node.
+	away *awayRoom
+	// handoffID (game node, RaceHost): the room was handed off by the
+	// global lobby and goes back to it when its race is over.
+	handoffID string
 }
 
 func newRoom(id, name, password, mode, channelName, gameplay, resourceVersion string,
@@ -90,7 +97,7 @@ func (r *room) summary() obj {
 		{"resourceVersion", r.resourceVersion},
 		{"count", len(r.members)},
 		{"locked", r.password != ""},
-		{"gaming", r.phase != "open"},
+		{"gaming", r.phase != "open" || r.away != nil},
 	}
 	if r.trackID != "" {
 		value = append(value, field{"trackId", r.trackID})
@@ -132,7 +139,7 @@ func (r *room) snapshot() obj {
 	}
 	value = append(value, field{"members", members})
 	if len(r.chat) > 0 {
-		value = append(value, field{"chat", append([]obj(nil), r.chat...)})
+		value = append(value, field{"chat", append([]any(nil), r.chat...)})
 	}
 	if len(r.closedSlots) > 0 {
 		value = append(value, field{"closedSlots", append([]int(nil), r.closedSlots...)})

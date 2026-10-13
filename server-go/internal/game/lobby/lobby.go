@@ -135,6 +135,11 @@ type Options struct {
 	// ANTICHEAT.md; nil: nothing is checked). Malformed motion frames are
 	// never relayed, with or without it.
 	AntiCheat cheat.Guard
+	// Home makes this the data service's global lobby, whose rooms race on
+	// game nodes; RaceHost makes a game node race the rooms the global
+	// lobby hands it (handoff.go, GLOBAL_LOBBY.md).
+	Home     Home
+	RaceHost RaceHost
 }
 
 // Client is one WebSocket connection. Its fields are guarded by Lobby.mu.
@@ -157,6 +162,11 @@ type Client struct {
 	// city is the city line the connection is in (0: none), written by the
 	// city service without the lobby lock (city.go).
 	city atomic.Int32
+	// lobbyHeld (game node): the session came with a global lobby ticket;
+	// the lobby holds its name and account.
+	lobbyHeld bool
+	// latency (global lobby): the player's round trips to the game nodes.
+	latency map[string]int
 }
 
 // NewClient returns a connection that has not said hello yet.
@@ -195,6 +205,8 @@ type Lobby struct {
 	// (KART_ITEM_CHANGERS=infinite).
 	itemChangers bool
 	antiCheat    cheat.Guard
+	home         Home
+	raceHost     RaceHost
 
 	// verifySlots bounds the equipment checks in flight (a semaphore).
 	verifySlots chan struct{}
@@ -205,6 +217,10 @@ type Lobby struct {
 	clients map[string]*Client
 	pending map[*Client]pendingHello // hellos claiming presence
 	closed  bool
+	// handoffs (RaceHost) maps the handed-off rooms to their IDs; claiming
+	// holds the claims in flight.
+	handoffs map[string]string
+	claiming map[string]*claimCall
 }
 
 // pendingHello is what a hello still claiming presence reserves on the
@@ -243,6 +259,10 @@ func New(opts Options) *Lobby {
 		itemTests:    opts.ItemTestGrants,
 		itemChangers: opts.ItemChangersInfinite,
 		antiCheat:    opts.AntiCheat,
+		home:         opts.Home,
+		raceHost:     opts.RaceHost,
+		handoffs:     map[string]string{},
+		claiming:     map[string]*claimCall{},
 		verifySlots:  make(chan struct{}, maxConcurrentVerifies),
 		rooms:        map[string]*room{},
 		clients:      map[string]*Client{},
@@ -307,9 +327,13 @@ func (l *Lobby) Online() ([]contract.OnlinePlayer, int) {
 	defer l.mu.Unlock()
 	players := make([]contract.OnlinePlayer, 0, len(l.clients))
 	for _, c := range l.clients {
-		player := contract.OnlinePlayer{PlayerID: c.playerID, Name: c.name, AccountID: c.accountID}
+		player := contract.OnlinePlayer{PlayerID: c.playerID, Name: c.name, AccountID: c.accountID,
+			Lobby: c.lobbyHeld}
 		if r := l.rooms[c.roomID]; r != nil {
 			player.Room = r.name
+			if r.away != nil && r.away.node.Name != "" {
+				player.Room = truncateRunes(r.name+"（比赛中："+r.away.node.Name+"）", 64)
+			}
 		} else if line := c.CityLine(); line != 0 {
 			player.Room = cityRoom(line)
 		}
@@ -373,6 +397,10 @@ func (l *Lobby) Handle(ctx context.Context, c *Client, in Request) (Reply, error
 		}
 		return l.hello(ctx, c, in)
 	}
+	if typ == "city-host" && l.home != nil {
+		l.mu.Unlock()
+		return l.cityHost(ctx, c)
+	}
 	defer l.mu.Unlock()
 	body, err := l.runVerified(ctx, c, func(check *ownershipCheck) (obj, error) {
 		return l.dispatch(c, typ, in, check)
@@ -380,7 +408,7 @@ func (l *Lobby) Handle(ctx context.Context, c *Client, in Request) (Reply, error
 	if err != nil {
 		return Reply{}, err
 	}
-	return Reply{body}, nil
+	return Reply{body: body}, nil
 }
 
 func (l *Lobby) dispatch(c *Client, typ string, in Request, check *ownershipCheck) (obj, error) {
@@ -423,6 +451,11 @@ func (l *Lobby) dispatch(c *Client, typ string, in Request, check *ownershipChec
 		return l.awardMotion(c, in)
 	case "item":
 		return l.itemCommand(c, in)
+	case "node-latency":
+		if l.home != nil {
+			return l.nodeLatency(c, in)
+		}
+		return nil, fail(http.StatusBadRequest, "UNSUPPORTED_COMMAND")
 	default:
 		return nil, fail(http.StatusBadRequest, "UNSUPPORTED_COMMAND")
 	}
@@ -439,8 +472,10 @@ func (l *Lobby) Disconnect(c *Client) {
 	if c.roomID != "" {
 		l.leaveInternal(c, nil)
 	}
-	l.presence.Release(contract.PresenceReleaseRequest{
-		NodeID: l.nodeID, PlayerID: c.playerID, Name: c.name, AccountID: c.accountID})
+	if !c.lobbyHeld {
+		l.presence.Release(contract.PresenceReleaseRequest{
+			NodeID: l.nodeID, PlayerID: c.playerID, Name: c.name, AccountID: c.accountID})
+	}
 }
 
 // Close code and reason of a session whose nickname claim another node took
@@ -486,6 +521,11 @@ type admitted struct {
 	version   string
 	equipment json.RawMessage
 	initial   *string
+	// lobbyHeld: a global lobby ticket (handoff.go); use is its
+	// ticket.UseRace or ticket.UseCity, handoff the room a race ticket names.
+	lobbyHeld bool
+	use       string
+	handoff   string
 }
 
 // hello admits a connection. The checks run under the lock and reserve the
@@ -499,9 +539,12 @@ func (l *Lobby) hello(ctx context.Context, c *Client, in Request) (Reply, error)
 		// Refused like create/join/equipment, so the client learns that its
 		// gear is not owned (an expired rental): the browser re-reads the
 		// inventory, falls back to its starter gear and says hello again.
-		_, err = l.runVerified(ctx, c, func(check *ownershipCheck) (obj, error) {
-			return nil, l.owns(check, c, ad.accountID, ad.equipment)
-		})
+		// A racer from the global lobby races with the gear the lobby checked.
+		if ad.use != ticket.UseRace {
+			_, err = l.runVerified(ctx, c, func(check *ownershipCheck) (obj, error) {
+				return nil, l.owns(check, c, ad.accountID, ad.equipment)
+			})
+		}
 		if err != nil {
 			delete(l.pending, c)
 		}
@@ -511,9 +554,17 @@ func (l *Lobby) hello(ctx context.Context, c *Client, in Request) (Reply, error)
 		return Reply{}, err
 	}
 
-	claimErr := l.presence.Claim(ctx, contract.PresenceClaimRequest{
-		NodeID: l.nodeID, PlayerID: ad.playerID, Name: ad.name, Guest: ad.guest,
-		AccountID: ad.accountID})
+	// The global lobby holds a lobby ticket's name and account; a race
+	// ticket's room comes from it.
+	var claimErr error
+	switch {
+	case ad.use == ticket.UseRace:
+		claimErr = l.ensureHandoff(ctx, ad.handoff)
+	case !ad.lobbyHeld:
+		claimErr = l.presence.Claim(ctx, contract.PresenceClaimRequest{
+			NodeID: l.nodeID, PlayerID: ad.playerID, Name: ad.name, Guest: ad.guest,
+			AccountID: ad.accountID})
+	}
 
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -526,9 +577,15 @@ func (l *Lobby) hello(ctx context.Context, c *Client, in Request) (Reply, error)
 		return Reply{}, fail(http.StatusServiceUnavailable, "DATA_SERVICE_UNAVAILABLE")
 	}
 	if l.closed {
-		l.presence.Release(contract.PresenceReleaseRequest{
-			NodeID: l.nodeID, PlayerID: ad.playerID, Name: ad.name, AccountID: ad.accountID})
+		if !ad.lobbyHeld {
+			l.presence.Release(contract.PresenceReleaseRequest{
+				NodeID: l.nodeID, PlayerID: ad.playerID, Name: ad.name, AccountID: ad.accountID})
+		}
 		return Reply{}, fail(http.StatusServiceUnavailable, "SERVER_SHUTTING_DOWN")
+	}
+	if l.clients[ad.playerID] != nil {
+		// A second session of the same lobby player.
+		return Reply{}, fail(http.StatusConflict, "ACCOUNT_ONLINE")
 	}
 	c.playerID = ad.playerID
 	c.name = ad.name
@@ -537,14 +594,24 @@ func (l *Lobby) hello(ctx context.Context, c *Client, in Request) (Reply, error)
 	c.resourceVersion = ad.version
 	c.equipment = ad.equipment
 	c.initial = ad.initial
+	c.lobbyHeld = ad.lobbyHeld
+	var then []byte
+	if ad.use == ticket.UseRace {
+		snapshot, err := l.attachRacer(c, ad.handoff)
+		if err != nil {
+			c.playerID = ""
+			return Reply{}, err
+		}
+		then = snapshot
+	}
 	l.clients[c.playerID] = c
-	return Reply{obj{
+	return Reply{body: obj{
 		{"type", "welcome"},
 		{"playerId", c.playerID},
 		{"protocolVersion", contract.ProtocolVersion},
 		{"ruleset", contract.Ruleset},
 		{"capabilities", []string{}},
-	}}, nil
+	}, then: then}, nil
 }
 
 func (l *Lobby) admit(c *Client, in Request) (admitted, error) {
@@ -590,6 +657,27 @@ func (l *Lobby) admit(c *Client, in Request) (admitted, error) {
 	claims, err := l.tickets.Admit(token)
 	if err != nil {
 		return ad, err
+	}
+	if lobbyTicket(claims) {
+		// From the global lobby: it checked the account and holds the name.
+		if l.raceHost == nil || !playerIDPattern.MatchString(claims.PlayerID) ||
+			(claims.Use != ticket.UseRace && claims.Use != ticket.UseCity) ||
+			(claims.Use == ticket.UseRace && claims.Handoff == "") || claims.Nickname == "" {
+			return ad, fail(http.StatusUnauthorized, "TICKET_INVALID")
+		}
+		ad.lobbyHeld, ad.use, ad.handoff = true, claims.Use, claims.Handoff
+		ad.guest, ad.name, ad.accountID = claims.Guest, claims.Nickname, claims.AccountID
+		if l.nameTaken(ad.name) || (ad.accountID != "" && l.accountOnline(ad.accountID)) {
+			return ad, fail(http.StatusConflict, "ACCOUNT_ONLINE")
+		}
+		if raw, present := in.get("equipment"); validEquipment(raw, present) {
+			ad.equipment = compactJSON(raw)
+		}
+		if ad.initial, err = in.optionalText("initial", 64); err != nil {
+			return ad, err
+		}
+		ad.playerID, ad.version = claims.PlayerID, version
+		return ad, nil
 	}
 	if claims.Guest && !l.allowGuests {
 		return ad, fail(http.StatusUnauthorized, "LOGIN_REQUIRED")
@@ -832,6 +920,10 @@ func (l *Lobby) join(c *Client, in Request, check *ownershipCheck) (obj, error) 
 	if err != nil {
 		return nil, err
 	}
+	if r.away != nil {
+		// Its members race on a game node; it opens again when they are back.
+		return nil, errRoomRacing()
+	}
 	// A racing room with space can be joined; the newcomer is not in the
 	// frozen roster and waits in the room until the race closes.
 	if r.resourceVersion != c.resourceVersion {
@@ -1014,6 +1106,10 @@ func (l *Lobby) removeRoom(r *room) {
 	if i := slices.Index(l.order, r); i >= 0 {
 		l.order = slices.Delete(l.order, i, i+1)
 	}
+	if r.handoffID != "" {
+		// Every racer left: the lobby learns the room is gone.
+		l.sendHome(r, true)
+	}
 }
 
 func (l *Lobby) getSettings(c *Client, in Request) (obj, error) {
@@ -1033,7 +1129,7 @@ func (l *Lobby) mutate(c *Client, typ string, in Request, check *ownershipCheck)
 	if err != nil {
 		return nil, err
 	}
-	if r.phase != "open" {
+	if r.phase != "open" || r.away != nil {
 		return nil, fail(http.StatusBadRequest, "ROOM_NOT_OPEN")
 	}
 	if in.has("revision") {
@@ -1333,7 +1429,7 @@ func (l *Lobby) start(c *Client, in Request, check *ownershipCheck) (obj, error)
 	if err := requireHost(r, c); err != nil {
 		return nil, err
 	}
-	if r.phase != "open" {
+	if r.phase != "open" || r.away != nil {
 		return nil, fail(http.StatusBadRequest, "ROOM_NOT_OPEN")
 	}
 	revision, err := in.integer("revision", 1, math.MaxInt32)
@@ -1381,6 +1477,17 @@ func (l *Lobby) start(c *Client, in Request, check *ownershipCheck) (obj, error)
 	if err := l.membersOwnEquipment(r, check); err != nil {
 		return nil, err
 	}
+	if l.home != nil {
+		// The global lobby: the race runs on a game node.
+		return l.handOff(c, r, check)
+	}
+	l.launchRace(r, c, check)
+	return roomReply(r), nil
+}
+
+// launchRace freezes the race of a room whose start passed every check and
+// starts loading it; c (nil for a handed-off room) sent the start.
+func (l *Lobby) launchRace(r *room, c *Client, check *ownershipCheck) {
 	loadingWindow := int64(30_000)
 	switch r.gameplay {
 	case "roadblock", "giant", "rp", "lte":
@@ -1432,7 +1539,6 @@ func (l *Lobby) start(c *Client, in Request, check *ownershipCheck) (obj, error)
 	l.schedule(time.Duration(loadingWindow)*time.Millisecond,
 		func() { l.loadingTimeout(roomID, raceID) })
 	l.broadcastRoom(r, c)
-	return roomReply(r), nil
 }
 
 // membersOwnEquipment checks, at start, that every member still owns the
@@ -2318,6 +2424,15 @@ func availableSlot(r *room, team int) int {
 }
 
 func (l *Lobby) broadcastRoom(r *room, except *Client) {
+	if r.away != nil {
+		// Its members follow the room on the game node until it is back.
+		return
+	}
+	if r.handoffID != "" && r.phase == "open" && r.race == nil && l.rooms[r.id] == r {
+		// The race of a handed-off room is over: the room goes home.
+		l.sendHome(r, false)
+		return
+	}
 	starting := r.race != nil && r.race.itemStartPending
 	if starting {
 		// The item race start goes out after the snapshot of its countdown,

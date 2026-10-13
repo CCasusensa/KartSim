@@ -34,6 +34,8 @@
 
 ## 入场流程（游戏服列表与票据）
 
+> 新版浏览器走**全局大厅**（[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)）：进入多人时连数据服务的 `/multiplayer/lobby/ws`（票据来自 `POST /multiplayer/lobby/ticket`），所有地区共用一个房间列表；房主开始时数据服务按全房间的延迟挑一个节点，给每个成员发该节点的票据（`race-host`），比赛在节点上进行，赛后房间回到大厅。下面描述的是节点自己的大厅（选服、在节点上建房），节点照常支持，测试脚本与旧客户端仍在使用。
+
 1. 浏览器 `GET <数据服务>/multiplayer/game-servers`，得到在线游戏服列表（按名称排序）。只有一个可用服时自动进入，否则让玩家选择；想一起玩的人要选同一个服。
 2. 浏览器 `POST <数据服务>/multiplayer/game-servers/ticket`，请求体 `{"nodeId":"game-1"}`，带 `Authorization: Bearer <会话 token>`。默认没有游客（`KART_ALLOW_GUESTS=false`）：不带 Bearer 401 `LOGIN_REQUIRED`；账号还没领取新手礼包 403 `ONBOARDING_REQUIRED`。数据服务签发一次性票据：
    `kt1.` + base64url(JSON 声明) + `.` + base64url(HMAC-SHA256(KART_CLUSTER_SECRET, "kt1." + 载荷))。
@@ -208,6 +210,8 @@ node --test tools/item-mode-export/item-mode.test.mjs        # 导出规则单�
 
 ### Docker Compose
 
+连网页客户端一起一键启动（三个镜像 `kartsim-client`、`kartsim-data`、`kartsim-node`，自动生成密码、注册管理员）用仓库根目录的 `./docker-start.sh`（Windows：`docker-start.cmd`），见根目录 README“Docker 一键启动”与 [`../docker-compose.yml`](../docker-compose.yml)。Docker Hub 上有构建好的 `kbl13350/kartsim-client`、`kbl13350/kartsim-data`、`kbl13350/kartsim-node`（amd64 与 arm64，标签 `latest` 与提交号；`./docker-start.sh --pull` 用它们，维护者用根目录的 `./docker-push.sh` 构建并推送）。下面是只有服务端的 compose，前面自己放 Nginx。
+
 ```sh
 cd server-go
 install -m 600 .env.example .env   # 只有自己可读；填写 KART_CLUSTER_SECRET、MYSQL_ROOT_PASSWORD、KART_MYSQL_PASSWORD、KART_REDIS_PASSWORD、KART_ADMIN_USERNAMES
@@ -218,7 +222,7 @@ docker compose logs kart-data | grep -i "account economy"   # 注册方式、游
 # docker compose logs kart-data | grep -i invitation 查看邀请码
 ```
 
-[`docker-compose.yml`](docker-compose.yml) 包含 `mysql:8.4`（默认排序规则 `utf8mb4_0900_as_ci`，首次初始化执行 [`scripts/docker-mysql-init.sql`](scripts/docker-mysql-init.sql)）、`redis:7`（带密码、不持久化）、`kart-data`（发布 8787）以及 `kart-game-1`、`kart-game-2`（发布 8788、8789，各自的 `KART_PUBLIC_ORIGIN` 与发件箱卷）。默认只绑定宿主机 127.0.0.1（`KART_BIND_ADDR`）；MySQL、Redis 和内部 API 8790 不发布。所有容器有健康检查与 `restart: unless-stopped`，镜像以非 root 用户（UID 10001）运行。数据卷：`mysql-data`、`game-1-outbox`、`game-2-outbox`。
+[`docker-compose.yml`](docker-compose.yml) 包含 `mysql:8.4`（默认排序规则 `utf8mb4_0900_as_ci`，首次初始化执行 [`scripts/docker-mysql-init.sql`](scripts/docker-mysql-init.sql)）、`redis:7`（带密码、不持久化）、`kart-data`（镜像 `kartsim-data`，发布 8787）以及 `kart-game-1`、`kart-game-2`（镜像 `kartsim-node`，即 `kart-node`，人数按容器的 CPU 与内存自动计算；发布 8788、8789，各自的 `KART_PUBLIC_ORIGIN` 与发件箱卷）。两个镜像都由 [`Dockerfile`](Dockerfile) 构建（`--target data` / `--target node`，共用一次 Go 编译；节点镜像带反作弊插件 `plugins/anticheat.wasm`）。默认只绑定宿主机 127.0.0.1（`KART_BIND_ADDR`）；MySQL、Redis 和内部 API 8790 不发布。所有容器有健康检查与 `restart: unless-stopped`，镜像以非 root 用户（UID 10001）运行。数据卷：`mysql-data`、`game-1-outbox`、`game-2-outbox`。
 
 网络分两层：`backend`（`internal: true`，没有出网路由）只有 `mysql`、`redis` 与 `kart-data`；`cluster` 有 `kart-data` 与两个游戏节点，发布的端口经它对宿主机可达。游戏节点因此只能访问 `kart-data` 的 8787/8790，连不到 MySQL 与 Redis——Redis 里的会话缓存与账号缓存等同登录凭据，能写 Redis 就能冒充任何账号（包括管理员）。
 
@@ -232,11 +236,13 @@ Compose 只运行服务端。开发前端时在 `client/` 运行 `npm run dev`�
 
 ```sh
 cd server-go
-go build -o bin/ ./cmd/kart-data ./cmd/kart-game ./cmd/kart-migrate-sqlite
+go build -o bin/ ./cmd/kart-data ./cmd/kart-game ./cmd/kart-node ./cmd/kart-migrate-sqlite
 export KART_CLUSTER_SECRET=$(openssl rand -base64 48)
 KART_MYSQL_DSN='kart:kart@tcp(127.0.0.1:3306)/kartsim?charset=utf8mb4&collation=utf8mb4_0900_as_ci' ./bin/kart-data &
 KART_NODE_ID=game-1 KART_NODE_NAME='游戏服 1' ./bin/kart-game &
 ```
+
+在其他机器（Linux 或 Windows）上运行游戏节点用 `kart-node`：同一套节点代码，加上配置文件、按硬件自动设置人数、连接自检、系统服务与内置 TLS，见 [`NODE.md`](NODE.md)。
 
 两个程序都只从环境变量读取配置，配置非法时拒绝启动并说明原因；日志是 `log/slog` 文本格式，写到 stderr。SIGINT/SIGTERM 触发优雅关闭。
 
@@ -259,6 +265,8 @@ KART_TEST_MYSQL_DSN='kart:kart@tcp(127.0.0.1:3306)/kartsim_test?charset=utf8mb4&
 | `node test/economy-smoke.mjs` | `KART_SMOKE_MYSQL_ADMIN`，Redis | 自行启动开放注册的 kart-data（测试管理员与 `KART_BOOTSTRAP_INVITE`、倍率 1、初始金币 10000）与两个 kart-game，验证：注册返回 token、密码 8–128、首位注册者不是管理员、按 IP 限流 429；管理员用户名不带邀请码（或大小写不同、邀请码错误）400 `INVALID_INVITE`，日志打印引导邀请码，用它注册后成为管理员、邀请码不能再用；`auth/config` 字段；游客票据与游客 `hello` 被拒；领取礼包前 403；礼包白名单（400）、幂等与库存；`/api/account` 钱包与 Lv.1；目录 ETag/304/gzip；`INSUFFICIENT_FUNDS` → 管理员发放 → 过期的 `expectedPrice`/`expectedCurrency` 409 `PRICE_CHANGED`（不扣款）→ 购买 → `ALREADY_OWNED`、`EXP_REQUIRED`、`OFFER_NOT_FOUND`、限时购买与续期、`requestId` 重放、换商品 409 `REQUEST_ID_CONFLICT`；账号档案 409 `ITEM_NOT_OWNED`；`hello`/`create`/`join`/`equipment` 的不拥有装备；一个账号一个会话（同节点 `NICKNAME_TAKEN`，另一节点及改名后 `ACCOUNT_ONLINE`）；两局比赛：立即完赛双方只得未完赛奖励，等满 10 秒服务器时间后完赛者得名次奖励、上报时间比服务器观察短 3 秒以上者按未完赛（`race.results` 名次不变），入账、升级奖励、战绩，重复投递不重复入账；结算携带的倍率（`expRate`/`lucciRate`）、超过 24 小时与超过单条上限的结算只记赛果不发奖励；MySQL 流水与余额一致；计时赛奖励、个人最佳、400 `INVALID_ELAPSED_MS`/`INVALID_TRACK`、节奏限制 429 `TOO_MANY_ATTEMPTS`、`requestId` 重放与 409 `REQUEST_ID_CONFLICT`；管理页面、账号搜索、发放与扣除、非管理员被拒、发放 `requestId` 重放 `duplicate:true`、换参数 409 `REQUEST_ID_CONFLICT`；`KART_REGISTRATION=closed` 重启后注册 403 而余额与库存保留；任何退出路径（含 Ctrl-C）都清理。比赛与计时赛要等真实时间，约 1 分钟 |
 | `node ../server-smoke.mjs` | 集群已运行 | 在上述规则基础上用真实前端校验器检查大厅、房间、个人赛与组队赛快照及 `race.rewards`（个人赛开跑 10 秒内完成，双方奖励相同，即未完赛奖励）（需要 `client/node_modules`，没有时跳过校验器；已安装但校验器加载失败时直接失败，设置 `KART_SMOKE_ALLOW_NO_VALIDATORS=1` 才降级为警告） |
 | `node ../server-special-smoke.mjs` | 集群已运行、`client/node_modules` | 注册五个账号，检查挡人、巨人、RP、LTE 四种模式的房间、赛程、广播、`race.rewards`（都在开跑 10 秒内结束，所有人得相同的未完赛奖励）与结算；再用四个账号跑个人道具赛与组队道具赛：道具频道与玩法、道具赛道与随机码规则（有 `mirror/p3553` 时还核对浏览器的道具赛道目录）、用浏览器编码器发送带名次进度的运动帧、按名次组抽取（刷箱、满槽、三槽）、开赛时的道具槽推送（带换位/变更卡数）、换位与变更（集群给了使用券时成功、没有卡时 `ITEM_CHANGER_UNAVAILABLE`）、`transform@zz` 变换后的道具（组队赛固定在等级 2 的反向赛道）、各类道具的目标、放置、命中/格挡、香蕉移除、赛道危险物、透视镜（`Use` 之后生效）、道具锁、完赛（`perfectStart`，组队按最先冲线者的队伍获胜）、结算称号、结算与道具赛成就；所有道具请求都过浏览器的请求校验、所有事件都过浏览器的事件校验（会变成 `INVALID_ITEM_EVENT` 的道具事件算失败）。道具来自真实抽取，脚本会刷箱直到拿到需要的道具（`KART_SMOKE_ITEM_BUDGET_MS`，默认每种 90 秒）；`KART_SMOKE_ITEM_ONLY=1` 只跑道具赛；约 1 分钟 |
+| `node test/lobby-smoke.mjs` | 集群已运行（节点 `KART_ANTICHEAT=log`） | 全局大厅（[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)）：三个账号进入数据服务的大厅，建房、加入、准备、开始；两人收到同一节点（延迟最低者）的 `race-host`，第三人加入得到 `ROOM_RACING`、列表显示比赛中；在节点上保持大厅的玩家 ID、修订号接着往上、比赛、全员返回后节点发 `room-home`；房间回到大厅（更高修订号、可再准备）；结算到达数据服务；`city-host` 进节点的卡丁城；几秒钟 |
+| `node test/lobby-bot.mjs [--room 名字] [--seconds 40]` | 集群已运行（节点 `KART_ANTICHEAT=log`） | 手动试玩用的陪练：注册账号进入全局大厅，加入房间并准备，开局后跟着去节点载入、过一会儿完赛、返回房间，房间回到大厅后再准备；Ctrl-C 结束 |
 | `node test/city-smoke.mjs` | 集群已运行、节点开着 `KART_CITY` | 注册两个账号进入同一节点，`city-join` 进同一条线路：快照（时钟、出生点、成员与装备）、`city-joined`、城市里 `create` 返回 `IN_CITY`、`city-respawn`、`near` 聊天、表情与 `city-state` 事件、发送 `0xC1` 运动帧并在邻居处收到盖写了成员 id 的同一帧、`0xC2` 雷达包里的两名成员与位置、`city-leave`/`city-left`、离开后建房与房间里 `city-join` 返回 `IN_ROOM`；几秒钟 |
 | `node test/item-bot-check.mjs` | `KART_SMOKE_MYSQL_ADMIN`，Redis，`client/node_modules`，`mirror/p3553` | 自行启动打开 `KART_ITEM_TEST_GRANTS`（道具换位卡按库存：机器人没有卡时先用掉槽 0 的道具）的临时集群，由脚本扮演玩家建道具房间，启动测试机器人 `test/item-bot.mjs`：它登录、找到房间、准备、载入，沿赛道路线行驶（运动帧用浏览器编解码器核对）、按时使用导弹和香蕉、上报玩家的导弹与大魔王命中（被导弹炸飞时停下）、跑完 3 圈完赛、`--once` 后离开且不打印密码；约 1 分钟 |
 | `node test/run-cluster-smokes.mjs [smoke] [city] [server-smoke] [special]` | `KART_SMOKE_MYSQL_ADMIN`，Redis | 自行启动临时集群（开放注册、两个游戏节点），依次对它运行上面四个“集群已运行”的脚本，结束后清理；不想把测试数据写进开发集群时用它 |
@@ -336,10 +344,13 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `KART_GAME_PORT` | `8788` | 监听端口 |
 | `KART_NODE_ID` | `game-<端口>` | 节点 ID，`[A-Za-z0-9_-]{1,64}`，集群内唯一且应保持稳定（发件箱默认目录与它有关） |
 | `KART_NODE_NAME` | 同 `KART_NODE_ID` | 列表中显示的名称，最多 32 个字符 |
-| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>` | 浏览器访问本节点的 HTTP(S) origin；`same-origin` 表示经数据服务所在 origin 同源代理（列表中为 `null`） |
-| `KART_DATA_INTERNAL_URL` | `http://127.0.0.1:8790` | 数据服务内部 API 地址（可为 https） |
-| `KART_DATA_NODE_ID` | `data-1` | 票据中的数据节点必须与它相同 |
-| `KART_CLUSTER_SECRET` | 必填 | 与数据服务相同 |
+| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>`（设置了 `KART_TLS_CERT` 时为 `https://`） | 浏览器访问本节点的 HTTP(S) origin；`same-origin` 表示经数据服务所在 origin 同源代理（列表中为 `null`） |
+| `KART_TLS_CERT` / `KART_TLS_KEY` | 空 | PEM 证书与私钥文件，要同时设置：节点自己提供 `https://` 与 `wss://`（只协商 HTTP/1.1），不必再放 TLS 反向代理。证书文件变化后，节点在一分钟内的下一次握手时重新读取（续期不用重启），读取失败时继续用旧证书并记录错误 |
+| `KART_NODE_KEY` | 空 | 节点密钥：管理后台“服务器节点 → 节点管理 → 添加节点”给出的 `kn1.<节点ID>.<43 个字符>`（[`NODE.md`](NODE.md)）。设置后节点用它调用数据服务（请求头 `X-Kart-Node-Key`，路径加 `/multiplayer` 前缀，所以公网网址也能用），启动时先注册：节点 ID 取自密钥（`KART_NODE_ID` 不用设，设了必须相同），名称、数据节点 ID、票据密钥、游戏页面域名（并入 `KART_LAN_HOSTS`）由数据服务下发，没有 `KART_PUBLIC_ORIGIN` 时用后台的对外地址或数据服务看到的本机 IP；不需要 `KART_CLUSTER_SECRET` |
+| `KART_DATA_URL` | 同 `KART_DATA_INTERNAL_URL` | 数据服务地址：有节点密钥时可以是数据服务的公网网址（如 `https://kart.example.com`），也可以是内部端口 |
+| `KART_DATA_INTERNAL_URL` | `http://127.0.0.1:8790` | 数据服务内部 API 地址（可为 https）；`KART_DATA_URL` 优先 |
+| `KART_DATA_NODE_ID` | `data-1` | 票据中的数据节点必须与它相同（有节点密钥时由数据服务下发） |
+| `KART_CLUSTER_SECRET` | 没有 `KART_NODE_KEY` 时必填 | 与数据服务相同 |
 | `KART_MAX_PLAYERS` | `400` | 满员后 `hello` 返回 503 `SERVER_FULL`，列表中标记为满；最大 10000（数据服务心跳接受的上限） |
 | `KART_OUTBOX_DIR` | `./data/outbox-<NODE_ID>` | 结算发件箱目录（目录 0700，文件 0600）；容器镜像中为 `/var/lib/kart/outbox` |
 | `KART_LAN_HOSTS` | 空（兼容 `KART_LANHOSTS`） | WebSocket Origin 校验与 CORS 的可信主机；前端页面域名与本节点域名不同时必须列入页面域名 |
@@ -403,7 +414,9 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `POST /multiplayer/auth/nickname`、`/multiplayer/auth/logout` | 改名、退出 |
 | `POST /multiplayer/admin/invites` | 管理员创建邀请码 |
 | `GET /multiplayer/admin` | **新增**。管理后台单页应用（嵌入的 `adminui/index.html`，脚本与样式在 `/multiplayer/admin/assets/`，按内容哈希命名、长期缓存），登录后调用下面的 `/api/admin/*`（见 ADMIN.md） |
-| `GET /multiplayer/game-servers` | **新增**。`{"dataNode","servers":[{"nodeId","name","origin","players","rooms","capacity","full"}]}`，只含存活节点，按名称排序 |
+| `GET /multiplayer/game-servers` | **新增**。`{"dataNode","servers":[{"nodeId","name","origin","players","rooms","capacity","full"}]}`，只含存活节点，按名称排序（全局大厅不在其中；浏览器用它测各节点的延迟） |
+| `POST /multiplayer/lobby/ticket` | 全局大厅的一次性票据（[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)），规则同 `game-servers/ticket`（Bearer、新手礼包），`nodeId` 为 `lobby` |
+| `GET /multiplayer/lobby/ws` | 全局大厅的 WebSocket：协议与游戏节点的 `/multiplayer/ws` 相同（大厅与等待中的房间），另有命令 `node-latency`、`city-host` 与事件 `race-host`；`POST /multiplayer/lobby/offer` 回 501 `USE_WEBSOCKET` |
 | `POST /multiplayer/game-servers/ticket` | **新增**。`{"nodeId"}` + Bearer → `{"ticket","nodeId","origin","dataNode","expiresAt"}`；不带 Bearer（游客未开启）或 Bearer 无效 401 `LOGIN_REQUIRED`；未领取新手礼包 403 `ONBOARDING_REQUIRED`；节点不存在或已下线 404 `GAME_SERVER_NOT_FOUND`；节点已满 503 `GAME_SERVER_FULL` |
 | `GET /multiplayer/ice` | `{"iceServers":[]}` |
 | `POST /multiplayer/offer` | 501 `{"error":"USE_LOCAL_WEBSOCKET"}` |
@@ -562,10 +575,16 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 
 ### 内部 API（`KART_INTERNAL_LISTEN`，只给游戏节点）
 
-全部为 `POST` + JSON，必须带 `X-Kart-Cluster-Key: <KART_CLUSTER_SECRET>`，否则 401 `CLUSTER_KEY_INVALID`。路径与结构定义在 [`internal/shared/contract`](internal/shared/contract/contract.go)。
+全部为 `POST` + JSON，路径与结构定义在 [`internal/shared/contract`](internal/shared/contract/contract.go)。认证二选一：
+
+- `X-Kart-Cluster-Key: <KART_CLUSTER_SECRET>`（共享密钥，只在内部端口接受），否则 401 `CLUSTER_KEY_INVALID`。已在后台添加过的节点 ID 不能再用它（403 `NODE_KEY_REQUIRED`）。
+- `X-Kart-Node-Key: <节点密钥>`（后台添加的节点，[`NODE.md`](NODE.md)）：内部端口与**公网端口**都接受，路径也可以加 `/multiplayer` 前缀（`/multiplayer/internal/v1/…`，反向代理已转发 `/multiplayer/`）。密钥不对 401 `NODE_KEY_INVALID`，节点被停用 403 `NODE_DISABLED`；请求体里的 `nodeId` 必须是密钥自己的节点，否则 403 `NODE_MISMATCH`。这种节点的票据用 `HMAC(KART_CLUSTER_SECRET, 节点 ID)` 派生的票据密钥签发，节点之间不能互相伪造票据；心跳里的名称与对外地址以后台设置为准。
 
 | 路径 | 调用时机 | 作用 |
 | --- | --- | --- |
+| `/internal/v1/rooms/claim` | 节点收到某个全局大厅交接的第一个 race 票据 `hello` 时 | `{nodeId, handoffId}` → `contract.RoomHandoff`（房间设置、成员与装备、修订号、道具卡）；交接不存在或已结束 404 `ROOM_NOT_FOUND`，不是交给该节点的 403 `NODE_MISMATCH`（[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)） |
+| `/internal/v1/rooms/return` | 全局大厅交来的房间赛后（经发件箱，排在结算之后） | `{nodeId, handoffId, room?}`：房间回到大厅；同一交接重复交回或已超时的被忽略 |
+| `/internal/v1/nodes/register` | 有节点密钥的节点启动时 | 返回节点 ID、后台设置的名称与对外地址、数据节点 ID、票据密钥、游戏页面域名（`pageHosts`）、数据服务看到的节点 IP（`observedIp`），并记录注册时间与 IP；用共享密钥调用 403 `NODE_KEY_REQUIRED` |
 | `/internal/v1/nodes/heartbeat` | 启动时与每 5 秒 | 注册/刷新节点（TTL 15 秒），续期在线玩家的昵称与账号占用；可选的 `stats`（`heapMB` 保留一位小数、`goroutines`、`connections`、`races`、`version`）与玩家的 `room`（所在房间名）供管理后台显示，玩家的 `accountId` 让数据服务在 Redis 丢失账号映射后补回，旧节点不带也可以（新节点的小数 `heapMB` 旧数据服务无法解析，先升级数据服务）；响应带 `conflicts`（昵称或账号已被其他会话占用、须断开的玩家）与奖励倍率 `expRate`/`lucciRate`（游戏节点据此显示 `race.rewards`） |
 | `/internal/v1/nodes/leave` | 优雅关闭 | 删除节点及其全部昵称与账号占用 |
 | `/internal/v1/presence/claim` | `hello` | 原子占用昵称与账号（`presence:{昵称}`、`presence-account:{accountId}`，30 秒 TTL，靠心跳续期；两者都能占用才写入）；占用者节点已消失时可抢占；账号已在其他会话在线 409 `ACCOUNT_ONLINE`（先检查账号），昵称冲突 409 `NICKNAME_TAKEN`，游客名非法 400 `INVALID_GUEST_NAME`，账号被封禁 403 `ACCOUNT_BANNED`（游戏节点原样转给 `hello`） |
@@ -597,6 +616,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `private_messages`、`private_conversations` | 私聊消息（30 天，按发送者 + `clientId` 去重）、每个账号的会话列表（最后一条、已读位置、未读数、清除标记、隐藏） |
 | `account_counters`、`account_login_days` | 成就计数（多人赛按模式与赛道主题的胜利/完赛/未完赛、连续未完赛、计时赛完赛）、登录过的北京日期 |
 | `account_careers`、`account_emblems` | 已完成的成就（完成时间）、拥有的徽章（来源、代表徽章槽 `main_slot`） |
+| `game_nodes` | 后台添加的游戏节点（v19）：节点 ID、名称、对外地址、备注、节点密钥的摘要（只在添加或重置时显示一次原文）、停用标记、添加者与时间、最后注册时间与 IP |
 
 `timeattack_runs` 与 `daily_rewards` 只保留 30 天：kart-data 每小时清理一次（与过期会话一起），同时把过期的好友请求改为拒绝、删除过期的请求结果与 30 天前的私聊消息。账号经济表在 schema v2 引入，`admin_grants`、`timeattack_state` 在 v3，好友私聊的表在 v4，小屋成就与徽章的表在 v5，道具图鉴奖励的表在 v6，开箱记录与赛车探险队的表在 v7，抽奖（`lottery_draws`、`lottery_counters`、`lottery_daily`、`lottery_activities`）在 v8，驾照考试（`license_state`、`license_clears`、`license_records`、`license_runs`）在 v9，俱乐部（`clubs`、`club_members`、`club_applications`、`club_leaves`、`club_donations`、`club_welfare`）在 v10，奖励箱、任务与迷你提示窗公告（`reward_box`、`quest_progress`、`notices`）在 v11。kart-data 每小时还会清理 30 天前已领取或过期的奖励箱记录与 14 天前的任务周期。
 
@@ -655,7 +675,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 
 ## 分布式部署
 
-一个数据服务（连同 MySQL 与 Redis）加任意多个游戏节点，游戏节点可以放在不同机器、不同地区。
+一个数据服务（连同 MySQL 与 Redis）加任意多个游戏节点，游戏节点可以放在不同机器、不同地区。在单独的机器上部署节点推荐用 [`kart-node`](NODE.md)：在管理后台“服务器节点 → 节点管理”添加节点得到节点密钥，节点上只填数据服务网址与这个密钥（第一次运行 `kart-node` 会提示输入），它走数据服务的公网网址（`/multiplayer/` 下）注册，不需要开放内部端口；`kart-node service install` 装成 systemd / Windows 服务，人数按 CPU、内存与上行带宽自动计算。下面的“游戏节点”要点是不用节点密钥（共享集群密钥）时的做法。
 
 **游戏节点**
 
@@ -693,7 +713,8 @@ server {
     client_max_body_size 8m;
 
     # 压缩：npm run build 已为 JS、CSS、wasm 等生成 .gz，gzip_static 直接发送（主包约 4 MB → 0.45 MB）；
-    # 其余文本与数据服务返回的 JSON 现场压缩。.rho/.rho5 等游戏资源本身已压缩，不在 gzip_types 中。
+    # 其余文本与数据服务返回的 JSON 现场压缩。.rho/.rho5 等游戏资源本身已压缩，不在 gzip_types 中；
+    # 客户端用 Range 请求分段读取它们（首次进入只取用到的部分），静态文件默认支持，不要设 max_ranges 0。
     # Nginx 默认只压缩 text/html，不写 gzip_types 时 JS 会原样传输。
     gzip on;
     gzip_static on;
@@ -723,6 +744,18 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         # 服务端每 30 秒 ping，超时要大于这个间隔。
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+    }
+    # 全局大厅的 WebSocket（数据服务，GLOBAL_LOBBY.md）；精确匹配优先于上面的 /multiplayer/。
+    location = /multiplayer/lobby/ws {
+        proxy_pass http://10.0.0.10:8787;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
     }
@@ -828,6 +861,8 @@ server {
 | 位置 | 职责 |
 | --- | --- |
 | `cmd/kart-data`、`cmd/kart-game`、`cmd/kart-migrate-sqlite` | 程序入口 |
+| `cmd/kart-node` | 独立游戏节点命令行（[`NODE.md`](NODE.md)）：配置文件与选项的合并、`init`/`detect`/`check`、systemd 与 Windows 服务、日志文件 |
+| `internal/game/capacity` | 硬件检测（CPU、内存、cgroup 限制，Linux/Windows/macOS）与按 CPU、内存、上行带宽计算节点人数 |
 | `internal/shared/contract` | 内部 API 路径与 JSON 结构、游戏服列表与票据响应 |
 | `internal/shared/ticket` | 票据签名与验签 |
 | `internal/shared/netcfg` | 可信主机、CORS、WebSocket Origin 校验 |
@@ -840,8 +875,9 @@ server {
 | `internal/data/economy` | 商店目录与等级表（`catalog.json`、`levels.json`，由 `client/tools/export-economy-data.mjs` 生成并 `go:embed`） |
 | `internal/shared/rewards` | 联机比赛与计时赛奖励公式、每日上限（游戏节点与数据服务共用） |
 | `internal/data/sqlitemigrate` | 旧 SQLite 数据迁移 |
-| `internal/game/config`、`internal/game/app` | 游戏节点配置与组装 |
-| `internal/game/lobby` | 房间、赛程与特殊模式（移植自 `LobbyService`/`Room`/`GameModes`）；道具赛的房间、赛道与 `item` 请求在 `item_mode.go` |
+| `internal/game/config`、`internal/game/app` | 游戏节点配置与组装（`app/certs.go`：内置 TLS 的证书热加载） |
+| `internal/game/lobby` | 房间、赛程与特殊模式（移植自 `LobbyService`/`Room`/`GameModes`）；道具赛的房间、赛道与 `item` 请求在 `item_mode.go`；全局大厅的两侧（数据服务上的 `Home` 与节点上的 `RaceHost`：开局交接、领取、回大厅）在 `handoff.go` |
+| `internal/data/api/lobby_home.go` | 全局大厅（[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)）：在数据服务里运行 `lobby` 包、`/multiplayer/lobby/ws`、按延迟选节点并签发 race/city 票据、交接记录与兜底、大厅的注册表心跳 |
 | `internal/game/itemmode` | 道具赛规则（纯函数，可注入随机源）：名次组、按权重抽取与获得上限、道具槽、目标选择与 `etaMs`、道具锁、透视、刷箱检查、`useId` 与命中记录；第 3 阶段：冻结装备的特性与共享确定性掷骰（`roll.go`）、按车辆的变换与获得表、迅引擎开局道具、49 种特殊道具规则、双发导弹、黄金盾牌、命中后的道具锁、只解除飞碟减速的电磁波、换位/变更卡、赛中金币与结算称号；`itemmode.json` 由 `client/tools/export-item-mode-data.mjs` 生成 |
 | `internal/game/ws` | WebSocket 读写协程、请求 ID 回复、运动帧中继（首字节 `0xC1` 的城市帧交给 `city`） |
 | `internal/game/city` | 卡丁城线路实例（[`CITY.md`](CITY.md)）：成员 id、100 米兴趣网格与运动帧转发、雷达包、聊天频道与禁言、速度/瞬移校验、AFK、昼夜与天气、管理方法；`city-map.json` 为 `design/open-world/city-map.json` 的副本 |

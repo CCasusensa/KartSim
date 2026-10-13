@@ -234,6 +234,17 @@
 
 赛后数据由游戏节点经本地发件箱异步提交给数据服务，按 `raceId` 幂等写入 MySQL，因此历史接口会在比赛结束后稍晚一点出现该局。可运行 `node server-special-smoke.mjs` 让真实前端校验器检查四种模式的双端协议、赛程、巨人广播、`race.rewards`、回房以及结算是否到达数据服务。脚本会注册五个测试账号（每个账号带自己的 `X-Forwarded-For`，数据服务须信任运行脚本的地址，见 `server-go/README.md`“测试”），并写入所连集群的 MySQL；请对测试部署运行。
 
+## 本地新增：全局大厅
+
+新版浏览器的大厅与等待中的房间在**数据服务**上，比赛时才去游戏节点（`server-go/GLOBAL_LOBBY.md`）：
+
+- 大厅：`POST /multiplayer/lobby/ticket`（Bearer）取票据，WebSocket `<数据服务>/multiplayer/lobby/ws`（`/multiplayer/lobby/offer` 回 501 `USE_WEBSOCKET`，浏览器直接用 WebSocket）。`hello`、房间命令与快照和游戏节点完全相同。另有：
+  - 命令 `{"type":"node-latency","latency":{"节点ID":毫秒}}` → `{"type":"ok"}`：浏览器到各节点 `/multiplayer/healthz` 的往返时间，数据服务据此为房间选节点；
+  - 命令 `{"type":"city-host"}` → `{"type":"city-host","nodeId","name","origin","ticket"}`：卡丁城所在节点与票据；
+  - 事件 `{"type":"race-host","roomId","nodeId","name","origin","ticket"}`：房主开始后推给每个成员，`origin` 为 `null` 表示经数据服务所在 origin 同源代理；
+  - 比赛中的房间：列表 `gaming:true`，`join` 回 409 `ROOM_RACING`，修改回 `ROOM_NOT_OPEN`；`start` 的回复仍是 `phase:"open"`，比赛快照来自节点；房间赛后回到大厅时再推一次房间快照（修订号高于节点上的最后一个）。房间 `raceError` 可能为 `NO_GAME_SERVER`、`RACE_SERVER_UNREACHABLE`、`RACE_SERVER_LOST`。
+- 节点：浏览器用 `race-host` 的票据另开一条到节点的连接（WebRTC 或 WebSocket，与以前相同）；`welcome` 的 `playerId` 与大厅里的相同，紧接着推送房间快照（`phase:"loading"`）。之后的比赛命令与以前相同。全员返回房间后节点发 `{"type":"room-home","roomId"}` 并在 2 秒后以 1000 关闭连接；在此之前它推送的 `phase:"open"` 快照可以忽略，以大厅的为准。
+
 ## 本地新增：账号经济
 
 原版下载物没有服务端经济实现；以下接口全部是**本地新增**，权威约定见 [`server-go/ECONOMY.md`](server-go/ECONOMY.md) 第 6、8 节，部署与管理见 [`server-go/README.md`](server-go/README.md)“账号经济”。都在数据服务（`backendOrigin`）上，JSON 请求与响应，错误体 `{"error":"代码"}`；除商店目录外都要 `Authorization: Bearer <token>`，未登录 `401 LOGIN_REQUIRED`；写接口按账号限流 `429 TOO_MANY_ATTEMPTS`。余额、库存与等级只以数据服务为准。

@@ -1,4 +1,4 @@
-import { downloadRaceTrack } from "../resources/resource-manager";
+import { beginRaceLoad } from "../resources/resource-manager";
 /** Resource and connection assembly for a live multiplayer race. */
 import { isItemRace, itemTrackCardModeKey } from "./lobby-item-mode";
 export interface MultiplayerRaceLoaderDependencies {
@@ -58,19 +58,24 @@ export function createMultiplayerRaceLoader(
         if (signal.aborted) throw new Error("本局装配已取消。");
       };
       checkCancellation();
-      // The room's track downloads as the race loads (resource-manager).
-      await downloadRaceTrack(room?.trackId);
-      checkCancellation();
-      const raceAssets = await deps.loadRaceAssets(
-        { ...source, toonStageBinding: deps.createToonStageBinding() },
-        config, room, audio,
-        {
-          playerId: connection.playerId,
-          profile: host.profile(),
-          anonymous: host.raceAnonymous?.() ?? false,
-          classicHud: host.classicHud?.() ?? false,
-        }, signal,
-      );
+      // Nothing downloads whole first: what every race reads is fetched at
+      // once, the room's track, karts and characters by range (resource-manager).
+      const endRaceLoad = beginRaceLoad();
+      let raceAssets: any;
+      try {
+        raceAssets = await deps.loadRaceAssets(
+          { ...source, toonStageBinding: deps.createToonStageBinding() },
+          config, room, audio,
+          {
+            playerId: connection.playerId,
+            profile: host.profile(),
+            anonymous: host.raceAnonymous?.() ?? false,
+            classicHud: host.classicHud?.() ?? false,
+          }, signal,
+        );
+      } finally {
+        endRaceLoad();
+      }
 
       let roadblockFlag: any;
       let result: any;

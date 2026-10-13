@@ -12,6 +12,14 @@ bundle. It can be developed independently of the original minified code.
   config file.
 - `game-servers.ts`, `game-server-dialog.ts`: the data service's game server
   list, one-time entry tickets, the remembered choice and the server picker.
+  The browser enters the global lobby (`LOBBY_SERVER`, server-go/GLOBAL_LOBBY.md)
+  without a picker; the picker remains for clusters whose lobby fails.
+- `race-host.ts`: the global lobby's node connections. On `race-host` it opens
+  a second connection to the room's game node and points `host.client` at it,
+  so the room and race code talks to the node; the lobby's snapshot of the
+  room (or the node's `room-home`) switches back. It also measures the round
+  trip to every node for the lobby (`node-latency`) and opens the 卡丁城 on
+  the node `city-host` names.
 - `http.ts`: health/version check, account and guest-name API, session token,
   SDP offer/answer exchange, and sanitized ICE servers.
 - `protocol.ts`: the known control message names, core message types, and

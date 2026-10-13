@@ -1,3 +1,5 @@
+import { observeOf, updateObserverCamera } from "./replay-observe";
+
 export interface RaceCameraDependencies {
   versionTag(tag: string): string;
   processState: unknown;
@@ -47,6 +49,11 @@ export class RaceCameraCoordinator {
 
   update(timestampMs: number, camera: any, session: any,
     vehicle: any, track: any): void {
+    // OB 观看 (TIMEATTACK.md 4): once the race is on, the camera follows the watched ghost.
+    const observe = observeOf(session);
+    if (observe && session.cameraMode !== "ready" &&
+        updateObserverCamera({ camera, session, cameras: { drive: this.driveCameraman }, track }, observe, timestampMs))
+      return;
     if (session.cameraMode === "ready")
       session.readyCamera?.apply(camera, timestampMs, vehicle.body);
     else if (session.cameraMode === "drive")

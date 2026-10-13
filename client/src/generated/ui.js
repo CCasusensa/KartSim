@@ -18,6 +18,7 @@ import { activateSettingsControl, applySettingsGraphicsPreset, applySettingsPres
 import { addGraphicsPresentationOptions } from "../ui/graphics-presentation-options.ts";
 import { activateReadyButton, activateReadyTrainingShortcut, applyReadyViewOptions, cancelReadyPointer, drawReadyButtonText, drawReadyImageButton, leaveReadyPointer, moveReadyPointer, pressReadyPointer, readyButtonAtPoint, readyButtonNodeId, refreshReadyViewRecord, releaseReadyPointer, selectReadyViewOption, setReadyViewSpeedChannel } from "../ui/ready-view-actions.ts";
 import { disposeReadyVehiclePreview, loadReadyVehiclePreview, renderReadyVehiclePreview } from "../ui/ready-vehicle-preview.ts";
+import { installReadyMissions, disposeReadyMissions, drawReadyMissionNode, drawReadyMissionChildren, drawReadyMissionLabel, drawReadyMissionRiderPreview, activateReadyMissionButton } from "../ui/ready-missions.ts";
 import { GarageCanvasCompositor } from "../ui/garage-compositor.ts";
 import { canFavoriteItem, centerOffset, defaultLocalProfile, favoriteItemIdentity, favoriteItemKey, favoriteItemKeys, hasSystemKartKey, isUnsignedInteger, loadLocalProfile, makeFavoriteItem, parseLocalProfile, resolveSystemKartVariant, saveLocalProfile, selectLocalKart, uniqueItemKey, validateFavoriteItems, validateFavoriteTracks, validateInteger, validateNonzeroItemId } from "../ui/local-profile.ts";
 import { loadBrowserProfile, syncBrowserProfile } from "../ui/profile-sync.ts";
@@ -61,6 +62,7 @@ const trackPickerAssetDependencies = { parseBml: s2, decodePng: p2, frame: Ft, b
 const trackPickerWindowDependencies = { loadAssets: (library, groups) => loadTrackPickerWindowAssets(library, groups, trackPickerAssetDependencies), loadTrackCard: (library, path) => loadTrackCard(library, path, { decodePng: p2 }), releaseFont: G1, layoutTree: jc, layoutRect: V0, frameClient: E9, paintFrame: C9, paintText: m9, measureText: ve, configureCanvas: p3, pixelRatio: xe, positionControl: aw, noticeLayout: Wo, paintNotice: qP };
 const readyViewDependencies = { formatRecord: yT, speedChannel: Ue, defaultVersion: ze };
 const readyButtonDrawingDependencies = { paintFrame: ct, paintText: df, translate: Yn };
+const readyMissionDependencies = { layout: V0, paintFrame: C9, innerRect: E9, attribute: T, visible: fF, drawImage: fs, translate: Yn, paintText: df, color: bl, image: pf, requireAttribute: Oi, trackCardPanel: wT, paintButtonFrame: ct, buttonStyle: m4, parseBml: s2, loadPreview: (library, kart, character, environment, stageBinding, profile) => ny.load(library, kart, character, environment, stageBinding, profile), loadTexture: file => K5(file) };
 class Ma0 extends GarageCanvasCompositor {
   constructor(canvas) {
     super(canvas, {
@@ -1886,21 +1888,14 @@ class ty {
   onViewportResize = () => {
     !this.shown || this.frozen || (this.resizeCanvas(), this.render());
   };
-  static async load(e) {
+    static async load(e) {
     const t = await R80(e.library, e.trackPath, e.trackId, e.randomGroup);
     let i;
     try {
-      return (
-        (i = await ny.load(
-          e.library,
-          e.kart,
-          e.character,
-          e.environment,
-          e.stageBinding,
-          e.profile,
-        )),
-        new ty(e, t, i)
-      );
+      i = await ny.load(e.library, e.kart, e.character, e.environment, e.stageBinding, e.profile);
+      const view = new ty(e, t, i);
+      await installReadyMissions(view, readyMissionDependencies);
+      return view;
     } catch (r) {
       throw (i?.dispose(), G1(t.font), r);
     }
@@ -1941,9 +1936,10 @@ class ty {
       this.resizeCanvas(),
       this.render(this.renderTimeMs || performance.now()));
   }
-  dispose() {
+    dispose() {
     this.disposed ||
-      ((this.disposed = !0),
+      (disposeReadyMissions(this),
+      (this.disposed = !0),
       this.resizeObserver.disconnect(),
       window.removeEventListener("resize", this.onViewportResize),
       this.canvas.removeEventListener("pointermove", this.onPointerMove),
@@ -1965,35 +1961,8 @@ class ty {
   get reverseTrack() {
     return /_rvs$/i.test(this.options.trackId);
   }
-  drawNode(e, t, i) {
-    if (
-      !fF(
-        e,
-        this.hasReplay,
-        this.reverseTrack,
-        this.options.randomGroup !== void 0,
-      )
-    )
-      return;
-    const r = T(e, "frame"),
-      s = r === void 0 ? void 0 : this.assets.frames.get(r),
-      o = this.assets.images.get(T(e, "texture") ?? ""),
-      a = V0(e, t, s, o);
-    let c = a;
-    (s && (C9(this.context, s, this.assets.frame.image, a), (c = E9(s, a))),
-      this.drawNodeSelf(e, a, i),
-      this.drawNodeChildren(e, c),
-      this.drawNodeCaption(e, a, s));
-  }
-  drawNodeChildren(e, t) {
-    (e.children.forEach((i) => {
-      (this.options.randomGroup && T(i, "name") === "trackInfoPanel") ||
-        this.drawNode(i, t, e);
-    }),
-      T(e, "name") === "trackCardPanel" &&
-        !this.options.randomGroup &&
-        this.drawNode(this.assets.trackDifficulty, t));
-  }
+    drawNode(e, t, i) { return drawReadyMissionNode(this, e, t, i, readyMissionDependencies); }
+    drawNodeChildren(e, t) { return drawReadyMissionChildren(this, e, t, readyMissionDependencies); }
   drawNodeCaption(e, t, i) {
     e.name === "CaptionWindow" && i && this.drawCaptionTitle(e, t, i);
   }
@@ -2016,11 +1985,7 @@ class ty {
       ? this.drawImageBoard(e, t)
       : e.name === "Panel" && this.drawPanel(e, t, i);
   }
-  drawRiderPreview(e, t) {
-    const i = t?.children.find((r) => T(r, "name") === "캐릭터창_training");
-    if (!i) throw new Error("P3528 READY 缺少车手预览的训练布局。");
-    this.preview.render(this.context, V0(i, e), this.renderTimeMs);
-  }
+    drawRiderPreview(e, t) { return drawReadyMissionRiderPreview(this, e, t, readyMissionDependencies); }
   drawCaptionTitle(e, t, i) {
     const r = Yn("#sb(timeAttack)", this.assets.strings),
       s = f3(i, t, an(e, this.assets.frameConfig));
@@ -2049,20 +2014,7 @@ class ty {
     const s = T(e, "color");
     s !== void 0 && X80(this.context, t, s);
   }
-  drawLabel(e, t, i) {
-    const r = wT(i)
-        ? this.options.randomGroup
-          ? W80(this.options.randomGroup)
-          : `${this.reverseTrack ? "[反]" : ""}${this.assets.trackTitle}`
-        : Y80(e, i, this.record),
-      s = Yn(r, this.assets.strings);
-    df(this.context, s, t, {
-      render: T(e, "textRender") ?? "bold14",
-      align: T(e, "textAlign") ?? "left",
-      color: bl(T(e, "textColor") ?? "white"),
-      strokeColor: bl(T(e, "textColor2") ?? "255 0 0 0"),
-    });
-  }
+    drawLabel(e, t, i) { return drawReadyMissionLabel(this, e, t, i, readyMissionDependencies); }
   drawCharPanel(e, t) {
     const i = pf(this.assets.images, Oi(e, "texture")),
       r = ga(e, i);
@@ -2086,7 +2038,7 @@ class ty {
     onPointerMove = event => moveReadyPointer(this, event);
     onPointerDown = event => pressReadyPointer(this, event);
     onPointerUp = event => releaseReadyPointer(this, event);
-    activateButton(name) { return activateReadyButton(this, name); }
+    activateButton(name) { return activateReadyMissionButton(this, name); }
     refreshRecord() { return refreshReadyViewRecord(this, readyViewDependencies); }
     setSpeedChannel(change) { return setReadyViewSpeedChannel(this, change, readyViewDependencies); }
     selectReadyOption(name) { return selectReadyViewOption(this, name); }
@@ -2495,11 +2447,7 @@ function bl(n) {
   return `rgba(${t}, ${i}, ${r}, ${e / 255})`;
 }
 
-function Y80(n, e, t) {
-  if (T(n, "name") !== "value" || e === void 0) return T(n, "text") ?? "";
-  const i = G80.get(T(e, "name") ?? "");
-  return i === void 0 ? (T(n, "text") ?? "") : t[i];
-}
+
 
 function yT(n, e, t) {
   if (!n) return { setting: "", time: "", kart: "", crash: "", booster: "" };
@@ -2800,4 +2748,4 @@ function tm(n) {
 
 
 
-export { C7, E7, Fc0, Hv, Jf0, Js, Jv, KP, Ka0, Kv, Lt, Ma0, Qs, Qv, T4, T7, Ta0, Tc0, _7, aT, cT, ds, ep0, ey, gr, ja0, np0, oy, ry, tp0, ty, uT, w80 };
+export { C7, E7, Fc0, Hv, Jf0, Js, Jv, KP, Ka0, Kv, Lt, Ma0, Qs, Qv, T4, T7, Ta0, Tc0, _7, aT, cT, ds, ep0, ey, gr, ja0, np0, ny, oy, ry, tp0, ty, uT, w80 };

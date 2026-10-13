@@ -190,6 +190,31 @@ export interface NodeRow {
   stats: NodeStats | null
 }
 
+/** A game node added in the console (GET /api/admin/game-nodes). */
+export interface GameNodeRow {
+  id: string
+  name: string
+  /** Set in the console; empty: the node decides. */
+  origin?: string
+  note?: string
+  disabled: boolean
+  createdBy: string
+  createdAt: number
+  keyCreatedAt: number
+  registeredAt?: number
+  registeredIp?: string
+  status: 'online' | 'offline' | 'never' | 'disabled' | string
+  players: number
+  capacity: number
+  /** The origin the running node reports. */
+  liveOrigin?: string | null
+  seenAt?: number
+}
+
+export interface GameNodesResponse {
+  nodes: GameNodeRow[]
+}
+
 export interface NodesResponse {
   now: number
   nodes: NodeRow[]
@@ -517,4 +542,39 @@ export interface EconomySettings {
   updatedBy: string
   defaults: { register: CurrencyGrant; race: CurrencyGrant; shopClaim: ShopClaimSettings }
   serverTime: number
+}
+
+/** 联赛回放 (TIMEATTACK.md 4): a published copy of a ranked replay. */
+export interface FeaturedReplay {
+  id: number
+  title: string
+  note?: string
+  trackId: string
+  trackName: string
+  speed: number
+  booster: number
+  accountId: string
+  nickname: string
+  kartName: string
+  bestMs: number
+  byteSize: number
+  createdBy: string
+  createdAt: number
+}
+
+/** A stored ranked replay (GET /api/admin/timeattack-replays). */
+export interface TimeAttackReplayRow {
+  trackId: string
+  trackName: string
+  speed: number
+  booster: number
+  accountId: string
+  username: string
+  nickname: string
+  kartName: string
+  bestMs: number
+  byteSize: number
+  updatedAt: number
+  /** How many 联赛回放 entries were published from it. */
+  featured: number
 }

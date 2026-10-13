@@ -74,10 +74,18 @@ var maxRaceReward = func() rewards.Reward {
 	return most
 }()
 
-// InternalHandler serves the game-node API. Every call needs the cluster key.
-func (a *API) InternalHandler() http.Handler {
+// InternalHandler serves the game-node API on the internal listener: with
+// the cluster secret or a node's own key, at /internal/v1/… and under
+// /multiplayer.
+func (a *API) InternalHandler() http.Handler { return a.nodeAPI(true) }
+
+// nodeAPI serves the game-node API. Every call needs a node key (a node
+// added in the console, acting only as itself) or, when clusterKey, the
+// cluster secret.
+func (a *API) nodeAPI(clusterKey bool) http.Handler {
 	mux := http.NewServeMux()
 	route := func(path string, handler handlerFunc) { mux.Handle("POST "+path, a.serve(handler)) }
+	route(contract.PathNodeRegister, a.registerNode)
 	route(contract.PathHeartbeat, a.heartbeat)
 	route(contract.PathNodeLeave, a.nodeLeave)
 	route(contract.PathPresenceClaim, a.presenceClaim)
@@ -86,13 +94,27 @@ func (a *API) InternalHandler() http.Handler {
 	route(contract.PathRaces, a.saveRace)
 	route(contract.PathEquipmentVerify, a.verifyEquipment)
 	route(contract.PathAntiCheat, a.saveAntiCheat)
+	route(contract.PathRoomClaim, a.claimRoom)
+	route(contract.PathRoomReturn, a.returnRoom)
 
 	routes := jsonFallback(mux)
 	expected := sha256.Sum256(a.secret)
 	return recoverPanics(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if rest, ok := strings.CutPrefix(r.URL.Path, contract.NodePathPrefix); ok && strings.HasPrefix(rest, "/internal/") {
+			r.URL.Path, r.URL.RawPath = rest, ""
+		}
+		if key := r.Header.Get(contract.NodeKeyHeader); key != "" {
+			id, err := a.authenticateNode(r.Context(), key)
+			if err != nil {
+				apierr.WriteError(w, err)
+				return
+			}
+			routes.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), nodeIdentityKey{}, id)))
+			return
+		}
 		// Comparing digests keeps the comparison constant-time for any key length.
 		given := sha256.Sum256([]byte(r.Header.Get(contract.ClusterKeyHeader)))
-		if len(a.secret) == 0 || subtle.ConstantTimeCompare(given[:], expected[:]) != 1 {
+		if !clusterKey || len(a.secret) == 0 || subtle.ConstantTimeCompare(given[:], expected[:]) != 1 {
 			apierr.WriteError(w, errClusterKeyInvalid)
 			return
 		}
@@ -119,8 +141,8 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	name := strings.TrimSpace(request.Name)
 	if name == "" {
@@ -142,8 +164,35 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 		stats.Races < 0 || (stats.Version != "" && !validText(stats.Version, 64))) {
 		return errInvalidHeartbeat
 	}
+	_, keyed := keyedNode(r.Context())
+	if keyed {
+		// The console's name and origin win, so edits apply within a heartbeat.
+		nodes, err := a.gameNodes(r.Context())
+		if err != nil {
+			return errServiceUnavailable
+		}
+		registered := nodes[request.NodeID]
+		name = registered.Name
+		if registered.Origin != "" {
+			origin = registered.Origin
+		}
+	}
+	// The sessions of the global lobby's racers (and city visitors) are
+	// held by the lobby: they are only checked, and listed by the lobby.
+	var own, borrowed []contract.OnlinePlayer
+	for _, player := range request.Players {
+		if player.Lobby {
+			borrowed = append(borrowed, player)
+		} else {
+			own = append(own, player)
+		}
+	}
+	if own == nil {
+		own = []contract.OnlinePlayer{}
+	}
 	now := a.nowMillis()
 	result, err := a.cluster.Heartbeat(r.Context(), cache.Node{
+		Keyed:           keyed,
 		NodeID:          request.NodeID,
 		Name:            name,
 		Origin:          origin,
@@ -154,7 +203,7 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 		ProtocolVersion: request.ProtocolVersion,
 		SeenAt:          now,
 		Stats:           request.Stats,
-	}, request.Players)
+	}, own)
 	if err != nil {
 		a.log.Warn("heartbeat not stored", "node", request.NodeID, "error", err)
 		return errServiceUnavailable
@@ -163,6 +212,11 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 		// Only the admin console's online list and offline-node record are
 		// missing; the presence refresh and its conflicts stand.
 		a.log.Warn("heartbeat online list not stored", "node", request.NodeID, "error", result.ListErr)
+	}
+	if lobbyConflicts, err := a.cluster.LobbyConflicts(r.Context(), borrowed); err != nil {
+		a.log.Warn("heartbeat: lobby claims unavailable", "node", request.NodeID, "error", err)
+	} else {
+		result.Conflicts = append(result.Conflicts, lobbyConflicts...)
 	}
 	if result.Freed > 0 {
 		a.log.Info("game node restarted; released the names of its previous process", "node", request.NodeID,
@@ -192,8 +246,8 @@ func (a *API) nodeLeave(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	if err := a.cluster.Leave(r.Context(), request.NodeID); err != nil {
 		a.log.Warn("node leave not stored", "node", request.NodeID, "error", err)
@@ -210,9 +264,18 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
+	if err := a.claimPresence(r.Context(), request); err != nil {
+		return err
+	}
+	return writeJSON(w, http.StatusOK, contract.OK{OK: true})
+}
+
+// claimPresence reserves a live nickname and account cluster-wide for a
+// game node's hello or the global lobby's.
+func (a *API) claimPresence(ctx context.Context, request contract.PresenceClaimRequest) error {
 	if !validASCIIID(request.PlayerID, 64) {
 		return errInvalidPlayerID
 	}
@@ -223,7 +286,7 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 		if !validName(&request.Name, 18) {
 			return errInvalidGuestName
 		}
-		taken, err := a.store.NicknameTaken(r.Context(), request.Name)
+		taken, err := a.store.NicknameTaken(ctx, request.Name)
 		if err != nil {
 			return err
 		}
@@ -236,19 +299,19 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 	if request.AccountID != "" && a.store != nil { // tests run presence without MySQL
 		// An entry ticket issued just before a ban stays valid for minutes;
 		// the banned account still does not get back into a game.
-		if err := a.store.CheckNotBanned(r.Context(), request.AccountID, a.nowMillis()); err != nil {
+		if err := a.store.CheckNotBanned(ctx, request.AccountID, a.nowMillis()); err != nil {
 			return err
 		}
 	}
 	presence := cache.Presence{NodeID: request.NodeID, PlayerID: request.PlayerID, Name: request.Name,
 		AccountID: request.AccountID}
-	outcome, err := a.cluster.ClaimPresence(r.Context(), presence)
-	if r.Context().Err() != nil && (outcome == cache.Claimed || err != nil) {
+	outcome, err := a.cluster.ClaimPresence(ctx, presence)
+	if ctx.Err() != nil && (outcome == cache.Claimed || err != nil) {
 		// The game node gave up waiting (and treats the claim as failed), but
 		// the script may have run: release it, or the name and account stay
 		// locked until they expire. The release only deletes this player's
 		// own values.
-		a.releaseLateClaim(r.Context(), presence, "request canceled")
+		a.releaseLateClaim(ctx, presence, "request canceled")
 		return errServiceUnavailable
 	}
 	if err != nil {
@@ -267,8 +330,8 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 		// the claim either finds this claim and marks it, or committed before
 		// this second check sees it. Either way the banned account is not
 		// left in the game.
-		if err := a.store.CheckNotBanned(r.Context(), request.AccountID, a.nowMillis()); err != nil {
-			a.releaseLateClaim(r.Context(), presence, "account banned")
+		if err := a.store.CheckNotBanned(ctx, request.AccountID, a.nowMillis()); err != nil {
+			a.releaseLateClaim(ctx, presence, "account banned")
 			if _, refused := apierr.As(err); !refused {
 				a.log.Warn("presence claim: ban check unavailable", "node", request.NodeID, "error", err)
 				return errServiceUnavailable
@@ -279,7 +342,7 @@ func (a *API) presenceClaim(w http.ResponseWriter, r *http.Request) error {
 	if request.AccountID != "" {
 		a.hub.GameChanged(request.AccountID) // friends see "inGame"
 	}
-	return writeJSON(w, http.StatusOK, contract.OK{OK: true})
+	return nil
 }
 
 // releaseLateClaim frees a claim that is not answered as made: its request
@@ -301,8 +364,8 @@ func (a *API) presenceRelease(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	if !validASCIIID(request.PlayerID, 64) {
 		return errInvalidPlayerID
@@ -339,8 +402,8 @@ func (a *API) saveRoomRules(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	rules, ok := compactObject(request.Rules)
 	if !ok || !validASCIIID(request.RoomID, 64) || len(rules) > maxRoomRulesBytes || request.UpdatedAt <= 0 {
@@ -495,8 +558,8 @@ func (a *API) saveRace(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	if !validNodeID(request.NodeID) {
-		return errInvalidNodeID
+	if err := a.callerNode(r, request.NodeID); err != nil {
+		return err
 	}
 	// A future finish time would pin the race above newer ones in the history.
 	request.FinishedAt = a.clampNodeTime(request.NodeID, "race", request.FinishedAt)

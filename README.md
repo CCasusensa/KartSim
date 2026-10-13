@@ -43,7 +43,7 @@ KartSim/
 │   ├── tests/               Client tests
 │   └── tools/               Build helpers and data export tools (economy, career, item race, license, lottery, club …)
 ├── server-go/               Back-end source (Go)
-│   ├── cmd/                 kart-data, kart-game, kart-migrate-sqlite
+│   ├── cmd/                 kart-data, kart-game, kart-node, kart-migrate-sqlite
 │   ├── internal/data/       Data service: accounts, economy, store, admin API …
 │   ├── internal/game/       Game node: lobby, rooms, races, item race, WebSocket/WebRTC …
 │   ├── internal/shared/     Contract and helpers shared by both services
@@ -82,6 +82,18 @@ What this means in practice:
 - `client/src/generated/` still contains compatibility modules generated from the original release bundle. They are needed at runtime and are being replaced by hand-written modules. Regenerating them (`npm run generate`) needs the unpublished `recovered/`.
 - Some client tests compare behaviour with the original release, and some data export tools read `recovered/`. Those only run in the maintainers' local copies. `npm run typecheck`, `npm run build` and the Go tests do not need it.
 
+### One-click start with Docker
+
+Requirements: Git LFS and Docker (Docker Desktop on macOS and Windows; Docker Engine with the compose plugin on Linux). Three images are built: `kartsim-client` (the web client behind Nginx), `kartsim-data` (data service, global lobby and admin console) and `kartsim-node` (game node). MySQL and Redis use their official images.
+
+```sh
+git lfs install && git lfs pull     # game resources in mirror/p3553 (about 3.5 GB)
+./docker-start.sh                   # Windows: double-click docker-start.cmd
+./docker-start.sh --pull            # or skip the build: use the prebuilt images on Docker Hub
+```
+
+The first run writes `.env` with random passwords and secrets, builds the images, starts everything, registers the admin account and prints its password. Open <http://localhost:8780/>. Other devices on the LAN use `https://<LAN IP>:8443/`, which has a self-signed certificate; you can put your own `cert.pem`/`key.pem` in `docker-data/tls/`. The admin console is at <http://localhost:8780/multiplayer/admin>. Ports, the admin name, the registration mode and the economy settings are in `.env`. Stop with `./docker-stop.sh` (`docker-stop.cmd`); the data stays in a Docker volume. The prebuilt images are [`kbl13350/kartsim-client`](https://hub.docker.com/r/kbl13350/kartsim-client), [`kbl13350/kartsim-data`](https://hub.docker.com/r/kbl13350/kartsim-data) and [`kbl13350/kartsim-node`](https://hub.docker.com/r/kbl13350/kartsim-node) (amd64 and arm64). A game node on another machine needs only `docker run kbl13350/kartsim-node` with the data service address and its key: see "用 Docker 运行" in [`server-go/NODE.md`](server-go/NODE.md).
+
 ### Quick start
 
 Requirements: Git LFS, Node.js 22+, Go 1.26+, MySQL 8.4 and Redis 7.
@@ -98,7 +110,8 @@ Open the client at <http://127.0.0.1:8780/> (the script prints the exact address
 
 - `./run-lan.sh` lets other devices on the LAN play over HTTPS.
 - `./run-local.sh` serves the untouched original release at <http://127.0.0.1:8765/>.
-- For production, use `server-go/docker-compose.yml`.
+- For a server-only deployment behind your own Nginx, use `server-go/docker-compose.yml`.
+- To run game nodes on other machines (Linux or Windows), use `kart-node`, which sizes the player limit from the hardware: [`server-go/NODE.md`](server-go/NODE.md). Players share one lobby on the data service, and each race goes to the node with the lowest latency for its room: [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md).
 - More detail:
   - Environment variables, APIs, deployment and tests: [`server-go/README.md`](server-go/README.md)
   - Client development: [`client/README.md`](client/README.md)
@@ -146,7 +159,7 @@ KartSim/
 │   ├── tests/               客户端测试
 │   └── tools/               构建辅助与数据导出工具（经济、生涯、道具赛、驾照、抽奖、俱乐部 …）
 ├── server-go/               后端源码（Go）
-│   ├── cmd/                 kart-data、kart-game、kart-migrate-sqlite
+│   ├── cmd/                 kart-data、kart-game、kart-node、kart-migrate-sqlite
 │   ├── internal/data/       数据服务：账号、经济、存储、管理接口 …
 │   ├── internal/game/       游戏节点：大厅、房间、比赛、道具赛、WebSocket/WebRTC …
 │   ├── internal/shared/     两个服务共用的协议约定与工具
@@ -185,6 +198,18 @@ KartSim/
 - `client/src/generated/` 仍有由原版发行包生成的兼容模块。运行时需要它们，正在逐步替换为手写模块。重新生成（`npm run generate`）需要未公开的 `recovered/`。
 - 部分客户端测试要和原版逐项对照行为，部分数据导出工具会读取 `recovered/`，它们只能在维护者本地运行。`npm run typecheck`、`npm run build` 和 Go 测试不依赖它。
 
+### Docker 一键启动
+
+需要 Git LFS 和 Docker（macOS、Windows 用 Docker Desktop；Linux 用 Docker Engine 加 compose 插件）。会构建三个镜像：`kartsim-client`（网页客户端，Nginx 提供）、`kartsim-data`（数据服务，含全局大厅与管理后台）、`kartsim-node`（游戏节点）。MySQL 与 Redis 用官方镜像。
+
+```sh
+git lfs install && git lfs pull     # 拉取 mirror/p3553 游戏资源（约 3.5 GB）
+./docker-start.sh                   # Windows：双击 docker-start.cmd
+./docker-start.sh --pull            # 或者不在本机构建，直接用 Docker Hub 上的镜像
+```
+
+第一次运行会生成 `.env`（随机密码与密钥）、构建镜像并启动全部服务，自动注册管理员并打印密码。本机打开 <http://localhost:8780/>；局域网的其他设备打开 `https://<局域网 IP>:8443/`（自签名证书；也可以把自己的 `cert.pem`、`key.pem` 放进 `docker-data/tls/`）。管理后台：<http://localhost:8780/multiplayer/admin>。端口、管理员、注册方式、经济设置都在 `.env` 里。停止用 `./docker-stop.sh`（`docker-stop.cmd`），数据保留在 Docker 卷里。Docker Hub 上的镜像：[`kbl13350/kartsim-client`](https://hub.docker.com/r/kbl13350/kartsim-client)、[`kbl13350/kartsim-data`](https://hub.docker.com/r/kbl13350/kartsim-data)、[`kbl13350/kartsim-node`](https://hub.docker.com/r/kbl13350/kartsim-node)（amd64 与 arm64）。在其他机器上加游戏节点只要 `docker run kbl13350/kartsim-node` 并填数据服务地址与密钥，见 [`server-go/NODE.md`](server-go/NODE.md)“用 Docker 运行”。
+
 ### 快速开始
 
 需要 Git LFS、Node.js 22+、Go 1.26+、MySQL 8.4 和 Redis 7。
@@ -201,7 +226,8 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 
 - `./run-lan.sh`：让局域网设备通过 HTTPS 访问。
 - `./run-local.sh`：在 <http://127.0.0.1:8765/> 原样运行原版发行镜像。
-- 生产部署：使用 `server-go/docker-compose.yml`。
+- 只部署服务端、前面用自己的 Nginx：使用 `server-go/docker-compose.yml`。
+- 在其他机器（Linux 或 Windows）上加游戏节点：使用按硬件自动设置人数的 `kart-node`，见 [`server-go/NODE.md`](server-go/NODE.md)。所有玩家共用数据服务上的一个大厅，每局比赛自动去对全房间延迟最低的节点，见 [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md)。
 - 详细说明：
   - 环境变量、接口、部署与测试：[`server-go/README.md`](server-go/README.md)
   - 客户端开发：[`client/README.md`](client/README.md)
@@ -249,7 +275,7 @@ KartSim/
 │   ├── tests/               클라이언트 테스트
 │   └── tools/               빌드 보조 및 데이터 내보내기 도구(경제, 커리어, 아이템전, 라이선스, 뽑기, 클럽 …)
 ├── server-go/               백엔드 소스(Go)
-│   ├── cmd/                 kart-data, kart-game, kart-migrate-sqlite
+│   ├── cmd/                 kart-data, kart-game, kart-node, kart-migrate-sqlite
 │   ├── internal/data/       데이터 서비스: 계정, 경제, 저장소, 관리자 API …
 │   ├── internal/game/       게임 노드: 로비, 방, 레이스, 아이템전, WebSocket/WebRTC …
 │   ├── internal/shared/     두 서비스가 함께 쓰는 프로토콜 규약과 유틸리티
@@ -288,6 +314,18 @@ KartSim/
 - `client/src/generated/`에는 원본 배포 번들에서 생성한 호환 모듈이 아직 남아 있습니다. 실행에 필요하며, 직접 작성한 모듈로 단계적으로 교체하고 있습니다. 다시 생성(`npm run generate`)하려면 비공개 `recovered/`가 필요합니다.
 - 일부 클라이언트 테스트는 원본과 동작을 비교하고, 일부 데이터 내보내기 도구는 `recovered/`를 읽습니다. 이것들은 관리자 로컬 사본에서만 실행됩니다. `npm run typecheck`, `npm run build`, Go 테스트에는 필요하지 않습니다.
 
+### Docker 원클릭 실행
+
+필요한 것: Git LFS, Docker(macOS·Windows는 Docker Desktop, Linux는 Docker Engine과 compose 플러그인). 이미지 세 개를 빌드합니다: `kartsim-client`(Nginx가 제공하는 웹 클라이언트), `kartsim-data`(데이터 서비스, 글로벌 로비와 관리자 콘솔 포함), `kartsim-node`(게임 노드). MySQL과 Redis는 공식 이미지를 씁니다.
+
+```sh
+git lfs install && git lfs pull     # mirror/p3553 게임 리소스 받기(약 3.5 GB)
+./docker-start.sh                   # Windows: docker-start.cmd 더블클릭
+./docker-start.sh --pull            # 또는 빌드 없이 Docker Hub의 이미지 사용
+```
+
+처음 실행하면 `.env`(무작위 비밀번호와 키)를 만들고, 이미지를 빌드해 모든 서비스를 시작하며, 관리자 계정을 등록하고 비밀번호를 출력합니다. 이 컴퓨터에서는 <http://localhost:8780/>, 같은 LAN의 다른 기기에서는 `https://<LAN IP>:8443/`을 엽니다(자체 서명 인증서이며, 직접 가진 `cert.pem`/`key.pem`을 `docker-data/tls/`에 넣어도 됩니다). 관리자 콘솔: <http://localhost:8780/multiplayer/admin>. 포트, 관리자, 가입 방식, 경제 설정은 `.env`에 있습니다. 중지는 `./docker-stop.sh`(`docker-stop.cmd`)이며 데이터는 Docker 볼륨에 남습니다. Docker Hub 이미지: [`kbl13350/kartsim-client`](https://hub.docker.com/r/kbl13350/kartsim-client), [`kbl13350/kartsim-data`](https://hub.docker.com/r/kbl13350/kartsim-data), [`kbl13350/kartsim-node`](https://hub.docker.com/r/kbl13350/kartsim-node)(amd64, arm64). 다른 서버에 게임 노드를 추가할 때는 데이터 서비스 주소와 키만 넣어 `docker run kbl13350/kartsim-node`를 실행하면 됩니다. [`server-go/NODE.md`](server-go/NODE.md)의 "用 Docker 运行"을 보세요.
+
 ### 빠른 시작
 
 필요한 것: Git LFS, Node.js 22+, Go 1.26+, MySQL 8.4, Redis 7.
@@ -304,7 +342,8 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 
 - `./run-lan.sh`: 같은 LAN의 기기가 HTTPS로 접속할 수 있습니다.
 - `./run-local.sh`: 원본 배포 미러를 <http://127.0.0.1:8765/>에서 그대로 실행합니다.
-- 운영 배포: `server-go/docker-compose.yml`을 사용합니다.
+- 서버만 배포하고 앞단에 직접 Nginx를 둘 때: `server-go/docker-compose.yml`을 사용합니다.
+- 다른 서버(Linux 또는 Windows)에 게임 노드를 추가하려면 하드웨어에 맞춰 인원을 자동으로 정하는 `kart-node`를 사용합니다: [`server-go/NODE.md`](server-go/NODE.md). 모든 플레이어는 데이터 서비스의 로비 하나를 함께 쓰고, 각 레이스는 방 전체의 지연이 가장 낮은 노드에서 진행됩니다: [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md).
 - 자세한 내용:
   - 환경 변수, API, 배포, 테스트: [`server-go/README.md`](server-go/README.md)
   - 클라이언트 개발: [`client/README.md`](client/README.md)

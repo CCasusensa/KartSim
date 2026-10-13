@@ -13,6 +13,7 @@
 
 - **数据服务 kart-data**：只有一个。唯一访问 MySQL 与 Redis 的进程。提供原 Java 的全部 HTTP API（账号、档案、影子记录、历史），新增“游戏服列表”“入场票据”、账号经济与好友私聊接口（好友私聊另有一个 WebSocket `/api/messenger/ws`，见第 9 节），另开内部端口供游戏节点调用（心跳注册、在线昵称占用、装备归属核对、房间规则保存、赛后结算与奖励入账）。
 - **游戏服务 kart-game**：可部署多个，无数据库。每个节点各自持有内存房间；同一房间的所有玩家连在同一个节点上，因此比赛时钟、广播、运动帧中继都在单进程内完成，与 Java 版一致。
+- **全局大厅**（2026-10，[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)）：新版浏览器不再选服。大厅与等待中的房间由数据服务运行（同一个 `internal/game/lobby` 包，`Home` 模式），所有地区共用一个房间列表；房主开始时数据服务按全房间玩家到各节点的延迟挑一个节点，房间交给它（节点 `RaceHost` 模式，经内部接口领取），比赛结束后经发件箱交还大厅。下面的入场流程是节点自己的大厅，仍然支持。
 - **入场流程**（“带上数据节点和个人信息进入游戏服”）：
   1. 浏览器向数据服务 `GET /multiplayer/game-servers` 取在线游戏服列表，玩家选择一个（只有一个时自动进入）；想一起玩的人选同一个服。
   2. 浏览器 `POST /multiplayer/game-servers/ticket {nodeId}`，带 `Authorization: Bearer <会话token>`，数据服务签发一次性票据：HMAC 签名，含目标节点、数据节点 ID、账号信息、过期时间（2 分钟）、随机 nonce。默认没有游客（`KART_ALLOW_GUESTS=false`）：不带 Bearer 401 `LOGIN_REQUIRED`；账号未领取新手礼包 403 `ONBOARDING_REQUIRED`。只有开启游客时，不带 Bearer 才签发游客票据。
@@ -126,7 +127,7 @@ room_rules(room_id PK, json TEXT, updated_at BIGINT, INDEX(updated_at))
 player_stats(account_id PK FK→accounts ON DELETE CASCADE, races, wins, podiums, points INT, updated_at BIGINT)
 ```
 
-schema v2 另有账号经济表 `account_progress`、`wallets`、`wallet_ledger`、`exp_ledger`、`inventory_items`、`purchases`、`account_onboarding`、`account_profiles`、`timeattack_bests`、`timeattack_runs`、`daily_rewards`；schema v3 加 `admin_grants`（管理员发放的 `requestId` 绑定账号、货币与数额）与 `timeattack_state`（每账号最近一次计时赛结算，用于节奏限制与重试），结构与约束见 ECONOMY.md 5。`timeattack_runs` 与 `daily_rewards` 保留 30 天，由每小时的清理任务（与过期会话清理一起）删除。schema v4 加好友与私聊的 `messenger_settings`、`friendships`、`friend_requests`、`account_blocks`、`private_messages`、`private_conversations`（第 9.5 节）。schema v12（管理后台）加 `login_records`（注册、登录与自动登录记录，保留 180 天，由每小时的清理任务删除）、`accounts` 的 `register_ip`/`last_login_at`/`last_login_ip`/`banned_until`/`ban_reason` 列，以及管理列表按时间分页、按账号筛选用的索引（ADMIN.md 2）；schema v13（管理后台第二轮）加 `last_seen_at`/`last_seen_ip` 与其索引，以及 `reward_box(created_at)` 索引。给已有表加列与加索引一样，先查 `information_schema`，所以迁移中断后可以重跑。
+schema v2 另有账号经济表 `account_progress`、`wallets`、`wallet_ledger`、`exp_ledger`、`inventory_items`、`purchases`、`account_onboarding`、`account_profiles`、`timeattack_bests`、`timeattack_runs`、`daily_rewards`；schema v3 加 `admin_grants`（管理员发放的 `requestId` 绑定账号、货币与数额）与 `timeattack_state`（每账号最近一次计时赛结算，用于节奏限制与重试），结构与约束见 ECONOMY.md 5。`timeattack_runs` 与 `daily_rewards` 保留 30 天，由每小时的清理任务（与过期会话清理一起）删除。schema v4 加好友与私聊的 `messenger_settings`、`friendships`、`friend_requests`、`account_blocks`、`private_messages`、`private_conversations`（第 9.5 节）。schema v12（管理后台）加 `login_records`（注册、登录与自动登录记录，保留 180 天，由每小时的清理任务删除）、`accounts` 的 `register_ip`/`last_login_at`/`last_login_ip`/`banned_until`/`ban_reason` 列，以及管理列表按时间分页、按账号筛选用的索引（ADMIN.md 2）；schema v13（管理后台第二轮）加 `last_seen_at`/`last_seen_ip` 与其索引，以及 `reward_box(created_at)` 索引；schema v16（单人计时赛，TIMEATTACK.md）加 `timeattack_records`（按赛道、速度、加速模式分开的练习 / 排位最佳成绩）、`timeattack_replays`（每条榜前 10 名的录像）、`timeattack_entries`（排位入场费记录，保留 24 小时）与 `timeattack_missions`（练习目标与赛道对决进度）；schema v17（任务窗口的跑跑通行证链，MENUS.md 2）加 `pass_points`（每账号累计的通行证积分）；schema v18（联赛回放，TIMEATTACK.md 4）加 `featured_replays`（管理后台发布的排位录像副本）；schema v19（后台添加的游戏节点，NODE.md）加 `game_nodes`（节点 ID、名称、对外地址、备注、节点密钥的摘要、停用标记、添加者与时间、最后注册时间与 IP）。给已有表加列与加索引一样，先查 `information_schema`，所以迁移中断后可以重跑。
 
 `invite` 模式的注册在 `GET_LOCK('kartsim_register')` 下进行（邀请单次使用、首个账号为管理员不出现竞态）；开放模式不取命名锁，并发注册同名由唯一键决定，可选邀请码由加锁读取保证只用一次；唯一键冲突（1062）映射为 `USERNAME_TAKEN` / `NICKNAME_TAKEN`。启动引导邀请在 `GET_LOCK('kartsim_bootstrap')` 下进行。
 
@@ -158,7 +159,8 @@ schema v2 另有账号经济表 `account_progress`、`wallets`、`wallet_ledger`
 | `KART_GAME_PORT` | `8788` | |
 | `KART_NODE_ID` | `game-<端口>` | 只允许 `[A-Za-z0-9_-]{1,64}` |
 | `KART_NODE_NAME` | 同 NODE_ID | 显示名（最多 32 码点） |
-| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>` | 浏览器访问本节点的 HTTP(S) origin；设为 `same-origin` 表示经数据服务同源代理（列表中 origin 为 null） |
+| `KART_PUBLIC_ORIGIN` | `http://127.0.0.1:<端口>`（设置了 TLS 时为 `https://`） | 浏览器访问本节点的 HTTP(S) origin；设为 `same-origin` 表示经数据服务同源代理（列表中 origin 为 null） |
+| `KART_TLS_CERT` / `KART_TLS_KEY` | 空 | PEM 证书与私钥，同时设置时节点自己提供 HTTPS/WSS（只用 HTTP/1.1）；文件变化后最多一分钟内的握手重新读取，读取失败继续用旧证书 |
 | `KART_DATA_INTERNAL_URL` | `http://127.0.0.1:8790` | 数据服务内部 API |
 | `KART_DATA_NODE_ID` | `data-1` | 票据中的数据节点必须相同 |
 | `KART_CLUSTER_SECRET` | 必填 | |
@@ -233,7 +235,7 @@ schema v2 另有账号经济表 `account_progress`、`wallets`、`wallet_ledger`
 
 - `run-full-local.sh`：构建 `server-go/bin/{kart-data,kart-game}`；检查 MySQL/Redis 可达并给出清晰报错；开发用 `KART_CLUSTER_SECRET` 缺省时生成并保存在 `server-go/data/cluster-secret`（0600）；启动数据服务与 `KART_GAME_NODES`（默认 1）个游戏节点（端口 8788 起），最后启动 Vite；Ctrl-C 停止全部。
 - `run-lan.sh`：数据服务与游戏节点监听 0.0.0.0；单游戏节点经 Vite 同源代理（`KART_PUBLIC_ORIGIN=same-origin`）。`run-full-local.sh` 单独使用时，`same-origin` 必须配合指向同源反向代理的 `VITE_MULTIPLAYER_BACKEND_ORIGIN`，否则拒绝启动。集群密钥只传给服务进程，不进入 npm/Vite 环境。
-- `docker-compose.yml`：mysql:8.4、redis:7、kart-data、两个 kart-game；`Dockerfile` 多阶段构建两个二进制。网络分 `backend`（internal：mysql、redis、kart-data）与 `cluster`（kart-data、游戏节点），游戏节点访问不到 MySQL/Redis。`.env` 以 `install -m 600` 创建。
+- `docker-compose.yml`：mysql:8.4、redis:7、kart-data、两个游戏节点（kart-node）；`Dockerfile` 一次 Go 编译、两个目标镜像 `data`（kartsim-data）与 `node`（kartsim-node，带 `plugins/anticheat.wasm`）。仓库根目录的 `docker-compose.yml` 再加网页客户端镜像 kartsim-client（`client/Dockerfile`，Nginx 同源转发），由 `docker-start.sh`/`docker-start.cmd` 一键启动。网络分 `backend`（internal：mysql、redis、kart-data）与 `cluster`（kart-data、游戏节点），游戏节点访问不到 MySQL/Redis。`.env` 以 `install -m 600` 创建。
 - `test/smoke.mjs`、`test/auth-smoke.mjs`、`test/economy-smoke.mjs`，以及仓库根的 `server-smoke.mjs`、`server-special-smoke.mjs`：先从数据服务取列表与票据，再连接游戏服。没有游客后，每个脚本玩家都注册账号（开放注册）、领取新手礼包、用 Bearer 票据和新手装备进入；为避开每 IP 每小时 5 次的注册限流，每个玩家发送不同的 `X-Forwarded-For`，被测数据服务须用 `KART_TRUSTED_PROXIES` 信任脚本所在地址（默认回环即可；自带集群的脚本固定 `127.0.0.1/32`），否则用 `KART_SMOKE_ACCOUNTS` 提供已有账号。`auth-smoke`/`economy-smoke` 自行启动集群并在任何退出路径清理临时库、账号、Redis 键；`test/run-cluster-smokes.mjs` 用同样的临时集群运行三个“集群已运行”的脚本。
 - 启动脚本把 `KART_REGISTRATION`（默认 `open`，先校验）传给数据服务，校验 `KART_ADMIN_USERNAMES` 并在启动后打印管理页面 `<数据服务>/multiplayer/admin`；`run-lan.sh` 显式设置 `KART_TRUSTED_PROXIES=127.0.0.1/32,::1/128`（Vite 代理在本机）。compose 把经济变量传给数据服务，游客开关也传给游戏节点（倍率由心跳响应告诉游戏节点，不需要传）。
 - `README.md`（中文）：架构、启动、环境变量、API、迁移、分布式部署（每个游戏节点独立域名/端口的 wss，Nginx 示例）、备份。

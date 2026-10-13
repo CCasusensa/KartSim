@@ -1,5 +1,5 @@
 import type { LobbyHomeView } from "./lobby-home-view";
-import type { LicenseMenu, MainMenuPage, MainMenuView, SingleCategory,
+import type { LicenseMenu, MainMenuPage, MainMenuView, ReplayBrowseHeader, ReplayMenuEntry, ReplayTab, SingleCategory,
   StoryMenuChapter } from "./main-menu-view";
 
 /**
@@ -18,7 +18,7 @@ export class HomeScreen {
     return this.current ?? "home";
   }
 
-  get singleCategory(): SingleCategory {
+  get singleCategory(): SingleCategory | undefined {
     return this.single.singleCategory;
   }
 
@@ -38,6 +38,18 @@ export class HomeScreen {
 
   setStoryChapters(chapters: StoryMenuChapter[] | undefined): void {
     this.single.setStoryChapters(chapters);
+  }
+
+  setReplays(tab: ReplayTab, entries: ReplayMenuEntry[] | undefined): void {
+    this.single.setReplays(tab, entries);
+  }
+
+  setReplayHeader(header: ReplayBrowseHeader | undefined): void {
+    this.single.setReplayHeader(header);
+  }
+
+  showReplayTab(tab: ReplayTab): void {
+    this.single.showReplayTab(tab);
   }
 
   setLicenseMenu(menu: LicenseMenu | undefined): void {

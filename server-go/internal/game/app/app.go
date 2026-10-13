@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -51,6 +52,8 @@ type App struct {
 	handler http.Handler
 	// cheat is the anti-cheat plugin (nil: none).
 	cheat *plugin.Plugin
+	// certs serves HTTPS/WSS (KART_TLS_CERT; nil: plain HTTP).
+	certs *certFiles
 
 	agentCancel context.CancelFunc
 	agentDone   chan struct{}
@@ -59,13 +62,50 @@ type App struct {
 	shutdownErr  error
 }
 
+// DataClient is the node's client of the data service: with its own key
+// when it has one, else with the cluster secret.
+func DataClient(cfg config.Config) *cluster.DataClient {
+	if cfg.NodeKey != "" {
+		return cluster.NewKeyedDataClient(cfg.DataInternalURL, cfg.NodeKey)
+	}
+	return cluster.NewDataClient(cfg.DataInternalURL, cfg.Secret)
+}
+
+// Register completes a keyed node's configuration from the data service
+// (NODE.md "后台添加节点"); it waits until the data service answers.
+func Register(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
+	reg, err := cluster.Register(ctx, DataClient(*cfg), log)
+	if err != nil {
+		return err
+	}
+	if err := cfg.ApplyRegistration(reg); err != nil {
+		return err
+	}
+	log.Info("已向数据服务注册", "node", cfg.NodeID, "name", cfg.NodeName, "origin", cfg.PublicOrigin,
+		"dataNode", cfg.DataNodeID, "observedIP", reg.ObservedIP)
+	return nil
+}
+
+func ticketKey(cfg config.Config) []byte {
+	if len(cfg.TicketKey) > 0 {
+		return cfg.TicketKey
+	}
+	return cfg.Secret
+}
+
 // New builds a node; nothing runs until Start.
 func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 	items, err := itemmode.Default()
 	if err != nil {
 		return nil, fmt.Errorf("item race data: %w", err)
 	}
-	data := cluster.NewDataClient(cfg.DataInternalURL, cfg.Secret)
+	var certs *certFiles
+	if cfg.TLSCert != "" {
+		if certs, err = loadCertFiles(cfg.TLSCert, cfg.TLSKey, log); err != nil {
+			return nil, err
+		}
+	}
+	data := DataClient(cfg)
 	if opts.Outbox.Logger == nil {
 		opts.Outbox.Logger = log
 	}
@@ -93,7 +133,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		NodeID:      cfg.NodeID,
 		Clock:       opts.Clock,
 		Presence:    agent,
-		Tickets:     admission.New(cfg.Secret, cfg.NodeID, cfg.DataNodeID),
+		Tickets:     admission.New(ticketKey(cfg), cfg.NodeID, cfg.DataNodeID),
 		Recorder:    recorder{box: box, log: log},
 		Ownership:   cluster.NewOwnership(data),
 		AllowGuests: cfg.AllowGuests,
@@ -110,6 +150,8 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		// A playtest switch (KART_ITEM_CHANGERS=infinite): unlimited changers.
 		ItemChangersInfinite: cfg.ItemChangersInfinite,
 		AntiCheat:            guard,
+		// Races the global lobby hands this node (GLOBAL_LOBBY.md).
+		RaceHost: raceHost{data: data, box: box, nodeID: cfg.NodeID, log: log},
 	})
 	if cfg.ItemTestGrants {
 		log.Warn("item test grants are on (KART_ITEM_TEST_GRANTS): item race clients may choose the items " +
@@ -176,7 +218,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 	}
 
 	a := &App{cfg: cfg, log: log, data: data, agent: agent, outbox: box,
-		lobby: rooms, city: zone, ws: sockets, memory: memory, cheat: cheatPlugin}
+		lobby: rooms, city: zone, ws: sockets, memory: memory, cheat: cheatPlugin, certs: certs}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /multiplayer/healthz", a.health)
 	mux.Handle("GET /multiplayer/ws", sockets)
@@ -311,6 +353,11 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if a.certs != nil {
+		// HTTP/1.1 only: WebSockets upgrade over it, never over HTTP/2.
+		listener = tls.NewListener(listener, &tls.Config{GetCertificate: a.certs.certificate,
+			MinVersion: tls.VersionTLS12, NextProtos: []string{"http/1.1"}})
+	}
 	server := &http.Server{
 		Handler:           a.handler,
 		ReadHeaderTimeout: 10 * time.Second,
@@ -318,7 +365,7 @@ func (a *App) Run(ctx context.Context) error {
 		ErrorLog:          slog.NewLogLogger(a.log.Handler(), slog.LevelWarn),
 	}
 	a.Start()
-	a.log.Info("game node listening", "addr", listener.Addr().String(), "node", a.cfg.NodeID,
+	a.log.Info("game node listening", "addr", listener.Addr().String(), "node", a.cfg.NodeID, "tls", a.certs != nil,
 		"origin", a.cfg.PublicOrigin, "data", a.cfg.DataInternalURL, "capacity", a.cfg.MaxPlayers,
 		"maxConnections", a.cfg.MaxConnections, "maxRooms", a.cfg.MaxRooms,
 		"memoryLimitMB", a.cfg.MemoryLimitMB, "allowGuests", a.cfg.AllowGuests,
@@ -372,5 +419,27 @@ func (r recorder) SaveRace(req contract.RaceSettlement) {
 func (r recorder) SaveAntiCheat(req contract.AntiCheatReport) {
 	if err := r.box.Enqueue("anti-cheat", contract.PathAntiCheat, req); err != nil {
 		r.log.Error("anti-cheat record not queued", "player", req.PlayerID, "check", req.Code, "error", err)
+	}
+}
+
+// raceHost fetches the rooms the global lobby hands this node and gives
+// them back through the outbox, after their settlements.
+type raceHost struct {
+	data   *cluster.DataClient
+	box    *outbox.Outbox
+	nodeID string
+	log    *slog.Logger
+}
+
+func (h raceHost) Claim(ctx context.Context, handoffID string) (contract.RoomHandoff, error) {
+	var handoff contract.RoomHandoff
+	err := h.data.Call(ctx, contract.PathRoomClaim, contract.RoomClaimRequest{NodeID: h.nodeID, HandoffID: handoffID},
+		&handoff)
+	return handoff, err
+}
+
+func (h raceHost) Return(req contract.RoomReturnRequest) {
+	if err := h.box.Enqueue("room-return", contract.PathRoomReturn, req); err != nil {
+		h.log.Error("room return not queued", "handoff", req.HandoffID, "error", err)
 	}
 }

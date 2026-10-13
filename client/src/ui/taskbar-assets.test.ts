@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
-import { loadTaskbarAssets, type TaskbarAssetEntry, type TaskbarFormatOperations } from "./taskbar-assets";
+import { loadTaskbarAssets, withoutKartPass, type TaskbarAssetEntry, type TaskbarFormatOperations } from "./taskbar-assets";
 
 const source = readFileSync(new URL("../../../recovered/formatted/index.js", import.meta.url), "utf8");
 function between(start: string, end: string): string {
@@ -112,4 +112,19 @@ test("official tray asset lookup, four-frame variants and labels match release l
     globalThis.DOMParser = previousParser;
     globalThis.ImageData = previousImageData;
   }
+});
+
+test("the 跑跑通行证 button leaves mainSlot, which narrows so the other buttons stay centred", () => {
+  const xml = (name: string, attributes: Record<string, string>, children: BinaryXmlNode[] = []): BinaryXmlNode =>
+    ({ name, text: "", attributes: Object.entries(attributes).map(([key, value]) => ({ name: key, value })), children });
+  const club = xml("ImageButton", { name: "club", windowSize: "104 66", adjust: "520 0" });
+  const tray = xml("ImageBoard", { image: "bg" }, [xml("Window", {}, [
+    xml("Container", { name: "mainSlot", windowRect: "0 0 728 66", align: "hcenter" }, [club,
+      xml("ImageButton", { name: "goKartPass", windowSize: "104 66", adjust: "624 0" })]),
+    xml("Container", { name: "tray" }, [xml("ImageButton", { name: "questDialog" })]),
+  ])]);
+  const slot = withoutKartPass(tray).children[0]!.children[0]!;
+  assert.equal(slot.attributes.find(item => item.name === "windowRect")?.value, "0 0 624 66");
+  assert.deepEqual(slot.children.map(child => child.attributes.find(item => item.name === "name")?.value), ["club"]);
+  assert.equal(withoutKartPass(tray).children[0]!.children[1]!.children.length, 1);
 });

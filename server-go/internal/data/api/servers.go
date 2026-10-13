@@ -47,6 +47,31 @@ func (a *API) gameServers(w http.ResponseWriter, r *http.Request) error {
 	return writeJSON(w, http.StatusOK, list)
 }
 
+// ticketClaims is who a ticket request comes from: a logged-in account that
+// claimed the starter gift, or a guest when KART_ALLOW_GUESTS is set.
+func (a *API) ticketClaims(r *http.Request) (ticket.Claims, error) {
+	token := bearer(r)
+	if token == nil {
+		if !a.allowGuests {
+			return ticket.Claims{}, errLoginRequired
+		}
+		return ticket.Claims{Guest: true}, nil
+	}
+	account, err := a.requireAccount(r.Context(), token)
+	if err != nil {
+		return ticket.Claims{}, err
+	}
+	onboarded, err := a.store.Onboarded(r.Context(), account.ID)
+	if err != nil {
+		return ticket.Claims{}, err
+	}
+	if !onboarded {
+		return ticket.Claims{}, errOnboardingRequired
+	}
+	return ticket.Claims{AccountID: account.ID, Username: account.Username, Nickname: account.Nickname,
+		Admin: account.Admin}, nil
+}
+
 // issueTicket signs a one-time entry ticket for one game node. A request
 // with a Bearer token gets an account ticket and must be logged in, and the
 // account must have claimed the starter gift (ECONOMY.md 2.3). Without a
@@ -56,29 +81,11 @@ func (a *API) issueTicket(w http.ResponseWriter, r *http.Request) error {
 	if err := decodeJSON(w, r, &request); err != nil {
 		return err
 	}
-	claims := ticket.Claims{Guest: true}
-	if token := bearer(r); token != nil {
-		account, err := a.requireAccount(r.Context(), token)
-		if err != nil {
-			return err
-		}
-		onboarded, err := a.store.Onboarded(r.Context(), account.ID)
-		if err != nil {
-			return err
-		}
-		if !onboarded {
-			return errOnboardingRequired
-		}
-		claims = ticket.Claims{
-			AccountID: account.ID,
-			Username:  account.Username,
-			Nickname:  account.Nickname,
-			Admin:     account.Admin,
-		}
-	} else if !a.allowGuests {
-		return errLoginRequired
+	claims, err := a.ticketClaims(r)
+	if err != nil {
+		return err
 	}
-	if !validNodeID(request.NodeID) {
+	if !validNodeID(request.NodeID) || request.NodeID == contract.LobbyNodeID {
 		return errGameServerNotFound
 	}
 	node, found, err := a.cluster.Node(r.Context(), request.NodeID)
@@ -94,7 +101,7 @@ func (a *API) issueTicket(w http.ResponseWriter, r *http.Request) error {
 	}
 	claims.NodeID = node.NodeID
 	claims.DataNode = a.dataNode
-	signed, issued := ticket.Sign(a.secret, claims, a.now())
+	signed, issued := ticket.Sign(a.ticketKey(node), claims, a.now())
 	return writeJSON(w, http.StatusOK, contract.TicketResponse{
 		Ticket:    signed,
 		NodeID:    node.NodeID,

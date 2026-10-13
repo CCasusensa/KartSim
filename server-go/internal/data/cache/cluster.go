@@ -49,6 +49,12 @@ type Node struct {
 	// Stats are the load figures of the latest heartbeat; nil from nodes
 	// that send none.
 	Stats *contract.NodeStats `json:"stats,omitempty"`
+	// Keyed nodes authenticate with their own key (added in the console);
+	// their tickets are signed with the node's ticket key.
+	Keyed bool `json:"keyed,omitempty"`
+	// Lobby is the data service's global lobby (contract.LobbyNodeID),
+	// registered like a node for its sessions' claims; Nodes leaves it out.
+	Lobby bool `json:"lobby,omitempty"`
 }
 
 // Full reports whether the node accepts no more players.
@@ -80,6 +86,36 @@ type Cluster struct {
 // NewCluster returns the registry using rdb with every key under prefix.
 func NewCluster(rdb *redis.Client, prefix string) *Cluster {
 	return &Cluster{rdb: rdb, prefix: prefix}
+}
+
+// LobbyConflicts checks the sessions a game node runs for the global
+// lobby (contract.OnlinePlayer.Lobby): the lobby must still hold each one's
+// account (or, for a guest, its name) for that player. It returns the
+// player IDs it no longer holds them for (a new login, a kick, a ban, the
+// player left the lobby), which the node disconnects.
+func (c *Cluster) LobbyConflicts(ctx context.Context, players []contract.OnlinePlayer) ([]string, error) {
+	if len(players) == 0 {
+		return nil, nil
+	}
+	keys := make([]string, len(players))
+	for i, player := range players {
+		if player.AccountID != "" {
+			keys[i] = c.accountKey(player.AccountID)
+		} else {
+			keys[i] = c.presenceKey(FoldName(player.Name))
+		}
+	}
+	values, err := c.rdb.MGet(ctx, keys...).Result()
+	if err != nil {
+		return nil, fmt.Errorf("lobby claims: %w", err)
+	}
+	var conflicts []string
+	for i, value := range values {
+		if text, _ := value.(string); text != presenceValue(contract.LobbyNodeID, players[i].PlayerID) {
+			conflicts = append(conflicts, players[i].PlayerID)
+		}
+	}
+	return conflicts, nil
 }
 
 // FoldName is the presence-key form of a nickname (see names.Fold).
@@ -632,7 +668,7 @@ type NodeOnline struct {
 
 // Online lists the live nodes (ordered like Nodes) with their players.
 func (c *Cluster) Online(ctx context.Context) ([]NodeOnline, error) {
-	nodes, err := c.Nodes(ctx)
+	nodes, err := c.registered(ctx)
 	if err != nil || len(nodes) == 0 {
 		return []NodeOnline{}, err
 	}
@@ -691,6 +727,16 @@ return 1
 // Nodes lists the live nodes ordered by name, then id, and drops expired
 // ids from the node set.
 func (c *Cluster) Nodes(ctx context.Context) ([]Node, error) {
+	all, err := c.registered(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return slices.DeleteFunc(all, func(n Node) bool { return n.Lobby }), nil
+}
+
+// registered lists every live registration: the game nodes and the global
+// lobby.
+func (c *Cluster) registered(ctx context.Context) ([]Node, error) {
 	ids, err := c.rdb.SMembers(ctx, c.nodesKey()).Result()
 	if err != nil {
 		return nil, fmt.Errorf("node list: %w", err)
@@ -776,7 +822,7 @@ func (c *Cluster) SeenNodes(ctx context.Context) ([]Node, error) {
 	slices.SortFunc(nodes, func(a, b Node) int {
 		return cmp.Or(cmp.Compare(a.Name, b.Name), cmp.Compare(a.NodeID, b.NodeID))
 	})
-	return nodes, nil
+	return slices.DeleteFunc(nodes, func(n Node) bool { return n.Lobby }), nil
 }
 
 // Ping checks that Redis answers (the admin console's status page).

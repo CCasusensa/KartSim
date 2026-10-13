@@ -56,7 +56,13 @@ type (
 // Reply is the answer to one command, encoded on demand.
 type Reply struct {
 	body obj
+	// then is a message sent right after the reply: the room a racer of
+	// the global lobby starts from comes after its welcome.
+	then []byte
 }
+
+// Then is the message to send after the reply (nil: none).
+func (r Reply) Then() []byte { return r.then }
 
 // F is one member of an Object built outside this package.
 func F(key string, value any) Field { return Field{key, value} }
@@ -65,7 +71,7 @@ func F(key string, value any) Field { return Field{key, value} }
 func (o Object) Set(key string, value any) Object { return o.with(key, value) }
 
 // NewReply wraps a command's answer.
-func NewReply(body Object) Reply { return Reply{body} }
+func NewReply(body Object) Reply { return Reply{body: body} }
 
 // Encode renders an event (a message without requestId).
 func Encode(value Object) []byte { return encode(value) }

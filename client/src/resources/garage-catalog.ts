@@ -246,14 +246,26 @@ export async function loadTimeAttackGarageCatalog(
   const fallbackModels = parameterModelPaths(library.files.filter(file =>
     /(^|\/)kart[^/]*\//i.test(file.virtualPath) &&
     /^param(?:@cn)?\.(?:bml|eml|kml|xml)$/i.test(file.name)));
+  // The karts' param reads go out together (one at a time, each would wait a
+  // network round trip); results apply in definition order, so the first
+  // failure is the error, as when they ran one by one.
+  const fallbacks = new Map<string, { modelPath: string; found: Promise<boolean> }>();
   for (const definition of definitions) {
     if (definition.kind !== "kart") continue;
     const id = definition.internalId.toLowerCase();
-    if (kartModels.has(id)) continue;
+    if (kartModels.has(id) || fallbacks.has(id)) continue;
     const modelPath = fallbackModels.get(id);
     if (!modelPath) continue;
-    if ((await dependencies.resolveModel(library, modelPath)).find(["model.1s"]))
-      kartModels.set(id, modelPath);
+    fallbacks.set(id, { modelPath, found: Promise.resolve()
+      .then(() => dependencies.resolveModel(library, modelPath))
+      .then(model => !!model.find(["model.1s"])) });
+  }
+  const outcomes = await Promise.allSettled([...fallbacks.values()].map(entry => entry.found));
+  let index = 0;
+  for (const [id, { modelPath }] of fallbacks) {
+    const outcome = outcomes[index++]!;
+    if (outcome.status === "rejected") throw outcome.reason;
+    if (outcome.value) kartModels.set(id, modelPath);
   }
 
   const characterModels = uniqueByIdentity(

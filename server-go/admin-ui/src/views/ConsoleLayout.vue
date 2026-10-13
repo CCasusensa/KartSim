@@ -18,6 +18,7 @@ import OnlineTab from './OnlineTab.vue'
 import OverviewTab from './OverviewTab.vue'
 import PurchasesTab from './PurchasesTab.vue'
 import RacesTab from './RacesTab.vue'
+import ReplaysTab from './ReplaysTab.vue'
 import RewardBoxTab from './RewardBoxTab.vue'
 import UsersTab from './UsersTab.vue'
 
@@ -41,6 +42,7 @@ const views: Record<string, Component> = {
   economy: EconomyTab,
   'reward-box': RewardBoxTab,
   notices: NoticesTab,
+  replays: ReplaysTab,
   invites: InvitesTab,
 }
 

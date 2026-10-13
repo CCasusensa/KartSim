@@ -126,6 +126,17 @@ export function parseServerEvent(value: unknown,
         chat(event.message) ? event : undefined;
     case "left":
       return text(event.roomId, 1, 64) ? event : undefined;
+    // The global lobby (server-go/GLOBAL_LOBBY.md): the node a room races
+    // on or a city visit goes to, and the node's word that a room went home.
+    case "race-host":
+    case "city-host":
+      return (event.type === "city-host" || text(event.roomId, 1, 64)) &&
+        typeof event.nodeId === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(event.nodeId) &&
+        text(event.name, 1, 64) && (event.origin === null || text(event.origin, 1, 255)) &&
+        typeof event.ticket === "string" && /^kt1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(event.ticket) &&
+        event.ticket.length <= 2048 ? event : undefined;
+    case "room-home":
+      return text(event.roomId, 1, 64) ? event : undefined;
     case "error":
       return text(event.code, 1, 64) ? event : undefined;
     case "clock":

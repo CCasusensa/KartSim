@@ -91,6 +91,28 @@ function forEachVisible(node: BinaryXmlNode, visit: (node: BinaryXmlNode) => voi
   node.children.forEach(child => forEachVisible(child, visit));
 }
 
+/**
+ * 跑跑通行证 has no system here: mainSlot leaves out its goKartPass button
+ * and narrows by its width, so the six others stay centred (align hcenter).
+ */
+export function withoutKartPass(node: BinaryXmlNode): BinaryXmlNode {
+  const pass = node.children.find(child => attribute(child, "name") === "goKartPass");
+  if (attribute(node, "name") === "mainSlot" && pass) {
+    const width = Number(attribute(pass, "windowSize")?.split(/\s+/)[0] ?? 0);
+    return {
+      ...node,
+      attributes: node.attributes.map(item => {
+        const rect = item.value.trim().split(/\s+/).map(Number);
+        return item.name === "windowRect" && rect.length === 4 && rect.every(Number.isFinite)
+          ? { ...item, value: `${rect[0]} ${rect[1]} ${rect[2]! - width} ${rect[3]}` }
+          : item;
+      }),
+      children: node.children.filter(child => child !== pass),
+    };
+  }
+  return { ...node, children: node.children.map(withoutKartPass) };
+}
+
 function withFullWidth(node: BinaryXmlNode): BinaryXmlNode {
   return {
     ...node,
@@ -142,7 +164,7 @@ export async function loadTaskbarAssets(library: TaskbarAssetLibrary,
     trayEntry(library, "tray@cn.bml").bytes(),
     exactEntry(library, "etc_/baseStringBag.xml").text(),
   ]);
-  const definition = decodeBinaryXml(definitionBytes);
+  const definition = withoutKartPass(decodeBinaryXml(definitionBytes));
   const nodes: BinaryXmlNode[] = [];
   forEachVisible(definition, node => {
     if (attribute(node, "autoLoadImage")) nodes.push(node);

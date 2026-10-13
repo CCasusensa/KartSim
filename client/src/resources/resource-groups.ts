@@ -65,10 +65,12 @@ const RULES: Rule[] = [
   {
     id: "home", title: "首页（基础资源）", required: true,
     description: "启动与首页必需：界面、字体、首页场景、主菜单音乐、道具与赛道目录、任务与资源下载窗口",
+    // zeta_cn_stage (国服界面) and theme_tomb (the home scene's backdrop) are read on every start.
     names: ["aaa", "stage_common", "stage_mainMenu", "stage_timeAttackReady", "stage_logo", "track_common",
-      "theme_common", "theme_village", "sound_bgm_main", "sound_bgm_village", "sound_fx_interface", "sound_fx_etc",
-      "character_common", "myRoom", "dialog2_timeAttackCompetitive", "dialog2_personalShop",
-      "dialog2_customMessageBox", "dialog2_progressDialog", "dialog2_questInfo2"],
+      "theme_common", "theme_village", "theme_tomb", "zeta_cn_stage", "sound_bgm_main", "sound_bgm_village",
+      "sound_fx_interface", "sound_fx_etc", "character_common", "myRoom", "dialog2_timeAttackCompetitive",
+      "dialog2_personalShop", "dialog2_customMessageBox", "dialog2_progressDialog", "dialog2_questInfo2",
+      "dialog2_questInfo2KartPass"],
     patterns: [/^gui_/],
     packs: ["DataPack1", "DataPack4"],
   },

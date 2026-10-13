@@ -35,6 +35,8 @@ export interface RaceBgmHost {
   raceBuffers: unknown[];
   raceNames: unknown[];
   currentRaceNameValue?: unknown;
+  /** The race playlist still decoding (race-bgm-loading loadRaceBgm). */
+  racePlaylistLoad?: Promise<void>;
   multiplayerBuffers?: {
     lobby: unknown; room: unknown; finish: unknown; podium: unknown;
   };
@@ -83,6 +85,17 @@ export function playMultiplayerFinishBgm(host: RaceBgmHost,
 }
 
 export function restartRaceBgm(host: RaceBgmHost): void {
+  const pending = host.racePlaylistLoad;
+  if (!host.raceBuffers.length && pending) {
+    // Races wait for the playlist (racePlaylistReady); should one start
+    // first, its music starts when the playlist lands, unless other music
+    // has started since.
+    const current = host.current;
+    void pending.then(() => {
+      if (host.current === current && host.raceBuffers.length) restartRaceBgm(host);
+    }, () => undefined);
+    return;
+  }
   const index = host.random.next() % host.raceBuffers.length;
   host.currentRaceNameValue = host.raceNames[index];
   host.start(host.raceBuffers[index], true, true);

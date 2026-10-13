@@ -157,6 +157,7 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger, service 
 	background.Go(func() { caches.Run(runCtx) })
 	background.Go(func() { sweep(runCtx, st, logger) })
 	background.Go(func() { service.RunMessenger(runCtx) })
+	background.Go(func() { service.RunLobby(runCtx) })
 
 	failed := make(chan error, len(servers))
 	for i, server := range servers {
@@ -184,6 +185,9 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger, service 
 	}
 	if err := service.ShutdownMyRoom(shutdownCtx); err != nil {
 		logger.Warn("my room shutdown incomplete", "error", err)
+	}
+	if err := service.ShutdownLobby(shutdownCtx); err != nil {
+		logger.Warn("lobby shutdown incomplete", "error", err)
 	}
 	for _, server := range servers {
 		if err := server.Shutdown(shutdownCtx); err != nil {
@@ -257,6 +261,13 @@ func sweepOnce(ctx context.Context, st *store.Store, logger *slog.Logger, now ti
 		logger.Warn("economy history cleanup failed", "error", err)
 	} else if runs > 0 || days > 0 {
 		logger.Info("old economy history removed", "timeAttackRuns", runs, "dailyRewards", days)
+	}
+	// Ranked entries (TIMEATTACK.md): settled ones and ones never raced.
+	entries, err := st.PruneTimeAttackEntries(sweepCtx, now.Add(-24*time.Hour).UnixMilli(), sweepBatch)
+	if err != nil && !errors.Is(err, context.Canceled) {
+		logger.Warn("ranked entry cleanup failed", "error", err)
+	} else if entries > 0 {
+		logger.Info("old ranked entries removed", "count", entries)
 	}
 	pruned, err := st.PruneMessenger(sweepCtx, now.UnixMilli(), now.Add(-messageRetention).UnixMilli(), sweepBatch)
 	if err != nil && !errors.Is(err, context.Canceled) {

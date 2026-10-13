@@ -23,29 +23,58 @@ type QuestState struct {
 	CompletedAt int64 `json:"completedAt,omitempty"`
 }
 
-// questDone reports whether a one-time quest is completed.
-func questDone(ctx context.Context, q queryer, accountID string, id int) (bool, error) {
-	return exists(ctx, q, `SELECT 1 FROM quest_progress WHERE account_id = ? AND quest_id = ? AND period = ''
-		AND completed_at IS NOT NULL`, accountID, id)
+// questDone reports whether a quest is completed: a one-time quest ever,
+// a daily or weekly one (the pass chain) in its current period.
+func questDone(ctx context.Context, q queryer, accountID string, id int, now int64) (bool, error) {
+	period := ""
+	if pre, ok := quest.ByID(id); ok {
+		period = quest.PeriodOf(pre.Reset, now).Key
+	}
+	return exists(ctx, q, `SELECT 1 FROM quest_progress WHERE account_id = ? AND quest_id = ? AND period = ?
+		AND completed_at IS NOT NULL`, accountID, id, period)
+}
+
+// addPassPoints credits 通行证积分 (MENUS.md 2: the pass chain's rewards).
+func addPassPoints(ctx context.Context, tx *sql.Tx, accountID string, points int, now int64) error {
+	_, err := tx.ExecContext(ctx, `INSERT INTO pass_points(account_id, points, updated_at) VALUES(?, ?, ?) AS incoming
+		ON DUPLICATE KEY UPDATE points = pass_points.points + incoming.points, updated_at = incoming.updated_at`,
+		accountID, points, now)
+	return err
+}
+
+// PassPoints is an account's 通行证积分.
+func (s *Store) PassPoints(ctx context.Context, accountID string) (int, error) {
+	var points int
+	err := s.db.QueryRowContext(ctx, "SELECT points FROM pass_points WHERE account_id = ?", accountID).Scan(&points)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return points, err
 }
 
 // addQuestProgress counts a race on every quest it serves and completes the
 // ones it brings to their target.
 func addQuestProgress(ctx context.Context, tx *sql.Tx, accountID string, race quest.Race, now int64) error {
+	// A chained quest opens with the race after the one completing its
+	// predecessor: read the predecessors' standing before counting anything.
+	preDone := map[int]bool{}
+	for i := range quest.All {
+		if pre := quest.All[i].Pre; pre != 0 {
+			done, err := questDone(ctx, tx, accountID, pre, now)
+			if err != nil {
+				return err
+			}
+			preDone[pre] = done
+		}
+	}
 	for i := range quest.All {
 		q := &quest.All[i]
 		gain := q.Gain(race)
 		if gain <= 0 {
 			continue
 		}
-		if q.Pre != 0 {
-			done, err := questDone(ctx, tx, accountID, q.Pre)
-			if err != nil {
-				return err
-			}
-			if !done {
-				continue
-			}
+		if q.Pre != 0 && !preDone[q.Pre] {
+			continue
 		}
 		period := quest.PeriodOf(q.Reset, now).Key
 		if _, err := tx.ExecContext(ctx, `INSERT INTO quest_progress(account_id, quest_id, period, value, updated_at)
@@ -89,6 +118,12 @@ func addQuestProgress(ctx context.Context, tx *sql.Tx, accountID string, race qu
 func rewardQuest(ctx context.Context, tx *sql.Tx, accountID string, q *quest.Quest, now int64) error {
 	entries := []RewardBoxEntry{}
 	for _, reward := range q.Rewards {
+		if reward.PassPoints > 0 {
+			if err := addPassPoints(ctx, tx, accountID, reward.PassPoints, now); err != nil {
+				return err
+			}
+			continue
+		}
 		if reward.Emblem != 0 {
 			if _, err := grantEmblem(ctx, tx, accountID, reward.Emblem, EmblemSourceQuest, q.ID, now); err != nil {
 				return err

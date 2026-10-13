@@ -6,6 +6,15 @@ interface ReadySelection {
   trackId?: string;
 }
 
+/** The local Ghost library the Ready pages list (我的回放, TIMEATTACK.md 4). */
+export interface ReplayLibraryBridge {
+  record(key: Value): Value;
+  records: Map<string, Record<string, unknown>>;
+  store: { get(key: string): Promise<unknown> };
+  exportKsv(key: string): Promise<{ bytes: Uint8Array }>;
+  delete(key: string): Promise<boolean>;
+}
+
 export interface ReadyBridgeApplication {
   root: Value;
   shell: { beginRaceStart(): void; endRaceStart(): void };
@@ -39,7 +48,7 @@ export interface ReadyBridgeApplication {
     publishMultiplayer(race: Value): void;
     releaseMultiplayer(race: Value): void;
   };
-  replayLibrary: { record(key: Value): Value };
+  replayLibrary: ReplayLibraryBridge;
   raceStartProgramCount: number;
   createRaceBuilderHost(): Value;
   releaseRaceForReady(): Value;
@@ -93,7 +102,7 @@ export function createReadyHost(
   application: ReadyBridgeApplication,
   dependencies: ReadyBridgeDependencies,
 ) {
-  return {
+  const host = {
     multiplayerRaceLoader: dependencies.makeMultiplayerRaceLoader({
       clientFramerate: application.presenter.clientFramerate,
       renderer: application.renderer,
@@ -172,6 +181,10 @@ export function createReadyHost(
     closeSettings: () => application.closeSettings(),
     saveGameOptions: () => application.saveGameOptions(),
   };
+  // 我的回放 reads the Ghost library through the host. On the prototype: the
+  // release bridge has no such own getter (host-bridges.test).
+  Object.setPrototypeOf(host, { get replayLibrary() { return application.replayLibrary; } });
+  return host;
 }
 
 export interface PresenterBridgeApplication {
@@ -229,10 +242,19 @@ export interface PresenterBridgeApplication {
   applyWarpNextActions(a: Value): Value;
   promoteTimeAttackRecord(a: Value, b: Value): Value;
   returnToReady(): Value;
+  timeAttackReadyOptions: Value;
 }
 
 /** Bind the frame presenter to the current renderer, race, input and HUD. */
 export function createPresenterHost(application: PresenterBridgeApplication) {
+  const host = createPresenterHostFields(application);
+  // TIMEATTACK.md: the settle reports the run's speed and booster mode. On
+  // the prototype: the release bridge has no such own getter (host-bridges.test).
+  Object.setPrototypeOf(host, { get timeAttackReadyOptions() { return application.timeAttackReadyOptions; } });
+  return host;
+}
+
+function createPresenterHostFields(application: PresenterBridgeApplication) {
   return {
     get clientFramerate() { return application.presenter.clientFramerate; },
     get resourceVersion() { return application.assets?.opfs?.version; },

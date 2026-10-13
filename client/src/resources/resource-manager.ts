@@ -1,6 +1,7 @@
-import type { ContainerProgress } from "./container-store";
-import { buildResourceGroups, findResourceGroup, trackThemeOf, type ResourceFileSpec, type ResourceGroup,
+import { DownloadPausedError, type ContainerProgress } from "./container-store";
+import { buildResourceGroups, findResourceGroup, type ResourceFileSpec, type ResourceGroup,
   type Rho5PackSpec } from "./resource-groups";
+import { isPrefetchStore, prefetchStartupReads } from "./startup-reads";
 
 /**
  * Downloads of resource groups (resource-groups.ts) into the container
@@ -12,15 +13,19 @@ import { buildResourceGroups, findResourceGroup, trackThemeOf, type ResourceFile
  *  - active downloads from the 资源下载 panel.
  *
  * Containers download three at a time, the highest priority first; a
- * container wanted by several jobs downloads once. Pages still read any
- * container on demand (the store downloads it then), so a cancelled or
- * failed job never breaks a page.
+ * container wanted by several jobs downloads once. Low-priority (background)
+ * containers take one slot at most, so a page or a race that needs a
+ * download never waits behind them. Pages still read any container on
+ * demand (the store fetches the bytes they read), so a cancelled or failed
+ * job never breaks a page.
  */
 
 /** What the manager needs of the container store. */
 export interface ResourceStoreApi {
   list(): readonly ResourceFileSpec[];
-  ensure(name: string): Promise<unknown>;
+  ensure(name: string, options?: { background?: boolean }): Promise<unknown>;
+  /** Stops background downloads in flight; they reject with DownloadPausedError and resume later. */
+  pauseBackground?(): void;
   cachedNames(): Promise<Set<string>>;
   remove(name: string): Promise<boolean>;
   addProgressListener(listener: (progress: ContainerProgress) => void): () => void;
@@ -33,6 +38,8 @@ export interface ResourceLibraryApi {
 
 export type DownloadPriority = "high" | "normal" | "low";
 const PRIORITY: Record<DownloadPriority, number> = { high: 2, normal: 1, low: 0 };
+/** Download slots low-priority containers may take together. */
+const BACKGROUND_SLOTS = 1;
 
 export type JobState = "queued" | "running" | "done" | "failed" | "cancelled";
 
@@ -138,6 +145,8 @@ export class ResourceManager {
   private readonly listeners = new Set<() => void>();
   private readonly failures = new Map<string, string>();
   private running = 0;
+  /** While held (a race loads), background containers do not start. */
+  private backgroundHolds = 0;
   private notifyQueued = false;
   readonly ready: Promise<void>;
 
@@ -243,6 +252,9 @@ export class ResourceManager {
         item = { name, size: this.sizes.get(name) ?? 0, priority: PRIORITY[priority], jobs: new Set(), running: false };
         this.queue.push(item);
       }
+      // A background download a page now waits for is no longer paused for races.
+      if (item.running && item.priority === PRIORITY.low && PRIORITY[priority] > PRIORITY.low)
+        void this.store.ensure(name).catch(() => undefined);
       item.priority = Math.max(item.priority, PRIORITY[priority]);
       item.jobs.add(job);
     }
@@ -265,6 +277,22 @@ export class ResourceManager {
     job.reject(new Error("CANCELLED"));
     this.jobs.delete(job);
     this.changed();
+  }
+
+  /**
+   * Pauses background (low-priority) downloads until the returned release:
+   * the one in flight stops, keeping its bytes, and goes back to the queue;
+   * none starts. After the release they resume where they stopped.
+   */
+  holdBackground(): () => void {
+    if (this.backgroundHolds++ === 0) this.store.pauseBackground?.();
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.backgroundHolds--;
+      this.pump();
+    };
   }
 
   /** Cancel every job of a group. */
@@ -311,26 +339,18 @@ export class ResourceManager {
     return { required, background };
   }
 
-  /**
-   * What a race on one track needs, downloaded when the race loads (not
-   * ahead): the track's own containers, its theme's textures and music, and
-   * the race basics (比赛通用).
-   */
-  raceContainers(track: string): string[] {
+  /** The containers holding a track's own folder (its model variants, sky and pictures). */
+  trackContainers(track: string): string[] {
     const id = (track.replace(/^.*?track_\//, "").split("/")[0] ?? "").replace(/_rvs$/i, "");
-    const theme = trackThemeOf(id);
-    let own: string[] = [];
     try {
-      own = [
+      return [...new Set([
         ...(this.library?.entriesUnderCanonicalPrefix(`track_/${id}`) ?? []),
         // Archives without an aaa.pk mount (卡丁城) live at their own name.
         ...(this.library?.entriesUnderCanonicalPrefix(`track_${id}`) ?? []),
-      ].map(entry => entry.sourceName);
-    } catch { /* Unknown track: its theme and the basics still help. */ }
-    const extras = (theme ? this.group(`track:${theme}`)?.containers ?? [] : [])
-      .filter(name => /^(theme_|sound_bgm_)/i.test(name));
-    return [...new Set([...own, ...extras, ...(this.group("race")?.containers ?? [])])]
-      .filter(name => this.sizes.has(name));
+      ].map(entry => entry.sourceName))].filter(name => this.sizes.has(name));
+    } catch {
+      return [];
+    }
   }
 
   missing(containers: Iterable<string>): string[] {
@@ -370,20 +390,30 @@ export class ResourceManager {
 
   private pump(): void {
     while (this.running < this.concurrency) {
-      const waiting = this.queue.filter(item => !item.running);
+      const background = this.queue.filter(item => item.running && item.priority === PRIORITY.low).length;
+      const waiting = this.queue.filter(item => !item.running &&
+        (item.priority > PRIORITY.low || (!this.backgroundHolds && background < BACKGROUND_SLOTS)));
       if (!waiting.length) return;
       waiting.sort((a, b) => b.priority - a.priority);
       const item = waiting[0]!;
       item.running = true;
       for (const job of item.jobs) if (job.state === "queued") job.state = "running";
       this.running++;
-      void this.store.ensure(item.name).then(() => {
+      void this.store.ensure(item.name, { background: item.priority === PRIORITY.low }).then(() => {
         this.cached.add(item.name);
         this.loading.delete(item.name);
         this.failures.delete(item.name);
         this.settle(item, undefined);
       }, error => {
         this.loading.delete(item.name);
+        if (error instanceof DownloadPausedError) {
+          // Back to the queue; it resumes when background downloads may run.
+          this.running--;
+          item.running = false;
+          this.changed();
+          this.pump();
+          return;
+        }
         const message = error instanceof Error ? error.message : String(error);
         this.failures.set(item.name, message);
         this.settle(item, message);
@@ -458,15 +488,31 @@ export function installResourceManager(store: ResourceStoreApi, packs: readonly 
 }
 
 /**
- * Downloads what a race on this track needs while the race loads
- * (raceContainers); a failure leaves the race to read on demand.
+ * A race starts loading: the bytes every race reads (the startup read
+ * list's "race" tier: effects, item and engine sounds, the race HUD) are
+ * fetched together right away, the rest (the track, its theme's textures,
+ * the karts) is read by range as the race needs it — nothing downloads
+ * whole first. Background downloads do not start while the returned
+ * release is pending; release it when the race has loaded (or failed).
  */
-export async function downloadRaceTrack(track: string | undefined): Promise<void> {
+export function beginRaceLoad(): () => void {
+  const manager = current;
+  if (!manager) return () => undefined;
+  if (isPrefetchStore(manager.store)) void prefetchStartupReads(manager.store, "race");
+  return manager.holdBackground();
+}
+
+/**
+ * Downloads a track's own containers whole (trackContainers): the open world
+ * reads most of its city and comes back to it. A failure leaves it to read
+ * on demand.
+ */
+export async function downloadTrack(track: string | undefined): Promise<void> {
   const manager = current;
   if (!manager || !track) return;
-  const containers = manager.raceContainers(track);
+  const containers = manager.trackContainers(track);
   if (!manager.missing(containers).length) return;
-  await manager.download(containers, { label: "本局赛道资源", priority: "high" }).done.catch(() => undefined);
+  await manager.download(containers, { label: "赛道资源", priority: "high" }).done.catch(() => undefined);
 }
 
 /** Called when a manager is installed (the panel button appears then). */

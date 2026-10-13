@@ -5,7 +5,7 @@
  * top: members' karts (CityFleet), talk balloons and name tags, the day/night
  * and weather clock, chat on the near channel, resets to the nearest road.
  */
-import { downloadRaceTrack } from "../resources/resource-manager";
+import { beginRaceLoad, downloadTrack } from "../resources/resource-manager";
 import { CityAtmosphere } from "./city-atmosphere";
 import { skyStateAt, clockLabel } from "./city-clock";
 import { CityNetwork, createCityRaceConnection, type CityClient } from "./city-connection";
@@ -21,6 +21,8 @@ export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
   client: CityClient;
+  /** Called when the session ends: the lobby closes the city's node connection. */
+  onCityClosed?: () => void;
   playerId: string;
   accountNickname?: string;
   lobby?: { show(): void; hide?(): void };
@@ -96,7 +98,14 @@ export class CitySession {
     if (!loader) throw new Error("多人驾驶装配器不可用。");
     host.options.status("正在进入卡丁城…");
     registerCityTrack();
-    await downloadRaceTrack(CITY_TRACK_ID);
+    // The city downloads whole (read nearly all, kept for the next visit);
+    // the race basics are read by range as in a race (resource-manager).
+    const endCityLoad = beginRaceLoad();
+    try {
+      await downloadTrack(CITY_TRACK_ID);
+    } finally {
+      endCityLoad();
+    }
     if (host.disposed) return;
     this.raceId = uuid();
     const network = new CityNetwork(host.client, this.raceId, {
@@ -371,6 +380,7 @@ export class CitySession {
     try { stage?.dispose(); } catch (error) { console.warn("城市会话释放失败", error); }
     this.fleet?.dispose();
     this.network?.dispose();
+    this.host.onCityClosed?.();
     this.host.options.onRaceVisibility?.(false);
     if (this.host.disposed) return;
     if (this.host.options.lobbyGameplay === "city" && this.host.options.onCityExit) {

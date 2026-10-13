@@ -16,7 +16,7 @@
 | 用户管理 | 表格：账号、昵称、等级、经验、点券、金币、K币、物品数、注册时间、注册 IP、最后登录时间、最后登录 IP、在线（所在节点）、管理员、封禁；搜索：关键字（账号/昵称/IP）、注册时间范围、在线/封禁/管理员筛选；排序；分页。操作：详情（抽屉：基本信息、钱包、物品表、货币流水、登录记录、比赛记录）、编辑（昵称、管理员、封禁到期与原因、重置密码）、赠送（点券/金币/K币/经验，正数发放、负数扣除，备注）、踢下线 |
 | 登录记录 | 注册与登录记录：时间、类型、账号、昵称、IP、浏览器；按账号/IP/时间/类型搜索 |
 | 在线玩家 | 当前在线的账号与游客：昵称、账号、所在节点、所在房间（有就显示）；按昵称/账号/节点搜索；可踢下线 |
-| 服务器节点 | 游戏节点：节点 ID、名称、地址、玩家/容量（进度条）、房间数、启动时间与运行时长、最后心跳、协议版本、状态（正常/超时/满员）、内存、协程数、连接数、进行中的比赛；数据服务自身：版本、启动时间、数据库与 Redis 状态。自动刷新（5 秒） |
+| 服务器节点 | 节点管理（后台添加的节点与节点密钥，第 8 节）；游戏节点：节点 ID、名称、地址、玩家/容量（进度条）、房间数、启动时间与运行时长、最后心跳、协议版本、状态（正常/超时/满员）、内存、协程数、连接数、进行中的比赛；数据服务自身：版本、启动时间、数据库与 Redis 状态。自动刷新（5 秒） |
 | 货币流水 | `wallet_ledger` 与经验流水：时间、账号、货币、变化、余额、原因、关联；按账号/货币/原因/时间搜索 |
 | 发放记录 | 管理员发放与扣除（`admin_grants`）：时间、管理员、账号、货币、数量、备注 |
 | 比赛记录 | 比赛结算：时间、模式、玩法、赛道、人数、名次与成绩、奖励；按账号/玩法/赛道/时间搜索 |
@@ -25,6 +25,7 @@
 | 俱乐部 | 俱乐部列表：名称、会长、等级、人数、创建时间 |
 | 抽奖活动、奖励箱、公告、邀请码 | 原后台的功能，用 Element Plus 表单与表格重做，接口不变 |
 | 经济设置 | 注册赠送与每场比赛赠送的点券/金币/K币，以及商城“点击获取点券”按钮的开关与每次数额（`GET`/`PUT /api/admin/economy`，`ECONOMY.md` 2.4/2.5）：表单、默认值提示、最后修改人与时间 |
+| 联赛回放 | 游戏 回放 → 联赛回放 的列表（`TIMEATTACK.md` 4）：已发布的联赛回放（标题、说明、赛道、设置、车手、卡丁车、成绩、大小、发布人与时间，删除），下方是排位录像池（各赛道、设置的前 10 名录像：时间、赛道、设置、车手、卡丁车、成绩、已发布次数；按账号/昵称/赛道搜索，赛道筛选），每行“发布为联赛回放”弹出标题与说明 |
 
 - 所有表格：服务器端分页（每页 20/50/100）、搜索、可排序列；空数据、加载中、出错都有提示；时间统一按北京时间显示 `YYYY-MM-DD HH:mm:ss`；金额千分位。
 
@@ -82,6 +83,8 @@
 | GET | `/api/admin/box-openings` | 开箱记录 |
 | GET | `/api/admin/clubs` | 俱乐部列表 |
 | 现有 | `/api/admin/lottery`、`/api/admin/reward-box`、`/api/admin/notices`、`/multiplayer/admin/invites` | 保持不变 |
+| `timeattack-replays` | 用户名、昵称、赛道编号 | 录像时间 | `updatedAt`、`bestMs`、`track` | `track`（赛道编号，完全相同）、`account`；行：`trackId, trackName, speed, booster, accountId, username, nickname, kartName, bestMs, byteSize, updatedAt, featured`（已发布为联赛回放的次数） |
+| `featured-replays` | `GET` 列出已发布的联赛回放 `{replays: FeaturedReplay[]}`（新的在前）；`POST {trackId, speed, booster, accountId, title, note?}` 复制该排位录像并发布 → `{replay}`（400 `INVALID_FEATURED`：标题 1–60 字、说明 ≤ 200 字；404 `REPLAY_NOT_FOUND`：没有这条录像）；`DELETE /api/admin/featured-replays/{id}`（404 `FEATURED_NOT_FOUND`）。`FeaturedReplay`：`id, title, note, trackId, trackName, speed, booster, accountId, nickname, kartName, bestMs, byteSize, createdBy, createdAt`。表 `featured_replays`（schema v18）存录像副本，车手昵称是发布时的快照，不随账号删除 | | | |
 
 错误统一沿用现有格式 `{"error": "错误码"}`（`ACCOUNT_BANNED` 另带 `until`、`reason`）；未登录 401 `LOGIN_REQUIRED`、非管理员 403 `ADMIN_REQUIRED`，账号不存在 404 `ACCOUNT_NOT_FOUND`。
 
@@ -133,6 +136,18 @@
 
 - `GET /api/admin/economy` → `{register{coupon,lucci,koin}, race{coupon,lucci,koin}, shopClaim{enabled,coupon,lucci,koin}, updatedAt, updatedBy, defaults{register, race, shopClaim}, serverTime}`；没有保存过时 `updatedAt` 为 0、`updatedBy` 为空，数值等于 `defaults`（`shopClaim` 默认开启、每次 10,000 点券）。
 - `PUT /api/admin/economy` `{register{coupon,lucci,koin}, race{coupon,lucci,koin}, shopClaim{enabled,coupon,lucci,koin}}`：每项 0–1,000,000,000 的整数，否则 400 `INVALID_ECONOMY_SETTINGS`；不带 `shopClaim` 时按钮设置保持原样；成功返回与 GET 相同的对象，并写日志 `admin economy settings`。注册赠送对之后建立的钱包生效；每场比赛赠送在游戏节点下一次心跳后显示、由数据服务按结算时的设置入账；商城按钮在玩家下次打开商城时按新设置显示，每次点击按点击时的设置入账（`ECONOMY.md` 2.5，流水原因“商城领取”）。
+
+## 8. 节点管理（schema v19 `game_nodes`，部署见 [`NODE.md`](NODE.md)）
+
+“服务器节点”页最上面的“节点管理”卡片：添加节点得到只显示一次的节点密钥（以及 `KART_DATA_URL=<后台网址>`、`KART_NODE_KEY=…` 两行配置和一条 `kart-node init` 命令，可复制），表格列出后台添加的节点：名称与 ID、状态（在线 + 人数/容量、离线、未连接、已停用）、对外地址（后台设置的，否则节点上报的）、最后注册时间与 IP、备注、添加时间与添加者；操作：编辑（名称、对外地址、备注）、重置密钥、停用 / 启用、删除（都要确认）。下面原有的“游戏节点”表照常列出所有在线与离线节点（包括用共享密钥的节点）。
+
+- `GET /api/admin/game-nodes` → `{nodes: GameNodeRow[]}`；`GameNodeRow`：`id, name, origin?, note?, disabled, createdBy, createdAt, keyCreatedAt, registeredAt?, registeredIp?, status`（`online` | `offline`（24 小时内见过）| `never` | `disabled`）`, players, capacity, liveOrigin?, seenAt?`
+- `POST /api/admin/game-nodes` `{name, id?, origin?, note?}` → `{node, key}`：`id` 留空生成 `node-<6 位十六进制>`；名称 1–32 字，`id` 为 `[A-Za-z0-9_-]{1,64}`，`origin` 为空或 `http(s)://主机[:端口]`，备注最多 200 字，否则 400 `INVALID_NODE`；ID 已存在 409 `NODE_EXISTS`。密钥 `kn1.<id>.<32 字节 base64url>` 只在这里返回，数据库只存摘要
+- `PATCH /api/admin/game-nodes/{id}` `{name?, origin?, note?, disabled?}` → `{node}`；停用时同时把节点从注册表移除（选服列表立即消失、在线占用释放），之后节点的调用得到 403 `NODE_DISABLED`；启用后节点下一次心跳就回来
+- `POST /api/admin/game-nodes/{id}/key` → `{key}`：新密钥，旧密钥立即失效（节点得到 401 `NODE_KEY_INVALID`），节点从注册表移除
+- `DELETE /api/admin/game-nodes/{id}` → `{ok: true}`；不存在 404 `NODE_NOT_FOUND`
+
+每次添加、修改、重置与删除都写数据服务日志（`admin added a game node` 等，带管理员用户名）。节点每次注册（启动或 `kart-node check`）更新 `registered_at`/`registered_ip`。
 
 ## 6. 反作弊记录（schema v14，规则见 [`ANTICHEAT.md`](ANTICHEAT.md)）
 

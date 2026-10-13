@@ -14,7 +14,15 @@ import (
 
 const (
 	ClusterKeyHeader = "X-Kart-Cluster-Key"
+	// NodeKeyHeader carries a node's own key (nodekey package) instead of
+	// the cluster secret. Such a node may only act as itself.
+	NodeKeyHeader = "X-Kart-Node-Key"
+	// NodePathPrefix also serves the API below it for nodes with their own
+	// key: on the internal listener and on the public one, where a reverse
+	// proxy already forwards /multiplayer/ (NODE.md).
+	NodePathPrefix = "/multiplayer"
 
+	PathNodeRegister    = "/internal/v1/nodes/register"
 	PathHeartbeat       = "/internal/v1/nodes/heartbeat"
 	PathNodeLeave       = "/internal/v1/nodes/leave"
 	PathPresenceClaim   = "/internal/v1/presence/claim"
@@ -41,6 +49,11 @@ type OnlinePlayer struct {
 	// guests and from older nodes. The data service rebuilds the node's
 	// account mapping from it when Redis lost it (a restart or a flush).
 	AccountID string `json:"accountId,omitempty"`
+	// Lobby marks a session whose nickname and account the global lobby
+	// holds (a race or city ticket, GLOBAL_LOBBY.md): the node neither
+	// claims nor refreshes them, and the data service reports it as a
+	// conflict once the lobby no longer holds them for this player.
+	Lobby bool `json:"lobby,omitempty"`
 }
 
 // HeartbeatRequest registers or refreshes a game node (every 5 s). Origin is
@@ -115,6 +128,104 @@ type CurrencyAmounts struct {
 // MaxCurrencyGrant bounds each amount of an admin-set grant (the
 // registration and per-race grants of ECONOMY.md 2.3/2.4).
 const MaxCurrencyGrant = 1_000_000_000
+
+// NodeRegisterRequest is a keyed node's first call: it learns who it is.
+type NodeRegisterRequest struct {
+	ProtocolVersion int    `json:"protocolVersion"`
+	Version         string `json:"version,omitempty"`
+}
+
+// NodeRegistration is what the console set for the node and what it needs
+// to run: its ID and name, the browser origin if the admin set one (else
+// the node uses its own or ObservedIP), the data node of the tickets and the
+// node's ticket key.
+type NodeRegistration struct {
+	NodeID    string `json:"nodeId"`
+	Name      string `json:"name"`
+	Origin    string `json:"origin,omitempty"`
+	DataNode  string `json:"dataNode"`
+	TicketKey string `json:"ticketKey"`
+	// ObservedIP is the node's address as the data service sees it.
+	ObservedIP string `json:"observedIp,omitempty"`
+	// PageHosts are the hosts the data service trusts (its KART_LAN_HOSTS
+	// and public origin): the game page is served from one of them, so the
+	// node accepts browser connections from them too.
+	PageHosts  []string `json:"pageHosts,omitempty"`
+	ServerTime int64    `json:"serverTime"`
+}
+
+// LobbyNodeID is the global lobby's place in the node registry
+// (GLOBAL_LOBBY.md): the data service registers its lobby under it, so its
+// nickname and account claims look like a node's. No game node may use it.
+const LobbyNodeID = "lobby"
+
+// Paths of the room handoff between the global lobby and a game node.
+const (
+	PathRoomClaim  = "/internal/v1/rooms/claim"
+	PathRoomReturn = "/internal/v1/rooms/return"
+)
+
+// RoomState is a waiting room as it moves between the global lobby and a
+// game node: the room's settings and members without the race.
+type RoomState struct {
+	RoomID          string          `json:"roomId"`
+	Name            string          `json:"name"`
+	Password        string          `json:"password,omitempty"`
+	Mode            string          `json:"mode"`
+	ChannelName     string          `json:"channelName"`
+	Gameplay        string          `json:"gameplay"`
+	ResourceVersion string          `json:"resourceVersion"`
+	Capacity        int             `json:"capacity"`
+	Speed           int             `json:"speed"`
+	HostID          string          `json:"hostId"`
+	TrackID         string          `json:"trackId,omitempty"`
+	RandomTrackCode *int            `json:"randomTrackCode,omitempty"`
+	Revision        int             `json:"revision"`
+	RaceError       string          `json:"raceError,omitempty"`
+	RandomTeam      bool            `json:"randomTeam,omitempty"`
+	ClosedSlots     []int           `json:"closedSlots,omitempty"`
+	Chat            json.RawMessage `json:"chat,omitempty"`
+	ChatSequence    int             `json:"chatSequence"`
+	Members         []RoomMember    `json:"members"`
+}
+
+// RoomMember is one member of a RoomState.
+type RoomMember struct {
+	PlayerID  string          `json:"playerId"`
+	Name      string          `json:"name"`
+	AccountID string          `json:"accountId,omitempty"`
+	Slot      int             `json:"slot"`
+	Ready     bool            `json:"ready"`
+	Team      int             `json:"team,omitempty"`
+	Equipment json.RawMessage `json:"equipment,omitempty"`
+	Initial   *string         `json:"initial,omitempty"`
+	Changing  bool            `json:"changing,omitempty"`
+}
+
+// RoomClaimRequest is a game node asking for the room a race ticket names
+// (the first racer's hello brings it).
+type RoomClaimRequest struct {
+	NodeID    string `json:"nodeId"`
+	HandoffID string `json:"handoffId"`
+}
+
+// RoomHandoff is a room the lobby handed to a node to race: its state when
+// the host started, and each account's item changers from the check made
+// at start (item races, ITEM_MODE.md C.6).
+type RoomHandoff struct {
+	HandoffID string              `json:"handoffId"`
+	Room      RoomState           `json:"room"`
+	Changers  map[string]Changers `json:"changers,omitempty"`
+}
+
+// RoomReturnRequest gives a room back to the lobby when its race is over
+// (everyone back in the room, or the race cancelled). Room is nil when
+// every racer left.
+type RoomReturnRequest struct {
+	NodeID    string     `json:"nodeId"`
+	HandoffID string     `json:"handoffId"`
+	Room      *RoomState `json:"room,omitempty"`
+}
 
 // NodeLeaveRequest removes a node and its presence claims on shutdown.
 type NodeLeaveRequest struct {

@@ -30,7 +30,9 @@ import (
 	"kartsim/internal/data/messenger"
 	"kartsim/internal/data/myroom"
 	"kartsim/internal/data/store"
+	"kartsim/internal/data/timeattack"
 	"kartsim/internal/shared/apierr"
+	"kartsim/internal/shared/contract"
 	"kartsim/internal/shared/netcfg"
 	"kartsim/internal/shared/rewards"
 )
@@ -90,12 +92,16 @@ type Options struct {
 
 // API serves the public and internal handlers.
 type API struct {
-	store        *store.Store
-	cache        *cache.Cache
-	cluster      *cache.Cluster
-	network      *netcfg.Network
-	secret       []byte
-	dataNode     string
+	store    *store.Store
+	cache    *cache.Cache
+	cluster  *cache.Cluster
+	network  *netcfg.Network
+	secret   []byte
+	dataNode string
+	// nodeRegistry caches the nodes added in the console (nodes.go).
+	nodeRegistry nodeRegistry
+	// lobby is the global lobby (lobby_home.go).
+	lobby        *lobbyHome
 	publicOrigin string
 	log          *slog.Logger
 	now          func() time.Time
@@ -122,6 +128,7 @@ type API struct {
 	lotteryRand     func() lottery.Rand
 
 	license    *license.Data
+	missions   *timeattack.Data // TIMEATTACK.md: training goals and duel events
 	licenseDoc licenseTable
 	clubData   *club.Data
 
@@ -247,6 +254,7 @@ func New(opts Options) *API {
 	roomOptions.Now = now
 	roomOptions.Logger = logger
 	a.rooms = myroom.New(roomBackend{a}, roomOptions)
+	a.lobby = newLobbyHome(a, !opts.Messenger.DisableCompression)
 	if a.lottery = opts.Lottery; a.lottery == nil {
 		if a.lottery, err = lottery.Default(); err != nil {
 			panic(err) // the embedded data is checked by the lottery tests
@@ -258,6 +266,9 @@ func New(opts Options) *API {
 	}
 	if a.license, err = license.Default(); err != nil {
 		panic(err) // the embedded data is checked by the license tests
+	}
+	if a.missions, err = timeattack.Default(); err != nil {
+		panic(err)
 	}
 	a.licenseDoc = newLicenseTable(a.license)
 	if a.clubData, err = club.Default(); err != nil {
@@ -321,6 +332,14 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/shop/free-coupon", a.shopClaimStatus)
 	route("POST /api/shop/free-coupon/claim", a.shopClaim)
 	route("POST /api/timeattack/settle", a.settleTimeAttack)
+	route("GET /api/timeattack/ranking", a.timeAttackRanking)
+	route("POST /api/timeattack/ranked/enter", a.enterRanked)
+	route("GET /api/timeattack/replay", a.timeAttackReplay)
+	route("GET /api/timeattack/missions", a.timeAttackMissions)
+	route("POST /api/timeattack/goals/claim", a.claimTimeAttackGoal)
+	route("POST /api/timeattack/duel/settle", a.settleDuel)
+	route("GET /api/timeattack/featured", a.listFeaturedReplays)
+	route("GET /api/timeattack/featured/replay", a.featuredReplayFile)
 	route("GET /api/admin/me", a.adminMe)
 	route("GET /api/admin/overview", a.adminOverview)
 	route("GET /api/admin/accounts", a.adminAccounts)
@@ -334,6 +353,11 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/admin/anti-cheat", a.adminAntiCheat)
 	route("GET /api/admin/online", a.adminOnline)
 	route("GET /api/admin/nodes", a.adminNodes)
+	route("GET /api/admin/game-nodes", a.adminGameNodes)
+	route("POST /api/admin/game-nodes", a.adminCreateGameNode)
+	route("PATCH /api/admin/game-nodes/{id}", a.adminUpdateGameNode)
+	route("POST /api/admin/game-nodes/{id}/key", a.adminRotateGameNodeKey)
+	route("DELETE /api/admin/game-nodes/{id}", a.adminDeleteGameNode)
 	route("GET /api/admin/ledger", a.adminLedger)
 	route("GET /api/admin/grants", a.adminGrants)
 	route("GET /api/admin/races", a.adminRaces)
@@ -418,12 +442,24 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/admin/notices", a.adminNotices)
 	route("PUT /api/admin/notices", a.adminSaveNotice)
 	route("DELETE /api/admin/notices/{id}", a.adminDeleteNotice)
+	route("GET /api/admin/featured-replays", a.adminFeaturedReplays)
+	route("POST /api/admin/featured-replays", a.adminAddFeaturedReplay)
+	route("DELETE /api/admin/featured-replays/{id}", a.adminDeleteFeaturedReplay)
+	route("GET /api/admin/timeattack-replays", a.adminTimeAttackReplays)
 	route("GET /api/riders/{nickname}", a.riderCard)
 	route("GET /api/admin/lottery", a.adminLottery)
 	route("PUT /api/admin/lottery", a.adminSaveLottery)
 	route("GET /api/admin/economy", a.adminEconomy)
 	route("PUT /api/admin/economy", a.adminSaveEconomy)
 	mux.Handle("GET /api/myroom/ws", a.rooms)
+	// The global lobby (GLOBAL_LOBBY.md): its socket, its tickets, and the
+	// WebRTC offer browsers try first.
+	mux.Handle("GET /multiplayer/lobby/ws", a.lobby.sockets)
+	route("POST /multiplayer/lobby/ticket", a.lobbyTicket)
+	route("POST /multiplayer/lobby/offer", a.lobbyOffer)
+	// Game nodes with their own key reach the internal API through the
+	// public listener too (the reverse proxy already forwards /multiplayer/).
+	mux.Handle(contract.NodePathPrefix+"/internal/", a.nodeAPI(false))
 
 	return recoverPanics(a.network.CORS(jsonFallback(mux)))
 }

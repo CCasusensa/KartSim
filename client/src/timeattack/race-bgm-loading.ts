@@ -18,6 +18,44 @@ export interface RaceBgmLoadingHost {
     lobby: unknown; room: unknown; finish: unknown; podium: unknown;
   };
   multiplayerLobbyPath?: string;
+  /**
+   * The race playlist loadRaceBgm left decoding (the owner is returned
+   * without it); a race waits for it (racePlaylistReady), and a selectRace
+   * replaces it.
+   */
+  racePlaylistLoad?: Promise<void>;
+}
+
+let racePlaylistGate: Promise<void> = Promise.resolve();
+
+/**
+ * Holds race-music decoding back until the returned release is called:
+ * startup releases it once the home screen is up, so the theme's race
+ * music (several MB of ogg) does not compete with the home screen's bytes.
+ * Release it on every path (a race waits for the playlist).
+ */
+export function holdRacePlaylists(): () => void {
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  racePlaylistGate = gate;
+  return () => {
+    release();
+    if (racePlaylistGate === gate) racePlaylistGate = Promise.resolve();
+  };
+}
+
+/** Waits for a playlist loadRaceBgm left decoding; a failed one loads again for this track. */
+export async function racePlaylistReady(owner: {
+  racePlaylistLoad?: Promise<void>;
+  selectRace(library: unknown, track: unknown): Promise<void>;
+}, library: unknown, track: unknown): Promise<void> {
+  const load = owner.racePlaylistLoad;
+  if (!load) return;
+  try {
+    await load;
+  } catch {
+    if (owner.racePlaylistLoad === load) await owner.selectRace(library, track);
+  }
 }
 
 export interface RaceBgmLoadingDependencies {
@@ -65,6 +103,12 @@ export async function prepareMultiplayerBgm(host: RaceBgmLoadingHost,
   host.multiplayerLobbyPath = lobbyPath;
 }
 
+/**
+ * The music owner with the Ready, garage and result music decoded. The
+ * track theme's race playlist (the largest part, several MB of ogg) keeps
+ * decoding after the owner is returned (racePlaylistLoad): the Ready screen
+ * does not play it, and races wait for it (racePlaylistReady).
+ */
 export async function loadRaceBgm(library: unknown, track: unknown,
   random: unknown, context: unknown,
   dependencies: RaceBgmLoadingDependencies): Promise<unknown> {
@@ -72,17 +116,28 @@ export async function loadRaceBgm(library: unknown, track: unknown,
   const garage = dependencies.garageMusic(library, single);
   const win = dependencies.resource(library, "sound_/bgm/main/game_win.ogg");
   const lose = dependencies.resource(library, "sound_/bgm/main/game_lose.ogg");
-  const [playlist, readyBuffer, garageBuffer, winBuffer, loseBuffer] =
+  const playlist = racePlaylistGate.then(() => dependencies.racePlaylist(library, track, context));
+  // Nobody may be waiting yet when it fails (racePlaylistReady reports it).
+  playlist.catch(() => undefined);
+  const [readyBuffer, garageBuffer, winBuffer, loseBuffer] =
     await Promise.all([
-      dependencies.racePlaylist(library, track, context),
       dependencies.decodeBuffer(single, context),
       garage === single ? Promise.resolve(undefined)
         : dependencies.decodeBuffer(garage, context),
       dependencies.decodeBuffer(win, context),
       dependencies.decodeBuffer(lose, context),
     ]);
-  return dependencies.create(context, playlist, readyBuffer,
-    garageBuffer ?? readyBuffer, winBuffer, loseBuffer, random);
+  const owner = dependencies.create(context, { buffers: [], names: [] }, readyBuffer,
+    garageBuffer ?? readyBuffer, winBuffer, loseBuffer, random) as RaceBgmLoadingHost;
+  const load: Promise<void> = playlist.then(result => {
+    if (owner.racePlaylistLoad !== load) return;
+    owner.racePlaylistLoad = undefined;
+    owner.raceBuffers = result.buffers;
+    owner.raceNames = result.names;
+  });
+  load.catch(() => undefined);
+  owner.racePlaylistLoad = load;
+  return owner;
 }
 
 export async function selectRaceBgm(host: RaceBgmLoadingHost,
@@ -90,6 +145,7 @@ export async function selectRaceBgm(host: RaceBgmLoadingHost,
   dependencies: RaceBgmLoadingDependencies): Promise<void> {
   const playlist = await dependencies.racePlaylist(library, track,
     host.context);
+  host.racePlaylistLoad = undefined;
   host.raceBuffers = playlist.buffers;
   host.raceNames = playlist.names;
   host.currentRaceNameValue = undefined;

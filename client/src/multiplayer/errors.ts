@@ -47,6 +47,12 @@ const errorMessages: Record<string, string> = {
   READY_COUNTDOWN_LOCKED: "房间倒数已进入最后三秒，不能取消准备。",
   CHAT_RATE_LIMIT: "发送过快，请稍后重试。",
   VERSION_MISMATCH: "联机前端与后端版本不一致，请同步更新。",
+  // The global lobby (server-go/GLOBAL_LOBBY.md): rooms race on a game node.
+  ROOM_RACING: "房间正在比赛中，请等本局结束后再加入。",
+  NO_GAME_SERVER: "暂无可用的比赛服务器，本次开赛已取消，请稍后再试。",
+  RACE_SERVER_UNREACHABLE: "比赛服务器没有响应，本次开赛已取消，请重新开始。",
+  RACE_SERVER_LOST: "比赛服务器已断开，本局比赛已结束，房间已恢复。",
+  NOT_RACE_PARTICIPANT: "你不在这局比赛的名单中。",
   // Data service and game server split: entry tickets, server choice and capacity.
   NICKNAME_TAKEN: "该昵称已被使用或已在游戏中。",
   LOGIN_REQUIRED: "登录已失效，请重新登录后再进入多人游戏。",

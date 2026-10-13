@@ -29,13 +29,19 @@ func main() {
 		// Same as GOMEMLIMIT; the node also refuses new players near the limit.
 		debug.SetMemoryLimit(int64(cfg.MemoryLimitMB) << 20)
 	}
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if cfg.NodeKey != "" {
+		if err := app.Register(ctx, &cfg, log); err != nil {
+			log.Error("注册失败", "error", err)
+			os.Exit(1)
+		}
+	}
 	node, err := app.New(cfg, log, app.Options{})
 	if err != nil {
 		log.Error("启动失败", "error", err)
 		os.Exit(1)
 	}
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 	if err := node.Run(ctx); err != nil {
 		log.Error("game node stopped with error", "error", err)
 		os.Exit(1)
