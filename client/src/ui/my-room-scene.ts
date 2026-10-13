@@ -81,7 +81,7 @@ const WORN_SOCKETS: ReadonlyArray<[kind: string, category: number, part: number,
 ];
 
 interface DressingLibrary {
-  timeAttackDecorationItem(category: number, itemId: number): Promise<{ internalId: string; decorationTrans?: unknown }>;
+  timeAttackDecorationItem(category: number, itemId: number): Promise<{ internalId: string }>;
 }
 
 interface DecoratedCharacter {
@@ -102,7 +102,7 @@ async function dressWalkingAvatar(library: MyRoomSceneLibrary, subject: MyRoomSc
   const load = async (kind: string, category: number) => {
     const item = await dressing.timeAttackDecorationItem(category, items[category]!);
     return await hr(library, kind, item.internalId, subject.environment, subject.stageBinding, {
-      convertClientCoordinates: false, trans: item.decorationTrans,
+      convertClientCoordinates: false,
       ...(kind === "goggle" ? { goggleType: (subject.character as { goggleType?: string }).goggleType ?? "" } : {}),
     }) as WornItem;
   };

@@ -33,9 +33,6 @@ const ITEM_KINDS = new Set([
   "decal", "ridColor", "slotBg", "headPhone", "rpLucciBonus",
   "goItemSkinCard", "tachometer",
 ]);
-const DECORATIONS_WITH_TRANS = new Set([
-  "goggle", "balloon", "headBand", "handGearL", "aura", "skidMark",
-]);
 
 function attribute(node: ItemTableNode, name: string): string | undefined {
   return node.attributes.find(item => item.name === name)?.value;
@@ -82,7 +79,13 @@ function vector3(node: ItemTableNode, name: string): number[] | undefined {
   return [values[0]!, values[1]!, values[2]!];
 }
 
-/** Parse catalog identities while retaining release defaults and optional fields. */
+/**
+ * Parse catalog identities while retaining release defaults and optional fields.
+ * Unlike the release, `trans` is not read as decorationTrans: in the original
+ * tables it is only on goggles (and karts) and is the item race's cloud cover
+ * reduction (item/item-passives.ts), while the release previews drew it as
+ * model opacity and left goggles see-through outside races.
+ */
 export function parseItemDefinitions(nodes: ItemTableNode[]): GarageItemDefinition[] {
   return nodes.flatMap(node => {
     if (!ITEM_KINDS.has(node.name)) return [];
@@ -123,7 +126,6 @@ export function parseItemDefinitions(nodes: ItemTableNode[]): GarageItemDefiniti
       balloonWireLengthLimit: node.name === "balloon" ? finiteNumber(node, "wireLengthLimit") : undefined,
       balloonFloatingForce: node.name === "balloon" ? finiteNumber(node, "floatingForce") : undefined,
       balloonViscousDrag: node.name === "balloon" ? finiteNumber(node, "viscousDrag") : undefined,
-      decorationTrans: DECORATIONS_WITH_TRANS.has(node.name) ? finiteNumber(node, "trans") : undefined,
     }];
   });
 }

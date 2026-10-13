@@ -37,7 +37,6 @@ export interface GarageItemDefinition {
   balloonWireLengthLimit?: number;
   balloonFloatingForce?: number;
   balloonViscousDrag?: number;
-  decorationTrans?: number;
 }
 
 export interface GarageItemLibrary {
@@ -147,7 +146,7 @@ export async function timeAttackDecorationItem(
 ): Promise<{
   kind: string; category: number; itemId: number; internalId: string;
   balloonPos?: number[]; balloonWireLengthLimit?: number;
-  balloonFloatingForce?: number; balloonViscousDrag?: number; decorationTrans?: number;
+  balloonFloatingForce?: number; balloonViscousDrag?: number;
 }> {
   const kind = Object.keys(DECORATION_CATEGORY).find(key => DECORATION_CATEGORY[key] === category);
   if (!kind) throw new Error(`P3528 未知装饰类别 ${category}。`);
@@ -163,6 +162,5 @@ export async function timeAttackDecorationItem(
     balloonWireLengthLimit: item.balloonWireLengthLimit,
     balloonFloatingForce: item.balloonFloatingForce,
     balloonViscousDrag: item.balloonViscousDrag,
-    decorationTrans: item.decorationTrans,
   };
 }

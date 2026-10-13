@@ -33,13 +33,20 @@ const referenceSource = [
   between("function z3(", "\nfunction sQ("),
   "return { Sw, UZ };",
 ].join("\n");
+/** The release also returns decorationTrans, an item's `trans` drawn as model opacity. */
+type ReleaseDefinition = GarageItemDefinition & { decorationTrans?: number };
 const { Sw: ReleaseLibrary, UZ: releaseParseDefinitions } = new Function(
   "x1", "j0", "Cr", "_Z", referenceSource,
 )(x1, j0, Cr, _Z) as {
   Sw: new (input: { files: GarageResource[]; [field: string]: unknown }) =>
-    ItemTableLibrary & { itemTableGarageDefinitions(): Promise<GarageItemDefinition[]> };
-  UZ: (nodes: unknown[]) => GarageItemDefinition[];
+    ItemTableLibrary & { itemTableGarageDefinitions(): Promise<ReleaseDefinition[]> };
+  UZ: (nodes: unknown[]) => ReleaseDefinition[];
 };
+
+/** Release definitions without decorationTrans, which parseItemDefinitions drops on purpose. */
+function withoutTrans(definitions: ReleaseDefinition[]): GarageItemDefinition[] {
+  return definitions.map(({ decorationTrans: _trans, ...item }) => item);
+}
 const dependencies: ItemTableDependencies = { parseXml: x1, legacyFamilies: Cr };
 
 class AuthoredLibrary extends ReleaseLibrary {
@@ -83,7 +90,8 @@ test("项目、数字、布尔与装饰属性解析保持发行版边界", () =>
     <flyingPet id="14" name="PetA" tuneGroupId="123"/>
     <unknown id="15" name="Ignored"/>
   </itemtable>`)).root;
-  assert.deepEqual(parseItemDefinitions(root.children), releaseParseDefinitions(root.children));
+  assert.deepEqual(parseItemDefinitions(root.children),
+    withoutTrans(releaseParseDefinitions(root.children)));
   for (const xml of [
     `<kart id="1" name="A" engineGrade="-1"/>`,
     `<kart id="1" name="A" enchant="maybe"/>`,
@@ -97,8 +105,20 @@ test("项目、数字、布尔与装饰属性解析保持发行版边界", () =>
       catch (error) { return { error: error instanceof Error ? error.message : String(error) }; }
     };
     assert.deepEqual(capture(() => parseItemDefinitions(nodes)),
-      capture(() => releaseParseDefinitions(nodes)));
+      capture(() => withoutTrans(releaseParseDefinitions(nodes))));
   }
+});
+
+test("护目镜的 trans 是道具赛的乌云减弱，不当作模型透明度", () => {
+  // 167 天使宝宝护目镜 / 163 独眼怪护目镜 carry trans 0.7 in itemTable@cn.
+  const root = x1(utf16(`<itemtable>
+    <goggle id="167" name="성스러운빛고글" trans="0.7"/>
+    <goggle id="163" name="리온고글" trans="0.7"/>
+  </itemtable>`)).root;
+  assert.deepEqual(releaseParseDefinitions(root.children).map(item => item.decorationTrans),
+    [0.7, 0.7]);
+  for (const item of parseItemDefinitions(root.children))
+    assert.equal("decorationTrans" in item, false, `${item.internalId} 不应带 decorationTrans`);
 });
 
 test("真实 p3553 ItemTable 叠加 @cn 后只有 CN 覆盖的行与发行版不同，并扩展小屋装备身份", async () => {
@@ -136,10 +156,11 @@ test("真实 p3553 ItemTable 叠加 @cn 后只有 CN 覆盖的行与发行版不
   const originalKinds = new Set(expected.map(item => item.kind));
   const overlaid = new Set(x1(localized).root.children.map(node => `${node.name}:${Number(j0(node, "id"))}`));
   const kept = actual.filter(item => originalKinds.has(item.kind));
-  assert.equal(kept.length, expected.length);
+  const baseline = withoutTrans(expected);
+  assert.equal(kept.length, baseline.length);
   kept.forEach((item, index) => {
-    if (!overlaid.has(`${item.kind}:${item.itemId}`)) assert.deepEqual(item, expected[index]);
-    else assert.deepEqual([item.kind, item.itemId], [expected[index]!.kind, expected[index]!.itemId]);
+    if (!overlaid.has(`${item.kind}:${item.itemId}`)) assert.deepEqual(item, baseline[index]);
+    else assert.deepEqual([item.kind, item.itemId], [baseline[index]!.kind, baseline[index]!.itemId]);
   });
   const kart = (id: number) => kept.find(item => item.kind === "kart" && item.itemId === id)!;
   const character = (id: number) => kept.find(item => item.kind === "character" && item.itemId === id)!;
@@ -220,6 +241,6 @@ test("系统练习车与必需文件校验保持发行版行为", async () => {
     const original = setup(ReleaseLibrary, files);
     const authored = setup(AuthoredLibrary, files);
     assert.deepEqual(await outcome(() => authored.itemTableGarageDefinitions()),
-      await outcome(() => original.itemTableGarageDefinitions()));
+      await outcome(async () => withoutTrans(await original.itemTableGarageDefinitions())));
   }
 });

@@ -132,14 +132,20 @@ test("全部装饰类别、缺失物品与未知类别保持 release 结果", as
     { kind: "goggle", itemId: 1, internalId: "goggleA" },
     { kind: "balloon", itemId: 2, internalId: "balloonA", balloonPos: [1, 2, 3],
       balloonWireLengthLimit: 4, balloonFloatingForce: 5, balloonViscousDrag: 6 },
-    { kind: "headBand", itemId: 3, internalId: "headA", decorationTrans: 0.5 },
+    { kind: "headBand", itemId: 3, internalId: "headA" },
     { kind: "handGearL", itemId: 4, internalId: "handA" },
     { kind: "aura", itemId: 5, internalId: "auraA" },
     { kind: "skidMark", itemId: 6, internalId: "skidA" },
   ];
   const original = setup(ReleaseLibrary, [], definitions);
   const authored = setup(AuthoredLibrary, [], definitions);
+  // The release also returns decorationTrans; item `trans` is no model opacity (item-table.ts).
+  const withoutTrans = async (category: number, id: number) => {
+    const { decorationTrans: _trans, ...item } = await original.timeAttackDecorationItem(category, id) as
+      { decorationTrans?: number };
+    return item;
+  };
   for (const [category, id] of [[8, 1], [9, 2], [11, 3], [16, 4], [26, 5], [27, 6], [9, 999], [999, 1]])
     assert.deepEqual(await outcome(() => authored.timeAttackDecorationItem(category!, id!)),
-      await outcome(() => original.timeAttackDecorationItem(category!, id!)));
+      await outcome(() => withoutTrans(category!, id!)));
 });
