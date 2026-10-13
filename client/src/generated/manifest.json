@@ -1100,6 +1100,9 @@
   "handwrittenVehicleHeadBandOverrides": [
     "ae0"
   ],
+  "handwrittenVehicleTetherFrameOverrides": [
+    "he0"
+  ],
   "handwrittenVehicleNormalCoordinatorOverrides": [
     "vL",
     "U40",
@@ -1876,8 +1879,8 @@
     },
     {
       "file": "vehicle.js",
-      "bytes": 186573,
-      "sha256": "dd9c9ed8b6e7a1839e1bb322a22a4b70a132c22c53d1b96148ea2d103c3d6a35",
+      "bytes": 186321,
+      "sha256": "9553a5551ba1c18bbe43906e10d8ab04559f1e2a7694340b32585f180015cbf2",
       "imports": 183,
       "exports": 104
     },

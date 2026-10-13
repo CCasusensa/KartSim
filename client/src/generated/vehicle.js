@@ -56,7 +56,7 @@ import { TrackCoinContact as y10 } from "../vehicle/track-coin.ts";
 import { CharacterMotionSequencer } from "../vehicle/motion-sequencer.ts";
 import { StandardMotionController, LinkedMotionController, MappedMotionController } from "../vehicle/animation-selectors.ts";
 import { ResultMotionController, SingleActionMotionController, ActionSetMotionController } from "../vehicle/animation-actions.ts";
-import { TetherMotion as H10 } from "../vehicle/tether-motion.ts";
+import { TetherMotion as H10, tetherFrameFromMatrix as he0 } from "../vehicle/tether-motion.ts";
 import { loadTrackCoinSource, parseTrackCoinResources, uniqueOriginalCoinAsset } from "../vehicle/track-coin-source.ts";
 import { TrackCoinOwner } from "../vehicle/track-coin-owner.ts";
 import { ChargerEffect } from "../vehicle/charger-effect.ts";
@@ -1289,22 +1289,6 @@ async function Jw(n, e, t, i, r) {
     },
     dispose: () => s.dispose(),
   };
-}
-
-function he0(n, e) {
-  const t = n.elements;
-  ((e[0] = t[0]),
-    (e[1] = t[4]),
-    (e[2] = t[8]),
-    (e[3] = t[12]),
-    (e[4] = t[1]),
-    (e[5] = t[5]),
-    (e[6] = t[9]),
-    (e[7] = t[13]),
-    (e[8] = t[2]),
-    (e[9] = t[6]),
-    (e[10] = t[10]),
-    (e[11] = t[14]));
 }
 
 function ev(n, e, t) {

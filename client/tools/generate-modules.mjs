@@ -522,6 +522,7 @@ itemWorldRaceAssetPatches.push(
 const vehicleSlipstreamOverrides = new Set(["mv", "wv"]);
 const vehicleStartGridOverrides = new Set(["iL", "rL"]);
 const vehicleHeadBandOverrides = new Set(["ae0"]);
+const vehicleTetherFrameOverrides = new Set(["he0"]);
 const vehicleNormalCoordinatorOverrides = new Set(["vL", "U40", "yL", "as", "J8"]);
 const vehicleFrameClockOverrides = new Set(["$40", "DC"]);
 const vehicleResidualOverrides = new Map([
@@ -1713,6 +1714,7 @@ const replacedVehicleAssetLoaderMethods = new Set();
 const replacedVehicleSlipstream = new Set();
 const replacedVehicleStartGrid = new Set();
 const replacedVehicleHeadBand = new Set();
+const replacedVehicleTetherFrame = new Set();
 const replacedVehicleNormalCoordinators = new Set();
 const replacedVehicleFrameClocks = new Set();
 const replacedVehicleResidual = new Set();
@@ -4023,6 +4025,12 @@ ${[...garageSelectionMethodOverrides.values()].join("\n")}
     replacedVehicleHeadBand.add(declarationName);
     continue;
   }
+  if (vehicleTetherFrameOverrides.has(declarationName)) {
+    assert(node.type === "FunctionDeclaration" && originalSection(node.start) === "vehicle",
+      `Vehicle balloon tether frame ${declarationName} moved.`);
+    replacedVehicleTetherFrame.add(declarationName);
+    continue;
+  }
   if (vehicleNormalCoordinatorOverrides.has(declarationName)) {
     assert(originalSection(node.start) === "vehicle" &&
       node.type === (["as", "J8"].includes(declarationName) ? "FunctionDeclaration" : "ClassDeclaration"),
@@ -4368,6 +4376,8 @@ assert(replacedVehicleStartGrid.size === vehicleStartGridOverrides.size,
   "The vehicle start grid functions were not all replaced.");
 assert(replacedVehicleHeadBand.size === vehicleHeadBandOverrides.size,
   "The vehicle headBand state function was not replaced.");
+assert(replacedVehicleTetherFrame.size === vehicleTetherFrameOverrides.size,
+  "The vehicle balloon tether frame function was not replaced.");
 assert(replacedVehicleNormalCoordinators.size === vehicleNormalCoordinatorOverrides.size,
   "The vehicle normal coordinator symbols were not all replaced.");
 assert(replacedVehicleFrameClocks.size === vehicleFrameClockOverrides.size,
@@ -4768,7 +4778,7 @@ function renderModule(name) {
     lines.push('import { CharacterMotionSequencer } from "../vehicle/motion-sequencer.ts";');
     lines.push('import { StandardMotionController, LinkedMotionController, MappedMotionController } from "../vehicle/animation-selectors.ts";');
     lines.push('import { ResultMotionController, SingleActionMotionController, ActionSetMotionController } from "../vehicle/animation-actions.ts";');
-    lines.push('import { TetherMotion as H10 } from "../vehicle/tether-motion.ts";');
+    lines.push('import { TetherMotion as H10, tetherFrameFromMatrix as he0 } from "../vehicle/tether-motion.ts";');
     lines.push('import { loadTrackCoinSource, parseTrackCoinResources, uniqueOriginalCoinAsset } from "../vehicle/track-coin-source.ts";');
     lines.push('import { TrackCoinOwner } from "../vehicle/track-coin-owner.ts";');
     lines.push('import { ChargerEffect } from "../vehicle/charger-effect.ts";');
@@ -7186,6 +7196,7 @@ const manifest = {
   handwrittenVehicleSlipstreamOverrides: [...vehicleSlipstreamOverrides],
   handwrittenVehicleStartGridOverrides: [...vehicleStartGridOverrides],
   handwrittenVehicleHeadBandOverrides: [...vehicleHeadBandOverrides],
+  handwrittenVehicleTetherFrameOverrides: [...vehicleTetherFrameOverrides],
   handwrittenVehicleNormalCoordinatorOverrides: [...vehicleNormalCoordinatorOverrides],
   handwrittenVehicleFrameClockOverrides: [...vehicleFrameClockOverrides],
   handwrittenVehicleResidualOverrides: [...vehicleResidualOverrides.keys()],

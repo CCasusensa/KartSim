@@ -22,6 +22,28 @@ function transformPoint(matrix: Affine3x4, row: number, point: readonly number[]
     + matrix[offset + 3]!);
 }
 
+/**
+ * The frame a balloon tether simulates in: the marker's world matrix with its
+ * scale divided out (replaces the release `he0`, which copied it as is).
+ *
+ * `TetherMotion` keeps the rope length in world units and maps the balloon back
+ * with the transposed matrix, which is only the inverse of a rigid one. Under
+ * the giant-mode stages (1.5–4.4×), the press squash or the 0.5× city karts the
+ * balloon sat s² too far from the marker, so the rope grew with the kart and
+ * shrank with it far faster than the kart. Simulating the unscaled balloon in
+ * the rigid frame lets the marker's own scale size the balloon and its rope
+ * exactly like the rest of the kart.
+ */
+export function tetherFrameFromMatrix(matrix: { elements: ArrayLike<number> }, out: number[]): void {
+  const t = matrix.elements;
+  const sx = Math.hypot(t[0]!, t[1]!, t[2]!) || 1;
+  const sy = Math.hypot(t[4]!, t[5]!, t[6]!) || 1;
+  const sz = Math.hypot(t[8]!, t[9]!, t[10]!) || 1;
+  out[0] = t[0]! / sx; out[1] = t[4]! / sy; out[2] = t[8]! / sz; out[3] = t[12]!;
+  out[4] = t[1]! / sx; out[5] = t[5]! / sy; out[6] = t[9]! / sz; out[7] = t[13]!;
+  out[8] = t[2]! / sx; out[9] = t[6]! / sy; out[10] = t[10]! / sz; out[11] = t[14]!;
+}
+
 /** Spring-like decoration movement attached to a kart, matching the released H10. */
 export class TetherMotion {
   anchorPoint: number[];
