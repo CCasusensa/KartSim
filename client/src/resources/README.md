@@ -14,7 +14,7 @@
 
 `resource-lookup.ts` 接管 `Sw` 的索引构造与核心查询：精确路径候选、前缀条目、同目录文件、物理容器名和挂载判断。真实 p3553 的 137,609 条虚拟资源记录与发行版查询结果逐项一致；它同样由生成器接入运行路径。
 
-`vehicle-identity.ts` 接管 `Sw` 的 9 个车辆身份方法，解析可驾驶模型、车型目录、纹理键、引擎等级、物品 ID 和关联角色。真实 p3553 索引中的 1,096 个可驾驶模型，以及真实 `itemTable.kml` 中的身份映射，均与发行版差分一致。
+`vehicle-identity.ts` 接管 `Sw` 的 9 个车辆身份方法，解析可驾驶模型、车型目录、纹理键、引擎等级、物品 ID 和关联角色。真实 p3553 索引中的 1,096 个可驾驶模型，以及真实 `itemTable.kml` 中的身份映射，均与发行版差分一致；唯一的差别是 `item-table.ts` 按国服客户端把 `itemTable@cn.xml` 逐属性叠加上去（发行版只取了 `uniqueLevel`），所以 23 辆国服车（如 579/580 飓风 Z7+/暴走飓风Z7+ → `zeno4`/`zeno5`）和几个国服角色、装备用的是国服目录。
 
 `garage-catalog.ts`、`timeattack-items.ts`、`item-table.ts`、`vehicle-titles.ts` 和 `track-config.ts` 接管车库物品、车辆标题与赛道配置业务。真实 p3553 的 ItemTable、国服覆盖数据和赛道配置与发行版差分一致。生成器已将 `Sw` 的全部 38 个方法接入本目录和 `src/codecs/sw-compat.ts`；类外的发行版辅助函数仍留在兼容模块。
 

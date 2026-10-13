@@ -8,7 +8,7 @@ import { inflateSync } from "node:zlib";
 import { Rho5Reader } from "../codecs/rho5";
 import type { Rho5ArchiveIndex } from "./archive-index";
 import type { ArchiveSource } from "./container-store";
-import { itemTableGarageDefinitions, parseItemDefinitions,
+import { itemTableGarageDefinitions, overlayItemTable, parseItemDefinitions,
   type ItemTableDependencies, type ItemTableLibrary } from "./item-table";
 import type { GarageItemDefinition, GarageResource } from "./timeattack-items";
 
@@ -101,7 +101,7 @@ test("项目、数字、布尔与装饰属性解析保持发行版边界", () =>
   }
 });
 
-test("真实 p3553 ItemTable 的既有类别保持一致并扩展小屋装备身份", async () => {
+test("真实 p3553 ItemTable 叠加 @cn 后只有 CN 覆盖的行与发行版不同，并扩展小屋装备身份", async () => {
   const index = JSON.parse(inflateSync(readFileSync(path.resolve(project,
     "../mirror/__p3553/archive-index"))).toString("utf8"), (_key, value: unknown) => {
     if (value && typeof value === "object" && "$u8" in value && typeof value.$u8 === "string")
@@ -122,22 +122,67 @@ test("真实 p3553 ItemTable 的既有类别保持一致并扩展小屋装备身
     };
   });
   const reader = new Rho5Reader(dataPack, sources);
+  const localized = await reader.read("etc_/itemTable@cn.xml");
   const files = [
     file("etc_/itemTable.kml", await reader.read("etc_/itemTable.kml")),
-    file("etc_/itemTable@cn.xml", await reader.read("etc_/itemTable@cn.xml")),
+    file("etc_/itemTable@cn.xml", localized),
+    // 64 贺岁版雯雯 has its own CN model; 71 homrunDao_cn has none (textures only).
+    file("character_/innerWearWonwon_Red/model.1s", new Uint8Array()),
   ];
   const original = setup(ReleaseLibrary, files);
   const authored = setup(AuthoredLibrary, files);
   const expected = await original.itemTableGarageDefinitions();
   const actual = await authored.itemTableGarageDefinitions();
   const originalKinds = new Set(expected.map(item => item.kind));
-  assert.deepEqual(actual.filter(item => originalKinds.has(item.kind)), expected);
+  const overlaid = new Set(x1(localized).root.children.map(node => `${node.name}:${Number(j0(node, "id"))}`));
+  const kept = actual.filter(item => originalKinds.has(item.kind));
+  assert.equal(kept.length, expected.length);
+  kept.forEach((item, index) => {
+    if (!overlaid.has(`${item.kind}:${item.itemId}`)) assert.deepEqual(item, expected[index]);
+    else assert.deepEqual([item.kind, item.itemId], [expected[index]!.kind, expected[index]!.itemId]);
+  });
+  const kart = (id: number) => kept.find(item => item.kind === "kart" && item.itemId === id)!;
+  const character = (id: number) => kept.find(item => item.kind === "character" && item.itemId === id)!;
+  // CN 580 暴走飓风Z7+ / 579 飓风 Z7+ are the zeno family, not the base rows' scooter3 / iron.
+  assert.equal(expected.find(item => item.kind === "kart" && item.itemId === 580)!.internalId, "scooter3");
+  assert.deepEqual([kart(580).internalId, kart(580).orgColorId, kart(580).engineGrade, kart(580).enchant,
+    kart(580).uniqueLevel, kart(580).vehicleRarityLevel], ["zeno5", 8, 3, true, 2, 2]);
+  assert.equal(kart(579).internalId, "zeno4");
+  assert.deepEqual([kart(588).internalId, kart(588).kartType], ["snake1", 2]);
+  assert.equal(kart(583).textureKey, "1_cn");
+  assert.equal(character(64).internalId, "innerWearWonwon_Red");
+  assert.equal(character(71).internalId, "homrunDao");
   for (const kind of ["pet", "uniform", "decal", "ridColor", "slotBg",
     "headPhone", "rpLucciBonus", "goItemSkinCard", "tachometer"]) {
     assert.ok(actual.some(item => item.kind === kind), `缺少 ${kind} 原版道具身份`);
   }
   assert.ok(actual.length > 1_000);
   assert.deepEqual(await authored.itemTableGarageDefinitions(), actual);
+});
+
+test("@cn 覆盖按 (标签, id) 逐属性生效，keepName 可拒绝换目录", () => {
+  const base = x1(utf16(`<itemtable>
+    <kart id="580" name="scooter3" orgColorId="1" kartType="2" engineGrade="4"/>
+    <kart id="32" name="KartB" kartType="2"/>
+    <character id="71" name="homrunDao" orgColorId="7"/>
+    <balloon id="580" name="BalloonA"/>
+  </itemtable>`)).root.children;
+  const overlay = x1(utf16(`<itemtable>
+    <kart id="580" name="zeno5" orgColorId="8" engineGrade="3" uniqueLevel="2"/>
+    <kart id="32" iceBanana="100"/>
+    <character id="71" name="homrunDao_cn"/>
+  </itemtable>`)).root.children;
+  const merged = parseItemDefinitions(overlayItemTable(base, overlay, (tag) => tag !== "character"));
+  assert.deepEqual(merged.map(item => [item.kind, item.itemId, item.internalId, item.orgColorId,
+    item.engineGrade, item.vehicleRarityLevel]), [
+    ["kart", 580, "zeno5", 8, 3, 2],
+    ["kart", 32, "KartB", 0, 0, undefined],
+    ["character", 71, "homrunDao", undefined, undefined, undefined],
+    ["balloon", 580, "BalloonA", undefined, undefined, undefined],
+  ]);
+  assert.throws(() => overlayItemTable(base, x1(utf16(`<itemtable>
+    <kart id="580" uniqueLevel="2"/><kart id="580" uniqueLevel="3"/></itemtable>`)).root.children),
+  /itemTable@cn kart id=580 存在冲突 uniqueLevel/);
 });
 
 test("小屋其他装备类别保留原版 ItemTable 的类别与物品 ID", () => {

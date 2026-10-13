@@ -83,7 +83,7 @@
 
 构建期工具 `client/tools/export-economy-data.mjs`（在 `client/` 下运行 `node --import tsx tools/export-economy-data.mjs`；`--check` 在提交的 JSON 过期时退出码 1）。它直接执行浏览器的资源库与 `loadTimeAttackGarageCatalog`，保证与车库目录完全一致，从 `mirror/p3553` 读取：
 
-- `etc_/itemTable.kml`、`zeta_/cn/shop/data/item.kml`（名称、描述、`isAdditional`）
+- `etc_/itemTable.kml` 叠加 `etc_/itemTable@cn.xml`（同一 tag+id 按属性覆盖，和国服客户端一样：国服车辆的模型目录、引擎等级、车型、原厂喷漆以国服为准，例如 580 暴走飓风Z7+ 是 `zeno5`，基础表写的 `scooter3` 是超迷你踏板车 Z7 的模型）、`zeta_/cn/shop/data/item.kml`（名称、描述、`isAdditional`）
 - `zeta_/cn/shop/data/stock.kml`（价格、货币、期限 `expireDay`、数量 `itemCount`、`rpLimit`、`restriction`、`isOnceADay`）
 - `zeta_/cn/shop/data/stockCard.xml`、`shopCat.xml`（当前上架卡片、原版商城页签/子页签、`shopMark` 角标、`originalPrice`、`eventBuyCount` 限购）
 - `stage_/mqShop/stage_stringBag.bml`、`etc_/baseStringBag.xml`（页签/子页签的中文名，先查商城自己的字符串包，再查基础包）
@@ -116,7 +116,7 @@
 
 - 页签 = `shopCat.xml` 的 ShopCat（文件顺序）：推荐 `recommand`（最新推荐页）、卡丁车 `kartBody`、角色 `character`、礼包 `package`、装备 `equip`、使用 `useful`；`hide` 和 `kartPass`（卡片全部不在 `stockCard.xml`）不显示，与 `stage_mqShop/stage_window@cn` 的 `itemCatTab` 六个按钮一致。子页签 = ShopCat 下的 SubCat（文件顺序）：推荐 new/hotItem/event；卡丁车 engineXun/engineV1/engineEtc/strengthen/tunningXun；装备 balloon/headband/goggle/color/dye/couple/etc；使用 specialKit/card/etc；角色、礼包没有 SubCat。
 - 中文名按原版 `#sb(key)`：先查 `stage_mqShop/stage_stringBag`，再查 `baseStringBag`（推荐、新商品、热门商品、活动、卡丁车、迅 引擎、V1 引擎、其他引擎、改装部件、强化材料、角色、礼包、装备、气球、电磁波头带、防尘眼镜、喷漆、染色剂、情侣、其它、使用、必杀技、卡片类）。有 SubCat 的页签（推荐除外）最前面有“全部”（`allSubTab`，窗口第一个子页签按钮 `#sb(whole)`）；推荐没有“全部”，打开时选中第一个 SubCat 新商品（`defaultSubTab: "new"`）。
-- 卡丁车按引擎族分：itemTable.kml `<kart engineGrade>`（车库 `garage-catalog.ts` 的同一字段；GarageX 也用它区分 XUN/V1 部件）9 = 迅（XUN）→ `engineXun`，8 = V1 → `engineV1`，其余（0–7，经典…X）→ `engineEtc` 其他引擎（原版 engineEtc 只上架引擎卡片，旧引擎车放在这里）。校验：原版 engineXun 卡片列出的 10 辆车全是 9，engineV1 卡片的 16 辆全是 8（第 17 张是车辆收藏胶囊，不是车）；名字也吻合（9 级 125 辆中 124 辆名带“迅”，另一辆内部名 cottonXUN_20year；8 级的猎影敞篷跑车名无 V1，但原版就把它列在 engineV1）。结果：迅 125、V1 157、其他 1,263。
+- 卡丁车按引擎族分：itemTable.kml（叠加 @cn）`<kart engineGrade>`（车库 `garage-catalog.ts` 的同一字段；GarageX 也用它区分 XUN/V1 部件）9 = 迅（XUN）→ `engineXun`，8 = V1 → `engineV1`，其余（0–7，经典…X）→ `engineEtc` 其他引擎（原版 engineEtc 只上架引擎卡片，旧引擎车放在这里）。校验：原版 engineXun 卡片列出的 10 辆车全是 9，engineV1 卡片的 16 辆全是 8（第 17 张是车辆收藏胶囊，不是车）；名字也吻合（9 级 125 辆中 124 辆名带“迅”，另一辆内部名 cottonXUN_20year；8 级的猎影敞篷跑车名无 V1，但原版就把它列在 engineV1）。结果：迅 125、V1 157、其他 1,263。
 - 其他种类：角色、宠物、飞行宠物 → `character`（无 SubCat；宠物按 `itemCat2ShopCat.bml` 8001 归角色）；气球/头饰/眼镜/喷漆/染色 → `equip` 的 balloon/headband/goggle/color/dye；手杖 handGearL（原版 equip/etc 卡片就是手杖）以及光环、轨迹、车牌、服饰、贴花、名字喷漆、车手栏背景 → `equip/etc`（原版没有装饰页）；双倍经验/金币卡 rpLucciBonus（原版 useful/card 卡片）、道具皮肤卡、转速表卡 → `useful/card`；回放摄像机 headPhone（原版 useful/etc 卡片）→ `useful/etc`。礼包卡片都是多物品 stock，不卖，礼包页签没有商品。
 - 情侣装备：在 `stock.kml` 中有 `restriction` 为 `couple`/`couple2`…`couple5` 的单品 stock 的装备（43 件：气球、头饰、眼镜、手杖、光环），原版同时列在种类 SubCat 和情侣：`shopSubCategory: "couple"`，`shopSubCategories` 按原版 SubCat 顺序列出两者（如 `["balloon","couple"]`、`["couple","etc"]`）；只有一个 SubCat 时不出现 `shopSubCategories`。有情侣 stock 的卡丁车、宠物仍在自己的页签。
 - 每张当前卡片（推荐页除外）列出的物品都必须落在推导出的 ShopCat/SubCat，否则导出失败。

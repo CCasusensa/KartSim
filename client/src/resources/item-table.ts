@@ -128,23 +128,40 @@ export function parseItemDefinitions(nodes: ItemTableNode[]): GarageItemDefiniti
   });
 }
 
-function localizedRarity(root: ItemTableNode): Map<number, number> {
-  const levels = new Map<number, number>();
-  for (const kart of root.children.filter(node => node.name === "kart")) {
-    const rawId = attribute(kart, "id");
-    if (attribute(kart, "uniqueLevel") === undefined) continue;
-    if (!rawId || !/^\d+$/.test(rawId))
-      throw new Error(`itemTable@cn kart id=${rawId ?? "<missing>"} 无效。`);
-    const id = Number(rawId);
-    if (!Number.isSafeInteger(id))
-      throw new Error(`itemTable@cn kart id=${rawId} 超出安全整数范围。`);
-    const level = unsigned(kart, "uniqueLevel", 255);
-    const previous = levels.get(id);
-    if (previous !== undefined && previous !== level)
-      throw new Error(`itemTable@cn kart id=${id} 存在冲突 uniqueLevel。`);
-    levels.set(id, level);
+/**
+ * Overlay `etc_/itemTable@cn.xml` on the base rows the way the CN client
+ * does: for the same (tag, id) every attribute the overlay carries wins. CN
+ * items keep their own folders, grades, kart types and paints this way; CN
+ * 580 暴走飓风Z7+ is zeno5 with paint 8, where the base row still names
+ * scooter3 (超迷你踏板车 Z7). `keepName` may refuse an overlay folder the
+ * catalog cannot load, and that row keeps its base folder.
+ */
+export function overlayItemTable(
+  base: ItemTableNode[], overlay: ItemTableNode[],
+  keepName: (tag: string, name: string) => boolean = () => true,
+): ItemTableNode[] {
+  const rows = new Map<string, Map<string, string>>();
+  for (const node of overlay) {
+    const rawId = attribute(node, "id");
+    if (!rawId || !/^\d+$/.test(rawId)) continue;
+    const key = `${node.name}:${Number(rawId)}`;
+    const values = rows.get(key) ?? new Map<string, string>();
+    for (const { name, value } of node.attributes) {
+      if (name === "uniqueLevel" && values.has(name) && values.get(name) !== value)
+        throw new Error(`itemTable@cn ${node.name} id=${rawId} 存在冲突 uniqueLevel。`);
+      if (name !== "id") values.set(name, value);
+    }
+    rows.set(key, values);
   }
-  return levels;
+  return base.map(node => {
+    const rawId = attribute(node, "id");
+    const values = rawId && /^\d+$/.test(rawId) ? rows.get(`${node.name}:${Number(rawId)}`) : undefined;
+    if (!values) return node;
+    const merged = new Map(node.attributes.map(item => [item.name, item.value]));
+    for (const [name, value] of values)
+      if (name !== "name" || keepName(node.name, value.trim())) merged.set(name, value);
+    return { ...node, attributes: [...merged].map(([name, value]) => ({ name, value })) };
+  });
 }
 
 function systemKart(
@@ -207,7 +224,7 @@ async function systemVehicleDefinitions(
   return vehicles;
 }
 
-/** Cache the authoritative item table and apply the CN rarity overlay. */
+/** Cache the authoritative item table with the CN overlay applied. */
 export async function itemTableGarageDefinitions(
   library: ItemTableLibrary,
   dependencies: ItemTableDependencies,
@@ -222,18 +239,18 @@ export async function itemTableGarageDefinitions(
     const localizedFiles = library.exactCanonicalCandidates("etc_/itemTable@cn.xml");
     if (localizedFiles.length > 1)
       throw new Error(`etc_/itemTable@cn.xml source 数量必须为 0 或 1，实际 ${localizedFiles.length}。`);
-    let rarity = new Map<number, number>();
+    let rows = base.children;
     if (localizedFiles.length === 1) {
       const localized = dependencies.parseXml(await localizedFiles[0]!.bytes()).root;
       if (localized.name !== "itemtable")
         throw new Error("etc_/itemTable@cn.xml 根节点不是 itemtable。");
-      rarity = localizedRarity(localized);
+      // A CN character skin without a model of its own (homrunDao_cn only
+      // carries textures over addModelFolder=homrunDao, which the character
+      // loader does not read) keeps the base character.
+      rows = overlayItemTable(base.children, localized.children, (tag, name) =>
+        tag !== "character" || library.exactCanonicalCandidates(`character_/${name}/model.1s`).length > 0);
     }
-    const definitions = parseItemDefinitions(base.children).map(definition => {
-      if (definition.kind !== "kart") return definition;
-      const level = rarity.get(definition.itemId);
-      return level === undefined ? definition : { ...definition, vehicleRarityLevel: level };
-    });
+    const definitions = parseItemDefinitions(rows);
     return [...definitions, ...(await systemVehicleDefinitions(library, dependencies))];
   })();
   return library.garageDefinitionsPromise;
