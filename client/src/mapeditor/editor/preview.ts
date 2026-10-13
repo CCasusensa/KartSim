@@ -1,6 +1,7 @@
 /**
  * 素材栏右侧的大预览：把选中（或鼠标停留）的官方物件用游戏装配画出来，
- * 慢慢转圈。载入前先显示雪碧图里的缩略图放大版。
+ * 慢慢转圈。载入前先显示雪碧图里的缩略图放大版，模型到了就把缩略图藏起来，
+ * 免得静止的原角度缩略图和转动的模型叠在一起。
  */
 import { AmbientLight, DirectionalLight, Group, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import type { CatalogPiece } from "../catalog";
@@ -13,7 +14,7 @@ export class AssetPreview {
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(32, 1, 0.1, 5000);
   private readonly turntable = new Group();
-  private current?: { id: string; scene?: AssembledScene; offset: Group };
+  private current?: { id: string; scene?: AssembledScene; offset: Group; fallback?: HTMLElement };
   private width = 1;
   private height = 1;
   private spin = 0;
@@ -34,16 +35,23 @@ export class AssetPreview {
     viewport.onFrame(time => this.frame(time));
   }
 
-  /** 显示一个物件；同一个物件不重复载入。 */
-  show(piece: CatalogPiece | undefined): void {
-    if (this.current?.id === piece?.id) return;
+  /**
+   * 显示一个物件；同一个物件不重复载入。fallback 是载入前顶替的缩略图，
+   * 模型画出来后隐藏。
+   */
+  show(piece: CatalogPiece | undefined, fallback?: HTMLElement): void {
+    if (piece && this.current?.id === piece.id) {
+      this.current.fallback = fallback;
+      if (fallback && this.current.scene) fallback.style.visibility = "hidden";
+      return;
+    }
     this.clear();
     if (!piece) return;
     const offset = new Group();
     const center: [number, number, number] = [(piece.min[0] + piece.max[0]) / 2, (piece.min[1] + piece.max[1]) / 2, (piece.min[2] + piece.max[2]) / 2];
     offset.position.set(-center[0], -center[1], -center[2]);
     this.turntable.add(offset);
-    const entry: NonNullable<AssetPreview["current"]> = { id: piece.id, offset };
+    const entry: NonNullable<AssetPreview["current"]> = { id: piece.id, offset, fallback };
     this.current = entry;
     this.canvas.style.visibility = "hidden";
     // 相机：从斜上方看包围球
@@ -61,6 +69,7 @@ export class AssetPreview {
       entry.scene = scene;
       offset.add(scene.object);
       this.canvas.style.visibility = "";
+      if (entry.fallback) entry.fallback.style.visibility = "hidden";
     }).catch(error => console.warn("预览载入失败", piece.track, piece.path, error));
   }
 

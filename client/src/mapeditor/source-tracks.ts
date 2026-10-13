@@ -69,9 +69,18 @@ export function themeOf(id: string, metadata?: TrackMetadata): string {
   return metadata?.theme ?? THEMES.find(theme => id.startsWith(theme)) ?? "village";
 }
 
-function folderOf(path: string): string | undefined {
-  const match = /^track_\/([^/]+)\/track\.1s$/i.exec(path);
-  return match?.[1];
+/**
+ * 不在 track_/ 下的赛道：重建的容器（如喜羊羊 track_xyy_I01.rho）整个挂在
+ * track_<id>/ 下。listSourceTracks 记下它们的真实路径，sourceTrackPath 照用。
+ */
+const mountedTracks = new Map<string, string>();
+
+function folderOf(path: string): { folder: string; mounted: boolean } | undefined {
+  const official = /^track_\/([^/]+)\/track\.1s$/i.exec(path);
+  if (official) return { folder: official[1]!, mounted: false };
+  const mounted = /^track_([^/]+)\/track\.1s$/i.exec(path);
+  // 自制地图（track_custom_*）不算官方素材
+  return mounted && !/^custom_/i.test(mounted[1]!) ? { folder: mounted[1]!, mounted: true } : undefined;
 }
 
 /** 所有官方赛道（每个 track_/<folder>/track.1s 一条），按主题和名字排序。 */
@@ -85,9 +94,15 @@ export async function listSourceTracks(library: SourceLibrary): Promise<SourceTr
   const tracks: SourceTrack[] = [];
   for (const asset of library.mapAssets()) {
     const path = asset.canonicalPath ?? asset.virtualPath;
-    const folder = folderOf(path);
-    if (!folder) continue;
+    const found = folderOf(path);
+    if (!found) continue;
+    const { folder } = found;
     const row = byFolder.get(folder.toLowerCase());
+    // 挂载式的容器要在赛道表里有这一行才算赛道（卡丁城这类拼出来的大地图不算）
+    if (found.mounted) {
+      if (!row) continue;
+      mountedTracks.set(folder, asset.virtualPath);
+    }
     const theme = themeOf(row?.id ?? folder, row);
     tracks.push({ folder, id: row?.id ?? folder, title: row?.cnTitle ?? folder, theme, path: asset.virtualPath, metadata: row });
   }
@@ -96,7 +111,7 @@ export async function listSourceTracks(library: SourceLibrary): Promise<SourceTr
 }
 
 export function sourceTrackPath(folder: string): string {
-  return `track_/${folder}/track.1s`;
+  return mountedTracks.get(folder) ?? `track_/${folder}/track.1s`;
 }
 
 // ---------------------------------------------------------------------------
@@ -303,7 +318,7 @@ export function listSurfaceTextures(model: any): SurfaceTexture[] {
 }
 
 export async function loadSourceModel(library: SourceLibrary, formats: SourceFormats, folder: string): Promise<any> {
-  const entry = library.get(sourceTrackPath(folder));
+  const entry = library.get(sourceTrackPath(folder)) ?? library.get(`track_${folder}/track.1s`);
   if (!entry) throw new Error(`找不到官方赛道 ${folder}。`);
   return formats.y9(await entry.bytes()).root;
 }

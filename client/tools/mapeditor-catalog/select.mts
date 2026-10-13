@@ -138,8 +138,8 @@ interface SurfaceCandidate {
 const tracks: SourceTrack[] = await listSourceTracks(library);
 const groups = new Map<string, Candidate[]>();
 const surfaces = new Map<string, SurfaceCandidate>();
-const skies: Array<{ theme: string; track: string; title: string; size: number }> = [];
-const skySeen = new Set<string>();
+const skies: Array<{ theme: string; track: string; title: string; size: number; uses: number }> = [];
+const skySeen = new Map<string, (typeof skies)[number]>();
 
 const round = (v: number) => Math.round(v * 100) / 100;
 
@@ -149,14 +149,21 @@ for (const track of tracks) {
   if (done % 40 === 0) console.error(`扫描赛道 ${done}/${tracks.length}`);
   let model: any;
   try { model = await loadSourceModel(library, formats, track.folder); } catch { continue; }
-  // 天空：同一个 skydome 文件只算一次，挑有中文名的赛道
+  // 天空：同一主题里同一个 skydome 文件只算一次（记下几条赛道在用），挑有中文名的赛道；不同主题
+  // 共用的天空各自都留，否则城镇高速公路的晴天会被算到别的主题去
   const sky = library.findSibling(sourceTrackPath(track.folder), ["skydome.1s"]);
   if (sky && track.metadata?.cnTitle) {
     const bytes = await sky.bytes();
     let hash = 0;
     for (let i = 0; i < bytes.length; i += 7) hash = (hash * 31 + bytes[i]!) | 0;
-    const key = `${bytes.length}:${hash}`;
-    if (!skySeen.has(key)) { skySeen.add(key); skies.push({ theme: track.theme, track: track.folder, title: track.title, size: bytes.length }); }
+    const key = `${track.theme}:${bytes.length}:${hash}`;
+    const seen = skySeen.get(key);
+    if (seen) seen.uses++;
+    else {
+      const entry = { theme: track.theme, track: track.folder, title: track.title, size: bytes.length, uses: 1 };
+      skySeen.set(key, entry);
+      skies.push(entry);
+    }
   }
   for (const piece of listPieces(model)) {
     if (piece.reset || piece.triangles < 6) continue;
@@ -249,9 +256,10 @@ for (const [key, list] of surfaceBuckets) {
   pickedSurfaces.push(...[...byName.values()].sort((a, b) => score(b) - score(a)).slice(0, SURFACE_LIMITS[kind]));
 }
 
+// 每个主题留用得最多的 3 种天空（主题套装取第一种，就是这个主题最典型的天空）
 const skyPicks: typeof skies = [];
 const skyCount = new Map<string, number>();
-for (const sky of skies) {
+for (const sky of [...skies].sort((a, b) => b.uses - a.uses)) {
   const count = skyCount.get(sky.theme) ?? 0;
   if (count >= 3) continue;
   skyCount.set(sky.theme, count + 1);

@@ -6,4 +6,5 @@ export const SHEETS: string[] = [
   new URL("./sheet-3.webp", import.meta.url).href,
   new URL("./sheet-4.webp", import.meta.url).href,
   new URL("./sheet-5.webp", import.meta.url).href,
+  new URL("./sheet-6.webp", import.meta.url).href,
 ];

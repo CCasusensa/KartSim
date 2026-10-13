@@ -120,7 +120,9 @@ jobs.forEach((job, index) => {
     pieces.push({ id: `${source.track}:${source.path.join(".")}`, category: source.category, theme: source.theme, label: source.label,
       slot: cell.slot, track: source.track, path: source.path, origin: source.origin, min: source.min, max: source.max, uses: source.uses });
   } else if (job.kind === "sky") {
-    skies.push({ id: `sky:${source.track}`, theme: source.theme, label: source.title, slot: cell.slot, track: source.track });
+    // “[奔跑车手]城镇 运河”这类驾照赛道的前缀不要
+    skies.push({ id: `sky:${source.track}`, theme: source.theme, label: source.title.replace(/^\[[^\]]*\]\s*/, ""), slot: cell.slot,
+      track: source.track, uses: source.uses ?? 0 });
   } else {
     textures.push({ id: `${source.kind}:${source.track}:${source.name}`, kind: source.kind, theme: source.theme, slot: cell.slot,
       track: source.track, name: source.name, ...(source.road ? { road: source.road } : {}), ...(source.alpha ? { alpha: source.alpha } : {}),
@@ -146,7 +148,8 @@ for (const piece of pieces) {
   delete piece.uses;
 }
 textures.sort((a, b) => themeRank(a.theme) - themeRank(b.theme) || a.kind.localeCompare(b.kind));
-skies.sort((a, b) => themeRank(a.theme) - themeRank(b.theme));
+// 同主题里用得最多的天空排第一（主题套装取它）
+skies.sort((a, b) => themeRank(a.theme) - themeRank(b.theme) || b.uses - a.uses);
 
 // 主题套装：每个主题的天空、路面、护栏、地面各取第一名
 const presets = [];
@@ -158,6 +161,7 @@ for (const theme of [...new Set([...pieces, ...skies].map(item => item.theme))].
   if (sky && surface) presets.push({ theme, sky, surface, wall, ground });
 }
 for (const texture of textures) { delete texture.uses; delete texture.triangles; }
+for (const sky of skies) delete sky.uses;
 
 for (const name of readdirSync(outDir, { withFileTypes: true }).map(entry => entry.name)) {
   if (/^sheet-\d+\.webp$/.test(name)) unlinkSync(path.join(outDir, name));

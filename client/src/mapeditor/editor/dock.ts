@@ -74,6 +74,16 @@ export function drawTemplate(template: TrackTemplate, size: number): HTMLCanvasE
   return canvas;
 }
 
+/** 给卡片加上或去掉高亮和角标。 */
+function markCard(card: HTMLElement, mark: string | undefined): void {
+  card.classList.toggle("k-selected", !!mark);
+  card.classList.toggle("ed-marked", !!mark);
+  let tag = card.querySelector<HTMLElement>(".ed-mark");
+  if (!mark) { tag?.remove(); return; }
+  if (!tag) { tag = h("span", { class: "ed-mark" }); card.append(tag); }
+  tag.textContent = mark;
+}
+
 export class Dock {
   readonly element: HTMLElement;
   private readonly tabsRow: HTMLElement;
@@ -149,8 +159,37 @@ export class Dock {
 
   setActive(item: DockItem | undefined): void {
     this.active = item;
-    for (const [id, card] of this.cards) card.classList.toggle("k-selected", id === item?.id);
+    this.refreshMarks();
     this.showPreview(this.hovered ?? item);
+  }
+
+  /**
+   * 卡片上的高亮：正在放置的物件（放置中）、地图上选中的摆件对应的物件
+   * （已选中）、当前用着的天空、路面、护栏、地面和主题套装（使用中）。
+   */
+  private marks(): Map<string, string> {
+    const marks = new Map<string, string>();
+    const app = this.app;
+    const design = app.state.design;
+    for (const piece of app.state.selectedPieces()) marks.set(`${piece.track}:${piece.path.join(".")}`, "已选中");
+    marks.set(`sky:${design.sky}`, "使用中");
+    const road = app.state.selectedRoad() ?? design.roads.find(item => item.route) ?? design.roads[0];
+    if (road) {
+      marks.set(`surface:${road.surface.track}:${road.surface.name}`, "使用中");
+      const wall = road.walls.left?.texture ?? road.walls.right?.texture;
+      if (wall) marks.set(`wall:${wall.track}:${wall.name}`, "使用中");
+    }
+    if (design.ground) marks.set(`ground:${design.ground.texture.track}:${design.ground.texture.name}`, "使用中");
+    const preset = this.data?.presets.find(item => item.theme === design.theme && this.data!.skies.find(sky => sky.id === item.sky)?.track === design.sky);
+    if (preset) marks.set(`preset:${preset.theme}`, "使用中");
+    if (this.active) marks.set(this.active.id, this.active.kind === "piece" ? "放置中" : this.active.kind === "tool" ? "使用中" : marks.get(this.active.id) ?? "已选");
+    return marks;
+  }
+
+  /** 按设计和工具的当前状态刷新卡片高亮（设计或选择变化时调用）。 */
+  refreshMarks(): void {
+    const marks = this.marks();
+    for (const [id, card] of this.cards) markCard(card, marks.get(id));
   }
 
   // ------------------------------------------------------------------ 渲染
@@ -288,7 +327,7 @@ export class Dock {
       case "template": image = drawTemplate(item.template, 76); image.classList.add("ed-sprite"); label = item.template.title; break;
       case "tool": image = h("div", { class: "ed-sprite" }, item.glyph); label = item.title; break;
     }
-    const card = h("button", { class: `k-row ed-card ${item.kind === "tool" ? "ed-tool" : ""} ${this.active?.id === item.id ? "k-selected" : ""}`,
+    const card = h("button", { class: `k-row ed-card ${item.kind === "tool" ? "ed-tool" : ""}`,
       type: "button", title: label }, image, h("span", { class: "ed-label" }, label), badge ? h("span", { class: "ed-badge" }, badge) : undefined);
     card.addEventListener("click", () => this.choose(item));
     card.addEventListener("mouseenter", () => this.hover(item));
@@ -301,8 +340,10 @@ export class Dock {
     if (!this.data) { this.shelf.append(h("div", { class: "ed-empty" }, "正在读取素材目录…")); return; }
     const items = this.items();
     if (!items.length) { this.shelf.append(h("div", { class: "ed-empty" }, "这个主题里没有这类素材，换个主题看看。")); return; }
+    const marks = this.marks();
     for (const item of items) {
       const card = this.card(item);
+      markCard(card, marks.get(item.id));
       this.cards.set(item.id, card);
       this.shelf.append(card);
     }
@@ -322,7 +363,8 @@ export class Dock {
       case "template": this.app.applyTemplate(item.template); break;
       case "tool": item.run(); break;
     }
-    if (item.kind !== "piece") this.setActive(item.kind === "tool" && item.id !== "tool:items-place" ? undefined : item);
+    // 贴图、天空、套装换上后由“使用中”标出来；只有放道具箱这种持续的工具保持选中
+    if (item.kind !== "piece") this.setActive(item.id === "tool:items-place" ? item : undefined);
   }
 
   private hover(item: DockItem | undefined): void {
@@ -348,8 +390,9 @@ export class Dock {
     switch (item.kind) {
       case "piece": {
         const piece = item.piece;
-        stage.append(this.sprite(piece.slot, 128), this.preview.canvas);
-        this.preview.show(piece);
+        const fallback = this.sprite(piece.slot, 128);
+        stage.append(fallback, this.preview.canvas);
+        this.preview.show(piece, fallback);
         const size = pieceSize(piece);
         box.append(h("div", { class: "ed-title" }, piece.label),
           meta(`${themeTitle(piece.theme)} · ${categoryInfo(piece.category).title}`,

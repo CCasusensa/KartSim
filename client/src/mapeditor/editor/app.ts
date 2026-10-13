@@ -134,6 +134,7 @@ export class EditorApp {
 
   refresh(): void {
     if (this.advanced) { renderLeftPanel(this); renderRightPanel(this); } else renderInspector(this);
+    this.dock.refreshMarks();
     this.renderBar();
     this.updateStatus();
     this.updateHint();
@@ -337,7 +338,7 @@ export class EditorApp {
       id: this.state.newId("r"), name: isFirst ? "主赛道" : `道路 ${this.state.design.roads.length + 1}`,
       closed: false, route: isFirst, points: [], width: like?.width ?? 22,
       surface: texture ? { track: texture.track, name: texture.name, road: texture.road ?? [], alpha: texture.alpha }
-        : structuredClone(like?.surface ?? DEFAULT_ROAD_SURFACE),
+        : structuredClone(like?.surface ?? this.defaultSurface()),
       uvLength: 24, thickness: 1.5,
       walls: { left: structuredClone(wall), right: structuredClone(wall) },
     };
@@ -662,7 +663,21 @@ export class EditorApp {
   /** 新护栏用的贴图：比赛路线现在的护栏，否则缺省。 */
   defaultWall(): TextureRef {
     const route = this.state.design.roads.find(road => road.route);
-    return route?.walls.left?.texture ?? route?.walls.right?.texture ?? DEFAULT_WALL.texture;
+    const preset = this.themePreset();
+    const wall = preset?.wall ? this.dock.catalog()?.textures.find(texture => texture.id === preset.wall) : undefined;
+    return route?.walls.left?.texture ?? route?.walls.right?.texture ?? (wall ? textureRef(wall) : DEFAULT_WALL.texture);
+  }
+
+  /** 当前主题的主题套装（素材目录还没读到时为 undefined）。 */
+  private themePreset(): ThemePreset | undefined {
+    return this.dock.catalog()?.presets.find(preset => preset.theme === this.state.design.theme);
+  }
+
+  /** 还没有道路时新路用的路面：当前主题套装的路面，否则缺省。 */
+  defaultSurface(): RoadDesign["surface"] {
+    const preset = this.themePreset();
+    const surface = preset ? this.dock.catalog()?.textures.find(texture => texture.id === preset.surface) : undefined;
+    return surface ? surfaceRef(surface) : DEFAULT_ROAD_SURFACE;
   }
 
   /** 贴图卡片要换的那条路：选中的道路，否则比赛路线。 */
@@ -746,7 +761,7 @@ export class EditorApp {
           existing.closed = true;
         } else {
           const like = design.roads[0];
-          design.roads.push(templateRoad(template, this.state.newId("r"), like?.surface ?? DEFAULT_ROAD_SURFACE, this.defaultWall()));
+          design.roads.push(templateRoad(template, this.state.newId("r"), like?.surface ?? this.defaultSurface(), this.defaultWall()));
         }
         design.start.offset = 0;
         design.ground ??= defaultGround();
@@ -1053,6 +1068,15 @@ export class EditorApp {
   resetDesign(name?: string): void {
     const design = newDesign(name);
     design.ground = defaultGround();
+    // 空白地图用城镇主题套装的天空和地面（素材栏里能看到“使用中”）
+    const data = this.dock.catalog();
+    const preset = data?.presets.find(item => item.theme === design.theme);
+    if (data && preset) {
+      const sky = data.skies.find(item => item.id === preset.sky);
+      const ground = data.textures.find(item => item.id === preset.ground);
+      if (sky) design.sky = sky.track;
+      if (ground) design.ground.texture = textureRef(ground);
+    }
     this.loadNewDesign(design);
   }
 }
