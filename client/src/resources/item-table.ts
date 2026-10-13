@@ -130,6 +130,9 @@ export function parseItemDefinitions(nodes: ItemTableNode[]): GarageItemDefiniti
   });
 }
 
+/** Balloon tether attributes @cn may not override (see overlayItemTable). */
+const BALLOON_ROPE = new Set(["pos", "floatingForce", "wireLengthLimit", "viscousDrag"]);
+
 /**
  * Overlay `etc_/itemTable@cn.xml` on the base rows the way the CN client
  * does: for the same (tag, id) every attribute the overlay carries wins. CN
@@ -137,6 +140,12 @@ export function parseItemDefinitions(nodes: ItemTableNode[]): GarageItemDefiniti
  * 580 暴走飓风Z7+ is zeno5 with paint 8, where the base row still names
  * scooter3 (超迷你踏板车 Z7). `keepName` may refuse an overlay folder the
  * catalog cannot load, and that row keeps its base folder.
+ *
+ * Balloon ropes are the exception: @cn gives 16 balloons (粉红色/蓝色心型气球
+ * …) pos 0 0.7 1.5, floatingForce 120 and wireLengthLimit 1.5, which hangs the
+ * balloon half again as high as the original does (the user's screenshot of
+ * 蓝色心型气球 at the 城镇 高速公路 start, 2026-10-13). The base table names
+ * none, so those rows keep the engine's default rope, as the release did.
  */
 export function overlayItemTable(
   base: ItemTableNode[], overlay: ItemTableNode[],
@@ -160,8 +169,10 @@ export function overlayItemTable(
     const values = rawId && /^\d+$/.test(rawId) ? rows.get(`${node.name}:${Number(rawId)}`) : undefined;
     if (!values) return node;
     const merged = new Map(node.attributes.map(item => [item.name, item.value]));
-    for (const [name, value] of values)
+    for (const [name, value] of values) {
+      if (node.name === "balloon" && BALLOON_ROPE.has(name)) continue;
       if (name !== "name" || keepName(node.name, value.trim())) merged.set(name, value);
+    }
     return { ...node, attributes: [...merged].map(([name, value]) => ({ name, value })) };
   });
 }

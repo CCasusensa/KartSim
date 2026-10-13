@@ -192,8 +192,14 @@ test("@cn 覆盖按 (标签, id) 逐属性生效，keepName 可拒绝换目录",
     <kart id="580" name="zeno5" orgColorId="8" engineGrade="3" uniqueLevel="2"/>
     <kart id="32" iceBanana="100"/>
     <character id="71" name="homrunDao_cn"/>
+    <balloon id="580" pos="0 0.7 1.5" floatingForce="120.0" viscousDrag="3.0" wireLengthLimit="1.5" effect="1"/>
   </itemtable>`)).root.children;
   const merged = parseItemDefinitions(overlayItemTable(base, overlay, (tag) => tag !== "character"));
+  // @cn's longer balloon rope is not taken; the original hangs the balloon on the default rope.
+  const balloon = merged.find(item => item.kind === "balloon")!;
+  assert.deepEqual([balloon.balloonPos, balloon.balloonFloatingForce, balloon.balloonWireLengthLimit,
+    balloon.balloonViscousDrag], [undefined, undefined, undefined, undefined]);
+  assert.equal(overlayItemTable(base, overlay).at(-1)!.attributes.find(entry => entry.name === "effect")?.value, "1");
   assert.deepEqual(merged.map(item => [item.kind, item.itemId, item.internalId, item.orgColorId,
     item.engineGrade, item.vehicleRarityLevel]), [
     ["kart", 580, "zeno5", 8, 3, 2],
