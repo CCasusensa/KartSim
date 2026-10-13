@@ -21,7 +21,7 @@ export type { LobbyAccountInfo, LobbyExperience, LobbyWallet } from "./lobby-top
 
 export interface LobbyImage { image: CanvasImageSource; width: number; height: number }
 
-export type QuickEntryKind = "multiplayer" | "timeAttack" | "unavailable";
+export type QuickEntryKind = "multiplayer" | "timeAttack" | "editor" | "unavailable";
 
 export interface QuickEntry {
   id: string;
@@ -38,6 +38,8 @@ export const QUICK_ENTRIES: readonly QuickEntry[] = [
   { id: "speedIndiInfinit", title: "无限加速个人赛", kind: "multiplayer",
     channel: "speedIndiInfinit" },
   { id: "timeAttack", title: "计时挑战赛", kind: "timeAttack" },
+  // 地图工坊 (client/editor.html): build a track from the official tracks' pieces.
+  { id: "mapEditor", title: "地图工坊", kind: "editor" },
   { id: "trackDuel", title: "赛道对决", kind: "unavailable" },
   { id: "speedTeam", title: "竞速组队赛", kind: "multiplayer", channel: "speedTeamCombine" },
   { id: "speedTeamInfinit", title: "无限加速组队赛", kind: "multiplayer",
@@ -65,7 +67,7 @@ export interface LobbyEvent {
   states: readonly LobbyImage[];
 }
 
-export const DEFAULT_QUICK_ENTRIES = ["city", "speedIndi", "speedIndiInfinit", "timeAttack", "trackDuel"];
+export const DEFAULT_QUICK_ENTRIES = ["city", "speedIndi", "speedIndiInfinit", "timeAttack", "mapEditor"];
 export const MAX_QUICK_ENTRIES = 5;
 const QUICK_ENTRY_KEY = "kartsim.lobbyQuickEntries";
 

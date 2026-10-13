@@ -1,4 +1,5 @@
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
+import { customMapMetadata, customTrackChoices } from "../mapeditor/custom-tracks";
 
 /** A virtual file mounted from a Rho/Rho5 archive or a loose Data file. */
 export interface TrackResource {
@@ -213,6 +214,9 @@ export function trackTitles(library: TrackLibrary): Promise<Map<string, { title:
 }
 
 export async function trackMetadata(library: TrackLibrary, id: string): Promise<TrackMetadata | undefined> {
+  // 地图工坊的自制地图不在赛道表里
+  const custom = customMapMetadata(id);
+  if (custom) return custom;
   const tracks = await library.trackMetadataCatalog();
   const find = (key: string) => tracks.find(track => track.id === key) ??
     tracks.find(track => track.folder === key);
@@ -270,13 +274,19 @@ async function resolveTrackCatalog(library: TrackLibrary,
   return [...normal, ...reversed];
 }
 
-/** Resolve metadata to exact model assets, including reverse track siblings. */
+/**
+ * Resolve metadata to exact model assets, including reverse track siblings,
+ * then the mounted 地图工坊 maps (custom-tracks.ts).
+ */
 export async function timeAttackTrackCatalog(library: TrackLibrary): Promise<TrackChoice[]> {
-  return resolveTrackCatalog(library, metadata => {
+  const release = await resolveTrackCatalog(library, metadata => {
     const gameType = metadata.gameType ?? "speed";
     return (gameType === "item" || gameType === "speed") && selectable(metadata)
       ? gameType : undefined;
   }, () => true);
+  const custom = customTrackChoices().filter(choice =>
+    library.findSibling(choice.path, ["track.1s"]) !== undefined);
+  return custom.length ? [...release, ...custom] : release;
 }
 
 /** Regional availability from trackLocale@cn; only item rooms apply it. */

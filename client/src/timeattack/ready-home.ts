@@ -335,8 +335,12 @@ export async function openReadyHome(controller: ReadyHomeController,
   }
 }
 
-/** 快速进入: a multiplayer room list, or the time attack page under home. */
+/** 快速进入: a multiplayer room list, the time attack page under home, or 地图工坊 in its own tab. */
 function openQuickEntry(controller: ReadyHomeController, entry: QuickEntry): void {
+  if (entry.kind === "editor") {
+    window.open("/editor.html", "kartsim-mapeditor");
+    return;
+  }
   if (entry.kind === "timeAttack") {
     closeReadyHome(controller);
     return;

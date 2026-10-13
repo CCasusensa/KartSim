@@ -884,6 +884,39 @@ var migrations = []migration{
 			PRIMARY KEY (id)
 		) ` + tableTail,
 	}},
+	// v20: 地图工坊 (MAPS.md): published player-made tracks. The listing row
+	// stays small; the design, the packed track container and the two picker
+	// pictures live in custom_map_files so lists never read the blobs.
+	{version: 20, statements: []string{
+		`CREATE TABLE IF NOT EXISTS custom_maps (
+			id VARCHAR(16) ` + idColumn + ` NOT NULL,
+			owner_id CHAR(36) ` + idColumn + ` NOT NULL,
+			name VARCHAR(24) ` + nameColumn + ` NOT NULL,
+			theme VARCHAR(16) ` + idColumn + ` NOT NULL,
+			laps TINYINT NOT NULL,
+			difficulty TINYINT NOT NULL,
+			road_extent INT NOT NULL,
+			files_json MEDIUMTEXT NOT NULL,
+			sha256 CHAR(64) ` + idColumn + ` NOT NULL,
+			byte_size INT NOT NULL,
+			hidden TINYINT NOT NULL DEFAULT 0,
+			created_at BIGINT NOT NULL,
+			updated_at BIGINT NOT NULL,
+			PRIMARY KEY (id),
+			KEY idx_custom_maps_owner (owner_id),
+			KEY idx_custom_maps_updated (updated_at),
+			CONSTRAINT fk_custom_maps_owner FOREIGN KEY (owner_id) REFERENCES accounts (id) ON DELETE CASCADE
+		) ` + tableTail,
+		`CREATE TABLE IF NOT EXISTS custom_map_files (
+			map_id VARCHAR(16) ` + idColumn + ` NOT NULL,
+			design LONGTEXT NOT NULL,
+			container LONGBLOB NOT NULL,
+			card MEDIUMBLOB NOT NULL,
+			thumb MEDIUMBLOB NOT NULL,
+			PRIMARY KEY (map_id),
+			CONSTRAINT fk_custom_map_files_map FOREIGN KEY (map_id) REFERENCES custom_maps (id) ON DELETE CASCADE
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

@@ -3,6 +3,7 @@ import type { Rho5PackSpec } from "../resources/resource-groups";
 import { isPrefetchStore, prefetchStartupReads } from "../resources/startup-reads";
 import { holdRacePlaylists } from "../timeattack/race-bgm-loading";
 import { StartupProgress, type StartupWork } from "./startup-progress";
+import { installCustomMaps } from "../mapeditor/custom-map-loader";
 
 /** Resource bootstrap, first-rider registration, and Ready-stage preparation. */
 export interface StartupDisposable {
@@ -231,6 +232,8 @@ export async function loadStartupResources(
     if (library.files.length === 0) {
       throw new Error(library.errors[0] ?? "没有成功读取任何资源文件。");
     }
+    // 地图工坊的本机草稿与已发布地图：只登记条目，比赛时才下载。
+    void installCustomMaps(library);
     // Startup reads what it needs by range; the 首页 group downloads whole
     // once the home screen is open, everything else when a page needs it
     // (tracks when a race loads) or from the 资源下载 panel.

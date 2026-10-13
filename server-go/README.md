@@ -878,6 +878,7 @@ server {
 | `internal/data/sqlitemigrate` | 旧 SQLite 数据迁移 |
 | `internal/game/config`、`internal/game/app` | 游戏节点配置与组装（`app/certs.go`：内置 TLS 的证书热加载） |
 | `internal/game/lobby` | 房间、赛程与特殊模式（移植自 `LobbyService`/`Room`/`GameModes`）；道具赛的房间、赛道与 `item` 请求在 `item_mode.go`；全局大厅的两侧（数据服务上的 `Home` 与节点上的 `RaceHost`：开局交接、领取、回大厅）在 `handoff.go` |
+| `internal/data/api/maps.go`、`internal/data/store/maps.go` | 地图工坊（[`MAPS.md`](MAPS.md)）：已发布自制地图的列表、赛道包与卡片下载、发布（multipart，最大 40 MB）与下架 |
 | `internal/data/api/lobby_home.go` | 全局大厅（[`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md)）：在数据服务里运行 `lobby` 包、`/multiplayer/lobby/ws`、按延迟选节点并签发 race/city 票据、交接记录与兜底、大厅的注册表心跳 |
 | `internal/game/itemmode` | 道具赛规则（纯函数，可注入随机源）：名次组、按权重抽取与获得上限、道具槽、目标选择与 `etaMs`、道具锁、透视、刷箱检查、`useId` 与命中记录；第 3 阶段：冻结装备的特性与共享确定性掷骰（`roll.go`）、按车辆的变换与获得表、迅引擎开局道具、49 种特殊道具规则、双发导弹、黄金盾牌、命中后的道具锁、只解除飞碟减速的电磁波、换位/变更卡、赛中金币与结算称号；`itemmode.json` 由 `client/tools/export-item-mode-data.mjs` 生成 |
 | `internal/game/ws` | WebSocket 读写协程、请求 ID 回复、运动帧中继（首字节 `0xC1` 的城市帧交给 `city`） |

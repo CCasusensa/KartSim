@@ -2,6 +2,8 @@ import { itemRandomTrackGroups, itemTrackCatalog, type TrackLibrary } from "../r
 import { formatMultiplayerError } from "./errors";
 import type { Gameplay, LobbyRoom } from "./lobby-actions";
 import type { ChangingModal } from "./lobby-dialogs";
+import { isDraftTrackId } from "../mapeditor/design";
+import { refreshPublishedMaps } from "../mapeditor/custom-map-loader";
 
 export interface TrackChoice { id: string; [key: string]: unknown }
 export interface RandomTrackGroup { id: string; [key: string]: unknown }
@@ -129,7 +131,10 @@ export async function chooseLobbyTrack(host: LobbyTrackHost,
     const item = deps.gameplay(room) === "item";
     const itemChoices = item
       ? await (deps.itemTracks ?? loadItemTrackChoices)(host.options.library) : undefined;
-    const catalog = itemChoices?.tracks ?? await host.options.library.timeAttackTrackCatalog();
+    // 地图工坊：多人房间只列已发布的地图（本机草稿别人下载不到）。
+    if (!item) await refreshPublishedMaps(host.options.library);
+    const catalog = itemChoices?.tracks ??
+      (await host.options.library.timeAttackTrackCatalog()).filter(track => !isDraftTrackId(track.id));
     const tracks = deps.gameplay(room) === "giant"
       ? catalog.filter(track => deps.isGiantTrack(track.id)) : catalog;
     if (!host.isChangingModalCurrent(modal)) return;

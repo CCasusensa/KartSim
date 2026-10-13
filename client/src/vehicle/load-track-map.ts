@@ -3,6 +3,12 @@ import { itemGameObjectKind } from "./track-object-admission";
 import { invisibleTrackGeometry } from "../resources/moving-obstacle";
 import { trackMetadataOverride } from "../resources/track-overrides";
 import { isXmasTrack, xmasTrackModelPath } from "../resources/xmas-theme";
+import { isCustomTrackId } from "../mapeditor/design";
+
+/** 驾照考试 courses register metadata overrides too; 地图工坊 maps do not take their rules. */
+function riderSchoolCourse(trackId: string): boolean {
+  return trackMetadataOverride(trackId) !== undefined && !isCustomTrackId(trackId);
+}
 
 export interface TrackMapOwner {
   assetHost: {
@@ -137,7 +143,7 @@ export async function loadTrackMap(
     lteCoins: lteCoinSource !== undefined,
     ...(itemGame ? { itemGame: true } : {}),
     // 驾照考试 courses hand their tutorial route tags to the license race.
-    ...(mode === "time-attack" && trackMetadataOverride(trackId) ? { riderSchool: true } : {}),
+    ...(mode === "time-attack" && riderSchoolCourse(trackId) ? { riderSchool: true } : {}),
   });
   const lensFlarePoint = ops.lensFlareAnchor(model);
   const dummySounds = mode === "speed-individual" ||
@@ -145,12 +151,12 @@ export async function loadTrackMap(
     ? ops.dummySounds(model) : [];
   const road = ops.extractRoad(model, mode, {
     forceReverse: /_rvs$/i.test(trackId),
-    // 卡丁城 is wider than the release's 2 km road grid.
+    // 卡丁城 and 地图工坊 maps are wider than the release's 2 km road grid.
     roadExtent: trackMetadataOverride(trackId)?.roadExtent,
   });
   // 驾照考试: the open course without a final gate (village_C005) ends at its last gate,
   // and the course's tutorial points name their hint scenes.
-  const licenseCourse = mode === "time-attack" && trackMetadataOverride(trackId) !== undefined;
+  const licenseCourse = mode === "time-attack" && riderSchoolCourse(trackId);
   if (licenseCourse) {
     markLicenseGoal(road);
     alignLicenseFrames(road);

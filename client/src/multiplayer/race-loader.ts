@@ -4,6 +4,8 @@ import { isItemRace, itemTrackCardModeKey } from "./lobby-item-mode";
 import { WrongWayWarning } from "../ui/wrong-way-warning";
 import { loadLevelUpSound } from "./award-level-up-sound";
 import { AutopilotPrank, loadAutopilotPrompts } from "../ui/autopilot-prank";
+import { isCustomTrackId } from "../mapeditor/design";
+import { ensurePublishedMap } from "../mapeditor/custom-map-loader";
 export interface MultiplayerRaceLoaderDependencies {
   createToonStageBinding(): unknown;
   loadRaceAssets(assets: unknown, config: any, room: any, audio: unknown,
@@ -60,6 +62,10 @@ export function createMultiplayerRaceLoader(
       const checkCancellation = () => {
         if (signal.aborted) throw new Error("本局装配已取消。");
       };
+      checkCancellation();
+      // 地图工坊的地图：确认本机登记的是房间里那一版。
+      const trackId = config?.race?.trackId ?? room?.race?.trackId ?? room?.trackId;
+      if (isCustomTrackId(trackId)) await ensurePublishedMap(library, trackId);
       checkCancellation();
       // Nothing downloads whole first: what every race reads is fetched at
       // once, the room's track, karts and characters by range (resource-manager).

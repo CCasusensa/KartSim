@@ -1,0 +1,355 @@
+/**
+ * 设计数据在视口里的样子：摆件（游戏装配的官方物件）、道路（与赛道包同一
+ * 套几何）、地面、起点线和方向箭头、道路控制点手柄。
+ */
+import {
+  BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, EdgesGeometry, FrontSide, Group,
+  LineBasicMaterial, LineSegments, Line, Mesh, MeshBasicMaterial, MeshLambertMaterial, Object3D, PlaneGeometry,
+  RepeatWrapping, SphereGeometry, type Material, type Texture,
+} from "three";
+import type { MapDesign, PieceDesign, RoadDesign, Vec3 } from "../design";
+import { pointAtDistance, roadEdge, sampleRoad } from "../road-geometry";
+import { buildRoad, type TextureResolver } from "../track-builder";
+import type { PieceInfo } from "../source-tracks";
+import type { AssembledScene, EditorAssets } from "./assets";
+import type { Viewport } from "./viewport";
+
+const DEG = Math.PI / 180;
+
+interface PieceView {
+  key: string;
+  root: Group;
+  offset: Group;
+  box?: LineSegments;
+  scene?: AssembledScene;
+  info?: PieceInfo;
+  placeholder?: Object3D;
+}
+
+export function applyPieceTransform(root: Object3D, piece: PieceDesign): void {
+  root.position.set(piece.position[0], piece.position[1], piece.position[2]);
+  root.rotation.set(piece.rotation[1] * DEG, piece.rotation[2] * DEG, piece.rotation[0] * DEG, "ZXY");
+  root.scale.set(piece.scale[0], piece.scale[1], piece.scale[2]);
+}
+
+/** 从视口对象读回摆件变换（旋转顺序 ZXY：偏航、俯仰、横滚）。 */
+export function readPieceTransform(root: Object3D): Pick<PieceDesign, "position" | "rotation" | "scale"> {
+  const round = (v: number, step = 1000) => Math.round(v * step) / step;
+  root.rotation.reorder("ZXY");
+  return {
+    position: [round(root.position.x), round(root.position.y), round(root.position.z)],
+    rotation: [round(root.rotation.z / DEG, 100), round(root.rotation.x / DEG, 100), round(root.rotation.y / DEG, 100)],
+    scale: [round(root.scale.x), round(root.scale.y), round(root.scale.z)],
+  };
+}
+
+export function boxLines(min: Vec3, max: Vec3, color: number): LineSegments {
+  const size: Vec3 = [Math.max(0.1, max[0] - min[0]), Math.max(0.1, max[1] - min[1]), Math.max(0.1, max[2] - min[2])];
+  const geometry = new EdgesGeometry(new BoxGeometry(...size));
+  const lines = new LineSegments(geometry, new LineBasicMaterial({ color, depthTest: false, transparent: true }));
+  lines.position.set((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2);
+  lines.renderOrder = 10;
+  lines.userData.noPick = true;
+  return lines;
+}
+
+/** 起点线贴图：黑白格。 */
+function checkerTexture(): Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64; canvas.height = 16;
+  const context = canvas.getContext("2d")!;
+  for (let y = 0; y < 2; y++) for (let x = 0; x < 8; x++) {
+    context.fillStyle = (x + y) % 2 ? "#111" : "#fff";
+    context.fillRect(x * 8, y * 8, 8, 8);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = RepeatWrapping;
+  return texture;
+}
+
+export class MapViews {
+  readonly pieces = new Group();
+  readonly roads = new Group();
+  readonly ground = new Group();
+  readonly markers = new Group();
+  readonly handles = new Group();
+  private readonly pieceViews = new Map<string, PieceView>();
+  private readonly roadMaterials = new Map<string, Material>();
+  private roadVersion = 0;
+  private builtRoads = "";
+  private builtGround = "";
+  private readonly checker = checkerTexture();
+  /** 正在被手柄拖动的摆件不要被同步覆盖。 */
+  draggingPieces = new Set<string>();
+  warnings: string[] = [];
+  onPieceLoaded?: () => void;
+
+  constructor(private readonly viewport: Viewport, private readonly assets: EditorAssets) {
+    this.pieces.name = "pieces";
+    this.roads.name = "roads";
+    this.handles.name = "handles";
+    this.markers.userData.noPick = true;
+    viewport.world.add(this.ground, this.roads, this.pieces, this.markers, this.handles);
+  }
+
+  sync(design: MapDesign, selection: { roadId?: string; point?: number; pieceIds: string[] }): void {
+    this.syncPieces(design);
+    const roadsKey = JSON.stringify(design.roads) + design.start.offset;
+    if (roadsKey !== this.builtRoads) { this.builtRoads = roadsKey; void this.rebuildRoads(design); }
+    const groundKey = JSON.stringify(design.ground);
+    if (groundKey !== this.builtGround) { this.builtGround = groundKey; this.rebuildGround(design); }
+    this.syncHandles(design, selection.roadId, selection.point);
+    this.highlight(selection.pieceIds);
+  }
+
+  // ------------------------------------------------------------------ 摆件
+
+  private syncPieces(design: MapDesign): void {
+    const alive = new Set<string>();
+    for (const piece of design.pieces) {
+      alive.add(piece.id);
+      const key = `${piece.track}/${piece.path.join(".")}`;
+      let view = this.pieceViews.get(piece.id);
+      if (view && view.key !== key) { this.removePiece(piece.id); view = undefined; }
+      if (!view) view = this.createPiece(piece, key);
+      view.offset.position.set(-piece.origin[0], -piece.origin[1], -piece.origin[2]);
+      if (!this.draggingPieces.has(piece.id)) applyPieceTransform(view.root, piece);
+    }
+    for (const id of [...this.pieceViews.keys()]) if (!alive.has(id)) this.removePiece(id);
+  }
+
+  private createPiece(piece: PieceDesign, key: string): PieceView {
+    const root = new Group();
+    root.name = `piece:${piece.id}`;
+    root.userData.pieceId = piece.id;
+    const offset = new Group();
+    root.add(offset);
+    this.pieces.add(root);
+    const view: PieceView = { key, root, offset };
+    this.pieceViews.set(piece.id, view);
+    void this.assets.pieces(piece.track).then(list => {
+      const info = list.find(item => item.path.join(".") === piece.path.join("."));
+      if (!info || this.pieceViews.get(piece.id) !== view) return;
+      view.info = info;
+      if (!view.scene) {
+        // 载入前先显示包围盒
+        const placeholder = new Mesh(new BoxGeometry(info.max[0] - info.min[0] || 1, info.max[1] - info.min[1] || 1, info.max[2] - info.min[2] || 1),
+          new MeshBasicMaterial({ color: 0x88aadd, transparent: true, opacity: 0.35 }));
+        placeholder.position.set((info.min[0] + info.max[0]) / 2, (info.min[1] + info.max[1]) / 2, (info.min[2] + info.max[2]) / 2);
+        offset.add(placeholder);
+        view.placeholder = placeholder;
+      }
+    }).catch(() => undefined);
+    void this.assets.assemblePiece(piece.track, piece.path).then(scene => {
+      if (this.pieceViews.get(piece.id) !== view) { scene.dispose(); return; }
+      view.scene = scene;
+      offset.add(scene.object);
+      if (view.placeholder) { offset.remove(view.placeholder); view.placeholder = undefined; }
+      this.viewport.addScene(scene);
+      this.onPieceLoaded?.();
+    }).catch(error => {
+      console.warn("摆件载入失败", piece.track, piece.path, error);
+      this.warnings.push(`摆件「${piece.label}」载入失败：${(error as Error).message}`);
+    });
+    return view;
+  }
+
+  private removePiece(id: string): void {
+    const view = this.pieceViews.get(id);
+    if (!view) return;
+    this.pieceViews.delete(id);
+    view.root.removeFromParent();
+    if (view.scene) { this.viewport.removeScene(view.scene); view.scene.dispose(); }
+  }
+
+  pieceObject(id: string): Group | undefined {
+    return this.pieceViews.get(id)?.root;
+  }
+
+  pieceInfo(id: string): PieceInfo | undefined {
+    return this.pieceViews.get(id)?.info;
+  }
+
+  /** 命中对象所属的摆件 id。 */
+  pieceIdOf(object: Object3D): string | undefined {
+    for (let current: Object3D | null = object; current; current = current.parent)
+      if (typeof current.userData.pieceId === "string") return current.userData.pieceId;
+    return undefined;
+  }
+
+  private highlight(ids: string[]): void {
+    const selected = new Set(ids);
+    for (const [id, view] of this.pieceViews) {
+      if (selected.has(id) && view.info && !view.box) {
+        view.box = boxLines(view.info.min, view.info.max, 0xffc400);
+        view.offset.add(view.box);
+      } else if (!selected.has(id) && view.box) {
+        view.box.removeFromParent();
+        view.box.geometry.dispose();
+        view.box = undefined;
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------ 道路
+
+  private material(key: string, alpha: number | undefined, doubleSided: boolean): Material {
+    const id = `${key}|${alpha ?? 0}|${doubleSided}`;
+    let material = this.roadMaterials.get(id);
+    if (material) return material;
+    if (key.startsWith("gen:")) {
+      material = new MeshBasicMaterial({ color: 0xff5050, transparent: true, opacity: 0.22, side: DoubleSide, depthWrite: false });
+    } else {
+      const lambert = new MeshLambertMaterial({ color: 0xffffff, side: doubleSided ? DoubleSide : FrontSide });
+      if (alpha === 1) lambert.alphaTest = 0.5;
+      if (alpha === 2) lambert.transparent = true;
+      const [track, name] = key.split("\n") as [string, string];
+      void this.assets.texture(track, name).then(texture => {
+        if (!texture) { lambert.color = new Color(0xb04040); return; }
+        lambert.map = texture;
+        lambert.needsUpdate = true;
+      });
+      material = lambert;
+    }
+    this.roadMaterials.set(id, material);
+    return material;
+  }
+
+  private async rebuildRoads(design: MapDesign): Promise<void> {
+    const version = ++this.roadVersion;
+    const resolver: TextureResolver = {
+      resolve: async (track, name) => `${track}\n${name}`,
+      generated: stem => `gen:${stem}`,
+    };
+    const group = new Group();
+    const warnings: string[] = [];
+    for (const road of design.roads) {
+      const built = await buildRoad(road, resolver, warnings);
+      if (version !== this.roadVersion) return;
+      for (const node of built.nodes) {
+        const data = node.vertexData!;
+        const geometry = new BufferGeometry();
+        geometry.setAttribute("position", new BufferAttribute(new Float32Array(data.positions!.flat()), 3));
+        geometry.setAttribute("normal", new BufferAttribute(new Float32Array(data.normals!.flat()), 3));
+        geometry.setAttribute("uv", new BufferAttribute(new Float32Array(data.uvs.map(set => set[0]!).flat()), 2));
+        geometry.setIndex(data.indices);
+        const texture = node.slots[7] as { name: string } | undefined;
+        const alpha = node.slots[3] as { blendEnable: number; alphaTestEnable: number } | undefined;
+        const backface = node.slots[4] as { cull: number } | undefined;
+        const mesh = new Mesh(geometry, this.material(texture?.name ?? "gen:none",
+          alpha ? alpha.blendEnable ? 2 : alpha.alphaTestEnable ? 1 : 0 : undefined, backface?.cull === 1));
+        mesh.userData.roadId = road.id;
+        group.add(mesh);
+      }
+      if (road.route) this.routeMarkers(road, design.start.offset, group);
+    }
+    if (version !== this.roadVersion) return;
+    for (const child of [...this.roads.children]) {
+      child.removeFromParent();
+      child.traverse(object => { if (object instanceof Mesh) object.geometry.dispose(); });
+    }
+    if (group.children.length) this.roads.add(...group.children);
+  }
+
+  /** 起点线（黑白格）和沿路的方向箭头。 */
+  private routeMarkers(road: RoadDesign, startOffset: number, group: Group): void {
+    const sample = sampleRoad(road, 2);
+    if (sample.points.length < 3) return;
+    const start = pointAtDistance(sample, startOffset);
+    const width = sample.widths[start.index]!;
+    const left = roadEdge(sample, start.index, width / 2), right = roadEdge(sample, start.index, -width / 2);
+    const forward: Vec3 = [sample.lefts[start.index]![1], -sample.lefts[start.index]![0], 0];
+    const depth = 2;
+    const corners: Vec3[] = [left, right,
+      [right[0] + forward[0] * depth, right[1] + forward[1] * depth, right[2]],
+      [left[0] + forward[0] * depth, left[1] + forward[1] * depth, left[2]]];
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(new Float32Array(corners.flatMap(c => [c[0], c[1], c[2] + 0.08])), 3));
+    geometry.setAttribute("uv", new BufferAttribute(new Float32Array([0, 0, width / 4, 0, width / 4, 1, 0, 1]), 2));
+    geometry.setIndex([0, 1, 2, 0, 2, 3]);
+    const line = new Mesh(geometry, new MeshBasicMaterial({ map: this.checker, side: DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }));
+    line.userData.roadId = road.id;
+    group.add(line);
+    // 方向箭头：每 30 米一个
+    const arrows: number[] = [];
+    for (let d = 15; d < sample.total; d += 30) {
+      const { index } = pointAtDistance(sample, startOffset + d);
+      const p = sample.points[index]!, l = sample.lefts[index]!;
+      const f: Vec3 = [l[1], -l[0], 0];
+      const s = Math.min(4, sample.widths[index]! * 0.18);
+      const tip: Vec3 = [p[0] + f[0] * s, p[1] + f[1] * s, p[2] + 0.12];
+      const a: Vec3 = [p[0] - f[0] * s + l[0] * s * 0.7, p[1] - f[1] * s + l[1] * s * 0.7, p[2] + 0.12];
+      const b: Vec3 = [p[0] - f[0] * s - l[0] * s * 0.7, p[1] - f[1] * s - l[1] * s * 0.7, p[2] + 0.12];
+      arrows.push(...tip, ...a, ...b);
+    }
+    if (arrows.length) {
+      const arrowGeometry = new BufferGeometry();
+      arrowGeometry.setAttribute("position", new BufferAttribute(new Float32Array(arrows), 3));
+      const mesh = new Mesh(arrowGeometry, new MeshBasicMaterial({ color: 0xffe14d, side: DoubleSide, transparent: true, opacity: 0.85, depthWrite: false }));
+      mesh.userData.noPick = true;
+      group.add(mesh);
+    }
+  }
+
+  // ------------------------------------------------------------------ 地面
+
+  private rebuildGround(design: MapDesign): void {
+    for (const child of [...this.ground.children]) { child.removeFromParent(); if (child instanceof Mesh) child.geometry.dispose(); }
+    const ground = design.ground;
+    this.viewport.grid.visible = !ground;
+    if (!ground) return;
+    const geometry = new PlaneGeometry(ground.size, ground.size);
+    const repeat = ground.size / Math.max(1, ground.tile);
+    const material = new MeshLambertMaterial({ color: 0xffffff });
+    void this.assets.texture(ground.texture.track, ground.texture.name).then(texture => {
+      if (!texture) { material.color = new Color(0x6d8a5a); return; }
+      const copy = texture.clone();
+      copy.wrapS = copy.wrapT = RepeatWrapping;
+      copy.repeat.set(repeat, repeat);
+      copy.needsUpdate = true;
+      material.map = copy;
+      material.needsUpdate = true;
+    });
+    const mesh = new Mesh(geometry, material);
+    mesh.position.z = ground.z;
+    mesh.userData.ground = true;
+    this.ground.add(mesh);
+  }
+
+  // ------------------------------------------------------------------ 控制点手柄
+
+  private syncHandles(design: MapDesign, roadId: string | undefined, selectedPoint: number | undefined): void {
+    for (const child of [...this.handles.children]) {
+      child.removeFromParent();
+      if (child instanceof Mesh || child instanceof Line) child.geometry.dispose();
+    }
+    const road = roadId ? design.roads.find(r => r.id === roadId) : undefined;
+    if (!road) return;
+    const radius = Math.max(1.2, road.width * 0.07);
+    const sphere = new SphereGeometry(radius, 16, 12);
+    road.points.forEach((point, index) => {
+      const color = index === selectedPoint ? 0xff8a00 : index === 0 ? 0x3ddc84 : 0xffffff;
+      const mesh = new Mesh(sphere, new MeshBasicMaterial({ color, depthTest: false, transparent: true }));
+      mesh.position.set(point.x, point.y, point.z + radius * 0.8);
+      mesh.renderOrder = 20;
+      mesh.userData.handle = { roadId: road.id, index };
+      this.handles.add(mesh);
+    });
+    const line = new Line(new BufferGeometry().setFromPoints([]), new LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.6 }));
+    const positions = road.points.flatMap(p => [p.x, p.y, p.z + 0.3]);
+    if (road.closed && road.points.length > 2) positions.push(road.points[0]!.x, road.points[0]!.y, road.points[0]!.z + 0.3);
+    line.geometry.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+    line.renderOrder = 19;
+    line.userData.noPick = true;
+    this.handles.add(line);
+  }
+
+  handleObject(index: number): Object3D | undefined {
+    return this.handles.children.find(child => child.userData.handle?.index === index);
+  }
+
+  /** 视口中可选取的东西。 */
+  pickTargets(): Object3D[] {
+    return [this.handles, this.pieces, this.roads, this.ground];
+  }
+}

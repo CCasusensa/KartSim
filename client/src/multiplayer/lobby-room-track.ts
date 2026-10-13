@@ -1,6 +1,8 @@
 /** Resolves and paints the current room's selected or random track card. */
 
 import { itemTrackCatalog, type TrackLibrary } from "../resources/track-catalog";
+import { isCustomTrackId } from "../mapeditor/design";
+import { ensurePublishedMap } from "../mapeditor/custom-map-loader";
 
 interface ByteEntry { bytes(): Promise<Uint8Array> }
 interface DecodedPng { width: number; height: number; pixels: ArrayLike<number> }
@@ -95,7 +97,11 @@ export async function loadLobbyRoomTrack(host: LobbyRoomTrackHost,
         ? (dependencies.itemTracks ?? (library =>
           itemTrackCatalog(library as unknown as TrackLibrary)))(host.library)
         : host.library.timeAttackTrackCatalog());
-    const track = tracks.find(candidate => candidate.id === trackId);
+    let track = tracks.find(candidate => candidate.id === trackId);
+    // 地图工坊的地图可能是进游戏之后才发布的：向数据服务取来再找一次。
+    if (!track && isCustomTrackId(trackId) && await ensurePublishedMap(host.library, trackId)) {
+      track = (await host.library.timeAttackTrackCatalog()).find(candidate => candidate.id === trackId);
+    }
     if (!track) throw new Error("本地资源中没有房主选择的赛道");
     const resource = host.library.get(track.path);
     if (!resource) throw new Error("赛道资源缺失");

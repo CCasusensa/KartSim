@@ -34,7 +34,11 @@ const lan = lanCert && lanKey ? {
 
 export default defineConfig({
   publicDir: mirrorDir,
-  build: { copyPublicDir: false, target: "es2022" },
+  build: {
+    copyPublicDir: false, target: "es2022",
+    // 地图工坊是第二个页面（editor.html）。
+    rollupOptions: { input: { main: fileURLToPath(new URL("index.html", import.meta.url)), editor: fileURLToPath(new URL("editor.html", import.meta.url)) } },
+  },
   server: {
     host: "127.0.0.1",
     port: 8780,
