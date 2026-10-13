@@ -3,16 +3,17 @@
  * factor, the skydome texture (day/dusk/night) and the rain/snow effects,
  * driven by the node's city clock.
  */
-import { Color, SRGBColorSpace, Texture, TextureLoader, type Object3D } from "three";
+import { Color, SRGBColorSpace, Texture, TextureLoader, type Object3D, type ShaderMaterial } from "three";
 import type { CityClock } from "./city-protocol";
 import { skyStateAt, type SkyState } from "./city-clock";
+import { createCityLightUniforms, installCityMaterialLighting, updateCityLightUniforms } from "./city-material-lighting";
 
 interface LibraryFile { virtualPath: string; bytes(): Promise<Uint8Array> }
 interface Library { files: readonly LibraryFile[] }
 
 export interface CityAtmosphereHost {
   library: Library;
-  scene: { fog?: { color: Color } | null };
+  scene: { fog?: { color: Color; near?: number; far?: number } | null };
   trackRoot: Object3D;
   skydomeRoot?: Object3D;
   rain?: { setEnabled(enabled: boolean): void };
@@ -34,10 +35,22 @@ export class CityAtmosphere {
   private lastApplied = -Infinity;
   private rainOn = false;
   private snowOn = false;
+  private disposed = false;
+  private readonly lightUniforms = createCityLightUniforms();
+  private readonly restoreMaterials: Array<() => void> = [];
+  private readonly originalFog;
   state?: SkyState;
 
   constructor(readonly host: CityAtmosphereHost) {
+    const fog = host.scene.fog;
+    this.originalFog = fog ? { color: fog.color.clone(), near: fog.near, far: fog.far } : undefined;
     this.collect();
+    for (const [materials, sky] of [[this.materials, false], [this.skyMaterials, true]] as const) {
+      for (const material of materials) {
+        const restore = installCityMaterialLighting(material as ShaderMaterial, this.lightUniforms, sky);
+        if (restore) this.restoreMaterials.push(restore);
+      }
+    }
   }
 
   private collect(): void {
@@ -61,12 +74,17 @@ export class CityAtmosphere {
   setClock(clock: CityClock): void { this.clock = clock; this.lastApplied = -Infinity; }
 
   update(now: number): void {
-    if (!this.clock || now - this.lastApplied < 250) return;
+    if (this.disposed || !this.clock || now - this.lastApplied < 250) return;
     this.lastApplied = now;
     const state = skyStateAt(this.clock, this.host.serverTick(now));
     this.state = state;
     const fog = this.host.scene.fog;
-    if (fog) fog.color.setRGB(state.fogColor[0], state.fogColor[1], state.fogColor[2]);
+    if (fog) {
+      fog.color.setRGB(...state.fogColor);
+      if (fog.near !== undefined) fog.near = state.fogNear;
+      if (fog.far !== undefined) fog.far = state.fogFar;
+    }
+    updateCityLightUniforms(this.lightUniforms, state);
     for (const material of this.materials) {
       const uniform = material.uniforms.lightFactor;
       if (uniform) uniform.value = state.lightFactor;
@@ -110,13 +128,23 @@ export class CityAtmosphere {
 
   private async applySky(kind: SkyKind): Promise<void> {
     const texture = kind === "day" ? this.dayTexture : await this.skyTexture(kind);
-    if (this.currentSky !== kind) return;
+    if (this.disposed || this.currentSky !== kind) return;
     for (const material of this.skyMaterials) {
       if (material.uniforms.baseMap && texture) material.uniforms.baseMap.value = texture;
     }
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    for (const restore of this.restoreMaterials) restore();
+    this.restoreMaterials.length = 0;
+    const fog = this.host.scene.fog;
+    if (fog && this.originalFog) {
+      fog.color.copy(this.originalFog.color);
+      if (this.originalFog.near !== undefined) fog.near = this.originalFog.near;
+      if (this.originalFog.far !== undefined) fog.far = this.originalFog.far;
+    }
     for (const pending of this.skyTextures.values()) void pending.then(texture => texture?.dispose());
     this.skyTextures.clear();
   }
