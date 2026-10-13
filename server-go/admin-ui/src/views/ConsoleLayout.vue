@@ -12,6 +12,7 @@ import InvitesTab from './InvitesTab.vue'
 import LedgerTab from './LedgerTab.vue'
 import LoginsTab from './LoginsTab.vue'
 import LotteryTab from './LotteryTab.vue'
+import MapsTab from './MapsTab.vue'
 import NodesTab from './NodesTab.vue'
 import NoticesTab from './NoticesTab.vue'
 import OnlineTab from './OnlineTab.vue'
@@ -43,6 +44,7 @@ const views: Record<string, Component> = {
   'reward-box': RewardBoxTab,
   notices: NoticesTab,
   replays: ReplaysTab,
+  maps: MapsTab,
   invites: InvitesTab,
 }
 
@@ -130,7 +132,7 @@ async function signOut() {
   margin-bottom: 16px;
   background: var(--el-bg-color);
 }
-/* Tighter tabs so all 17 fit on one row from about 1400px. */
+/* Tighter tabs so they fit on one row on a wide screen. */
 .console-tabs :deep(.el-tabs__header .el-tabs__item) {
   padding: 0 13px !important;
 }

@@ -57,12 +57,13 @@ type MapUpload struct {
 const mapColumns = `m.id, m.owner_id, m.name, COALESCE(a.nickname, ''), m.theme, m.laps, m.difficulty, m.road_extent,
 	m.items, m.files_json, m.sha256, m.byte_size, m.hidden, m.created_at, m.updated_at`
 
-func scanMap(row interface{ Scan(dest ...any) error }) (CustomMap, error) {
+// scanMap scans mapColumns, then any extra columns into extra.
+func scanMap(row interface{ Scan(dest ...any) error }, extra ...any) (CustomMap, error) {
 	var m CustomMap
 	var files string
 	var hidden int
-	if err := row.Scan(&m.ID, &m.OwnerID, &m.Name, &m.Author, &m.Theme, &m.Laps, &m.Difficulty, &m.RoadExtent,
-		&m.Items, &files, &m.SHA256, &m.Size, &hidden, &m.CreatedAt, &m.UpdatedAt); err != nil {
+	if err := row.Scan(append([]any{&m.ID, &m.OwnerID, &m.Name, &m.Author, &m.Theme, &m.Laps, &m.Difficulty,
+		&m.RoadExtent, &m.Items, &files, &m.SHA256, &m.Size, &hidden, &m.CreatedAt, &m.UpdatedAt}, extra...)...); err != nil {
 		return m, err
 	}
 	m.Hidden = hidden != 0
@@ -186,17 +187,24 @@ func (s *Store) SaveMap(ctx context.Context, ownerID string, upload MapUpload, l
 	return s.CustomMapByID(ctx, upload.Map.ID)
 }
 
-// DeleteMap removes a map; only its owner or an admin may (403 MAP_NOT_OWNER).
-func (s *Store) DeleteMap(ctx context.Context, id, accountID string, admin bool) error {
+// DeleteMap removes a map and answers what it was; only its owner or an
+// admin may (403 MAP_NOT_OWNER).
+func (s *Store) DeleteMap(ctx context.Context, id, accountID string, admin bool) (CustomMap, error) {
 	m, err := s.CustomMapByID(ctx, id)
 	if err != nil {
-		return err
+		return CustomMap{}, err
 	}
 	if m.OwnerID != accountID && !admin {
-		return ErrMapNotOwner
+		return CustomMap{}, ErrMapNotOwner
 	}
-	_, err = s.db.ExecContext(ctx, "DELETE FROM custom_maps WHERE id = ?", id)
-	return err
+	result, err := s.db.ExecContext(ctx, "DELETE FROM custom_maps WHERE id = ?", id)
+	if err != nil {
+		return CustomMap{}, err
+	}
+	if n, _ := result.RowsAffected(); n == 0 {
+		return CustomMap{}, ErrMapNotFound // deleted meanwhile
+	}
+	return m, nil
 }
 
 // SetMapHidden hides a map from the public list (admin).
@@ -215,4 +223,65 @@ func (s *Store) SetMapHidden(ctx context.Context, id string, hidden bool) error 
 		}
 	}
 	return nil
+}
+
+// The admin console's map states (MapFilter.State).
+const (
+	MapPublic = "public"
+	MapHidden = "hidden"
+)
+
+// MapFilter narrows the admin map list.
+type MapFilter struct {
+	State     string // MapPublic, MapHidden or "" for both
+	AccountID string // the author
+}
+
+// AdminMapRow is one map in the admin console: the map (Author is the
+// author's nickname) with the author's username.
+type AdminMapRow struct {
+	Map      CustomMap
+	Username string
+}
+
+var mapSorts = map[string]string{
+	"updatedAt": "m.updated_at", "createdAt": "m.created_at", "name": "m.name", "size": "m.byte_size", "items": "m.items",
+}
+
+// AdminMaps lists every map, hidden ones too, last updated first by
+// default: q matches the name and the author's username and nickname, and
+// when ASCII the map and author ids; From/To bound the update time. Sort
+// keys: updatedAt, createdAt, name, size, items.
+func (s *Store) AdminMaps(ctx context.Context, page AdminPage, filter MapFilter) ([]AdminMapRow, int, error) {
+	var q adminQuery
+	q.search(page.Query, []string{"m.name", "a.username", "a.nickname"}, []string{"m.id", "m.owner_id"})
+	q.during("m.updated_at", page)
+	switch filter.State {
+	case MapPublic:
+		q.add("m.hidden = 0")
+	case MapHidden:
+		q.add("m.hidden <> 0")
+	}
+	if filter.AccountID != "" {
+		q.add("m.owner_id = ?", filter.AccountID)
+	}
+	from := " FROM custom_maps m LEFT JOIN accounts a ON a.id = m.owner_id"
+	total, err := s.count(ctx, "SELECT COUNT(*)"+from+q.where(), q.args)
+	if err != nil || total == 0 {
+		return []AdminMapRow{}, total, err
+	}
+	tail, args := limit(page, q.args)
+	list := []AdminMapRow{}
+	err = s.queryRows(ctx, "SELECT "+mapColumns+", COALESCE(a.username, '')"+from+q.where()+
+		orderBy(page, mapSorts, "updatedAt", "m.id")+tail, args, func(rows *sql.Rows) error {
+		var row AdminMapRow
+		m, err := scanMap(rows, &row.Username)
+		if err != nil {
+			return err
+		}
+		row.Map = m
+		list = append(list, row)
+		return nil
+	})
+	return list, total, err
 }

@@ -112,7 +112,7 @@ Open the client at <http://127.0.0.1:8780/> (the script prints the exact address
 - `./run-local.sh` serves the untouched original release at <http://127.0.0.1:8765/>.
 - For a server-only deployment behind your own Nginx, use `server-go/docker-compose.yml`.
 - To run game nodes on other machines (Linux or Windows), use `kart-node`, which sizes the player limit from the hardware: [`server-go/NODE.md`](server-go/NODE.md). Players share one lobby on the data service, and each race goes to the node with the lowest latency for its room: [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md).
-- Map Workshop: build your own track from the pieces and textures of every official track at <http://127.0.0.1:8780/editor.html> (or 地图工坊 on the home screen), add item boxes, test-drive it in time attack and publish it. Everyone can play published maps under Single Player → 自定义游戏, and pick them in multiplayer speed rooms (item rooms too when the map has item boxes). Maps export as one `.kartmap` file: [`server-go/MAPS.md`](server-go/MAPS.md).
+- Map Workshop: build your own track from the pieces and textures of every official track at <http://127.0.0.1:8780/editor.html> (or 地图工坊 on the home screen). A wizard picks a theme and a track shape, then you place buildings, trees, lights and more from a SimCity-style asset bar with a preview of every asset; add item boxes, test-drive it in time attack and publish it. Everyone can play published maps under Single Player → 自定义游戏, and pick them in multiplayer speed rooms (item rooms too when the map has item boxes). Maps export as one `.kartmap` file: [`server-go/MAPS.md`](server-go/MAPS.md).
 - More detail:
   - Environment variables, APIs, deployment and tests: [`server-go/README.md`](server-go/README.md)
   - Client development: [`client/README.md`](client/README.md)
@@ -229,7 +229,7 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 - `./run-local.sh`：在 <http://127.0.0.1:8765/> 原样运行原版发行镜像。
 - 只部署服务端、前面用自己的 Nginx：使用 `server-go/docker-compose.yml`。
 - 在其他机器（Linux 或 Windows）上加游戏节点：使用按硬件自动设置人数的 `kart-node`，见 [`server-go/NODE.md`](server-go/NODE.md)。所有玩家共用数据服务上的一个大厅，每局比赛自动去对全房间延迟最低的节点，见 [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md)。
-- 地图工坊：在 <http://127.0.0.1:8780/editor.html>（或首页“快速进入”的地图工坊）用所有官方赛道的物件和贴图拼自己的地图、放道具箱，在计时赛里试跑；发布后所有人都能在“单人游戏 → 自定义游戏”里玩，多人竞速房（有道具箱时还有道具房）也能选。地图可以导出成一个 `.kartmap` 文件分享，见 [`server-go/MAPS.md`](server-go/MAPS.md)。
+- 地图工坊：在 <http://127.0.0.1:8780/editor.html>（或首页“快速进入”的地图工坊）用所有官方赛道的物件和贴图拼自己的地图：向导里选主题和赛道形状，再像模拟城市一样从分类素材栏（每样素材都有预览）挑建筑、树木、路灯等点击摆放，放道具箱，在计时赛里试跑；发布后所有人都能在“单人游戏 → 自定义游戏”里玩，多人竞速房（有道具箱时还有道具房）也能选。地图可以导出成一个 `.kartmap` 文件分享，见 [`server-go/MAPS.md`](server-go/MAPS.md)。
 - 详细说明：
   - 环境变量、接口、部署与测试：[`server-go/README.md`](server-go/README.md)
   - 客户端开发：[`client/README.md`](client/README.md)
@@ -346,7 +346,7 @@ mysql -h127.0.0.1 -P3306 -uroot -p < server-go/scripts/init-mysql.sql
 - `./run-local.sh`: 원본 배포 미러를 <http://127.0.0.1:8765/>에서 그대로 실행합니다.
 - 서버만 배포하고 앞단에 직접 Nginx를 둘 때: `server-go/docker-compose.yml`을 사용합니다.
 - 다른 서버(Linux 또는 Windows)에 게임 노드를 추가하려면 하드웨어에 맞춰 인원을 자동으로 정하는 `kart-node`를 사용합니다: [`server-go/NODE.md`](server-go/NODE.md). 모든 플레이어는 데이터 서비스의 로비 하나를 함께 쓰고, 각 레이스는 방 전체의 지연이 가장 낮은 노드에서 진행됩니다: [`server-go/GLOBAL_LOBBY.md`](server-go/GLOBAL_LOBBY.md).
-- 맵 공방: <http://127.0.0.1:8780/editor.html>(또는 홈 화면의 地图工坊)에서 모든 공식 트랙의 오브젝트와 텍스처로 나만의 트랙을 만들고 아이템 박스를 배치해 타임어택에서 시험 주행할 수 있습니다. 공개한 맵은 누구나 싱글 플레이 → 自定义游戏에서 플레이하고, 멀티플레이 스피드 방(아이템 박스가 있으면 아이템 방도)에서 고를 수 있습니다. 맵은 `.kartmap` 파일 하나로 내보낼 수 있습니다: [`server-go/MAPS.md`](server-go/MAPS.md).
+- 맵 공방: <http://127.0.0.1:8780/editor.html>(또는 홈 화면의 地图工坊)에서 모든 공식 트랙의 오브젝트와 텍스처로 나만의 트랙을 만듭니다. 마법사에서 테마와 트랙 모양을 고르고, 심시티처럼 미리보기가 있는 분류별 에셋 바에서 건물·나무·가로등 등을 골라 배치하고 아이템 박스를 놓아 타임어택에서 시험 주행할 수 있습니다. 공개한 맵은 누구나 싱글 플레이 → 自定义游戏에서 플레이하고, 멀티플레이 스피드 방(아이템 박스가 있으면 아이템 방도)에서 고를 수 있습니다. 맵은 `.kartmap` 파일 하나로 내보낼 수 있습니다: [`server-go/MAPS.md`](server-go/MAPS.md).
 - 자세한 내용:
   - 환경 변수, API, 배포, 테스트: [`server-go/README.md`](server-go/README.md)
   - 클라이언트 개발: [`client/README.md`](client/README.md)

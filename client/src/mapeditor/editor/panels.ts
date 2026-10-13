@@ -232,7 +232,7 @@ export function renderRightPanel(app: EditorApp): void {
   } else renderMap(app, body);
 }
 
-function renderPieces(app: EditorApp, body: HTMLElement, pieces: PieceDesign[]): void {
+export function renderPieces(app: EditorApp, body: HTMLElement, pieces: PieceDesign[]): void {
   const commitAll = (change: (piece: PieceDesign) => void) => {
     const ids = new Set(pieces.map(piece => piece.id));
     app.state.commit(design => { for (const piece of design.pieces) if (ids.has(piece.id)) change(piece); });
@@ -299,7 +299,7 @@ function wallEditor(app: EditorApp, road: RoadDesign, side: "left" | "right"): H
     textureRow(app, "贴图", wall.texture, picked => commitWall(w => { w.texture = { track: picked.track, name: picked.name, alpha: picked.alpha }; })));
 }
 
-function renderRoad(app: EditorApp, body: HTMLElement, road: RoadDesign, point: number | undefined): void {
+export function renderRoad(app: EditorApp, body: HTMLElement, road: RoadDesign, point: number | undefined): void {
   const commit = (change: (road: RoadDesign, design: MapDesign) => void) =>
     app.state.commit(design => change(design.roads.find(x => x.id === road.id)!, design));
   const sample = sampleRoad(road, 2);
@@ -361,7 +361,7 @@ function renderRoad(app: EditorApp, body: HTMLElement, road: RoadDesign, point: 
 }
 
 /** 道具箱（道具赛）：这条路上的各排，以及加一排、自动布置。 */
-function itemSection(app: EditorApp, road: RoadDesign, point: number | undefined, sample: ReturnType<typeof sampleRoad>): HTMLElement {
+export function itemSection(app: EditorApp, road: RoadDesign, point: number | undefined, sample: ReturnType<typeof sampleRoad>): HTMLElement {
   const rows = app.state.design.items.rows.filter(row => row.road === road.id);
   const total = Math.max(1, Math.floor(sample.total));
   const addRow = (distance: number, count = 4) => {
@@ -417,7 +417,7 @@ function itemSection(app: EditorApp, road: RoadDesign, point: number | undefined
       }), { class: "ed-small" }) : undefined));
 }
 
-function renderMap(app: EditorApp, body: HTMLElement): void {
+export function renderMap(app: EditorApp, body: HTMLElement): void {
   const design = app.state.design;
   const commit = (change: (design: MapDesign) => void) => app.state.commit(change);
   const themes = Object.entries(THEME_TITLES).sort((a, b) => a[1].localeCompare(b[1], "zh-CN")) as Array<[string, string]>;

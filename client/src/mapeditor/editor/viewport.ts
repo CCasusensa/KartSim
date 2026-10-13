@@ -128,6 +128,11 @@ export class Viewport {
     this.controls.target.add(move);
   }
 
+  /** 这次按下是在转视角或平移（Alt、空格），不当成工具操作。 */
+  navigating(event: { altKey: boolean }): boolean {
+    return event.altKey || this.keys.has("Space");
+  }
+
   addScene(scene: AssembledScene): void { this.scenes.add(scene); }
   removeScene(scene: AssembledScene): void { this.scenes.delete(scene); }
   onFrame(callback: (time: number) => void): () => void {

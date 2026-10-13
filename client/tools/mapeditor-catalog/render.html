@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>地图工坊素材缩略图</title>
+  <style>
+    body { margin: 0; background: #1d2633; color: #e8edf3; font: 14px sans-serif; }
+    #status { padding: 8px 12px; }
+    canvas { display: block; margin: 8px; max-width: 96vw; background: #2c3b52; }
+  </style>
+</head>
+<body>
+  <!-- Dev-only: build.mjs drives this page over CDP (npm run dev). Not in the game build. -->
+  <div id="status">正在读取资源…</div>
+  <script type="module" src="./render.ts"></script>
+</body>
+</html>

@@ -26,6 +26,7 @@
 | 抽奖活动、奖励箱、公告、邀请码 | 原后台的功能，用 Element Plus 表单与表格重做，接口不变 |
 | 经济设置 | 注册赠送与每场比赛赠送的点券/金币/K币，以及商城“点击获取点券”按钮的开关与每次数额（`GET`/`PUT /api/admin/economy`，`ECONOMY.md` 2.4/2.5）：表单、默认值提示、最后修改人与时间 |
 | 联赛回放 | 游戏 回放 → 联赛回放 的列表（`TIMEATTACK.md` 4）：已发布的联赛回放（标题、说明、赛道、设置、车手、卡丁车、成绩、大小、发布人与时间，删除），下方是排位录像池（各赛道、设置的前 10 名录像：时间、赛道、设置、车手、卡丁车、成绩、已发布次数；按账号/昵称/赛道搜索，赛道筛选），每行“发布为联赛回放”弹出标题与说明 |
+| 自制地图 | 地图工坊发布的全部地图（含隐藏的，第 9 节）：缩略图、名称与地图 ID、作者（点开是账号详情抽屉）、主题、圈数、难度（星级）、道具箱数、赛道包大小、状态（公开/已隐藏）、更新与发布时间；按地图名/作者/地图 ID 搜索，状态、作者、更新时间筛选；操作：预览（选图卡片与缩略图大图和全部字段）、隐藏/恢复（确认框）、删除（危险确认框，不可恢复） |
 
 - 所有表格：服务器端分页（每页 20/50/100）、搜索、可排序列；空数据、加载中、出错都有提示；时间统一按北京时间显示 `YYYY-MM-DD HH:mm:ss`；金额千分位。
 
@@ -160,3 +161,17 @@
 | `anti-cheat` | 当时昵称、用户名、昵称、详情；ASCII 时还有车手、房间、比赛 ID | 时间 | `at` | `code`（检测项）、`action`（`kick`/`log`）、`account`、`node`（节点 ID，完全相同） |
 
 `GET /api/admin/anti-cheat` 返回 `AntiCheatRow`：`id, at, code, detail, action, accountId, username, nickname, name, playerId, nodeId, roomId, raceId, trackId, trackName, gameplay`（`name` 是被记录时的昵称；`username`、`nickname` 是账号现在的，游客与已删除账号为空串；`trackName` 是赛道中文名，没有为空串）。
+
+## 9. 自制地图（地图工坊，接口与存储见 [`MAPS.md`](MAPS.md) 第 2、3 节）
+
+- 标签页“自制地图”（联赛回放之后）列出 `GET /api/admin/maps`：
+
+| 列表 | `q` 匹配 | `from`/`to` 作用于 | `sort` | 其他筛选 |
+|---|---|---|---|---|
+| `maps` | 地图名、作者用户名与昵称；ASCII 时还有地图 ID、作者账号 ID | 更新时间 | `updatedAt`、`createdAt`、`name`、`size`、`items` | `state`（`public`/`hidden`，默认全部）、`account`（作者） |
+
+- `MapRow`：`id, name, ownerId, username, author`（作者昵称）`, theme, laps, difficulty, roadExtent, items`（道具箱数，0 只能竞速）`, files`（赛道包里的文件数）`, size`（赛道包字节数）`, sha256, hidden, createdAt, updatedAt`。主题按地图工坊的 `THEME_TITLES` 显示中文名。
+- 图片：`<img>` 带不了会话令牌，页面 CSP 也不允许 `blob:`，所以前端用带令牌的 `fetch` 取 `GET /api/admin/maps/{id}/{thumb|card}?v=<sha256>`（隐藏的地图也返回），转成 `data:` URL 显示，并按路径缓存（`MapPicture.vue`）。
+- 隐藏/恢复：`POST /api/admin/maps/{id}/hidden {hidden}`。隐藏后地图从公开列表、自定义游戏、多人与道具房选图里消失，公开的文件接口 404（已经选了它的房间开赛时载入不了），作者的“我的地图”仍能看到。
+- 删除：`DELETE /api/admin/maps/{id}` → `{ok: true}`，连同赛道包、设计与图片永久删除；不存在 404 `MAP_NOT_FOUND`。
+- 隐藏、恢复、删除都写数据服务日志（`admin map hidden` / `admin map deleted`，带管理员用户名），并立即刷新道具房可选的地图表。

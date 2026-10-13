@@ -611,3 +611,29 @@ export interface TimeAttackReplayRow {
   /** How many 联赛回放 entries were published from it. */
   featured: number
 }
+
+/**
+ * A published 地图工坊 map (GET /api/admin/maps, MAPS.md 3). author is the
+ * author's nickname, username the account name; size is the track
+ * container's bytes, files how many files it holds.
+ */
+export interface MapRow {
+  id: string
+  name: string
+  ownerId: string
+  username: string
+  author: string
+  theme: string
+  laps: number
+  difficulty: number
+  roadExtent: number
+  /** Item boxes; 0: speed races only. */
+  items: number
+  files: number
+  size: number
+  sha256: string
+  /** Hidden from players (the public list, rooms and downloads). */
+  hidden: boolean
+  createdAt: number
+  updatedAt: number
+}

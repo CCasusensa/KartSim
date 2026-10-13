@@ -66,6 +66,7 @@ const messages: Record<string, string> = {
   INVALID_NODE: '节点信息无效（名称 1–32 字；节点 ID 只能用字母、数字、- 和 _；对外地址须为 http(s)://主机[:端口]；备注最多 200 字）',
   NODE_EXISTS: '该节点 ID 已存在',
   NODE_NOT_FOUND: '节点不存在或已删除',
+  MAP_NOT_FOUND: '地图不存在或已删除',
   NOT_FOUND: '接口不存在（数据服务版本可能过旧）',
   METHOD_NOT_ALLOWED: '接口不支持该请求方法',
   HTTP_401: '登录已失效，请重新登录',
@@ -168,25 +169,66 @@ export async function call<T>(method: string, path: string, body?: unknown, opti
   } catch {
     data = null
   }
-  if (!response.ok) {
-    const record = data && typeof data === 'object' ? (data as Record<string, unknown>) : null
-    const code = typeof record?.error === 'string' ? record.error : 'HTTP_' + response.status
-    const error = code === 'ACCOUNT_BANNED'
-      ? new ApiError(code, response.status, record, bannedMessage(record))
-      : new ApiError(code, response.status, record)
-    // A 401 means the session is gone; a 403 ADMIN_REQUIRED means another
-    // admin took this account's admin flag mid-session. Either way the
-    // console goes back to login (the 403's session is still live, so it
-    // is ended too).
-    const revoked = response.status === 403 && code === 'ADMIN_REQUIRED'
-    if ((response.status === 401 || revoked) && options.auth !== false && token) {
-      if (revoked) dropSession(token)
-      token = null
-      unauthorized?.(error.message)
-    }
-    throw error
-  }
+  if (!response.ok) throw failure(response, data, options)
   return data as T
+}
+
+/** The error of a failed response whose body (JSON or null) is data. */
+function failure(response: Response, data: unknown, options: CallOptions): ApiError {
+  const record = data && typeof data === 'object' ? (data as Record<string, unknown>) : null
+  const code = typeof record?.error === 'string' ? record.error : 'HTTP_' + response.status
+  const error = code === 'ACCOUNT_BANNED'
+    ? new ApiError(code, response.status, record, bannedMessage(record))
+    : new ApiError(code, response.status, record)
+  // A 401 means the session is gone; a 403 ADMIN_REQUIRED means another
+  // admin took this account's admin flag mid-session. Either way the
+  // console goes back to login (the 403's session is still live, so it
+  // is ended too).
+  const revoked = response.status === 403 && code === 'ADMIN_REQUIRED'
+  if ((response.status === 401 || revoked) && options.auth !== false && token) {
+    if (revoked) dropSession(token)
+    token = null
+    unauthorized?.(error.message)
+  }
+  return error
+}
+
+/**
+ * A picture the API serves only to an admin session (a map's card), as a
+ * data: URL: an <img> cannot send the Authorization header, and the page's
+ * CSP allows data: images but not blob: ones. The browser may cache the
+ * answer (the server marks it private).
+ */
+export async function fetchPicture(path: string): Promise<string> {
+  const headers: Record<string, string> = {}
+  if (token) headers['Authorization'] = 'Bearer ' + token
+  let response: Response
+  try {
+    response = await fetch(path, { headers, credentials: 'omit' })
+  } catch {
+    throw new ApiError('NETWORK', 0, null)
+  }
+  if (!response.ok) {
+    let data: unknown = null
+    try {
+      data = await response.json()
+    } catch {
+      data = null
+    }
+    throw failure(response, data, {})
+  }
+  let blob: Blob
+  try {
+    blob = await response.blob()
+  } catch {
+    throw new ApiError('NETWORK', 0, null)
+  }
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(new ApiError('NETWORK', 0, null))
+    reader.readAsDataURL(blob)
+  })
 }
 
 export const api = {

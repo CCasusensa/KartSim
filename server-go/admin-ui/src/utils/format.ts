@@ -215,6 +215,47 @@ export function rewardBoxState(state: string | null | undefined): { label: strin
   return (state && rewardBoxStates[state]) || { label: state || '—', type: 'info' }
 }
 
+/** MapRow.hidden as a state (the list's state filter: public, hidden). */
+export const mapStates: Record<string, { label: string; type: TagType }> = {
+  public: { label: '公开', type: 'success' },
+  hidden: { label: '已隐藏', type: 'info' },
+}
+
+export const mapStateOptions = Object.entries(mapStates).map(([value, { label }]) => ({ value, label }))
+
+export function mapState(hidden: boolean): { label: string; type: TagType } {
+  return mapStates[hidden ? 'hidden' : 'public']!
+}
+
+/** Map themes, as the map editor names them (client/src/mapeditor/source-tracks.ts THEME_TITLES). */
+const themeNames: Record<string, string> = {
+  village: '城镇', forest: '森林', desert: '沙漠', ice: '冰河', tomb: '墓地', mine: '矿山',
+  northeu: '北欧', factory: '工厂', pirate: '海盗', fairy: '童话', moonhill: '月光',
+  gold: '黄金文明', china: '中国', castle: '城堡', nymph: '妖精', mechanic: '机械',
+  xyy: '喜羊羊', wkc: '世界赛', brodi: '布罗迪', park: '公园', beach: '海滨',
+  transFormer: '变形金刚', jurassic: '侏罗纪', world: '世界', nemo: '尼莫',
+  sword: '剑', god: '神殿', abyss: '深渊', camelot: '卡美洛', olympos: '奥林匹斯',
+  korea: '韩国', mabi: '洛奇', maple: '冒险岛', fengshen: '封神', steam: '蒸汽',
+}
+
+/** A theme's Chinese name; the id itself when unknown. */
+export function themeName(theme: string | null | undefined): string {
+  return theme ? themeNames[theme] ?? theme : '—'
+}
+
+/** 1–5 stars, as the game shows a track's difficulty. */
+export function difficultyStars(level: number | null | undefined): string {
+  const stars = Math.max(0, Math.min(5, Math.round(level ?? 0)))
+  return stars ? '★'.repeat(stars) + '☆'.repeat(5 - stars) : '—'
+}
+
+/** 812 KB / 3.4 MB. */
+export function formatBytes(bytes: number | null | undefined): string {
+  if (bytes === null || bytes === undefined || !Number.isFinite(bytes)) return '—'
+  if (bytes < 1024 * 1024) return `${numbers.format(Math.ceil(bytes / 1024))} KB`
+  return `${heap.format(bytes / (1024 * 1024))} MB`
+}
+
 /** A short "Chrome 140 · Windows" from a user agent ("—" when empty). */
 export function userAgentSummary(ua: string | null | undefined): string {
   if (!ua) return '—'

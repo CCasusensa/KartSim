@@ -26,6 +26,7 @@ export const TABS: TabDefinition[] = [
   { name: 'reward-box', label: '奖励箱' },
   { name: 'notices', label: '公告' },
   { name: 'replays', label: '联赛回放' },
+  { name: 'maps', label: '自制地图' },
   { name: 'invites', label: '邀请码' },
 ]
 

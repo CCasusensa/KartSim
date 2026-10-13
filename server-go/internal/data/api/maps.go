@@ -99,6 +99,12 @@ func (a *API) getMap(w http.ResponseWriter, r *http.Request) error {
 // naming the current sha256 (?v=) may be cached for good: a new version has
 // a new hash.
 func (a *API) mapFile(w http.ResponseWriter, r *http.Request) error {
+	return a.serveMapFile(w, r, false)
+}
+
+// serveMapFile answers mapFile; for the admin console (admin) hidden maps
+// are served too, and only to the admin's own browser cache.
+func (a *API) serveMapFile(w http.ResponseWriter, r *http.Request, admin bool) error {
 	id, err := mapID(r)
 	if err != nil {
 		return err
@@ -113,13 +119,19 @@ func (a *API) mapFile(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if m.Hidden {
+	if m.Hidden && !admin {
 		return store.ErrMapNotFound
 	}
 	etag := `"map-` + m.SHA256 + `-` + kind + `"`
-	if r.URL.Query().Get("v") == m.SHA256 && kind != "design" {
+	immutable := r.URL.Query().Get("v") == m.SHA256 && kind != "design"
+	switch {
+	case immutable && admin:
+		w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
+	case immutable:
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	} else {
+	case admin:
+		w.Header().Set("Cache-Control", "private, no-cache")
+	default:
 		w.Header().Set("Cache-Control", "no-cache")
 	}
 	w.Header().Set("ETag", etag)
@@ -266,16 +278,92 @@ func (a *API) deleteMap(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if err := a.store.DeleteMap(r.Context(), id, account.ID, account.Admin); err != nil {
+	deleted, err := a.store.DeleteMap(r.Context(), id, account.ID, account.Admin)
+	if err != nil {
 		return err
+	}
+	if deleted.OwnerID != account.ID {
+		a.log.Info("admin map deleted", "admin", account.Username, "map", id, "name", deleted.Name,
+			"owner", deleted.OwnerID)
 	}
 	a.itemMaps.refresh(r.Context(), a.store)
 	return writeJSON(w, http.StatusOK, map[string]any{"deleted": true})
 }
 
+/* ---------- 管理后台 ---------- */
+
+// mapRowJSON is the MapRow of ADMIN.md 9: author is the author's
+// nickname, username its account name.
+type mapRowJSON struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	OwnerID    string `json:"ownerId"`
+	Username   string `json:"username"`
+	Author     string `json:"author"`
+	Theme      string `json:"theme"`
+	Laps       int    `json:"laps"`
+	Difficulty int    `json:"difficulty"`
+	RoadExtent int    `json:"roadExtent"`
+	Items      int    `json:"items"`
+	Files      int    `json:"files"`
+	Size       int    `json:"size"`
+	SHA256     string `json:"sha256"`
+	Hidden     bool   `json:"hidden"`
+	CreatedAt  int64  `json:"createdAt"`
+	UpdatedAt  int64  `json:"updatedAt"`
+}
+
+// adminMaps lists every published map, hidden ones too: ?state=public|
+// hidden, account= (the author's id or username); q matches the name, the
+// author's username and nickname and the map and author ids; from/to bound
+// the update time. Sort keys: updatedAt (default), createdAt, name, size,
+// items.
+func (a *API) adminMaps(w http.ResponseWriter, r *http.Request) error {
+	if _, err := a.requireAdmin(r); err != nil {
+		return err
+	}
+	list, err := parseAdminList(r, false, "updatedAt", "createdAt", "name", "size", "items")
+	if err != nil {
+		return err
+	}
+	var filter store.MapFilter
+	if filter.State, err = oneOfParam(r, "state", store.MapPublic, store.MapHidden); err != nil {
+		return err
+	}
+	var matched bool
+	if filter.AccountID, matched, err = a.accountParam(r.Context(), r); err != nil {
+		return err
+	} else if !matched {
+		return emptyList[mapRowJSON](w, list)
+	}
+	rows, total, err := a.store.AdminMaps(r.Context(), list.AdminPage, filter)
+	if err != nil {
+		return err
+	}
+	items := make([]mapRowJSON, len(rows))
+	for i, row := range rows {
+		m := row.Map
+		items[i] = mapRowJSON{ID: m.ID, Name: m.Name, OwnerID: m.OwnerID, Username: row.Username, Author: m.Author,
+			Theme: m.Theme, Laps: m.Laps, Difficulty: m.Difficulty, RoadExtent: m.RoadExtent, Items: m.Items,
+			Files: len(m.Files), Size: m.Size, SHA256: m.SHA256, Hidden: m.Hidden, CreatedAt: m.CreatedAt,
+			UpdatedAt: m.UpdatedAt}
+	}
+	return answerList(w, list, items, total)
+}
+
+// adminMapFile serves a map's files to the console, hidden maps too (the
+// console previews the card and thumb of every map).
+func (a *API) adminMapFile(w http.ResponseWriter, r *http.Request) error {
+	if _, err := a.requireAdmin(r); err != nil {
+		return err
+	}
+	return a.serveMapFile(w, r, true)
+}
+
 // adminHideMap: {hidden} hides or restores a map in the public list.
 func (a *API) adminHideMap(w http.ResponseWriter, r *http.Request) error {
-	if _, err := a.requireAdmin(r); err != nil {
+	admin, err := a.requireAdmin(r)
+	if err != nil {
 		return err
 	}
 	id, err := mapID(r)
@@ -291,8 +379,29 @@ func (a *API) adminHideMap(w http.ResponseWriter, r *http.Request) error {
 	if err := a.store.SetMapHidden(r.Context(), id, request.Hidden); err != nil {
 		return err
 	}
+	a.log.Info("admin map hidden", "admin", admin.Username, "map", id, "hidden", request.Hidden)
 	a.itemMaps.refresh(r.Context(), a.store)
 	return writeJSON(w, http.StatusOK, map[string]any{"hidden": request.Hidden})
+}
+
+// adminDeleteMap deletes any map for good (its files go with it).
+func (a *API) adminDeleteMap(w http.ResponseWriter, r *http.Request) error {
+	admin, err := a.requireAdmin(r)
+	if err != nil {
+		return err
+	}
+	id, err := mapID(r)
+	if err != nil {
+		return err
+	}
+	deleted, err := a.store.DeleteMap(r.Context(), id, admin.ID, true)
+	if err != nil {
+		return err
+	}
+	a.log.Info("admin map deleted", "admin", admin.Username, "map", id, "name", deleted.Name,
+		"owner", deleted.OwnerID)
+	a.itemMaps.refresh(r.Context(), a.store)
+	return writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
 // serveUpload is serve with a longer deadline: a large map takes a while to

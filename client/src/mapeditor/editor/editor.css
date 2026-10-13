@@ -32,15 +32,21 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 /* ---------- 布局 ---------- */
+/* 简单模式：上工具栏、中间视口、右侧属性、底部素材栏；高级模式再加左侧官方赛道浏览。 */
 .ed-root {
   position: fixed; inset: 0;
   display: grid;
-  grid-template-columns: 318px 1fr 300px;
-  grid-template-rows: auto 1fr 30px;
-  grid-template-areas: "bar bar bar" "left view right" "status status status";
+  grid-template-columns: 0 1fr 280px;
+  grid-template-rows: auto 1fr auto 26px;
+  grid-template-areas: "bar bar bar" "left view right" "dock dock dock" "status status status";
   gap: 4px; padding: 4px;
   background: radial-gradient(ellipse at top, #1d3f78, #0b1730 70%);
 }
+.ed-root.ed-advanced { grid-template-columns: 318px 1fr 300px; }
+.ed-root:not(.ed-advanced) .ed-left { display: none; }
+.ed-root.ed-advanced { column-gap: 4px; }
+.ed-root:not(.ed-advanced) { column-gap: 0; }
+.ed-root:not(.ed-advanced) .ed-view { margin-right: 4px; }
 .ed-bar { grid-area: bar; position: relative; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 44px; }
 .ed-left { grid-area: left; position: relative; display: flex; flex-direction: column; min-height: 0; }
 .ed-right { grid-area: right; position: relative; display: flex; flex-direction: column; min-height: 0; }
@@ -133,3 +139,72 @@ input[type="number"].k-edit { width: 76px; }
 .ed-loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #dbe6f7; z-index: 60; background: radial-gradient(ellipse at top, #1d3f78, #0b1730 70%); }
 .ed-loading .ed-progress { width: 360px; }
 .ed-loading h1 { font-size: 26px; margin: 0; color: #fff; letter-spacing: 4px; }
+
+/* ---------- 工具栏 ---------- */
+.ed-bar .ed-mapname { color: #ffd36b; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; }
+.ed-menu { position: absolute; z-index: 40; display: flex; flex-direction: column; gap: 2px; padding: 6px; min-width: 150px; }
+.ed-menu .k-button { text-align: left; }
+
+/* ---------- 底部素材栏 ---------- */
+.ed-dock { grid-area: dock; position: relative; display: grid; height: clamp(250px, 34vh, 330px); min-height: 0;
+  grid-template-columns: 1fr 250px; grid-template-rows: 42px 32px 1fr; grid-template-areas: "tabs preview" "filter preview" "shelf preview"; gap: 2px 6px; }
+.ed-dock.ed-collapsed { height: 84px; grid-template-columns: 1fr; grid-template-rows: 42px; grid-template-areas: "tabs"; }
+.ed-dock.ed-collapsed > :not(.ed-dock-tabs):not(.k-caption) { display: none; }
+.ed-dock-tabs { grid-area: tabs; display: flex; gap: 3px; align-items: stretch; overflow-x: auto; overflow-y: hidden; padding: 0 2px; }
+.ed-dock-tabs .k-tab { display: flex; align-items: center; gap: 6px; padding: 0 12px 0 6px; height: 40px; cursor: pointer; white-space: nowrap; font-size: 14px; }
+.ed-dock-tabs .k-tab.k-on { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
+.ed-dock-tabs .ed-tab-icon { width: 30px; height: 30px; flex: none; border-radius: 4px; background-color: rgba(30, 50, 90, .15); }
+.ed-dock-tabs .ed-spacer { flex: 1; }
+.ed-dock-filter { grid-area: filter; display: flex; gap: 4px; align-items: center; overflow: hidden; padding: 0 2px; }
+.ed-dock-filter .ed-chip { height: 26px; padding: 0 10px; cursor: pointer; white-space: nowrap; font-size: 12px; }
+.ed-dock-filter .ed-chip.k-on { color: #b44b00; }
+.ed-dock-filter .k-combo { width: 128px; height: 26px; font-size: 12px; }
+.ed-dock-filter .k-edit { width: 130px; height: 26px; font-size: 12px; }
+.ed-dock-filter .ed-count { color: var(--ed-dim); font-size: 12px; margin-left: auto; white-space: nowrap; }
+.ed-shelf { grid-area: shelf; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 2px; }
+.ed-card { position: relative; width: 88px; height: 112px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0; padding: 0; cursor: pointer; margin: 0; overflow: hidden; }
+.ed-card .ed-sprite { width: 76px; height: 76px; flex: none; background-repeat: no-repeat; border-radius: 3px; margin-top: 2px; }
+.ed-card .ed-label { width: 100%; text-align: center; font-size: 12px; line-height: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: none; }
+.ed-card .ed-badge { position: absolute; right: 4px; top: 4px; font-size: 10px; padding: 0 4px; border-radius: 3px; color: #fff; background: rgba(42, 95, 176, .85); }
+.ed-card.ed-tool .ed-sprite { display: flex; align-items: center; justify-content: center; font-size: 34px; color: #2a5fb0; background: rgba(42, 95, 176, .1); }
+.ed-card canvas.ed-sprite { background: rgba(42, 95, 176, .08); }
+.ed-shelf .ed-group { width: 100%; font-size: 12px; color: #0d3d8c; margin: 4px 2px 0; border-bottom: 1px solid #b9c8e0; }
+.ed-shelf .ed-empty { width: 100%; }
+.ed-preview { grid-area: preview; position: relative; display: flex; flex-direction: column; gap: 4px; min-height: 0; padding: 2px 4px 4px; }
+.ed-preview .ed-stage { position: relative; height: 132px; flex: none; border-radius: 4px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 35%, #e9f2ff, #b6cbe8); }
+.ed-preview .ed-stage > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ed-preview .ed-stage .ed-sprite { background-repeat: no-repeat; inset: 2px auto auto 50%; transform: translateX(-50%); width: 128px; height: 128px; }
+.ed-preview .ed-title { font-size: 14px; color: #0d3d8c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-preview .ed-meta { color: var(--ed-dim); font-size: 12px; line-height: 1.5; }
+.ed-preview .ed-actions { margin: 0; }
+
+/* ---------- 简化属性面板 ---------- */
+.ed-pieceinfo { display: flex; gap: 8px; align-items: center; margin: 4px 2px; }
+.ed-pieceinfo .ed-sprite { width: 64px; height: 64px; flex: none; background-repeat: no-repeat; border-radius: 4px; background-color: rgba(42, 95, 176, .08); }
+.ed-pieceinfo .ed-name { font-size: 14px; color: #0d3d8c; }
+.ed-grid-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 6px 2px; }
+.ed-grid-buttons .k-button { min-width: 0; padding: 0 4px; height: 30px; font-size: 12px; }
+.ed-grid-buttons.ed-two { grid-template-columns: repeat(2, 1fr); }
+.ed-steps { margin: 4px 2px; }
+.ed-step { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; font-size: 12px; line-height: 1.5; color: var(--ed-dim); }
+.ed-step b { display: inline-flex; flex: none; width: 20px; height: 20px; border-radius: 10px; align-items: center; justify-content: center; background: #b9c8e0; color: #fff; font-weight: normal; }
+.ed-step.ed-done b { background: #3dbb6a; }
+.ed-step.ed-now b { background: #ff8a00; }
+.ed-step.ed-now { color: var(--ed-text); }
+.ed-swatch { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.ed-swatch .ed-sprite { width: 40px; height: 40px; flex: none; background-repeat: no-repeat; border-radius: 3px; background-color: #333; }
+.ed-swatch .ed-name { flex: 1; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+details.ed-more { margin: 8px 2px; }
+details.ed-more > summary { cursor: pointer; color: #0d3d8c; font-size: 12px; }
+.ed-seg { display: flex; gap: 2px; flex-wrap: wrap; margin: 4px 0; }
+.ed-seg .k-button { height: 26px; min-width: 0; padding: 0 8px; font-size: 12px; }
+
+/* ---------- 新建向导 ---------- */
+.ed-modal > .k-dialog.ed-wide-dialog { max-width: min(980px, 96vw); width: 980px; }
+.ed-wizard { display: flex; flex-direction: column; gap: 6px; white-space: normal; }
+.ed-wizard h4 { margin: 6px 0 2px; font-size: 13px; color: #0d3d8c; font-weight: normal; }
+.ed-wizard .ed-cards { display: flex; flex-wrap: wrap; gap: 4px; max-height: 236px; overflow-y: auto; }
+.ed-wizard .ed-card { width: 104px; height: 124px; }
+.ed-wizard .ed-card .ed-sprite { width: 88px; height: 88px; }
+.ed-wizard .ed-row-fields { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }

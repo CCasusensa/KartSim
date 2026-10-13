@@ -1,20 +1,31 @@
 /**
- * 地图工坊主程序：工具栏、视口交互（选取、画路、从官方赛道取件、变换手柄）、
- * 撤销重做与快捷键。面板内容见 panels.ts，存取/试跑/发布见 actions.ts。
+ * 地图工坊主程序：工具栏、底部素材栏、视口交互（选取、放置、推土机、画路、
+ * 拖动挪位置；高级模式另有从官方赛道取件和变换手柄）、撤销重做与快捷键。
+ * 素材栏见 dock.ts，工具见 tools.ts，属性面板见 inspector.ts（简单模式）和
+ * panels.ts（高级模式），存取/试跑/发布见 actions.ts。
  */
 import {
   AlwaysDepth, Group, Matrix4, Mesh, MeshBasicMaterial, Object3D, OrthographicCamera, PlaneGeometry, Quaternion, Scene, Vector3,
   WebGLRenderTarget, type Texture,
 } from "three";
-import { DEFAULT_ROAD_SURFACE, DEFAULT_WALL, MAP_LIMITS, defaultGround, newDesign, type MapDesign, type PieceDesign, type RoadDesign, type Vec3 } from "../design";
+import {
+  DEFAULT_ROAD_SURFACE, DEFAULT_WALL, MAP_LIMITS, defaultGround, newDesign, type MapDesign, type PieceDesign, type RoadDesign,
+  type TextureRef, type Vec3,
+} from "../design";
+import { categoryInfo, surfaceRef, textureLabel, textureRef, themeTitle, type CatalogSky, type CatalogTexture, type ThemePreset } from "../catalog";
+import { sampleRoad } from "../road-geometry";
 import type { PieceInfo, SourceTrack } from "../source-tracks";
+import { templateRoad, type TrackTemplate } from "../templates";
 import { objectForPath, type AssembledScene, type EditorAssets } from "./assets";
 import { button, clear, h } from "./dom";
+import { Dock } from "./dock";
+import { renderInspector } from "./inspector";
 import { MapViews, boxLines, readPieceTransform } from "./map-views";
 import { EditorState } from "./state";
+import { ToolController, type Tool } from "./tools";
 import { isTyping, toClient, Viewport } from "./viewport";
 import { renderLeftPanel, renderRightPanel } from "./panels";
-import { EditorActions } from "./actions";
+import { EditorActions, modal } from "./actions";
 
 export type Mode = "select" | "draw" | "source";
 
@@ -30,13 +41,24 @@ export interface SourceSession {
 
 const SNAP_MOVE = 1;
 const SNAP_ANGLE = 15;
+const ADVANCED_KEY = "kartsim-mapeditor-advanced";
+
+function storedAdvanced(): boolean {
+  try { return localStorage.getItem(ADVANCED_KEY) === "1"; } catch { return false; }
+}
 
 export class EditorApp {
   readonly state = new EditorState();
   readonly viewport: Viewport;
   readonly views: MapViews;
   readonly actions: EditorActions;
+  readonly tools: ToolController;
+  readonly dock: Dock;
   mode: Mode = "select";
+  /** 简单模式下视口的工具：选择、放置、推土机、放道具箱。 */
+  tool: Tool = { kind: "select" };
+  /** 高级模式：左侧官方赛道浏览、变换手柄、完整属性面板。 */
+  advanced = storedAdvanced();
   gizmoMode: "translate" | "rotate" | "scale" = "translate";
   snap = true;
   /** 素材库里当前打开的官方赛道。 */
@@ -57,6 +79,8 @@ export class EditorApp {
   readonly hint: HTMLElement;
   readonly sourceBar: HTMLElement;
   private readonly helpTip: HTMLElement;
+  private readonly root: HTMLElement;
+  private menu?: HTMLElement;
   private readonly pivot = new Group();
   private dragStart?: { pivot: Matrix4; pieces: Map<string, Matrix4> };
   private pointerDown?: { x: number; y: number; button: number };
@@ -73,17 +97,20 @@ export class EditorApp {
     this.status = h("footer", { class: "ed-status" });
     this.hint = h("div", { class: "ed-hint k-tip" });
     this.sourceBar = h("div", { class: "ed-source-bar" });
-    root.append(h("div", { class: "ed-root" }, this.bar, this.left, view, this.right, this.status));
+    this.root = h("div", { class: "ed-root" }, this.bar, this.left, view, this.right, this.status);
+    root.append(this.root);
     this.viewport = new Viewport(view);
-    this.helpTip = h("div", { class: "ed-help-tip k-tip" },
-      "右键拖动：转视角　滚轮：缩放　中键/空格+左键：平移　方向键：移动视角", h("br"),
-      "W/E/R：移动/旋转/缩放　D：画路　Ctrl+D：复制　Delete：删除　F：聚焦　Ctrl+Z/Y：撤销/重做");
+    this.helpTip = h("div", { class: "ed-help-tip k-tip" });
     view.append(this.hint, this.sourceBar, this.helpTip);
     this.viewport.stageBinding = assets.stageBinding as unknown as { beginFrame(time: number): void };
     this.views = new MapViews(this.viewport, assets);
     this.views.onPieceLoaded = () => this.updateStatus();
     this.viewport.world.add(this.pivot);
     this.actions = new EditorActions(this);
+    this.tools = new ToolController(this);
+    this.dock = new Dock(this);
+    this.root.append(this.dock.element);
+    this.root.classList.toggle("ed-advanced", this.advanced);
     this.bindViewport();
     this.bindKeys();
     this.state.on(kind => this.onChange(kind));
@@ -106,8 +133,7 @@ export class EditorApp {
   }
 
   refresh(): void {
-    renderLeftPanel(this);
-    renderRightPanel(this);
+    if (this.advanced) { renderLeftPanel(this); renderRightPanel(this); } else renderInspector(this);
     this.renderBar();
     this.updateStatus();
     this.updateHint();
@@ -125,35 +151,65 @@ export class EditorApp {
 
   private renderBar(): void {
     clear(this.bar);
-    const mode = (label: string, value: typeof this.gizmoMode, key: string) => {
-      const b = button(`${label} ${key}`, () => this.setGizmoMode(value), { class: this.gizmoMode === value ? "k-on" : "" });
-      return b;
-    };
+    const mode = (label: string, value: typeof this.gizmoMode, key: string) =>
+      button(`${label} ${key}`, () => this.setGizmoMode(value), { class: this.gizmoMode === value ? "k-on" : "" });
+    const tool = (label: string, kind: "select" | "bulldoze", key: string, title: string) =>
+      button(`${label} ${key}`, () => this.setTool({ kind }), { class: this.tool.kind === kind && this.mode === "select" ? "k-on" : "", title });
     this.bar.append(
       h("span", { class: "ed-title" }, "地图工坊"),
-      button("新建", () => this.actions.newMap()),
+      h("span", { class: "ed-mapname", title: "地图名（在右侧“地图设置”里改）" }, this.state.design.name),
+      button("新建", () => this.actions.newMap(), { title: "新建向导：选主题和赛道形状" }),
       button("打开", () => this.actions.openDialog()),
       button("保存", () => void this.actions.save(), { title: "保存到本机（Ctrl+S）" }),
-      button("导入", () => this.actions.importFile()),
-      button("另存为", () => this.actions.saveAs(), { title: "复制成一张新地图" }),
-      button("导出", () => this.actions.exportDialog(), { title: "导出地图包、赛道包或设计文件" }),
       h("span", { class: "ed-sep" }),
-      button("撤销", () => this.state.undo(), { disabled: !this.state.canUndo }),
-      button("重做", () => this.state.redo(), { disabled: !this.state.canRedo }),
+      button("撤销", () => this.state.undo(), { disabled: !this.state.canUndo, title: "Ctrl+Z" }),
+      button("重做", () => this.state.redo(), { disabled: !this.state.canRedo, title: "Ctrl+Y" }),
       h("span", { class: "ed-sep" }),
-      mode("移动", "translate", "W"), mode("旋转", "rotate", "E"), mode("缩放", "scale", "R"),
+      tool("选择", "select", "V", "点选摆件和道路，按住拖动挪位置"),
+      tool("推土机", "bulldoze", "B", "点摆件推掉，按住拖动连片推"),
+      button(this.mode === "draw" ? "结束画路" : "画路 D", () => this.mode === "draw" ? this.finishDraw() : this.startDraw(),
+        { class: this.mode === "draw" ? "k-on" : "", title: "在地图上依次点击放控制点" }),
+      ...(this.advanced ? [
+        h("span", { class: "ed-sep" }),
+        mode("移动", "translate", "W"), mode("旋转", "rotate", "E"), mode("缩放", "scale", "R"),
+      ] : []),
       button(this.snap ? "吸附：开" : "吸附：关", () => { this.snap = !this.snap; this.attachGizmo(); this.renderBar(); },
-        { class: this.snap ? "k-on" : "", title: "移动按 1 米、旋转按 15° 吸附" }),
-      h("span", { class: "ed-sep" }),
-      button("新道路", () => this.startRoad(), { title: "在视口里依次点击放置控制点" }),
-      button(this.mode === "draw" ? "结束画路" : "画路 D", () => this.mode === "draw" ? this.setMode("select") : this.startDraw(),
-        { class: this.mode === "draw" ? "k-on" : "" }),
+        { class: this.snap ? "k-on" : "", title: "位置按 0.5 米、旋转按 15° 对齐" }),
       h("span", { class: "ed-spacer" }),
-      button("检查", () => this.actions.check()),
-      button("试跑", () => void this.actions.testDrive(), { class: "ed-primary", title: "生成赛道包，在游戏的计时赛里试跑" }),
-      button("发布", () => void this.actions.publish(), { class: "ed-primary", title: "上传到服务器，多人竞速房可选" }),
-      button("帮助", () => this.actions.help()),
+      button("试跑", () => void this.actions.testDrive(), { class: "ed-primary", title: "生成赛道，在游戏的计时赛里跑一圈" }),
+      button("发布", () => void this.actions.publish(), { class: "ed-primary", title: "上传到服务器，大家都能玩" }),
+      button("更多 ▾", () => this.toggleMenu()),
     );
+  }
+
+  private toggleMenu(): void {
+    if (this.menu) { this.menu.remove(); this.menu = undefined; return; }
+    const close = () => { this.menu?.remove(); this.menu = undefined; window.removeEventListener("pointerdown", outside, true); };
+    const item = (label: string, run: () => void) => button(label, () => { close(); run(); });
+    const menu = h("div", { class: "ed-menu k-dialog" }, h("div", { class: "k-caption" }, "更多"),
+      item("导入地图文件…", () => this.actions.importFile()),
+      item("另存为新地图", () => this.actions.saveAs()),
+      item("导出…", () => this.actions.exportDialog()),
+      item("检查地图", () => this.actions.check()),
+      item(this.advanced ? "✓ 高级模式" : "高级模式", () => this.setAdvanced(!this.advanced)),
+      item("帮助", () => this.actions.help()));
+    const outside = (event: Event) => { if (!menu.contains(event.target as Node)) close(); };
+    window.addEventListener("pointerdown", outside, true);
+    const rect = this.bar.getBoundingClientRect();
+    menu.style.right = "8px";
+    menu.style.top = `${rect.bottom + 4}px`;
+    document.body.append(menu);
+    this.menu = menu;
+  }
+
+  setAdvanced(on: boolean): void {
+    this.advanced = on;
+    try { localStorage.setItem(ADVANCED_KEY, on ? "1" : "0"); } catch { /* 隐私模式 */ }
+    this.root.classList.toggle("ed-advanced", on);
+    if (!on && this.mode === "source") this.closeSource();
+    this.attachGizmo();
+    this.say(on ? "高级模式：左侧可以浏览整条官方赛道取件，W/E/R 用手柄移动、旋转、缩放，右侧有全部数值。" : "已回到简单模式。", 6000);
+    this.queueRender();
   }
 
   updateStatus(): void {
@@ -181,13 +237,21 @@ export class EditorApp {
 
   private updateHint(): void {
     const road = this.state.selectedRoad();
+    const tool = this.tool;
     this.hint.textContent = this.mode === "draw"
-      ? `画路：点击放下控制点${road && road.points.length >= 3 ? "，点回起点（绿色）闭合成环" : ""}；Enter/Esc 结束`
+      ? `画路：点击放下控制点${road && road.points.length >= 3 ? "，点回起点（绿色）闭合成环" : ""}；双击、Enter 或 Esc 结束`
       : this.mode === "source" && this.source
         ? `正在查看官方赛道「${this.source.track.title}」：点击物件选取（Shift 多选），再点左下角“放到我的地图”`
-        : "";
+        : tool.kind === "place"
+          ? `放置「${tool.piece.label}」：点击放下${categoryInfo(tool.piece.category).paint === "single" ? "" : "，按住拖动连续摆放"}；Q/E 旋转，[ ] 大小，Esc 或右键结束`
+          : tool.kind === "bulldoze" ? "推土机：点摆件推掉，按住拖动连片推；Esc 结束"
+            : tool.kind === "items" ? "点道路放一排道具箱；Esc 结束" : "";
     clear(this.sourceBar);
     this.helpTip.style.display = this.mode === "source" ? "none" : "";
+    clear(this.helpTip);
+    this.helpTip.append("左键：选择 / 放置　右键拖动：转视角　滚轮：缩放　中键或空格+左键：平移", h("br"),
+      this.advanced ? "W/E/R：移动/旋转/缩放手柄　D：画路　B：推土机　Ctrl+D：复制　Delete：删除　F：聚焦"
+        : "Q/E：旋转　[ ]：大小　D：画路　B：推土机　Ctrl+D：复制　Delete：删除　F：聚焦　Ctrl+Z：撤销");
     if (this.mode === "source" && this.source) {
       const count = this.source.selected.size;
       this.sourceBar.append(
@@ -233,7 +297,24 @@ export class EditorApp {
 
   setMode(mode: Mode): void {
     if (this.mode === "source" && mode !== "source") this.hideSource();
+    if (mode !== "select" && this.tool.kind !== "select") this.setTool({ kind: "select" });
     this.mode = mode;
+    this.attachGizmo();
+    this.queueRender();
+  }
+
+  /** 换视口工具（放置、推土机…）；画路和取件时先回到普通模式。 */
+  setTool(tool: Tool): void {
+    if (tool.kind !== "select") {
+      if (this.mode === "draw") this.finishDraw();
+      if (this.mode === "source") this.closeSource();
+    }
+    if (tool.kind === "place" && this.tool.kind !== "place") { this.tools.yaw = 0; this.tools.scale = 1; }
+    this.tool = tool;
+    this.tools.activate(tool);
+    if (tool.kind !== "select") this.state.select(undefined);
+    this.dock.setActive(tool.kind === "place" ? { kind: "piece", id: tool.piece.id, piece: tool.piece }
+      : tool.kind === "items" ? this.dock.active : undefined);
     this.attachGizmo();
     this.queueRender();
   }
@@ -249,22 +330,28 @@ export class EditorApp {
     if (this.mode === "source") this.closeSource();
     const isFirst = !this.state.design.roads.some(road => road.route);
     const texture = this.pickedTexture?.road ? this.pickedTexture : undefined;
+    // 新路沿用已有道路（比赛路线）的路面和护栏，风格统一
+    const like = this.state.design.roads.find(road => road.route) ?? this.state.design.roads[0];
+    const wall = { ...DEFAULT_WALL, texture: structuredClone(this.defaultWall()) };
     const road: RoadDesign = {
       id: this.state.newId("r"), name: isFirst ? "主赛道" : `道路 ${this.state.design.roads.length + 1}`,
-      closed: false, route: isFirst, points: [], width: 24,
-      surface: texture ? { track: texture.track, name: texture.name, road: texture.road ?? [], alpha: texture.alpha } : { ...DEFAULT_ROAD_SURFACE },
+      closed: false, route: isFirst, points: [], width: like?.width ?? 22,
+      surface: texture ? { track: texture.track, name: texture.name, road: texture.road ?? [], alpha: texture.alpha }
+        : structuredClone(like?.surface ?? DEFAULT_ROAD_SURFACE),
       uvLength: 24, thickness: 1.5,
-      walls: { left: { ...DEFAULT_WALL, texture: { ...DEFAULT_WALL.texture } }, right: { ...DEFAULT_WALL, texture: { ...DEFAULT_WALL.texture } } },
+      walls: { left: structuredClone(wall), right: structuredClone(wall) },
     };
+    if (this.tool.kind !== "select") this.setTool({ kind: "select" });
     this.state.design.roads.push(road);
     this.state.select({ kind: "road", id: road.id });
     this.setMode("draw");
-    this.say("在视口里依次点击放置控制点。");
+    this.say("在地图上依次点击放置控制点。");
   }
 
   startDraw(): void {
     if (!this.state.selectedRoad()) { this.startRoad(); return; }
     if (this.mode === "source") this.closeSource();
+    if (this.tool.kind !== "select") this.setTool({ kind: "select" });
     this.setMode("draw");
   }
 
@@ -275,18 +362,28 @@ export class EditorApp {
     canvas.addEventListener("pointerdown", event => {
       this.pointerDown = { x: event.clientX, y: event.clientY, button: event.button };
       canvas.focus();
+      if (this.tools.pointerDown(event)) this.pointerDown = undefined;
     });
+    canvas.addEventListener("pointermove", event => this.tools.pointerMove(event));
+    canvas.addEventListener("pointerleave", () => this.tools.clearHover());
     canvas.addEventListener("pointerup", event => {
       const down = this.pointerDown;
       this.pointerDown = undefined;
-      if (!down || down.button !== 0 || event.altKey || this.viewport.gizmo.dragging) return;
-      if (Math.hypot(event.clientX - down.x, event.clientY - down.y) > 5) return;
+      if (this.tools.pointerUp(event) || !down) return;
+      const still = Math.hypot(event.clientX - down.x, event.clientY - down.y) <= 5;
+      // 右键单击（没拖动视角）：结束当前工具或画路
+      if (down.button === 2 && still) {
+        if (this.mode === "draw") this.finishDraw();
+        else if (this.tool.kind !== "select") this.setTool({ kind: "select" });
+        return;
+      }
+      if (down.button !== 0 || event.altKey || this.viewport.gizmo.dragging || !still) return;
       if ((this.viewport.gizmo as unknown as { axis: string | null }).axis) return;
       this.click(event);
     });
     canvas.addEventListener("dblclick", event => {
       if (this.mode === "draw") this.finishDraw();
-      else if (this.mode === "select") {
+      else if (this.mode === "select" && this.tool.kind === "select") {
         const hit = this.viewport.pick(event, [this.views.pieces]);
         if (hit) this.focusSelection();
       }
@@ -300,6 +397,7 @@ export class EditorApp {
   private click(event: MouseEvent): void {
     if (this.mode === "draw") { this.drawClick(event); return; }
     if (this.mode === "source") { this.sourceClick(event); return; }
+    if (this.tool.kind !== "select") return;
     const hit = this.viewport.pick(event, this.views.pickTargets());
     if (!hit) { this.state.select(undefined); return; }
     const handle = hit.object.userData.handle as { roadId: string; index: number } | undefined;
@@ -368,7 +466,8 @@ export class EditorApp {
   attachGizmo(): void {
     const gizmo = this.viewport.gizmo;
     gizmo.detach();
-    if (this.mode !== "select") return;
+    // 简单模式直接拖物件、拖控制点，不用手柄
+    if (this.mode !== "select" || !this.advanced || this.tool.kind !== "select") return;
     gizmo.setTranslationSnap(this.snap ? SNAP_MOVE : null);
     gizmo.setRotationSnap(this.snap ? (SNAP_ANGLE * Math.PI) / 180 : null);
     gizmo.setScaleSnap(this.snap ? 0.05 : null);
@@ -481,12 +580,14 @@ export class EditorApp {
           if (r.points.length < 3) r.closed = false;
         });
         this.state.select({ kind: "road", id: road.id, point: Math.min(index, road.points.length - 1) });
-      } else if (confirm(`删除道路「${road.name}」？`)) {
-        this.state.commit(design => {
-          design.roads = design.roads.filter(r => r.id !== road.id);
-          design.items.rows = design.items.rows.filter(row => row.road !== road.id);
-        });
-        this.state.select(undefined);
+      } else {
+        modal("删除道路", `删除道路「${road.name}」？可以撤销。`, [["删除", () => {
+          this.state.commit(design => {
+            design.roads = design.roads.filter(r => r.id !== road.id);
+            design.items.rows = design.items.rows.filter(row => row.road !== road.id);
+          });
+          this.state.select(undefined);
+        }], ["取消", () => undefined]]);
       }
     }
   }
@@ -522,6 +623,188 @@ export class EditorApp {
         if (z !== undefined) piece.position[2] = Math.round(z * 100) / 100;
       }
     });
+  }
+
+  // ------------------------------------------------------------------ 简单模式的一键操作
+
+  /** 一组选中摆件绕各自位置转一转（度，正值逆时针）。 */
+  rotateSelection(degrees: number): void {
+    const ids = new Set(this.state.selectedPieces().map(piece => piece.id));
+    if (!ids.size) return;
+    this.state.commit(design => {
+      for (const piece of design.pieces) {
+        if (!ids.has(piece.id)) continue;
+        piece.rotation[0] = Math.round((((piece.rotation[0] + degrees) % 360 + 360) % 360) * 100) / 100;
+      }
+    });
+  }
+
+  /** 放大缩小；factor 为 0 时恢复原始大小。 */
+  scaleSelection(factor: number): void {
+    const ids = new Set(this.state.selectedPieces().map(piece => piece.id));
+    if (!ids.size) return;
+    this.state.commit(design => {
+      for (const piece of design.pieces) {
+        if (!ids.has(piece.id)) continue;
+        piece.scale = factor ? piece.scale.map(v => Math.min(50, Math.max(0.05, Math.round(v * factor * 1000) / 1000))) as Vec3 : [1, 1, 1];
+      }
+    });
+  }
+
+  raiseSelection(meters: number): void {
+    const ids = new Set(this.state.selectedPieces().map(piece => piece.id));
+    if (!ids.size) return;
+    this.state.commit(design => {
+      for (const piece of design.pieces) if (ids.has(piece.id)) piece.position[2] = Math.round((piece.position[2] + meters) * 100) / 100;
+    });
+  }
+
+  /** 新护栏用的贴图：比赛路线现在的护栏，否则缺省。 */
+  defaultWall(): TextureRef {
+    const route = this.state.design.roads.find(road => road.route);
+    return route?.walls.left?.texture ?? route?.walls.right?.texture ?? DEFAULT_WALL.texture;
+  }
+
+  /** 贴图卡片要换的那条路：选中的道路，否则比赛路线。 */
+  private targetRoad(): RoadDesign | undefined {
+    return this.state.selectedRoad() ?? this.state.design.roads.find(road => road.route) ?? this.state.design.roads[0];
+  }
+
+  applyTexture(texture: CatalogTexture): void {
+    const label = textureLabel(texture);
+    if (texture.kind === "ground") {
+      this.state.commit(design => {
+        design.ground ??= { ...defaultGround(), size: this.groundSizeFor(design) };
+        design.ground.texture = textureRef(texture);
+      });
+      this.say(`地面换成「${label}」。`);
+      return;
+    }
+    const road = this.targetRoad();
+    if (!road) { this.say("先在“赛道”里铺一条路。"); this.dock.open("shape"); return; }
+    if (texture.kind === "surface") {
+      this.state.commit(design => { design.roads.find(r => r.id === road.id)!.surface = surfaceRef(texture); });
+      this.say(`「${road.name}」的路面换成「${label}」。`);
+    } else {
+      this.state.commit(design => {
+        const target = design.roads.find(r => r.id === road.id)!;
+        if (!target.walls.left && !target.walls.right) {
+          target.walls.left = { ...DEFAULT_WALL, texture: textureRef(texture) };
+          target.walls.right = { ...DEFAULT_WALL, texture: textureRef(texture) };
+        }
+        for (const wall of [target.walls.left, target.walls.right]) if (wall) wall.texture = textureRef(texture);
+      });
+      this.say(`「${road.name}」的护栏换成「${label}」。`);
+    }
+  }
+
+  applySky(sky: CatalogSky): void {
+    this.state.commit(design => { design.sky = sky.track; });
+    this.say(`天空换成「${sky.label}」。`);
+  }
+
+  /** 主题套装：天空、全部道路的路面和护栏、地面、背景音乐。 */
+  applyPreset(preset: ThemePreset): void {
+    const data = this.dock.catalog();
+    if (!data) return;
+    const find = (id: string | undefined) => id ? data.textures.find(texture => texture.id === id) : undefined;
+    const surface = find(preset.surface), wall = find(preset.wall), ground = find(preset.ground);
+    const sky = data.skies.find(entry => entry.id === preset.sky);
+    this.state.commit(design => {
+      design.theme = preset.theme;
+      if (sky) design.sky = sky.track;
+      for (const road of design.roads) {
+        if (surface) road.surface = surfaceRef(surface);
+        if (wall) for (const side of [road.walls.left, road.walls.right]) if (side) side.texture = textureRef(wall);
+      }
+      if (ground) {
+        design.ground ??= { ...defaultGround(), size: this.groundSizeFor(design) };
+        design.ground.texture = textureRef(ground);
+      }
+    });
+    this.say(`换上了${themeTitle(preset.theme)}主题。`);
+    this.dock.render();
+  }
+
+  /** 地面要盖住全部道路（再多留一圈）。 */
+  private groundSizeFor(design: MapDesign): number {
+    let extent = 300;
+    for (const road of design.roads) for (const point of road.points) extent = Math.max(extent, Math.abs(point.x), Math.abs(point.y));
+    return Math.min(MAP_LIMITS.extent * 2, Math.ceil((extent * 2 + 400) / 100) * 100);
+  }
+
+  /** 用模板铺比赛路线；已有路线时换掉它的形状（路面、护栏不变）。 */
+  applyTemplate(template: TrackTemplate): void {
+    const route = this.state.design.roads.find(road => road.route);
+    const apply = () => {
+      if (this.mode === "draw") this.setMode("select");
+      this.state.commit(design => {
+        const existing = design.roads.find(road => road.route);
+        if (existing) {
+          existing.points = template.points();
+          existing.width = template.width;
+          existing.closed = true;
+        } else {
+          const like = design.roads[0];
+          design.roads.push(templateRoad(template, this.state.newId("r"), like?.surface ?? DEFAULT_ROAD_SURFACE, this.defaultWall()));
+        }
+        design.start.offset = 0;
+        design.ground ??= defaultGround();
+        design.ground.size = Math.max(design.ground.size, this.groundSizeFor(design));
+      });
+      this.state.select(undefined);
+      this.frameRoute();
+      this.say(`铺好了「${template.title}」。拖白色圆点可以改形状，接下来在素材栏挑建筑和树摆上去。`, 8000);
+    };
+    if (route && route.points.length >= 3)
+      modal("换赛道形状", `把比赛路线「${route.name}」换成「${template.title}」吗？已经摆好的物件不会动，可以撤销。`, [["换", apply], ["取消", () => undefined]]);
+    else apply();
+  }
+
+  /** 视角框住比赛路线。 */
+  frameRoute(): void {
+    const route = this.state.design.roads.find(road => road.route) ?? this.state.design.roads[0];
+    if (!route?.points.length) { this.viewport.lookAt([0, 0, 0], 460); return; }
+    const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+    for (const p of route.points) {
+      const v = [p.x, p.y, p.z];
+      for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i]!, v[i]!); max[i] = Math.max(max[i]!, v[i]!); }
+    }
+    // 留一圈边，整条路都在画面里
+    const pad = Math.max(max[0] - min[0], max[1] - min[1]) * 0.22 + 40;
+    this.viewport.frameBounds([min[0] - pad, min[1] - pad, min[2]], [max[0] + pad, max[1] + pad, max[2]]);
+  }
+
+  /** 沿比赛路线每隔一段放一排道具箱。 */
+  autoItems(): void {
+    const route = this.state.design.roads.find(road => road.route && road.closed);
+    if (!route) { this.say("先铺好一条闭合的比赛路线。"); return; }
+    const total = Math.max(1, Math.floor(sampleRoad(route, 2).total));
+    const spacing = Math.max(150, Math.min(400, total / 4));
+    const startAhead = this.state.design.start.offset + 80;
+    this.state.commit(design => {
+      design.items.rows = design.items.rows.filter(row => row.road !== route.id);
+      for (let d = startAhead; d < startAhead + total - spacing / 2; d += spacing)
+        design.items.rows.push({ id: this.state.newId("i"), road: route.id, distance: Math.round(d) % total, count: 4 });
+      design.items.rows = design.items.rows.slice(0, MAP_LIMITS.itemRows);
+    });
+    const rows = this.state.design.items.rows.filter(row => row.road === route.id).length;
+    this.say(`放了 ${rows} 排道具箱。发布后道具房也能选这张图。`);
+  }
+
+  clearItems(): void {
+    if (!this.state.design.items.rows.length) return;
+    this.state.commit(design => { design.items.rows = []; });
+    this.say("道具箱已清除。");
+  }
+
+  /** 换一张设计（新建向导、打开）。 */
+  loadNewDesign(design: MapDesign): void {
+    this.closeSource();
+    if (this.tool.kind !== "select") this.setTool({ kind: "select" });
+    this.state.load(design);
+    this.frameRoute();
+    this.dock.render();
   }
 
   focusSelection(): void {
@@ -736,16 +1019,28 @@ export class EditorApp {
       if (ctrl && event.code === "KeyS") { event.preventDefault(); void this.actions.save(); return; }
       if (ctrl && event.code === "KeyD") { event.preventDefault(); this.duplicateSelection(); return; }
       if (ctrl) return;
+      const placing = this.tool.kind === "place";
+      const turn = event.shiftKey ? 90 : 15;
       switch (event.code) {
-        case "KeyW": this.setGizmoMode("translate"); break;
-        case "KeyE": this.setGizmoMode("rotate"); break;
-        case "KeyR": this.setGizmoMode("scale"); break;
+        case "KeyQ":
+          if (placing) { this.tools.rotateGhost(turn); this.queueRender(); } else this.rotateSelection(turn);
+          break;
+        case "KeyE":
+          if (placing) { this.tools.rotateGhost(-turn); this.queueRender(); } else if (this.advanced) this.setGizmoMode("rotate"); else this.rotateSelection(-turn);
+          break;
+        case "BracketRight": if (placing) { this.tools.scaleGhost(1.15); this.queueRender(); } else this.scaleSelection(1.15); break;
+        case "BracketLeft": if (placing) { this.tools.scaleGhost(1 / 1.15); this.queueRender(); } else this.scaleSelection(1 / 1.15); break;
+        case "KeyW": if (this.advanced) this.setGizmoMode("translate"); break;
+        case "KeyR": if (this.advanced) this.setGizmoMode("scale"); break;
+        case "KeyV": this.setTool({ kind: "select" }); break;
+        case "KeyB": this.setTool({ kind: this.tool.kind === "bulldoze" ? "select" : "bulldoze" }); break;
         case "KeyD": if (this.mode === "draw") this.finishDraw(); else this.startDraw(); break;
         case "KeyF": this.focusSelection(); break;
         case "Delete": case "Backspace": event.preventDefault(); this.deleteSelection(); break;
         case "Enter": if (this.mode === "draw") this.finishDraw(); break;
         case "Escape":
           if (this.mode === "draw") this.finishDraw();
+          else if (this.tool.kind !== "select") this.setTool({ kind: "select" });
           else if (this.mode === "source") this.closeSource();
           else this.state.select(undefined);
           break;
@@ -758,8 +1053,6 @@ export class EditorApp {
   resetDesign(name?: string): void {
     const design = newDesign(name);
     design.ground = defaultGround();
-    this.closeSource();
-    this.state.load(design);
-    this.viewport.lookAt([0, 0, 0], 460);
+    this.loadNewDesign(design);
   }
 }

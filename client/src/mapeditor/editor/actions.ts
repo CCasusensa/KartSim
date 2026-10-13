@@ -3,7 +3,7 @@
  */
 import { MAP_LIMITS, itemBoxCount, parseDesign, randomId, validateDesign, type MapDesign, type Vec3 } from "../design";
 import { PACKAGE_EXTENSION, decodeMapPackage, encodeMapPackage, isZip } from "../map-package";
-import { deleteDraft, loadBuild, loadDesign, saveBuild, saveDesign, type StoredBuild } from "../draft-store";
+import { deleteDraft, listDesigns, loadBuild, loadDesign, saveBuild, saveDesign, type StoredBuild } from "../draft-store";
 import {
   dataServiceOrigin, deleteMap, fetchMapDesign, listMyMaps, publishMap, sha256Hex, storedSessionToken,
 } from "../map-service";
@@ -15,6 +15,7 @@ import { formats } from "./assets";
 import type { EditorApp } from "./app";
 import { button, h } from "./dom";
 import { toThree } from "./viewport";
+import { openNewMapWizard } from "./wizard";
 
 interface Modal { close(): void; body: HTMLElement; buttons: HTMLElement; setProgress(value: number, text?: string): void }
 
@@ -84,8 +85,8 @@ export class EditorActions {
   // ------------------------------------------------------------------ 存取
 
   newMap(): void {
-    const go = () => { this.app.resetDesign(); this.app.say("新地图。先点“新道路”画一条比赛路线。"); };
-    if (this.app.state.dirty) modal("新建地图", "当前地图还没保存，确定新建吗？", [["新建", go], ["取消", () => undefined]]);
+    const go = () => openNewMapWizard(this.app);
+    if (this.app.state.dirty) modal("新建地图", "当前地图还没保存，确定新建吗？", [["新建", go], ["保存后新建", () => void this.save().then(ok => ok && go())], ["取消", () => undefined]]);
     else go();
   }
 
@@ -103,11 +104,36 @@ export class EditorActions {
     }
   }
 
+  /** 打开：本机草稿和自己发布在服务器上的地图。 */
   openDialog(): void {
-    this.app.leftTab = "mine";
-    this.app.leftVersion++;
-    this.app.queueRender();
-    this.app.say("在左侧“我的地图”里选一张打开。");
+    const list = h("div", { class: "ed-open-list" }, h("div", { class: "ed-empty" }, "正在读取…"));
+    const dialog = modal("打开地图", list, [["导入文件…", () => this.importFile()], ["关闭", () => undefined]]);
+    dialog.body.style.whiteSpace = "normal";
+    const fill = async () => {
+      const [designs, maps] = await Promise.all([listDesigns().catch(() => undefined), this.myMaps()]);
+      list.replaceChildren();
+      const row = (name: string, meta: string, actions: HTMLElement[]) =>
+        h("div", { class: "ed-row k-row" }, h("span", { class: "ed-name" }, name), h("span", { class: "ed-meta" }, meta), ...actions);
+      list.append(h("h4", {}, "本机草稿"));
+      if (!designs) list.append(h("div", { class: "ed-empty" }, "浏览器不能读取本机草稿。"));
+      else if (!designs.length) list.append(h("div", { class: "ed-empty" }, "还没有保存过的地图。"));
+      for (const design of designs ?? []) {
+        list.append(row(design.name, new Date(design.updatedAt).toLocaleString(), [
+          button("打开", () => { dialog.close(); void this.openDraft(design.id); }, { class: "ed-small" }),
+          button("删除", () => void this.deleteDraft(design, () => void fill()), { class: "ed-small" }),
+        ]));
+      }
+      list.append(h("h4", {}, "已发布（服务器）"));
+      if (maps === undefined) list.append(h("div", { class: "ed-empty" }, "登录后显示（在同一浏览器打开游戏登录即可）。"));
+      else if (!maps.length) list.append(h("div", { class: "ed-empty" }, "还没有发布过地图。"));
+      for (const map of maps ?? []) {
+        list.append(row(map.name, `${(map.size / 1e6).toFixed(1)} MB`, [
+          button("打开", () => { dialog.close(); void this.openPublished(map.id); }, { class: "ed-small" }),
+          button("下架", () => void this.unpublish(map, () => void fill()), { class: "ed-small" }),
+        ]));
+      }
+    };
+    void fill();
   }
 
   async openDraft(id: string): Promise<void> {
@@ -130,26 +156,22 @@ export class EditorActions {
   }
 
   private load(design: MapDesign): void {
-    this.app.closeSource();
-    this.app.state.load(design);
+    this.app.loadNewDesign(design);
     this.app.leftVersion++;
-    const route = design.roads.find(road => road.route) ?? design.roads[0];
-    const first = route?.points[0];
-    this.app.viewport.lookAt(first ? [first.x, first.y, first.z] : [0, 0, 0], 420);
     this.app.say(`已打开「${design.name}」。`);
   }
 
-  async deleteDraft(design: MapDesign): Promise<void> {
+  async deleteDraft(design: MapDesign, done?: () => void): Promise<void> {
     modal("删除草稿", `删除本机草稿「${design.name}」？已发布的版本不受影响。`, [["删除", () => {
-      void deleteDraft(design.id).then(() => { this.app.leftVersion++; this.app.queueRender(); });
+      void deleteDraft(design.id).then(() => { this.app.leftVersion++; this.app.queueRender(); done?.(); });
     }], ["取消", () => undefined]]);
   }
 
-  async unpublish(map: CustomMapSummary): Promise<void> {
+  async unpublish(map: CustomMapSummary, done?: () => void): Promise<void> {
     const token = storedSessionToken();
     if (!token) return;
     modal("下架地图", `从服务器删除「${map.name}」？已经在玩这张图的房间会找不到赛道。`, [["下架", () => {
-      void deleteMap(map.id, token).then(() => { this.app.say("已下架。"); this.app.leftVersion++; this.app.queueRender(); })
+      void deleteMap(map.id, token).then(() => { this.app.say("已下架。"); this.app.leftVersion++; this.app.queueRender(); done?.(); })
         .catch(error => modal("下架失败", (error as Error).message));
     }], ["取消", () => undefined]]);
   }
@@ -387,13 +409,14 @@ export class EditorActions {
 
   help(): void {
     modal("地图工坊帮助",
+      "【三步做一张地图】①“新建”向导里选主题和赛道形状（或在素材栏“赛道 → 形状”里换）；② 在底部素材栏挑建筑、树木、路灯……点卡片，再在地图上点击放置；③ 点“试跑”在游戏里跑一圈，满意了就“发布”。\n" +
       "【视角】右键拖动旋转，滚轮缩放，中键或按住空格左键拖动平移，方向键移动（Shift 加速），F 聚焦选中物。触控板可用 Alt+左键旋转。\n" +
-      "【道路】“新道路”后在视口依次点击放控制点，点回绿色起点闭合。选中道路后点白色圆点选控制点，用手柄拖动；右侧可改宽度、倾斜、护墙、厚度。比赛路线必须闭合，路线方向就是行驶方向（可“反转方向”）。\n" +
-      "【素材】左侧选一条官方赛道：“物件”页挑物件（可“在视口中打开整条赛道”直接点选），双击或“放到我的地图”放进来；“贴图”页点一张贴图，再在右侧对道路/护墙/地面“换成选中贴图”。带路面属性的贴图会保留原版效果（沙地、冰面、加速带、掉落重置区等）。\n" +
-      "【摆放】W 移动、E 旋转、R 缩放，吸附开关在工具栏；Ctrl+D 复制，Delete 删除，“落到地面”把物件放到正下方的表面上。一起拿来的物件是一组，Ctrl+点击可单独选。\n" +
-      "【道具赛】选中比赛路线，在“道具箱（道具赛）”里放道具箱（可自动布置）。有道具箱的地图发布后，道具房也能选它。\n" +
-      "【试跑与发布】“试跑”生成赛道包并在游戏计时赛里打开（标着[草稿]，只有你能看到）；“发布”上传到服务器，所有人都能在“单人游戏 → 自定义游戏”里玩，多人竞速房（有道具箱时还有道具房）里也能选。\n" +
-      "【导出与导入】“导出”可以存成地图包（.kartmap，整张地图一个文件，发给别人后“导入”即可修改或试跑）、赛道包（.rho，游戏格式）或设计文件（.json）。别人的地图要以自己的名义发布，先“另存为”。",
+      "【素材栏】七大类：赛道（形状、路面、护栏）、建筑、自然、路边、机关道具（加速跳台、道具箱）、装饰、环境（主题套装、天空、地面）。鼠标停在卡片上，右边会转着显示大预览。物件都来自官方赛道，可以按主题筛选或搜索。\n" +
+      "【放置】点物件卡片后在地图上点击放下，树、花、围栏、路灯可以按住拖动像刷子一样连续摆放；Q/E 旋转（Shift 转 90°），[ ] 调大小，Esc 或右键结束。\n" +
+      "【修改】“选择”工具（V）点选摆件，按住拖动挪位置，右侧有转一转、放大缩小、升高降低、贴地、复制、删除。“推土机”（B）点到哪个删哪个。选中道路后拖白色圆点改形状，右侧可以换路宽、护栏、路面。\n" +
+      "【道具赛】“机关道具 → 道具箱”里自动布置，或点路放一排。有道具箱的地图发布后，道具房也能选它。\n" +
+      "【试跑与发布】“试跑”生成赛道并在游戏计时赛里打开（标着[草稿]，只有你能看到）；“发布”上传到服务器，所有人都能在“单人游戏 → 自定义游戏”里玩，多人竞速房（有道具箱时还有道具房）里也能选。\n" +
+      "【更多】导入/导出地图包（.kartmap）、另存为、检查；“高级模式”可以浏览整条官方赛道取任意物件，用手柄精确移动旋转缩放，调所有数值。",
       [["知道了", () => undefined]]);
   }
 }

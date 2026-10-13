@@ -351,7 +351,10 @@ func (a *API) PublicHandler() http.Handler {
 	mux.Handle("POST /api/maps/{id}", a.serveUpload(a.publishMap))
 	// POST: the shared CORS policy allows GET/PUT/POST only.
 	route("POST /api/maps/{id}/delete", a.deleteMap)
+	route("GET /api/admin/maps", a.adminMaps)
+	route("GET /api/admin/maps/{id}/{file}", a.adminMapFile)
 	route("POST /api/admin/maps/{id}/hidden", a.adminHideMap)
+	route("DELETE /api/admin/maps/{id}", a.adminDeleteMap)
 	route("GET /api/admin/me", a.adminMe)
 	route("GET /api/admin/overview", a.adminOverview)
 	route("GET /api/admin/accounts", a.adminAccounts)

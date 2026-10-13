@@ -9,7 +9,9 @@ import { EditorAssets, type EditorLibrary } from "./assets";
 import { EditorApp } from "./app";
 import { installEditorSkin } from "./skin";
 import { h } from "./dom";
-import { loadDesign } from "../draft-store";
+import { listDesigns, loadDesign } from "../draft-store";
+import { loadCatalog } from "../catalog";
+import { openNewMapWizard } from "./wizard";
 
 installLocalMultiplayerConfig();
 
@@ -34,19 +36,24 @@ try {
   progress(0.9, "正在载入游戏界面素材…");
   await installEditorSkin(library);
   const assets = new EditorAssets(library);
-  progress(0.96, "正在读取赛道目录…");
-  await assets.tracks();
+  progress(0.96, "正在读取素材目录…");
+  const [, catalog] = await Promise.all([assets.tracks(), loadCatalog()]);
   const app = new EditorApp(root, assets);
+  app.dock.attach(catalog.data, catalog.sheets);
   app.resetDesign();
   (window as unknown as { __mapEditor?: EditorApp }).__mapEditor = app;
   loading.remove();
-  app.say("欢迎使用地图工坊。点“新道路”开始画比赛路线，或在左侧挑官方素材。", 8000);
   // 游戏“自定义游戏”里的“在地图工坊修改 / 用地图工坊打开”：/editor.html?open=<地图 id>
   const open = new URLSearchParams(location.search).get("open");
   if (open && /^[0-9a-z]{6,16}$/.test(open)) {
     history.replaceState(history.state, "", location.pathname);
     if (await loadDesign(open)) await app.actions.openDraft(open);
     else await app.actions.openPublished(open);
+  } else if (!(await listDesigns().catch(() => [])).length) {
+    // 第一次来：直接打开新建向导
+    openNewMapWizard(app, { firstRun: true });
+  } else {
+    app.say("欢迎回来。点“打开”继续做之前的地图，或“新建”用向导开一张新的。", 8000);
   }
 } catch (error) {
   console.error(error);

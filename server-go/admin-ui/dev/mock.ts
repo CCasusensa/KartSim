@@ -261,6 +261,34 @@ const inventory: Row[] = Array.from({ length: 48 }, (_, i) => ({
   source: pick(['shop', 'lottery', 'rewardbox', 'starter'], i), createdAt: now - i * day, updatedAt: now - i * 3600_000,
 }))
 
+// 地图工坊 maps; every seventh is hidden. The pictures are SVG stand-ins
+// coloured by theme (the real ones are PNG).
+const mapThemes = ['village', 'forest', 'desert', 'ice', 'pirate', 'castle', 'beach', 'moonhill', 'mystery']
+const mapThemeColors: Record<string, string> = { village: '#6aa84f', forest: '#38761d', desert: '#e69138', ice: '#6fa8dc',
+  pirate: '#3d85c6', castle: '#8e7cc3', beach: '#f1c232', moonhill: '#674ea7' }
+let maps: Row[] = Array.from({ length: 34 }, (_, i) => {
+  const author = pick(accounts, i * 7 + 3)
+  const createdAt = now - i * 31 * 3600_000 - 3 * day
+  const size = 180_000 + ((i * 7_654_321) % 9_000_000)
+  return { id: (0x5a3c91d + i * 0x1f3d5).toString(36).padEnd(10, 'k').slice(0, 10), name: pick(['海滨环线', '城镇飙车道', '冰河急弯',
+    '月光大回环', '沙漠穿越', '海盗湾', '森林小径', '城堡迷宫'], i) + (i > 7 ? ` ${i}` : ''), ownerId: author.id,
+    username: author.username, author: author.nickname, theme: pick(mapThemes, i), laps: 1 + (i % 5),
+    difficulty: 1 + (i % 5), roadExtent: 600 + (i * 137) % 4000, items: i % 3 === 0 ? 0 : 4 + (i * 11) % 120,
+    files: 6 + (i % 9), size, sha256: (i * 2654435761).toString(16).padStart(8, '0').repeat(8).slice(0, 64),
+    hidden: i % 7 === 3, createdAt, updatedAt: Math.min(now, createdAt + (i % 4) * day) }
+})
+
+function mapPicture(map: Row, kind: string): string {
+  const [width, height] = kind === 'card' ? [352, 206] : [222, 130]
+  const color = mapThemeColors[String(map.theme)] ?? '#999999'
+  const escape = (value: string) => value.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
+    `<rect width="100%" height="100%" fill="${color}"/>` +
+    `<path d="M${width * 0.15} ${height * 0.7} C ${width * 0.3} ${height * 0.1}, ${width * 0.7} ${height * 0.1}, ${width * 0.85} ${height * 0.6}" ` +
+    `stroke="#fff" stroke-width="${height / 14}" fill="none" stroke-linecap="round" opacity="0.8"/>` +
+    `<text x="12" y="${height - 14}" font-size="${height / 8}" font-family="sans-serif" fill="#fff">${escape(String(map.name))}</text></svg>`
+}
+
 let notices: Row[] = [
   { id: 2, title: '周末双倍金币', message: '本周末所有比赛|金币奖励翻倍！', startAt: now - day, endAt: now + 2 * day, updatedBy: 'admin', updatedAt: now - day },
   { id: 1, title: '欢迎来到跑跑卡丁车', message: '祝大家游戏愉快', updatedBy: 'admin', updatedAt: now - 9 * day },
@@ -338,7 +366,7 @@ function list(rows: Row[], params: URLSearchParams, options: { search: string[];
       if (typeof row[key] === 'boolean') return row[key] === (value === '1' || value === 'true')
       if (key === 'online') return !!row.online
       if (key === 'account') {
-        return row.username === value || row.accountId === value ||
+        return row.username === value || row.accountId === value || row.ownerId === value ||
           (row.participants as Row[] | undefined)?.some((p) => p.username === value)
       }
       if (key === 'track') return String(row.trackId) === value
@@ -552,6 +580,33 @@ async function handle(req: IncomingMessage, res: ServerResponse, next: () => voi
   if (noticeMatch && method === 'DELETE') {
     notices = notices.filter((row) => row.id !== Number(noticeMatch[1]))
     return send(res, 200, { ok: true })
+  }
+  if (path === '/api/admin/maps') {
+    const rows = maps.map((row) => ({ ...row, state: row.hidden ? 'hidden' : 'public' }))
+    return send(res, 200, list(rows, params, { search: ['name', 'username', 'author', 'id', 'ownerId'], filters: ['state', 'account'],
+      timeKey: 'updatedAt' }))
+  }
+  const mapMatch = /^\/api\/admin\/maps\/([^/]+)(?:\/([^/]+))?$/.exec(path)
+  if (mapMatch) {
+    const map = maps.find((row) => row.id === decodeURIComponent(mapMatch[1]!))
+    if (!map) return send(res, 404, { error: 'MAP_NOT_FOUND' })
+    const action = mapMatch[2]
+    if ((action === 'card' || action === 'thumb') && method === 'GET') {
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'image/svg+xml')
+      res.setHeader('Cache-Control', 'private, no-cache')
+      return res.end(mapPicture(map, action))
+    }
+    if (action === 'hidden' && method === 'POST') {
+      const body = await readBody(req)
+      map.hidden = body.hidden === true
+      return send(res, 200, { hidden: map.hidden })
+    }
+    if (!action && method === 'DELETE') {
+      maps = maps.filter((row) => row !== map)
+      return send(res, 200, { ok: true })
+    }
+    return send(res, 404, { error: 'MAP_NOT_FOUND' })
   }
   if (path === '/multiplayer/admin/invites' && method === 'POST') {
     invites.unshift({ hash: Math.random().toString(16).slice(2, 14).padEnd(12, '0'), createdAt: Date.now(), used: false, usedBy: null,

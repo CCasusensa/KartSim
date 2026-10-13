@@ -8,6 +8,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"kartsim/internal/data/datatest"
@@ -158,4 +159,154 @@ func TestCustomMapsAPI(t *testing.T) {
 	h.post("/api/maps/"+id+"/delete", nil, author).expect(t, http.StatusOK, "")
 	h.get("/api/maps/"+id, nil).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
 	h.get("/api/maps/"+id+"/container", nil).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+}
+
+// The console lists every map with its author, hidden ones too, searches
+// and filters them, previews hidden maps' pictures, hides, restores and
+// deletes any map; players get none of it.
+func TestAdminCustomMaps(t *testing.T) {
+	h := newAdminHarness(t, harnessOptions{})
+	u := h.u
+	authorID, authorNick, authorToken := h.messengerUser()
+	otherID, otherNick, otherToken := h.messengerUser()
+	author, other := bearerHeader(authorToken), bearerHeader(otherToken)
+	publish := func(name string, items int, headers map[string]string) string {
+		t.Helper()
+		id := "a" + datatest.Unique()
+		h.cleanup("DELETE FROM custom_maps WHERE id = ?", id)
+		upload := validMapUpload(id)
+		upload.meta["name"] = name + u
+		upload.meta["items"] = items
+		h.publish(id, upload, headers).expect(t, http.StatusOK, "")
+		return id
+	}
+	ring := publish("环线", 12, author)
+	hill := publish("山路", 0, author)
+	bay := publish("海湾", 3, other)
+	deleteMap := func(id string, headers map[string]string) response {
+		t.Helper()
+		return send(t, http.MethodDelete, h.public.URL+"/api/admin/maps/"+id, nil, headers)
+	}
+
+	// Players are refused.
+	for _, path := range []string{"/api/admin/maps", "/api/admin/maps/" + ring + "/card"} {
+		h.get(path, nil).expect(t, http.StatusUnauthorized, "LOGIN_REQUIRED")
+		h.get(path, author).expect(t, http.StatusForbidden, "ADMIN_REQUIRED")
+	}
+	h.post("/api/admin/maps/"+ring+"/hidden", map[string]any{"hidden": true}, author).
+		expect(t, http.StatusForbidden, "ADMIN_REQUIRED")
+	deleteMap(ring, author).expect(t, http.StatusForbidden, "ADMIN_REQUIRED")
+	deleteMap(ring, nil).expect(t, http.StatusUnauthorized, "LOGIN_REQUIRED")
+
+	// A hidden map leaves the public list, its files and the item rooms;
+	// the console still shows its pictures, only to the admin's browser.
+	h.post("/api/admin/maps/"+bay+"/hidden", map[string]any{"hidden": true}, h.adminHeader).expect(t, http.StatusOK, "")
+	if h.api.itemMaps.has("custom_" + bay) {
+		t.Fatal("a hidden item map stayed an item map")
+	}
+	h.get("/api/maps/"+bay+"/card", nil).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+	for _, kind := range []string{"card", "thumb"} {
+		picture := h.get("/api/admin/maps/"+bay+"/"+kind, h.adminHeader).expect(t, http.StatusOK, "")
+		if !bytes.Equal(picture.body, testPNG) || picture.header.Get("Content-Type") != "image/png" ||
+			picture.header.Get("Cache-Control") != "private, no-cache" {
+			t.Fatalf("%s: %d bytes, %q, cache %q", kind, len(picture.body), picture.header.Get("Content-Type"),
+				picture.header.Get("Cache-Control"))
+		}
+	}
+	var ringMap store.CustomMap
+	h.get("/api/maps/"+ring, nil).expect(t, http.StatusOK, "").json(t, &ringMap)
+	if cache := h.get("/api/admin/maps/"+ring+"/thumb?v="+ringMap.SHA256, h.adminHeader).expect(t, http.StatusOK, "").
+		header.Get("Cache-Control"); cache != "private, max-age=31536000, immutable" {
+		t.Fatalf("versioned admin picture cache %q", cache)
+	}
+	h.get("/api/admin/maps/"+bay+"/secret", h.adminHeader).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+	h.get("/api/admin/maps/nosuchmap/card", h.adminHeader).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+
+	type mapList struct {
+		Items []mapRowJSON
+		Total int
+	}
+	list := func(query string) mapList {
+		t.Helper()
+		var page mapList
+		h.adminGet("/api/admin/maps?"+query, &page)
+		return page
+	}
+	ids := func(page mapList) []string {
+		list := make([]string, len(page.Items))
+		for i, item := range page.Items {
+			list[i] = item.ID
+		}
+		return list
+	}
+	everything := list("q=" + url.QueryEscape(u))
+	rows := map[string]mapRowJSON{}
+	for _, item := range everything.Items {
+		rows[item.ID] = item
+	}
+	if everything.Total != 3 || len(rows) != 3 {
+		t.Fatalf("all maps %+v", everything)
+	}
+	if row := rows[ring]; row.Name != "环线"+u || row.OwnerID != authorID || row.Author != authorNick ||
+		row.Username == "" || row.Theme != "village" || row.Laps != 3 || row.Difficulty != 2 || row.RoadExtent != 900 ||
+		row.Items != 12 || row.Files != 3 || row.Size != 300 || len(row.SHA256) != 64 || row.Hidden ||
+		row.CreatedAt == 0 || row.UpdatedAt < row.CreatedAt {
+		t.Fatalf("ring row %+v", row)
+	}
+	if row := rows[bay]; !row.Hidden || row.OwnerID != otherID || row.Author != otherNick {
+		t.Fatalf("hidden row %+v", row)
+	}
+	if page := list("state=hidden&q=" + url.QueryEscape(u)); page.Total != 1 || page.Items[0].ID != bay {
+		t.Fatalf("hidden maps %v", ids(page))
+	}
+	if page := list("state=public&q=" + url.QueryEscape(u)); page.Total != 2 || rows[page.Items[0].ID].Hidden ||
+		rows[page.Items[1].ID].Hidden {
+		t.Fatalf("public maps %v", ids(page))
+	}
+	if page := list("q=" + ring); page.Total != 1 || page.Items[0].ID != ring {
+		t.Fatalf("by map id %v", ids(page))
+	}
+	if page := list("q=" + url.QueryEscape(authorNick)); page.Total != 2 {
+		t.Fatalf("by author nickname %v", ids(page))
+	}
+	if page := list("q=" + url.QueryEscape("海湾"+u)); page.Total != 1 || page.Items[0].ID != bay {
+		t.Fatalf("by name %v", ids(page))
+	}
+	if page := list("account=" + authorID + "&sort=items&order=asc"); page.Total != 2 ||
+		page.Items[0].ID != hill || page.Items[1].ID != ring {
+		t.Fatalf("author's maps by items %v", ids(page))
+	}
+	if page := list("account=nobody_" + u); page.Total != 0 || page.Items == nil {
+		t.Fatalf("unknown account %+v", page)
+	}
+	if page := list("q=" + url.QueryEscape(u) + "&pageSize=2&page=2&sort=items"); page.Total != 3 || len(page.Items) != 1 ||
+		page.Items[0].ID != hill {
+		t.Fatalf("second page %v", ids(page))
+	}
+	h.get("/api/admin/maps?state=bogus", h.adminHeader).expect(t, http.StatusBadRequest, "INVALID_QUERY")
+
+	// Restoring brings it back everywhere.
+	h.post("/api/admin/maps/"+bay+"/hidden", map[string]any{"hidden": false}, h.adminHeader).expect(t, http.StatusOK, "")
+	if !h.api.itemMaps.has("custom_" + bay) {
+		t.Fatal("a restored item map is not an item map")
+	}
+	h.get("/api/maps/"+bay+"/card", nil).expect(t, http.StatusOK, "")
+	h.post("/api/admin/maps/nosuchmap/hidden", map[string]any{"hidden": true}, h.adminHeader).
+		expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+
+	// The admin deletes another account's map for good.
+	deleteMap(bay, h.adminHeader).expect(t, http.StatusOK, "")
+	if h.api.itemMaps.has("custom_" + bay) {
+		t.Fatal("a deleted item map stayed an item map")
+	}
+	h.get("/api/maps/"+bay, nil).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+	h.get("/api/admin/maps/"+bay+"/card", h.adminHeader).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+	deleteMap(bay, h.adminHeader).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+	deleteMap("BAD!", h.adminHeader).expect(t, http.StatusNotFound, "MAP_NOT_FOUND")
+	// The players' delete also lets an admin remove any map.
+	h.post("/api/maps/"+hill+"/delete", nil, other).expect(t, http.StatusForbidden, "MAP_NOT_OWNER")
+	h.post("/api/maps/"+hill+"/delete", nil, h.adminHeader).expect(t, http.StatusOK, "")
+	if page := list("q=" + url.QueryEscape(u)); page.Total != 1 || page.Items[0].ID != ring {
+		t.Fatalf("after deletes %v", ids(page))
+	}
 }

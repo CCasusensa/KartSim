@@ -154,7 +154,7 @@ func TestAdminEndpointsNeedAnAdmin(t *testing.T) {
 		"/api/admin/online", "/api/admin/nodes", "/api/admin/ledger", "/api/admin/grants", "/api/admin/races",
 		"/api/admin/purchases", "/api/admin/lottery-draws", "/api/admin/box-openings", "/api/admin/clubs",
 		"/api/admin/accounts/" + player + "/game", "/api/admin/clubs/1/members", "/api/admin/invites",
-		"/api/admin/reward-box", "/api/admin/economy"} {
+		"/api/admin/reward-box", "/api/admin/economy", "/api/admin/maps"} {
 		h.get(path, nil).expect(t, http.StatusUnauthorized, "LOGIN_REQUIRED")
 		h.get(path, bearerHeader(token)).expect(t, http.StatusForbidden, "ADMIN_REQUIRED")
 	}
@@ -701,6 +701,7 @@ func TestAdminRecordLists(t *testing.T) {
 			"donatedTotal"},
 		"/api/admin/invites":    {"createdAt"},
 		"/api/admin/reward-box": {"createdAt"},
+		"/api/admin/maps":       {"updatedAt", "createdAt", "name", "size", "items"},
 	} {
 		for _, sort := range sorts {
 			for _, order := range []string{"asc", "desc"} {
