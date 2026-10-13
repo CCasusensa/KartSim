@@ -13,6 +13,7 @@ import { goReadyHome, type ReadyHomeController } from "./ready-home";
 import { closeReadyLottery } from "./ready-lottery";
 import { closeReadyShop } from "./ready-shop";
 import { openShopUnlessRacing, type GuardedShopController } from "./ready-shop-guard";
+import { beginCityLoading } from "../city/city-loading";
 
 interface Profile {
   favoriteTracks: unknown[];
@@ -123,163 +124,178 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
   const library = host.getLibrary();
   if (!library) return;
   controller.multiplayerOpening = true;
+  const cityLoading = gameplay === "city" ? beginCityLoading({
+    get disposed() { return controller.disposed; },
+    options: { library, root: host.root,
+      status: (message, error) => { if (error) host.hud.showDebugText(message, "error"); } },
+  }) : undefined;
   try {
-    await ensureFeatureResources(host.root, "multiplayer");
-  } catch { /* Pages read on demand. */ } finally {
-    controller.multiplayerOpening = false;
-  }
-  if (controller.disposed || controller.multiplayer) return;
-
-  const garage = host.shell.modal === "garage" ? controller.activeGarage : undefined;
-  if (!host.shell.enterMultiplayerLobby(garage ? "garage" : "ready")) return;
-  // channel.xml licenseLevel: the CN client only advises (joinChannelWarning).
-  const warning = channelLicenseWarning(channel, activeBrowserSession()?.summary()?.progress.license ?? 0);
-  if (warning) showAccountToast(host.root.ownerDocument as unknown as OverlayDocument, warning);
-  host.setReadyOptions(deps.sanitizeReadyOptions(host.getReadyOptions()));
-  garage?.freeze();
-
-  let becameVisible = false;
-  // Game nodes refuse unowned gear, so only owned items leave this client.
-  const equipment = () => accountOwnedEquipment(deps.initialEquipment(host.getProfile()));
-  const lobby = deps.createLobby({
-    library,
-    root: host.root,
-    nickname: deps.nickname() ?? "",
-    version: deps.version("p3553"),
-    // The room list opens on the category of a home quick entry.
-    lobbyChannel: channel,
-    lobbyGameplay: channel ? gameplay : undefined,
-    raceLoader: host.multiplayerRaceLoader,
-    prepareAudio: async () => {
-      const bgm = host.getBgm();
-      if (!bgm) throw new Error("多人缺少 BGM owner。");
-      await bgm.prepareMultiplayer(library, host.getGameOptions().mainMenuBgmPath);
-    },
-    audioContext: () => host.getAudioContext(),
-    onPageAudio: (page: string) => host.getBgm()?.playMultiplayer(page),
-    onRaceVisibility: (visible: boolean) => {
-      // The race covers everything; the shop is not modal to it.
-      if (visible) {
-        closeReadyShop(controller);
-        closeReadyLottery(controller as unknown as { activeLottery?: { close(): void } });
-      }
-      controller.activeTaskbar?.setVisible(!visible);
-    },
-    initialTrackId: host.getSelection()?.trackId,
-    initialEquipment: equipment(),
-    currentEquipment: equipment,
-    repairEquipment: async (command: Record<string, unknown>) => {
-      if (!deps.repairEquipment) return undefined;
-      await deps.repairEquipment();
-      if (command.type === "equipment")
-        return { ...command, equipment: accountOwnedEquipment(command.equipment) };
-      return GEAR_COMMANDS.has(String(command.type))
-        ? { ...command, equipment: equipment() } : undefined;
-    },
-    initial: host.getProfile().initial,
-    garage: {
-      options: () => controller.multiplayerGarageOptions(),
-      apply: (choice: GarageChoice) => controller.applyMultiplayerGarage(choice),
-    },
-    speed: (speed: number, version: string) => {
-      host.setReadyOptions({
-        ...host.getReadyOptions(),
-        speed: version === "国服" && speed === 4 ? 4 : 7,
-        version,
-        settingSpeed: speed,
-      });
-      controller.activeSettings?.setRoomSpeed(speed, version);
-    },
-    status: (message: string, error: boolean) => {
-      if (error) host.hud.showDebugText(message, "error");
-    },
-    // The lobby's status bar stays above the room, as in the original; its
-    // "+" opens the shop like the home's.
-    topBar: (barHost: HTMLElement) => {
-      const session = activeBrowserSession();
-      if (!session) return undefined;
-      return mountLobbyTopBar(barHost, {
-        session, fontFamily: MAIN_MENU_FONT_FAMILY,
-        ...(isTopBarLibrary(library) ? { library } : {}),
-        onHover: () => host.getInterfaceAudio()?.playHover(),
-        onActivate: () => host.getInterfaceAudio()?.playClick(),
-      });
-    },
-    // Our own connection dropped (mid-race too): leave multiplayer for the 大厅
-    // (home); 多人游戏 there connects again.
-    onDisconnected: (kick?: CheatKick) => {
-      if (controller.multiplayer !== lobby || controller.disposed) return;
-      const document = host.root.ownerDocument as unknown as OverlayDocument;
-      if (kick) void showAccountMessage(document, "已被移出比赛", cheatKickMessage(kick), "确定");
-      else showAccountToast(document, "与联机服务器的连接已断开，已返回大厅。可以重新进入多人游戏。");
-      void goReadyHome(controller as unknown as ReadyHomeController,
-        () => controller.returnMultiplayerToSinglePlayer());
-    },
-    autoReadyEnabled: () => host.getGameOptions().autoReady,
-    toggleAutoReady: () => {
-      const current = host.getGameOptions();
-      const autoReady = !current.autoReady;
-      host.setGameOptions({ ...current, autoReady });
-      host.saveGameOptions();
-      return autoReady;
-    },
-    onVisible: () => {
-      becameVisible = true;
-      controller.activeTimeAttackReady?.hide();
-      if (garage && controller.activeGarage === garage) {
-        garage.dispose();
-        controller.activeGarage = undefined;
-      }
-    },
-    trackFavorites: {
-      ids: (scope: unknown) => deps.favoriteTrackIds(host.getProfile().favoriteTracks, scope),
-      count: () => host.getProfile().favoriteTracks.length,
-      change: (track: unknown, favorite: boolean) =>
-        controller.changeFavoriteTrack(track, favorite),
-    },
-    onNotice: (message: unknown, kind: unknown, details: unknown) => {
-      controller.activeWindowNotice ??= deps.createNotice(host.root);
-      controller.activeWindowNotice.show(message, kind, details, 2_000);
-    },
-    onHover: () => host.getInterfaceAudio()?.playHover(),
-    onStartActivate: () => host.getInterfaceAudio()?.playStart(),
-    onActivate: () => host.getInterfaceAudio()?.playClick(),
-    // 卡丁城 has no room list: leaving the city closes the lobby and returns to 首页.
-    onCityExit: () => {
-      if (controller.multiplayer !== lobby || controller.disposed) return;
-      // The lobby only carried the connection; close it outright and show home.
-      void goReadyHome(controller as unknown as ReadyHomeController,
-        () => { if (controller.multiplayer === lobby) controller.closeMultiplayer(false, true); });
-    },
-  });
-  controller.multiplayer = lobby;
-  controller.activeTimeAttackReady?.freeze();
-
-  try {
-    await lobby.open();
-    if (controller.multiplayer !== lobby || controller.disposed) return;
-    // A home quick entry opens straight onto its room list; 卡丁城 has none.
-    if (channel && gameplay !== "city") await lobby.list?.(channel, 0, false, gameplay);
-  } catch (error) {
-    if (controller.multiplayer !== lobby) return;
-    const cancelled = error instanceof Error && error.message === "ACCOUNT_CANCELLED";
-    if (garage && !becameVisible) {
-      controller.multiplayer = undefined;
-      lobby.dispose();
-      host.shell.restoreGarageFromMultiplayerLobby();
-      garage.unfreeze();
-      controller.activeTimeAttackReady?.unfreeze();
-    } else if (becameVisible) {
-      controller.closeMultiplayer();
-    } else {
-      controller.multiplayer = undefined;
-      lobby.dispose();
-      host.shell.leaveMultiplayerLobby();
-      controller.activeTimeAttackReady?.unfreeze();
-      controller.activeTimeAttackReady?.show();
+    if (cityLoading) await cityLoading.ready;
+    if (controller.disposed) return;
+    cityLoading?.stage("正在准备联机资源…");
+    try {
+      await ensureFeatureResources(host.root, "multiplayer");
+    } catch { /* Pages read on demand. */ } finally {
+      controller.multiplayerOpening = false;
     }
-    if (!cancelled) host.hud.showDebugText(
-      `多人游戏：${error instanceof Error ? error.message : String(error)}`, "error");
+    if (controller.disposed || controller.multiplayer) return;
+
+    const garage = host.shell.modal === "garage" ? controller.activeGarage : undefined;
+    if (!host.shell.enterMultiplayerLobby(garage ? "garage" : "ready")) return;
+    // channel.xml licenseLevel: the CN client only advises (joinChannelWarning).
+    const warning = channelLicenseWarning(channel, activeBrowserSession()?.summary()?.progress.license ?? 0);
+    if (warning) showAccountToast(host.root.ownerDocument as unknown as OverlayDocument, warning);
+    host.setReadyOptions(deps.sanitizeReadyOptions(host.getReadyOptions()));
+    garage?.freeze();
+
+    let becameVisible = false;
+    // Game nodes refuse unowned gear, so only owned items leave this client.
+    const equipment = () => accountOwnedEquipment(deps.initialEquipment(host.getProfile()));
+    const lobby = deps.createLobby({
+      library,
+      root: host.root,
+      ...(cityLoading ? { cityLoading } : {}),
+      nickname: deps.nickname() ?? "",
+      version: deps.version("p3553"),
+      // The room list opens on the category of a home quick entry.
+      lobbyChannel: channel,
+      lobbyGameplay: channel ? gameplay : undefined,
+      raceLoader: host.multiplayerRaceLoader,
+      prepareAudio: async () => {
+        const bgm = host.getBgm();
+        if (!bgm) throw new Error("多人缺少 BGM owner。");
+        await bgm.prepareMultiplayer(library, host.getGameOptions().mainMenuBgmPath);
+      },
+      audioContext: () => host.getAudioContext(),
+      onPageAudio: (page: string) => host.getBgm()?.playMultiplayer(page),
+      onRaceVisibility: (visible: boolean) => {
+        // The race covers everything; the shop is not modal to it.
+        if (visible) {
+          closeReadyShop(controller);
+          closeReadyLottery(controller as unknown as { activeLottery?: { close(): void } });
+        }
+        controller.activeTaskbar?.setVisible(!visible);
+      },
+      initialTrackId: host.getSelection()?.trackId,
+      initialEquipment: equipment(),
+      currentEquipment: equipment,
+      repairEquipment: async (command: Record<string, unknown>) => {
+        if (!deps.repairEquipment) return undefined;
+        await deps.repairEquipment();
+        if (command.type === "equipment")
+          return { ...command, equipment: accountOwnedEquipment(command.equipment) };
+        return GEAR_COMMANDS.has(String(command.type))
+          ? { ...command, equipment: equipment() } : undefined;
+      },
+      initial: host.getProfile().initial,
+      garage: {
+        options: () => controller.multiplayerGarageOptions(),
+        apply: (choice: GarageChoice) => controller.applyMultiplayerGarage(choice),
+      },
+      speed: (speed: number, version: string) => {
+        host.setReadyOptions({
+          ...host.getReadyOptions(),
+          speed: version === "国服" && speed === 4 ? 4 : 7,
+          version,
+          settingSpeed: speed,
+        });
+        controller.activeSettings?.setRoomSpeed(speed, version);
+      },
+      status: (message: string, error: boolean) => {
+        if (error) host.hud.showDebugText(message, "error");
+      },
+      // The lobby's status bar stays above the room, as in the original; its
+      // "+" opens the shop like the home's.
+      topBar: (barHost: HTMLElement) => {
+        const session = activeBrowserSession();
+        if (!session) return undefined;
+        return mountLobbyTopBar(barHost, {
+          session, fontFamily: MAIN_MENU_FONT_FAMILY,
+          ...(isTopBarLibrary(library) ? { library } : {}),
+          onHover: () => host.getInterfaceAudio()?.playHover(),
+          onActivate: () => host.getInterfaceAudio()?.playClick(),
+        });
+      },
+      // Our own connection dropped (mid-race too): leave multiplayer for the 大厅
+      // (home); 多人游戏 there connects again.
+      onDisconnected: (kick?: CheatKick) => {
+        if (controller.multiplayer !== lobby || controller.disposed) return;
+        const document = host.root.ownerDocument as unknown as OverlayDocument;
+        if (kick) void showAccountMessage(document, "已被移出比赛", cheatKickMessage(kick), "确定");
+        else showAccountToast(document, "与联机服务器的连接已断开，已返回大厅。可以重新进入多人游戏。");
+        void goReadyHome(controller as unknown as ReadyHomeController,
+          () => controller.returnMultiplayerToSinglePlayer());
+      },
+      autoReadyEnabled: () => host.getGameOptions().autoReady,
+      toggleAutoReady: () => {
+        const current = host.getGameOptions();
+        const autoReady = !current.autoReady;
+        host.setGameOptions({ ...current, autoReady });
+        host.saveGameOptions();
+        return autoReady;
+      },
+      onVisible: () => {
+        becameVisible = true;
+        controller.activeTimeAttackReady?.hide();
+        if (garage && controller.activeGarage === garage) {
+          garage.dispose();
+          controller.activeGarage = undefined;
+        }
+      },
+      trackFavorites: {
+        ids: (scope: unknown) => deps.favoriteTrackIds(host.getProfile().favoriteTracks, scope),
+        count: () => host.getProfile().favoriteTracks.length,
+        change: (track: unknown, favorite: boolean) =>
+          controller.changeFavoriteTrack(track, favorite),
+      },
+      onNotice: (message: unknown, kind: unknown, details: unknown) => {
+        controller.activeWindowNotice ??= deps.createNotice(host.root);
+        controller.activeWindowNotice.show(message, kind, details, 2_000);
+      },
+      onHover: () => host.getInterfaceAudio()?.playHover(),
+      onStartActivate: () => host.getInterfaceAudio()?.playStart(),
+      onActivate: () => host.getInterfaceAudio()?.playClick(),
+      // 卡丁城 has no room list: leaving the city closes the lobby and returns to 首页.
+      onCityExit: () => {
+        if (controller.multiplayer !== lobby || controller.disposed) return;
+        // The lobby only carried the connection; close it outright and show home.
+        void goReadyHome(controller as unknown as ReadyHomeController,
+          () => { if (controller.multiplayer === lobby) controller.closeMultiplayer(false, true); });
+      },
+    });
+    controller.multiplayer = lobby;
+    controller.activeTimeAttackReady?.freeze();
+
+    try {
+      cityLoading?.stage("正在连接大厅…");
+      await lobby.open();
+      if (controller.multiplayer !== lobby || controller.disposed) return;
+      // A home quick entry opens straight onto its room list; 卡丁城 has none.
+      if (channel && gameplay !== "city") await lobby.list?.(channel, 0, false, gameplay);
+    } catch (error) {
+      if (controller.multiplayer !== lobby) return;
+      const cancelled = error instanceof Error && error.message === "ACCOUNT_CANCELLED";
+      if (garage && !becameVisible) {
+        controller.multiplayer = undefined;
+        lobby.dispose();
+        host.shell.restoreGarageFromMultiplayerLobby();
+        garage.unfreeze();
+        controller.activeTimeAttackReady?.unfreeze();
+      } else if (becameVisible) {
+        controller.closeMultiplayer();
+      } else {
+        controller.multiplayer = undefined;
+        lobby.dispose();
+        host.shell.leaveMultiplayerLobby();
+        controller.activeTimeAttackReady?.unfreeze();
+        controller.activeTimeAttackReady?.show();
+      }
+      if (!cancelled) host.hud.showDebugText(
+        `多人游戏：${error instanceof Error ? error.message : String(error)}`, "error");
+    }
+  } finally {
+    controller.multiplayerOpening = false;
+    cityLoading?.dispose();
   }
 }
 

@@ -8,7 +8,8 @@
  * lobby, which sends the room again: the node connection ends and the
  * commands go back to the lobby. The 卡丁城 works the same way (`city-host`).
  */
-import { enterCity, type CityLobbyHost } from "../city/city-session";
+import { activeCitySession, enterCity, type CityLobbyHost } from "../city/city-session";
+import { beginCityLoading } from "../city/city-loading";
 import { cheatKickMessage, cheatKickOf, type CheatKick } from "./cheat-kick";
 import { formatMultiplayerError } from "./errors";
 import { gameServerOfferUrl, parseGameServerList } from "./game-servers";
@@ -61,6 +62,7 @@ export interface RaceHostLobby {
   playerId: string;
   accountNickname?: string;
   disposed: boolean;
+  accountAbort?: AbortController;
   state: { room?: { roomId: string } };
   startCoordinator?: { reset(): void };
   options: {
@@ -241,40 +243,54 @@ export function startLatencyReports(host: RaceHostLobby): void {
 }
 
 // ---- 卡丁城 ----
+const enteringCity = new WeakSet<RaceHostLobby>();
 
 /** Enter the city on the node the lobby picks for this player. */
 export async function enterCityOnNode(host: RaceHostLobby & Omit<CityLobbyHost, "client">): Promise<void> {
+  if (host.disposed || host.accountAbort?.signal.aborted || host.cityClient || enteringCity.has(host)) return;
+  enteringCity.add(host);
   const city = host as unknown as CityLobbyHost;
   const lobby = host.lobbyClient;
   const deps = host.nodeDependencies;
-  if (!lobby || !deps) {
-    // An older data service without the global lobby: the city is on the
-    // lobby's own node.
-    await enterCity(city);
-    return;
-  }
-  if (host.cityClient) return;
+  const loading = beginCityLoading(city, host.accountAbort?.signal);
   let client: NodeClient | undefined;
   try {
+    await loading.ready;
+    if (host.disposed || host.accountAbort?.signal.aborted) return;
+    if (!lobby || !deps) {
+      // Older services keep the city on the lobby's own node.
+      await enterCity(city);
+      return;
+    }
+    loading.stage("正在分配卡丁城服务器…");
     host.options.status("正在分配卡丁城服务器…");
     const assignment = await lobby.request({ type: "city-host" }) as NodeAssignment;
-    if (host.disposed) return;
+    if (host.disposed || host.accountAbort?.signal.aborted) return;
     client = deps.createClient();
     host.cityClient = client;
     const node = client;
     client.onClose(() => {
       if (host.cityClient !== node || host.disposed) return;
       leaveCityClient(host);
+      const session = activeCitySession();
+      if (session?.host === city) void session.cleanup();
       host.options.status("与卡丁城服务器的连接已断开。", true);
     });
+    loading.stage(`正在连接卡丁城服务器「${assignment.name}」…`);
     await connectNode(host, client, assignment);
-    if (host.disposed || host.cityClient !== client) return;
+    if (host.disposed || host.accountAbort?.signal.aborted || host.cityClient !== client) return;
     host.client = client;
     host.onCityClosed = () => leaveCityClient(host);
     await enterCity(city);
   } catch (error) {
     if (host.cityClient === client) leaveCityClient(host);
-    if (!host.disposed) host.options.status(`进入卡丁城失败：${formatMultiplayerError(error)}`, true);
+    if (!host.disposed && !host.accountAbort?.signal.aborted)
+      host.options.status(`进入卡丁城失败：${formatMultiplayerError(error)}`, true);
+  } finally {
+    if ((host.disposed || host.accountAbort?.signal.aborted) && client && host.cityClient === client)
+      leaveCityClient(host);
+    enteringCity.delete(host);
+    loading.dispose();
   }
 }
 

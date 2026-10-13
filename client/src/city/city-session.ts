@@ -17,10 +17,12 @@ import { CITY_MAP, CITY_TRACK_ID, registerCityTrack } from "./city-track";
 import { cityWaterLevel, type CityWaterMap } from "./city-water";
 import { groundHeightAt } from "./city-ground";
 import { applyCityVehicleScale } from "./city-vehicle-scale";
+import { beginCityLoading, firstCityFrame, type CityLoadingHandle } from "./city-loading";
 export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
   client: CityClient;
+  accountAbort?: AbortController;
   /** Called when the session ends: the lobby closes the city's node connection. */
   onCityClosed?: () => void;
   playerId: string;
@@ -32,6 +34,7 @@ export interface CityLobbyHost {
     library: unknown;
     root: unknown;
     raceLoader?: { prepare(room: any, race: any, signal: AbortSignal, connection: any): Promise<any> };
+    cityLoading?: CityLoadingHandle;
     currentEquipment?(): unknown;
     initialEquipment?: unknown;
     onRaceVisibility?(visible: boolean): void;
@@ -87,6 +90,7 @@ export class CitySession {
   private lastStatus = -Infinity;
   private lastSent = 0;
   private raceId = "";
+  private unbindHostAbort?: () => void;
 
   constructor(readonly host: CityLobbyHost) {}
 
@@ -94,56 +98,87 @@ export class CitySession {
 
   async enter(): Promise<void> {
     const { host } = this;
+    const accountSignal = host.accountAbort?.signal;
+    if (accountSignal && !this.unbindHostAbort) {
+      const cancelled = () => { void this.cleanup(); };
+      accountSignal.addEventListener("abort", cancelled, { once: true });
+      this.unbindHostAbort = () => accountSignal.removeEventListener("abort", cancelled);
+    }
+    if (host.disposed || this.disposed || accountSignal?.aborted || this.abort.signal.aborted) {
+      await this.cleanup();
+      return;
+    }
     const loader = host.options.raceLoader;
     if (!loader) throw new Error("多人驾驶装配器不可用。");
-    host.options.status("正在进入卡丁城…");
-    registerCityTrack();
-    // The city downloads whole (read nearly all, kept for the next visit);
-    // the race basics are read by range as in a race (resource-manager).
-    const endCityLoad = beginRaceLoad();
+    const loading = beginCityLoading(host, this.abort.signal);
     try {
-      await downloadTrack(CITY_TRACK_ID);
+      await loading.ready;
+      if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
+      host.options.status("正在进入卡丁城…");
+      registerCityTrack();
+      loading.stage("正在下载城市地图…", CITY_TRACK_ID);
+      // The city downloads whole (read nearly all, kept for the next visit);
+      // the race basics are read by range as in a race (resource-manager).
+      const endCityLoad = beginRaceLoad();
+      try {
+        await downloadTrack(CITY_TRACK_ID);
+      } finally {
+        endCityLoad();
+      }
+      if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
+      loading.stage("正在加入卡丁城线路…");
+      this.raceId = uuid();
+      const network = new CityNetwork(host.client, this.raceId, {
+        onEvent: event => this.onEvent(event),
+        onMotion: (id, sequence, _kind, sample) => this.fleet?.receive(id, sequence, sample),
+        onRadar: entries => this.fleet?.radar(entries),
+      });
+      this.network = network;
+      const snapshot = await network.join();
+      if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
+      this.snapshot = snapshot;
+      host.options.status(`已进入 ${snapshot.name}，正在装配城市…`);
+      const equipment = host.options.currentEquipment?.() ?? host.options.initialEquipment;
+      const { room, race } = fabricateCityRace(snapshot, host.playerId, host.accountNickname ?? "车手", equipment);
+      this.raceId = race.raceId;
+      // The network re-frames incoming frames with the encoder's race tag, so it must share the race id.
+      network.dispose();
+      this.network = new CityNetwork(host.client, race.raceId, {
+        onEvent: event => this.onEvent(event),
+        onMotion: (id, sequence, _kind, sample) => this.fleet?.receive(id, sequence, sample),
+        onRadar: entries => this.fleet?.radar(entries),
+      });
+      const connection = createCityRaceConnection(this.network, host.playerId, room.roomId, race.raceId, {
+        leave: async () => { await this.leave(); },
+        onChat: listener => { this.chatListeners.add(listener); return () => { this.chatListeners.delete(listener); }; },
+      });
+      loading.stage("正在准备城市、车辆和界面…");
+      const stage = await loader.prepare(room, race, this.abort.signal, connection);
+      if (host.disposed || this.disposed || this.abort.signal.aborted) {
+        // Cancellation may already have cleaned the session while prepare was
+        // pending. Its late result was never owned by this.stage.
+        try { stage.dispose(); } catch (error) { console.warn("城市场景释放失败", error); }
+        await this.cleanup();
+        return;
+      }
+      this.stage = stage;
+      this.clockMapping = (host.client.captureClock() as { offsetMs: number } | undefined) ?? { offsetMs: 0 };
+      stage.bindClock(this.clockMapping);
+      stage.updateRoom(room);
+      this.installCity(snapshot);
+      this.teleportLocal(snapshot.you.spawn);
+      host.lobby?.hide?.();
+      host.options.onRaceVisibility?.(true);
+      // Start seven seconds in the past: the countdown has already happened.
+      loading.stage("正在显示卡丁城…");
+      const rendered = firstCityFrame(stage, this.abort.signal);
+      stage.scheduleStart(performance.now() - 7000);
+      await rendered;
+      if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
+      host.options.status(`欢迎来到${snapshot.name}。Enter 聊天，Esc 离开。`);
     } finally {
-      endCityLoad();
+      loading.dispose();
     }
-    if (host.disposed) return;
-    this.raceId = uuid();
-    const network = new CityNetwork(host.client, this.raceId, {
-      onEvent: event => this.onEvent(event),
-      onMotion: (id, sequence, _kind, sample) => this.fleet?.receive(id, sequence, sample),
-      onRadar: entries => this.fleet?.radar(entries),
-    });
-    this.network = network;
-    const snapshot = await network.join();
-    this.snapshot = snapshot;
-    host.options.status(`已进入 ${snapshot.name}，正在装配城市…`);
-    const equipment = host.options.currentEquipment?.() ?? host.options.initialEquipment;
-    const { room, race } = fabricateCityRace(snapshot, host.playerId, host.accountNickname ?? "车手", equipment);
-    this.raceId = race.raceId;
-    // The network re-frames incoming frames with the encoder's race tag, so it must share the race id.
-    network.dispose();
-    this.network = new CityNetwork(host.client, race.raceId, {
-      onEvent: event => this.onEvent(event),
-      onMotion: (id, sequence, _kind, sample) => this.fleet?.receive(id, sequence, sample),
-      onRadar: entries => this.fleet?.radar(entries),
-    });
-    const connection = createCityRaceConnection(this.network, host.playerId, room.roomId, race.raceId, {
-      leave: async () => { await this.leave(); },
-      onChat: listener => { this.chatListeners.add(listener); return () => { this.chatListeners.delete(listener); }; },
-    });
-    const stage = await loader.prepare(room, race, this.abort.signal, connection);
-    this.stage = stage;
-    if (host.disposed || this.disposed) { await this.cleanup(); return; }
-    this.clockMapping = (host.client.captureClock() as { offsetMs: number } | undefined) ?? { offsetMs: 0 };
-    stage.bindClock(this.clockMapping);
-    stage.updateRoom(room);
-    this.installCity(snapshot);
-    this.teleportLocal(snapshot.you.spawn);
-    host.lobby?.hide?.();
-    host.options.onRaceVisibility?.(true);
-    // Start seven seconds in the past: the countdown has already happened.
-    stage.scheduleStart(performance.now() - 7000);
-    host.options.status(`欢迎来到${snapshot.name}。Enter 聊天，Esc 离开。`);
   }
 
   private installCity(snapshot: CitySnapshot): void {
@@ -215,6 +250,7 @@ export class CitySession {
 
     // Resets go to the nearest road instead of the ring's section start.
     const local = runtime.local;
+    local.requestReset = () => this.resetToRoad();
     local.checkAutomaticReset = () => this.checkReset();
 
     const update = stage.update.bind(stage);
@@ -321,9 +357,25 @@ export class CitySession {
     if (!road) return;
     const fell = physics.body.position.y < road.y - 6;
     if (!fell && !requested && !submerged) return;
+    this.resetToRoad(road);
+  }
+
+  /** City recovery is a notified teleport, never a race checkpoint transition. */
+  resetToRoad(road?: RoadSample): boolean {
+    const local = this.stage?.runtime?.local;
+    if (this.disposed || !local || local.disposed ||
+        local.lifecycle.state !== local.dependencies.runtime.states.Racing ||
+        local.resetState.phase !== 0) return false;
+    const design = this.localDesignPose();
+    if (!design) return false;
+    road ??= nearestRoadPoint(design.x, design.z);
     const heading = ((Math.atan2(road.tx, -road.tz) * 180) / Math.PI + 360) % 360;
+    local.cancelModeDrivingInput();
     this.teleportLocal({ x: road.x, y: road.y, z: road.z, heading });
+    local.lowSpeedResetStartedAtMs = 0;
+    local.resetSoundPending = true;
     this.host.options.status("已复位到最近的道路。");
+    return true;
   }
 
   private onEvent(event: CityEvent): void {
@@ -374,8 +426,13 @@ export class CitySession {
   }
 
   async cleanup(): Promise<void> {
+    if (current === this) current = undefined;
+    const debug = globalThis as { __kartcity?: unknown };
+    if (debug.__kartcity === this) delete debug.__kartcity;
     if (this.disposed) return;
     this.disposed = true;
+    this.unbindHostAbort?.();
+    this.unbindHostAbort = undefined;
     this.abort.abort();
     if (this.escapeListener) window.removeEventListener("keydown", this.escapeListener);
     this.escapeListener = undefined;
@@ -413,8 +470,10 @@ export async function enterCity(host: CityLobbyHost): Promise<void> {
   try {
     await session.enter();
   } catch (error) {
-    console.error("进入卡丁城失败", error);
-    host.options.status(`进入卡丁城失败：${error instanceof Error ? error.message : String(error)}`, true);
+    if (!host.disposed && !session.disposed && !session.abort.signal.aborted) {
+      console.error("进入卡丁城失败", error);
+      host.options.status(`进入卡丁城失败：${error instanceof Error ? error.message : String(error)}`, true);
+    }
     await session.cleanup();
   }
 }
