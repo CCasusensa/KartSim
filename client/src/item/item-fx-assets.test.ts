@@ -278,6 +278,20 @@ test("item hits move the drawn kart with their original firedkart motion", async
     presenter.kartEffect("B", "launch", 5000, 1500, { itemId: ItemIdx.rocket });
     assert.ok(lift("B", 6000) > 10, `${lift("B", 6000)}`);
     assert.equal(presenter.kartMotion("B", 6600), undefined);
+    // The race controller names no item for a classic missile's launch: the hit just before it does.
+    presenter.hit({ useId: 5, itemId: ItemIdx.rocket, victimId: "D", result: "hit", atMs: 8000 });
+    presenter.kartEffect("D", "launch", 7996, 1500);
+    assert.ok(lift("D", 9000) > 10, `${lift("D", 9000)}`);
+    // So does a track mine (no use behind it) and a classic banana's spin.
+    presenter.hit({ useId: 0, itemId: ItemIdx.mine, victimId: "E", result: "hit", atMs: 8000 });
+    presenter.kartEffect("E", "launch", 8000, 1500);
+    assert.ok(presenter.kartMotion("E", 8500), "the mine throws the kart");
+    presenter.hit({ useId: 6, itemId: ItemIdx.banana, victimId: "F", result: "hit", atMs: 8000 });
+    presenter.kartEffect("F", "spin", 8000, 2000);
+    assert.ok(presenter.kartMotion("F", 8500), "the banana spins the kart");
+    // Long after a hit, an effect without a cause still moves nothing.
+    presenter.kartEffect("D", "launch", 20_000, 1500);
+    assert.equal(presenter.kartMotion("D", 20_500), undefined);
     // A shield never moves anyone.
     presenter.kartEffect("C", "shield", 5000, 2000);
     assert.equal(presenter.kartMotion("C", 5500), undefined);

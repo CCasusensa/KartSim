@@ -147,4 +147,10 @@ function attachItemRaceFields(owner: any, assets: any, ops: LocalRaceConstructio
     () => collecting() && !owner.physics.itemEffects?.immune,
     (hazard: { id: number; itemIdx: number; position?: unknown }) => owner.itemRace?.hazard(hazard),
   );
+  // The hazards' own items (a banana, the robots' water mines) stand on the track.
+  if (assets.itemHazards && assets.itemPresenter?.trackHazards) {
+    const hazards = assets.itemHazards;
+    assets.itemPresenter.trackHazards(hazards.hazards, (id: number) => hazards.position(id))
+      .catch((error: unknown) => console.warn("赛道道具陷阱模型载入失败", error));
+  }
 }

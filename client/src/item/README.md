@@ -10,7 +10,7 @@
 | `item-roll.ts` | 与游戏节点一致的确定性掷骰（C.1）：raceId、useId、hazardId、victimId、kind 以竖线连成字符串（缺的编号写 0），取 UTF-8 的 32 位 FNV-1a 再模 100，小于概率即成功；共享向量 `item-roll-vectors.json` |
 | `item-cube-source.ts` | 从载入的 `track*.1s` 取静态 `ToItemCube` 与移动 `itemCube`；`trackLocale@cn` 的 `customItemCube` → 赛道 ID 主题 → `village`，`cn` 优先于 `zz` |
 | `item-cubes.ts` | `ItemCubeField`：所有道具箱共用一个装配场景（每箱一个包装节点 + 旋转节点 + 模型副本，几何同池、材质与贴图共享），类别 2 配对对象 `GoItemCube[]`，每位车手各自的 stay → eaten（`Eaten.life` 隐藏、`fired01` 特效跟随本机车、`eaten.ogg`）→ stay |
-| `item-hazards.ts` | 赛道预置香蕉/地雷/隐形地雷/水雷：位置跟随嵌套场景世界矩阵，进入半径触发，同一物件 3 秒冷却；画面由赛道场景自身渲染 |
+| `item-hazards.ts` | 赛道预置香蕉/地雷/隐形地雷/水雷：位置跟随嵌套场景世界矩阵，进入半径触发，同一物件 3 秒冷却；载体（机器人等）由赛道场景渲染，道具本身的 Set 模型由表现层 `trackHazards` 挂在锚点上 |
 | `item-race-map.ts` | 道具房间判定、载图时的道具来源（目录按资源库缓存）、比赛装配时的道具箱与危险物 owner |
 | `item-race-controller.ts` | 本机道具控制器（每局道具赛一个）：镜像服务器道具槽、Ctrl/Alt/Z 请求、导弹/磁铁瞄准、受害时间线与护盾/天使/电磁波/蓝盾判定、区域道具检测、命中与落点上报、喂 HUD 与表现层 |
 | `item-race-rules.ts` | 控制器的纯规则：坐标换算（协议 `point` 用原版 z 向上坐标）、生效时刻、防御判定、瞄准候选、1600×900 舞台投影、`ITEM_RACE_TUNING`（[还原] 常量） |

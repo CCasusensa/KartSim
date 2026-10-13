@@ -76,6 +76,15 @@ export interface ItemPresenterPlacement {
   startMs: number;
 }
 
+/** A track hazard (item-hazards.ts ItemHazardDescriptor): where its item stands on the track. */
+export interface ItemPresenterTrackHazard {
+  id: number;
+  kind: "banana" | "mine" | "mineHidden" | "waterMine";
+  itemIdx: number;
+  /** `object@model`, a Set model of the item's own folder (gold_I06's `item01_trans`). */
+  model?: string;
+}
+
 /** Hit variants of ITEM_MODE.md C.2/C.7. */
 export type ItemHitVariant = "small" | "headband" | "bonus" | "quick" | "balloon";
 
@@ -142,6 +151,12 @@ export interface ItemRacePresenter {
   kartMotion?(playerId: string, nowMs: number): Matrix4 | undefined;
   /** The XUN start item reached the slots: the charger sound (`sound_/fx/charger`). */
   startItemFlash?(atMs: number): void;
+  /**
+   * The track's own hazards: each item's Set model stands where `position`
+   * says (the moving anchor of its ToMovableObject) for the whole race.
+   */
+  trackHazards?(hazards: readonly ItemPresenterTrackHazard[],
+    position: (id: number) => ItemPresenterVec3 | undefined): Promise<void>;
   update(frame: ItemPresenterFrame): void;
   /** Forget all transient visuals (e.g. on race restart). */
   reset(): void;
@@ -351,6 +366,8 @@ export class ItemRacePresenterImpl<Archive> implements ItemRacePresenter {
   readonly balloonPops = new Map<string, { fromMs: number; untilMs: number }>();
   /** Item hits moving karts (oldest first), by racer. */
   readonly kartMotions = new Map<string, KartMotionEntry[]>();
+  /** The track's own hazards and the model each shows (trackHazards). */
+  hazards: { looks: { id: number; model: FxModel }[]; position: (id: number) => Vec3 | undefined } | undefined;
   readonly placement: Placement = {
     position: vec(), right: vec(), up: vec(), forward: vec(), scale: 1,
   };
@@ -564,15 +581,17 @@ export class ItemRacePresenterImpl<Archive> implements ItemRacePresenter {
   /**
    * The hit's kart motion starts with its kart effect, on the effect model's
    * clock: the item's own model for the effect (a small or balloon missile
-   * hit: its AffectSmall), else the common water bubble for a trap.
+   * hit: its AffectSmall), else the common water bubble for a trap. A classic
+   * hit (missile, banana, mine) draws nothing on the kart, so its look names
+   * no item; the kart still rides the motion of the item that just hit it.
    */
   startKartMotion(playerId: string, kind: ItemKartEffect, fx: ItemFx | undefined, startMs: number,
     endMs: number): void {
     const cause = this.causes.get(playerId);
-    const small = kind === "launch" && !!cause && Math.abs(startMs - cause.atMs) <= ITEM_FX_TUNING.trapCauseWindowMs &&
-      (cause.variant === "small" || cause.variant === "balloon");
+    const recent = cause && Math.abs(startMs - cause.atMs) <= ITEM_FX_TUNING.trapCauseWindowMs ? cause : undefined;
+    const small = kind === "launch" && (recent?.variant === "small" || recent?.variant === "balloon");
     const key = (small ? "small" : kind) as KartMotionKey;
-    const path = fx?.motions?.[key] ?? (kind === "trap" ? this.plan.shared.trap.path : undefined);
+    const path = (fx ?? recent?.fx)?.motions?.[key] ?? (kind === "trap" ? this.plan.shared.trap.path : undefined);
     const track = path ? this.motionTracks.get(path) : undefined;
     if (!track || !(endMs > startMs)) return;
     const list = this.kartMotions.get(playerId) ?? [];
@@ -625,6 +644,43 @@ export class ItemRacePresenterImpl<Archive> implements ItemRacePresenter {
   startItemFlash(atMs: number): void {
     if (this.disposed) return;
     this.play(this.plan.shared.chargerSound, atMs, { kind: "screen" }, "startItem");
+  }
+
+  /**
+   * A track hazard's movable carries no item model of its own (pirate_I05's
+   * bananas are empty anchors, factory_I04's robots drag their water mine):
+   * the item's Set model stands at the anchor, or the `object@model` Set
+   * model of the same folder. Hidden mines without one show nothing.
+   */
+  async trackHazards(hazards: readonly ItemPresenterTrackHazard[],
+    position: (id: number) => ItemPresenterVec3 | undefined): Promise<void> {
+    if (this.disposed) return;
+    const looks: { id: number; model: FxModel }[] = [];
+    const missing = new Map<string, FxModel>();
+    for (const hazard of hazards) {
+      if (hazard.kind === "mineHidden" && !hazard.model) continue;
+      const fx = this.plan.items.get(hazard.itemIdx);
+      if (fx?.kind !== "throw") continue;
+      let model = fx.set;
+      if (hazard.model) {
+        const path = `${fx.set.path.slice(0, fx.set.path.lastIndexOf("/") + 1)}${hazard.model}.1s`;
+        model = this.models.pools.get(path)?.model ?? missing.get(path) ??
+          { key: path, path, lifeMs: fx.set.lifeMs, placed: true };
+        if (!this.models.pools.has(path)) missing.set(path, model);
+      }
+      looks.push({ id: hazard.id, model });
+    }
+    if (missing.size) await this.models.load([...missing.values()]);
+    if (this.disposed) return;
+    this.hazards = { looks, position };
+    this.showTrackHazards();
+  }
+
+  showTrackHazards(): void {
+    if (!this.hazards) return;
+    const { looks, position } = this.hazards;
+    for (const { id, model } of looks)
+      this.show(`hazard:${id}`, model, 1, 0, Infinity, atPoint(() => position(id), () => undefined));
   }
 
   sound(itemId: number, stem: string,
@@ -1325,6 +1381,8 @@ export class ItemRacePresenterImpl<Archive> implements ItemRacePresenter {
     this.causes.clear();
     this.balloonPops.clear();
     this.kartMotions.clear();
+    // The track's hazards stay for the next race on it.
+    this.showTrackHazards();
   }
 
   dispose(): void {

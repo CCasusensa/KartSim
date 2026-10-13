@@ -651,6 +651,35 @@ test("spin, launch and barrier add nothing; track hazards show their hit", async
     ["mine/exploding.ogg", "waterMine/set.ogg", "waterMine/trapped.ogg"]);
 });
 
+test("track hazards stand their item's Set model at their moving anchors for the race", async () => {
+  const { presenter, at, builds } = await setup();
+  const anchors = new Map<number, ItemPresenterVec3>([
+    [1, { x: 1, y: 0, z: 2 }], [2, { x: 3, y: 0, z: 4 }], [3, { x: 5, y: 0, z: 6 }], [4, { x: 7, y: 0, z: 8 }],
+  ]);
+  await presenter.trackHazards([
+    { id: 1, kind: "banana", itemIdx: ItemIdx.banana },
+    { id: 2, kind: "mine", itemIdx: ItemIdx.mine, model: "item01_trans" },
+    { id: 3, kind: "mineHidden", itemIdx: ItemIdx.mine },
+    { id: 4, kind: "waterMine", itemIdx: ItemIdx.waterMine },
+  ], id => anchors.get(id));
+  assert.ok(builds.includes("item/mine/item01_trans.1s"), "object@model loads from the item's folder");
+  at(16);
+  assert.deepEqual(models(presenter),
+    ["item/banana/item01.1s", "item/mine/item01_trans.1s", "item/waterMine/bubble.1s"], "the hidden mine shows nothing");
+  // factory_I04's robots drag their water mine along.
+  anchors.set(4, { x: 10, y: 1, z: 20 });
+  at(32);
+  assert.ok(shown(presenter).some(entry =>
+    entry.model === "item/waterMine/bubble.1s" && nearVec(entry.position, [10, 1, 20])));
+  // A hit leaves them on the road, as do a long race and a restart.
+  presenter.hit({ useId: 0, itemId: ItemIdx.mine, victimId: "A", result: "hit", atMs: 40 });
+  at(600_000);
+  assert.equal(models(presenter).length, 3);
+  presenter.reset();
+  at(600_016);
+  assert.equal(models(presenter).length, 3);
+});
+
 test("positional sounds fade with distance from the camera and pan toward their side", async () => {
   const { presenter, karts, at, played } = await setup();
   at(0);

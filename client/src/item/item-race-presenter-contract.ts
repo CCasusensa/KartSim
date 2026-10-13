@@ -4,6 +4,7 @@
  */
 export type {
   ItemHitVariant, ItemKartEffect, ItemKartEffectOptions, ItemKartPresentationState, ItemPresenterFrame,
-  ItemPresenterHit, ItemPresenterPlacement, ItemPresenterPose, ItemPresenterUse, ItemPresenterVec3,
+  ItemPresenterHit, ItemPresenterPlacement, ItemPresenterPose, ItemPresenterTrackHazard, ItemPresenterUse,
+  ItemPresenterVec3,
   ItemRacePresenter,
 } from "./item-race-presenter";

@@ -222,6 +222,21 @@ test("trackLocale customItemCube picks the fengshen_dev skin; NaN moving cubes a
   } finally { release(map); }
 });
 
+test("factory_I04's door boxes (<ob><inv>) push karts but are not drawn over the door", async () => {
+  const map = await loadMap("factory_I04", "item");
+  try {
+    const objects = new Map<string, { type: string }>();
+    (map.scene as Group).traverse(object => { objects.set(object.name, object); });
+    assert.equal(objects.get("mo_door13+_Geom")?.type, "Mesh");
+    assert.equal(objects.get("Box1333+_Geom")?.type, "Group");
+    assert.equal(objects.get("Box01+_Geom")?.type, "Group");
+    const animators = (map.data as { obstacleAnimators: Array<{ bindings: unknown[] }> }).obstacleAnimators;
+    assert.deepEqual(animators.map(animator => animator.bindings.length), [6, 6]);
+  } finally {
+    release(map);
+  }
+});
+
 test("time attack still omits every item object", async () => {
   const { vehicle, host } = await pipeline();
   const map: LoadedMap = await new vehicle.ul(host).loadAssetMap("track_/factory_I03/track.1s", "factory_I03");
