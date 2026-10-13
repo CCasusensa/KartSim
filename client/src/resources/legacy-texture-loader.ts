@@ -14,6 +14,8 @@ import {
   RepeatWrapping,
   RGBAFormat,
   RGBA_S3TC_DXT1_Format,
+  RGBA_S3TC_DXT3_Format,
+  RGBA_S3TC_DXT5_Format,
   RGB_S3TC_DXT1_Format,
   Texture,
   UnsignedByteType,
@@ -22,7 +24,7 @@ import { DDSLoader } from "three/addons/loaders/DDSLoader.js";
 import { TGALoader } from "three/addons/loaders/TGALoader.js";
 
 import { decodePngRgba } from "./png-decoder";
-import { normalizeLegacyTextureAlpha } from "./texture-alpha";
+import { hasVisibleTexel, normalizeLegacyTextureAlpha } from "./texture-alpha";
 
 export interface TextureResource {
   extension: string;
@@ -72,6 +74,7 @@ export async function loadLegacyTexture(resource: TextureResource,
   const extension = resource.extension.toLowerCase();
   const bytes = await resource.bytes();
   let texture: Texture;
+  let visible = true;
 
   if (extension === "png") {
     // The third argument is retained for compatibility with the release
@@ -90,15 +93,20 @@ export async function loadLegacyTexture(resource: TextureResource,
     texture = new DataTexture(image!.pixels, image!.width, image!.height,
       RGBAFormat, UnsignedByteType);
     texture.premultiplyAlpha = false;
+    if (image) visible = hasVisibleTexel(image.pixels, "rgba");
   } else if (extension === "dds") {
     const layout = new DDSLoader().parse(bytes.slice().buffer, true);
     if (!layout.format || layout.width <= 0 || layout.height <= 0 ||
         layout.mipmapCount <= 0)
       throw new Error(`${resource.virtualPath} DDS layout 无效。`);
+    const top = layout.mipmaps[0]!.data as Uint8Array;
     if (layout.format === RGBAFormat) {
-      texture = new DataTexture(layout.mipmaps[0]!.data, layout.width,
+      texture = new DataTexture(top, layout.width,
         layout.height, RGBAFormat, UnsignedByteType);
+      visible = hasVisibleTexel(top, "rgba");
     } else {
+      if (layout.format === RGBA_S3TC_DXT3_Format) visible = hasVisibleTexel(top, "dxt3");
+      if (layout.format === RGBA_S3TC_DXT5_Format) visible = hasVisibleTexel(top, "dxt5");
       const format = layout.format === RGBA_S3TC_DXT1_Format
         ? RGB_S3TC_DXT1_Format : layout.format;
       texture = new CompressedTexture(layout.mipmaps, layout.width,
@@ -112,6 +120,7 @@ export async function loadLegacyTexture(resource: TextureResource,
     texture = new DataTexture(image.data, image.width, image.height,
       RGBAFormat, UnsignedByteType);
     texture.flipY = false;
+    visible = hasVisibleTexel(image.data, "rgba");
   } else if (extension === "jpg") {
     const bitmap = await createImageBitmap(new Blob([bytes.slice().buffer],
       { type: "image/jpeg" }), {
@@ -135,6 +144,8 @@ export async function loadLegacyTexture(resource: TextureResource,
   texture.minFilter = minificationFilter(sampler.minFilter, sampler.mipFilter);
   texture.anisotropy = sampler.minFilter === 3 || sampler.magFilter === 3
     ? sampler.maxAnisotropy : 1;
+  // assembleTrackScene leaves out opaque meshes that cannot show a texel.
+  if (!visible) texture.userData.noVisibleTexel = true;
   texture.needsUpdate = true;
   return texture;
 }

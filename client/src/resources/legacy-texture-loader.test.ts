@@ -83,7 +83,7 @@ function chunk(name: string, body: Uint8Array): Uint8Array {
   return data;
 }
 
-function tinyPng(): Uint8Array {
+function tinyPng(row = [0, 0, 0, 255, 255, 40, 10, 255]): Uint8Array {
   const header = new Uint8Array(13);
   const view = new DataView(header.buffer);
   view.setUint32(0, 2);
@@ -92,13 +92,12 @@ function tinyPng(): Uint8Array {
   header[9] = 6;
   const parts = [Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10),
     chunk("IHDR", header),
-    chunk("IDAT", deflateSync(Uint8Array.of(0, 0, 0, 0, 255,
-      255, 40, 10, 255))), chunk("IEND", new Uint8Array())];
+    chunk("IDAT", deflateSync(Uint8Array.of(0, ...row))), chunk("IEND", new Uint8Array())];
   return Uint8Array.from(parts.flatMap(part => [...part]));
 }
 
-function tinyDds(): Uint8Array {
-  const buffer = new ArrayBuffer(136);
+function tinyDds(fourCC = 0x31545844, block = [0xff, 0x7f, 0, 0, 0, 0, 0, 0]): Uint8Array {
+  const buffer = new ArrayBuffer(128 + block.length);
   const header = new Int32Array(buffer, 0, 31);
   header[0] = 0x20534444;
   header[1] = 124;
@@ -106,8 +105,8 @@ function tinyDds(): Uint8Array {
   header[3] = 4;
   header[4] = 4;
   header[7] = 1;
-  header[21] = 0x31545844; // DXT1
-  new Uint8Array(buffer).set([0xff, 0x7f, 0, 0, 0, 0, 0, 0], 128);
+  header[21] = fourCC; // DXT1 by default
+  new Uint8Array(buffer).set(block, 128);
   return new Uint8Array(buffer);
 }
 
@@ -171,6 +170,23 @@ test("DDS 压缩格式和 TGA 解码与发行版一致", async () => {
     resource("tga", tinyTga(), "track/map.tga")])
     assert.deepEqual(snapshot(await loadLegacyTexture(input, sampler)),
       snapshot(await original(input, sampler)));
+});
+
+test("没有可见像素的贴图带 noVisibleTexel 标记（transparency.dds）", async () => {
+  const flagged = async (input: TextureResource) =>
+    (await loadLegacyTexture(input, sampler)).userData.noVisibleTexel === true;
+  // transparency.dds: DXT3, alpha 0 everywhere over orange (RGB565 0xED03).
+  const transparent = [0, 0, 0, 0, 0, 0, 0, 0, 0x03, 0xed, 0x02, 0xed, 0x55, 0x55, 0x55, 0x55];
+  assert.equal(await flagged(resource("dds", tinyDds(0x33545844, transparent),
+    "theme_/common/texture/transparency.dds")), true);
+  const shown = [...transparent];
+  shown[0] = 0xf0;
+  assert.equal(await flagged(resource("dds", tinyDds(0x33545844, shown), "a.dds")), false);
+  assert.equal(await flagged(resource("dds", tinyDds(0x35545844, [0, 0, ...Array(14).fill(0)]),
+    "b.dds")), true);
+  assert.equal(await flagged(resource("dds", tinyDds(), "track/road.dds")), false);
+  assert.equal(await flagged(resource("png", tinyPng([9, 9, 9, 0, 238, 162, 24, 0]), "c.png")), true);
+  assert.equal(await flagged(resource("png", tinyPng(), "d.png")), false);
 });
 
 test("JPG 图像包装和失败路径与发行版一致", async () => {

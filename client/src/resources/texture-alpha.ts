@@ -1,3 +1,33 @@
+/**
+ * Whether any texel of a top mip level has alpha above 0. Tracks put
+ * transparency.dds (DXT3, alpha 0 everywhere over an orange colour) on
+ * invisible collision surfaces; this tells such textures apart. DXT1 is
+ * uploaded as RGB, so it always shows.
+ */
+export function hasVisibleTexel(data: Uint8Array, layout: "rgba" | "dxt3" | "dxt5"): boolean {
+  if (layout === "rgba") {
+    for (let channel = 3; channel < data.length; channel += 4)
+      if (data[channel] !== 0) return true;
+    return false;
+  }
+  for (let block = 0; block + 16 <= data.length; block += 16) {
+    if (layout === "dxt3") {
+      for (let byte = 0; byte < 8; byte++) if (data[block + byte] !== 0) return true;
+      continue;
+    }
+    const a0 = data[block]!, a1 = data[block + 1]!;
+    const palette = a0 > a1
+      ? [a0, a1, ...[1, 2, 3, 4, 5, 6].map(step => Math.round(((7 - step) * a0 + step * a1) / 7))]
+      : [a0, a1, ...[1, 2, 3, 4].map(step => Math.round(((5 - step) * a0 + step * a1) / 5)), 0, 255];
+    for (const half of [2, 5]) {
+      const bits = data[block + half]! | data[block + half + 1]! << 8 | data[block + half + 2]! << 16;
+      for (let texel = 0; texel < 8; texel++)
+        if (palette[(bits >> (3 * texel)) & 7] !== 0) return true;
+    }
+  }
+  return false;
+}
+
 /** Restores alpha and edge colors for legacy booster and enchant textures. */
 export function normalizeLegacyTextureAlpha(pixels: Uint8Array,
   width: number, height: number): void {

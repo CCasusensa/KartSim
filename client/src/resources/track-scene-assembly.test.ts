@@ -326,6 +326,34 @@ test("hiddenNodes 的网格只保留节点矩阵，不建网格也不读贴图",
   scene.dispose();
 });
 
+test("贴图没有可见像素的不透明网格只保留节点（侏罗纪路肩、精灵光环圆片）", async () => {
+  const build = async (alpha: { blendEnable: number; alphaTestEnable: number }) => {
+    const node = sceneNode("RoadObj_사이드@s0");
+    node.sortDepthBias = 0;
+    node.vertexData = { vertexCount: 3, positions: [[0, 0, 0], [2, 0, 0], [0, 2, 0]],
+      uvSetsPerVertex: 1, indices: [0, 1, 2] };
+    const candidate = { node, geometryKind: "tri-list", issues: [], state: {
+      texture: { value: { name: "transparency" } }, alpha: { value: alpha },
+      fog: { value: {} }, material: { value: {} }, zbuffer: { value: {} }, backface: { value: {} } } };
+    const { adapter, environment, stageBinding } = harness();
+    Object.assign(adapter, {
+      inspectRoot: () => ({ candidates: [candidate], omitted: [] }),
+      loadTexture: async () => Object.assign(new Texture(), { userData: { noVisibleTexel: true } }),
+      createBasicMaterial: () => { throw new Error("material built"); },
+    });
+    const entry = { virtualPath: "theme_/common/texture/transparency.dds" };
+    return assembleTrackScene({ root: node, settings: {} }, {}, "invisible",
+      () => ({ status: "found", entry }), { environment, stageBinding }, adapter);
+  };
+  const scene = await build({ blendEnable: 0, alphaTestEnable: 0 });
+  assert.equal(scene.rootObjects[0].isMesh, undefined);
+  assert.equal(scene.rootObjects[0].name, "RoadObj_사이드@s0");
+  scene.dispose();
+  // With alpha test or blending the texture already hides itself.
+  for (const alpha of [{ blendEnable: 0, alphaTestEnable: 1 }, { blendEnable: 1, alphaTestEnable: 0 }])
+    await assert.rejects(build(alpha), /material built/);
+});
+
 test("Toon 刚性网格、轮廓和纹理缓存与发行版一致", async () => {
   const makeOriginal = await releaseScene();
   const source = await readFile(releaseFile, "utf8");

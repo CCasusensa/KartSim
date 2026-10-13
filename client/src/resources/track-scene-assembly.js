@@ -408,6 +408,14 @@ export async function assembleTrackScene(model, library, label, resolveTexture,
     if (toon) texture = inheritToonTexture(candidate, texture, lastOpaqueToonTexture);
     if (texture && candidate.state.alpha.value.blendEnable === 0)
       lastOpaqueToonTexture = { texture, state: textureState };
+    // A texture with no visible texel, drawn without blending or alpha test,
+    // is an invisible surface missing its alpha state (侏罗纪 RoadObj_사이드,
+    // 精灵 aura discs, 工厂 R03 road walls, all on transparency.dds): its colour
+    // channels would show as a solid patch. Like hiddenNodes, keep only the node.
+    if (!toon && texture?.userData.noVisibleTexel &&
+        candidate.state.alpha.value.blendEnable === 0 &&
+        candidate.state.alpha.value.alphaTestEnable === 0)
+      return new Group();
     const inverted = clientWorld.determinant() < 0;
     let material;
     if (toon) {
