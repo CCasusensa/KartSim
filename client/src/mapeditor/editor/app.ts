@@ -362,8 +362,10 @@ export class EditorApp {
       if (this.mode === "draw") this.finishDraw();
       if (this.mode === "source") this.closeSource();
     }
-    if (tool.kind === "place" && this.tool.kind !== "place") { this.tools.yaw = 0; this.tools.scale = 1; }
+    if (tool.kind === "place" && this.tool.kind !== "place") { this.tools.yaw = 0; this.tools.scale = 1; this.tools.lift = 0; }
     this.tool = tool;
+    // 放置中滚轮给物件转方向，不缩放视角（拉近拉远用右下角按钮）
+    this.viewport.controls.enableZoom = tool.kind !== "place";
     this.tools.activate(tool);
     if (tool.kind !== "select") this.state.select(undefined);
     this.dock.setActive(tool.kind === "place" ? { kind: "piece", id: tool.piece.id, piece: tool.piece }
@@ -418,6 +420,12 @@ export class EditorApp {
       if (this.tools.pointerDown(event)) this.pointerDown = undefined;
     });
     canvas.addEventListener("pointermove", event => this.tools.pointerMove(event));
+    // 放置中滚轮转方向（抢在视角缩放前面）
+    canvas.addEventListener("wheel", event => {
+      if (!this.tools.wheel(event)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, { capture: true, passive: false });
     canvas.addEventListener("pointerleave", () => this.tools.clearHover());
     canvas.addEventListener("pointerup", event => {
       const down = this.pointerDown;

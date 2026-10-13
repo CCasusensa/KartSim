@@ -225,10 +225,15 @@ export class Hud {
         iconButton("✓", "画完了", () => app.finishDraw(), { class: "ed-primary" }));
     } else if (tool.kind === "place") {
       const paint = categoryInfo(tool.piece.category).paint !== "single";
+      const lift = app.tools.lift;
+      const say = app.tools.lifting ? `上下拖动调高度：离地 ${lift.toFixed(1)} 米，松开就放下`
+        : `正在放「${tool.piece.label}」：点地面放下${paint ? "，按住拖动连着放" : ""}；滚轮转方向，长按后上下拖调高度`;
       bar(app.dock.sprite(tool.piece.slot, 40, "ed-modebar-sprite"),
-        h("span", { class: "ed-say" }, `正在放「${tool.piece.label}」：点地面放下${paint ? "，按住拖动连着放" : ""}`),
-        iconButton("k-left", "左转", () => { app.tools.rotateGhost(15); }, { title: "Q" }),
-        iconButton("k-right", "右转", () => { app.tools.rotateGhost(-15); }, { title: "E" }),
+        h("span", { class: "ed-say" }, say),
+        Math.abs(lift) >= 0.05 && !app.tools.lifting ? h("span", { class: "ed-say ed-height" }, `离地 ${lift.toFixed(1)} 米`) : undefined,
+        Math.abs(lift) >= 0.05 ? iconButton("k-down", "贴地", () => app.tools.resetLift(), { title: "高度清零，贴着地面放" }) : undefined,
+        iconButton("k-left", "左转", () => { app.tools.rotateGhost(15); }, { title: "Q 或滚轮" }),
+        iconButton("k-right", "右转", () => { app.tools.rotateGhost(-15); }, { title: "E 或滚轮" }),
         iconButton("＋", "变大", () => { app.tools.scaleGhost(1.15); }, { title: "]" }),
         iconButton("－", "变小", () => { app.tools.scaleGhost(1 / 1.15); }, { title: "[" }),
         iconButton("✓", "放完了", () => app.setTool({ kind: "select" }), { class: "ed-primary", title: "Esc 或右键" }));

@@ -1,19 +1,20 @@
 /**
  * 视口里的工具（简单模式的主要操作）：
- *   放置：选好的物件跟着鼠标走，点一下放一个，按住拖动像刷子一样连续摆放
- *         （围栏、路灯沿拖动方向排成一排；树、花、石头随机朝向撒开）；
+ *   放置：选好的物件跟着鼠标走，点一下放一个；滚轮转方向；长按左键再上下拖动
+ *         调离地高度，松开放下；按住立刻拖动像刷子一样连续摆放（围栏、路灯沿
+ *         拖动方向排成一排；树、花、石头随机朝向撒开），单个的建筑拖到哪放到哪；
  *   推土机：点到哪个摆件删哪个，按住拖动连片删除；
  *   道具箱：在比赛路线上点一下，横着放一排；
  *   选择：点选摆件或道路，按住拖动直接挪位置（不用手柄）。
  */
-import { Group, LineSegments, type Intersection } from "three";
+import { BufferAttribute, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Vector3, type Intersection } from "three";
 import { MAP_LIMITS, type MapDesign, type PieceDesign, type Vec3 } from "../design";
 import { categoryInfo, pieceSize, type CatalogPiece, type PieceCategory } from "../catalog";
 import { sampleRoad } from "../road-geometry";
 import type { AssembledScene } from "./assets";
 import type { EditorApp } from "./app";
 import { boxLines } from "./map-views";
-import { toClient } from "./viewport";
+import { toClient, toThree } from "./viewport";
 
 export type Tool =
   | { kind: "select" }
@@ -33,6 +34,25 @@ interface Stroke {
   last?: Vec3;
 }
 
+/** 放置中按下左键以后：先等着看是单击、长按（调高度）还是拖动（连着放 / 拖着走）。 */
+interface Press {
+  x: number;
+  y: number;
+  /** 按下处的落点（调高度时物件就停在这里）。 */
+  point: Vec3;
+  stage: "pending" | "lift" | "paint" | "move";
+  timer?: ReturnType<typeof setTimeout>;
+  lastY: number;
+  liftStart?: { y: number; height: number };
+}
+
+/** 按住多久算长按（毫秒），以及移动多少像素算拖动。 */
+const LONG_PRESS = 350;
+const DRAG_START = 6;
+/** 滚轮滚多少（deltaY）转一格，一格多少度。 */
+const WHEEL_NOTCH = 100;
+const WHEEL_STEP = 15;
+
 interface Drag {
   start: Vec3;
   height: number;
@@ -43,9 +63,13 @@ interface Drag {
 }
 
 export class ToolController {
-  /** 放置工具的朝向（度）和缩放。 */
+  /** 放置工具的朝向（度）、缩放和离地高度（米，加在落点上）。 */
   yaw = 0;
   scale = 1;
+  lift = 0;
+  private press?: Press;
+  private wheelRest = 0;
+  private guide?: Line;
   private ghost?: { piece: CatalogPiece; root: Group; offset: Group; box: LineSegments; scene?: AssembledScene };
   private ghostPoint?: Vec3;
   private stroke?: Stroke;
@@ -85,6 +109,8 @@ export class ToolController {
   }
 
   private removeGhost(): void {
+    this.cancelPress();
+    this.removeGuide();
     const ghost = this.ghost;
     this.ghost = undefined;
     if (!ghost) return;
@@ -99,9 +125,51 @@ export class ToolController {
     ghost.root.rotation.set(0, 0, (this.yaw * Math.PI) / 180);
     ghost.root.scale.setScalar(this.scale);
     if (this.ghostPoint) {
-      ghost.root.position.set(...this.ghostPoint);
+      ghost.root.position.set(this.ghostPoint[0], this.ghostPoint[1], this.ghostPoint[2] + this.lift);
       ghost.root.visible = true;
     }
+    this.updateGuide();
+  }
+
+  /** 离地时从落点到物件底部画一条竖线，看得出悬空多高。 */
+  private updateGuide(): void {
+    const point = this.ghostPoint;
+    if (!this.ghost || !point || Math.abs(this.lift) < 0.05) { this.removeGuide(); return; }
+    if (!this.guide) {
+      this.guide = new Line(new BufferGeometry(), new LineBasicMaterial({ color: 0x3ddc84, depthTest: false, transparent: true }));
+      this.guide.renderOrder = 30;
+      this.guide.userData.noPick = true;
+      this.app.viewport.world.add(this.guide);
+    }
+    this.guide.geometry.setAttribute("position", new BufferAttribute(new Float32Array([
+      point[0], point[1], point[2], point[0], point[1], point[2] + this.lift]), 3));
+    this.guide.geometry.computeBoundingSphere();
+  }
+
+  private removeGuide(): void {
+    if (!this.guide) return;
+    this.guide.removeFromParent();
+    this.guide.geometry.dispose();
+    this.guide = undefined;
+  }
+
+  /** 离地高度清零（贴地）。 */
+  resetLift(): void {
+    this.lift = 0;
+    this.applyGhostTransform();
+    this.app.queueRender();
+  }
+
+  /** 放置中滚轮转方向；返回 true 表示滚轮用掉了（不再缩放视角）。 */
+  wheel(event: WheelEvent): boolean {
+    if (this.app.tool.kind !== "place" || this.app.mode !== "select") return false;
+    this.wheelRest += event.deltaMode === 1 ? event.deltaY * 33 : event.deltaY;
+    const notches = Math.trunc(this.wheelRest / WHEEL_NOTCH);
+    if (notches) {
+      this.wheelRest -= notches * WHEEL_NOTCH;
+      this.rotateGhost(-notches * (event.shiftKey ? 90 : WHEEL_STEP));
+    }
+    return true;
   }
 
   /** Q/E 旋转、[ ] 缩放放置中的物件。 */
@@ -135,8 +203,19 @@ export class ToolController {
     if (tool.kind === "place") {
       const point = this.surfacePoint(event);
       if (!point) return true;
-      this.stroke = { pieces: [] };
-      this.paintAt(point, true);
+      this.cancelPress();
+      this.ghostPoint = point;
+      this.applyGhostTransform();
+      const press: Press = { x: event.clientX, y: event.clientY, point, stage: "pending", lastY: event.clientY };
+      // 按住不动一会儿：进入调高度
+      press.timer = setTimeout(() => {
+        if (this.press !== press || press.stage !== "pending") return;
+        press.stage = "lift";
+        press.liftStart = { y: press.lastY, height: this.lift };
+        this.app.say("上下拖动调高度，松开就放下", 2500);
+        this.app.queueRender();
+      }, LONG_PRESS);
+      this.press = press;
       return true;
     }
     if (tool.kind === "bulldoze") {
@@ -152,11 +231,12 @@ export class ToolController {
     const tool = this.app.tool;
     if (this.app.mode !== "select") return;
     if (tool.kind === "place") {
+      const press = this.press;
+      if (press && event.buttons & 1) { this.movePress(press, event); return; }
       const point = this.surfacePoint(event);
       if (!point) return;
       this.ghostPoint = point;
       this.applyGhostTransform();
-      if (this.stroke && event.buttons & 1) this.paintAt(point, false);
       return;
     }
     if (tool.kind === "bulldoze") {
@@ -169,13 +249,22 @@ export class ToolController {
 
   pointerUp(event: PointerEvent): boolean {
     const tool = this.app.tool;
-    if (tool.kind === "place" && this.stroke) {
-      const placed = this.stroke.pieces.length;
+    if (tool.kind === "place" && this.press) {
+      const press = this.press;
+      this.cancelPress();
+      // 单击、长按调高度、拖着走：都在一个点上放一个；连着放的已经放好了
+      if (press.stage !== "paint") {
+        const at = press.stage === "move" ? this.ghostPoint ?? press.point : press.point;
+        this.stroke = { pieces: [] };
+        this.paintAt(at, true);
+      }
+      const placed = this.stroke?.pieces.length ?? 0;
       this.stroke = undefined;
       if (placed) {
         this.app.state.commit();
         this.app.say(placed > 1 ? `放好了 ${placed} 个「${tool.piece.label}」` : `放好了「${tool.piece.label}」`, 2000);
       }
+      if (press.stage === "lift") this.app.queueRender();
       return true;
     }
     if (tool.kind === "bulldoze" && this.bulldozing) {
@@ -201,13 +290,50 @@ export class ToolController {
     return false;
   }
 
+  private movePress(press: Press, event: PointerEvent): void {
+    press.lastY = event.clientY;
+    if (press.stage === "pending" && Math.hypot(event.clientX - press.x, event.clientY - press.y) > DRAG_START) {
+      clearTimeout(press.timer);
+      const paint = this.ghost && categoryInfo(this.ghost.piece.category).paint !== "single";
+      press.stage = paint ? "paint" : "move";
+      if (paint) { this.stroke = { pieces: [] }; this.paintAt(press.point, true); }
+    }
+    if (press.stage === "lift" && press.liftStart) {
+      // 物件跟着鼠标上下走：按物件所在深度把屏幕像素换成米
+      const camera = this.app.viewport.camera;
+      const distance = camera.position.distanceTo(toThree(press.point).add(new Vector3(0, this.lift, 0)));
+      const metersPerPixel = (2 * distance * Math.tan((camera.fov * Math.PI) / 360)) / Math.max(1, this.app.viewport.renderer.domElement.clientHeight);
+      const height = press.liftStart.height + (press.liftStart.y - event.clientY) * metersPerPixel;
+      this.lift = Math.round(Math.min(300, Math.max(-30, height)) * 10) / 10;
+      this.ghostPoint = press.point;
+      this.applyGhostTransform();
+      this.app.queueRender();
+      return;
+    }
+    if (press.stage === "pending") return;
+    const point = this.surfacePoint(event);
+    if (!point) return;
+    this.ghostPoint = point;
+    this.applyGhostTransform();
+    if (press.stage === "paint") this.paintAt(point, false);
+  }
+
+  private cancelPress(): void {
+    if (this.press) clearTimeout(this.press.timer);
+    this.press = undefined;
+  }
+
+  /** 正在长按调高度（动作条显示高度用）。 */
+  get lifting(): boolean { return this.press?.stage === "lift"; }
+
   // ------------------------------------------------------------------ 放置
 
   private makePiece(position: Vec3, yaw: number, scale: number): PieceDesign {
     const piece = this.ghost!.piece;
     return {
       id: this.app.state.newId("p"), track: piece.track, path: [...piece.path], label: piece.label,
-      origin: [...piece.origin] as Vec3, position, rotation: [round2(yaw), 0, 0], scale: [scale, scale, scale],
+      origin: [...piece.origin] as Vec3, position: [position[0], position[1], round2(position[2] + this.lift)],
+      rotation: [round2(yaw), 0, 0], scale: [scale, scale, scale],
     };
   }
 
@@ -220,11 +346,9 @@ export class ToolController {
     const design = this.app.state.design;
     const room = () => design.pieces.length < MAP_LIMITS.pieces;
     if (first) {
-      if (!room()) { this.app.say(`摆件最多 ${MAP_LIMITS.pieces} 个。`); return; }
-      const scatter = info.paint === "scatter";
-      const yaw = scatter ? this.yaw + Math.random() * 360 : this.yaw;
-      const scale = scatter ? round2(this.scale * (0.85 + Math.random() * 0.3)) : this.scale;
-      const placed = this.makePiece(point, yaw, scale);
+      if (!room()) { this.app.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`); return; }
+      // 第一个和鬼影一模一样（滚轮转好的方向）；拖出来的后面几个才随机
+      const placed = this.makePiece(point, this.yaw, this.scale);
       this.app.views.popPieces.add(placed.id);
       stroke.pieces.push(placed);
       stroke.last = point;
@@ -261,9 +385,9 @@ export class ToolController {
     stroke.last = info.paint === "line" ? cursor : point;
     // 落到实际表面上（路、地面），沿线插值的高度可能悬空
     for (const piece of added) {
-      const z = this.app.viewport.castDown([piece.position[0], piece.position[1], piece.position[2] + 60],
+      const z = this.app.viewport.castDown([piece.position[0], piece.position[1], piece.position[2] + 60 - this.lift],
         [this.app.views.roads, this.app.views.ground]);
-      if (z !== undefined) piece.position[2] = round2(z);
+      if (z !== undefined) piece.position[2] = round2(z + this.lift);
     }
     this.app.state.preview(d => { d.pieces.push(...added); });
   }
