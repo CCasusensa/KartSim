@@ -5,6 +5,7 @@ import { licenseItemsOf } from "../license/license-item-race";
 import { observeOf } from "./replay-observe";
 import { vehicleRoadDust } from "../vehicle/road-dust-effect";
 import { sampleWrongWay, wrongWayOf } from "../ui/wrong-way-warning";
+import { autopilotOf } from "../ui/autopilot-prank";
 
 // Presentation owners still come from the generated client. Their renderer,
 // physics and asset types will be narrowed as those systems are migrated.
@@ -112,6 +113,13 @@ export function updateTimeAttackStage(
   );
   host.lightFactor.update();
   host.workProfiler?.mark("light", dependencies.nowMs());
+  // 创世 9 自动版: from GO the kart stays at the start and its rider drives on.
+  const autopilot = autopilotOf(host.session);
+  if (autopilot?.seat) {
+    autopilot.park(host.kartView, autopilot.seat,
+      host.session.lifecycle.phase >= dependencies.racingPhase);
+    autopilot.setGo(host.session.lifecycle.startAtMs || undefined);
+  }
   let animationState = host.kartView.update(
     host.getPhysics().state,
     Math.trunc(host.presentationClockMs) >>> 0,

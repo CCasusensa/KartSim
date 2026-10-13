@@ -29,6 +29,7 @@ export interface ApplicationDisposalHost {
     ghosts: Array<{ view: AppDisposable }>;
     licenseItems?: AppDisposable;
     wrongWay?: AppDisposable;
+    autopilot?: AppDisposable;
     outlineBatch?: AppDisposable;
     balloonDecoration?: AppDisposable;
     characterDecorations: Array<{ render: AppDisposable }>;
@@ -122,6 +123,10 @@ export function disposeApplicationRuntime(
   if (session.wrongWay) {
     session.wrongWay.dispose();
     session.wrongWay = undefined;
+  }
+  if (session.autopilot) {
+    session.autopilot.dispose();
+    session.autopilot = undefined;
   }
   session.outlineBatch?.dispose();
   session.outlineBatch = undefined;

@@ -54,6 +54,7 @@ export interface RaceResetStage {
       kartDriftEffects?: Resettable;
       kartMotionBlur?: Resettable;
       wrongWay?: Resettable;
+      autopilot?: Resettable;
       zetAirEffect?: Resettable;
       shockWaveEffect?: Resettable;
       exhaustEffect?: Resettable;
@@ -137,6 +138,7 @@ export function restartTimeAttackRace(
   host.session.kartDriftEffects?.reset();
   host.session.kartMotionBlur?.reset();
   host.session.wrongWay?.reset();
+  host.session.autopilot?.reset();
   host.session.zetAirEffect?.reset();
   host.session.shockWaveEffect?.reset();
   host.session.exhaustEffect?.reset();

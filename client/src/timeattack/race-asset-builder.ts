@@ -8,6 +8,7 @@ import { MissionTimerPanel } from "../license/mission-timer-panel";
 import { MissionResultAction, StoryAction2D } from "../story/mission-result-action";
 import { WrongWayWarning } from "../ui/wrong-way-warning";
 import { kartAlignedPetOwner } from "../world/flying-pet-mount";
+import { AutopilotPrank, isAutopilotKart, loadAutopilotPrompts } from "../ui/autopilot-prank";
 import type { StoryRaceRequest } from "../story/story-race";
 import { generateNpcGhostRecord } from "./duel-npc-ghost";
 import { racePlaylistReady } from "./race-bgm-loading";
@@ -258,6 +259,7 @@ async function buildLoadedSoloRace(
     let track: any, rain: any, rainAudio: any, snow: any;
     let licenseItems: LicenseItemRace | undefined;
     let wrongWay: WrongWayWarning | undefined;
+    let autopilot: AutopilotPrank | undefined;
     let gameplayUi: any, action2D: any, result: any, trackInfoCard: any;
     let pause: any, countdownAudio: any, eventEffects: any, eventAudio: any;
     let dummyAudio: any, linkedPresentation: any, flyingPet: any;
@@ -425,6 +427,11 @@ async function buildLoadedSoloRace(
         if (!renderMount) throw new Error("ReKart root child 6 mount 缺失。");
         renderMount.clear();
         renderMount.add(rider.scene.object);
+        // 创世 9 自动版 leaves its kart at the start (not in 驾照考试 or story races).
+        if (isAutopilotKart(vehicle.kartItem?.internalId ?? kart.internalId) && !selection.story) {
+          autopilot = new AutopilotPrank(await loadAutopilotPrompts(library, message =>
+            host.hud.showDebugText(message, "error")), renderMount);
+        }
         if (characters.linked) {
           linkedPresentation = ops.createLinkedPresentation(
             kartPresentation, renderMount, characters.linked.scene.object,
@@ -524,6 +531,7 @@ async function buildLoadedSoloRace(
       disposeNewBgm();
       licenseItems?.dispose();
       wrongWay?.dispose();
+      autopilot?.dispose();
       flyingPet?.dispose();
       for (const ghost of ghosts) ghost.view.dispose();
       track?.dispose();
@@ -571,6 +579,7 @@ async function buildLoadedSoloRace(
       nextFlyingPet: flyingPet, nextGhosts: ghosts, rankColors,
       nextLicenseItems: licenseItems,
       nextWrongWay: wrongWay,
+      nextAutopilot: autopilot,
       selectedVehicle: kart, generation,
       particleModificationBanner: particleBanner,
       particleModificationBannerRequest: particleRequest,

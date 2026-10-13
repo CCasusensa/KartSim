@@ -1,6 +1,7 @@
 /** Builds the multiplayer race scene from loaded participants and track owners. */
 
 import { brawlGridForward } from "./lobby-brawl-mode";
+import { isAutopilotKart } from "../ui/autopilot-prank";
 
 interface Vec3 { x: number; y: number; z: number }
 interface SceneMount {
@@ -32,7 +33,7 @@ interface VehiclePresentation {
     };
   };
   visual: { onCharacterSize: number };
-  kartItem: { alwaysLinkCharacter: boolean };
+  kartItem: { alwaysLinkCharacter: boolean; internalId?: unknown };
   accessories: Array<{ kind: string;
     render: { scene: { object: unknown } } }>;
   decoration?: { scene: { object: unknown } };
@@ -51,6 +52,8 @@ interface RacerView {
 }
 
 export interface RacePresenterInitializationHost {
+  /** 创世 9 自动版 racers' rider mounts (race-presenter-autopilot.ts). */
+  autopilotSeats?: Map<unknown, object>;
   assets: RacePresenterInitializationInputs["assets"];
   runtime: RacePresenterInitializationInputs["runtime"];
   race: RacePresenterInitializationInputs["race"];
@@ -207,6 +210,9 @@ export function initializeRacePresenter(host: RacePresenterInitializationHost,
         riderMount.clear();
         riderMount.add(character.scene.object);
         character.scene.object.scale.setScalar(vehicle.visual.onCharacterSize);
+        // 创世 9 自动版 leaves its kart at the start from GO.
+        if (isAutopilotKart(vehicle.kartItem.internalId))
+          (host.autopilotSeats ??= new Map()).set(participant.playerId, riderMount);
         if (participant.characters.linked) {
           const vehicleRoot = vehicle.imported.renderScene?.bySource.get(sourceRoot);
           if (!vehicleRoot || !character.award) {

@@ -73,6 +73,8 @@ export interface SoloRaceResources {
   nextLicenseItems?: SceneResource;
   /** 逆向提示 (ui/wrong-way-warning.ts), when it loaded. */
   nextWrongWay?: RaceDisposable;
+  /** 创世 9 自动版 (ui/autopilot-prank.ts). */
+  nextAutopilot?: RaceDisposable;
   rankColors: unknown;
   selectedVehicle: { title: string };
   particleModificationBanner?: RaceDisposable;
@@ -92,6 +94,7 @@ export interface SoloRaceSession {
   ghosts: GhostResource[];
   licenseItems?: SceneResource;
   wrongWay?: RaceDisposable;
+  autopilot?: RaceDisposable;
   balloonDecoration?: RaceDisposable;
   characterDecorations: CharacterDecoration[];
   raceAura?: RaceDisposable;
@@ -189,7 +192,7 @@ export async function publishSoloRace(
     nextTrackEventAudio, nextTrackDummyAudio, nextLinkedCharacterPresentation,
     nextFlyingPet, nextGhosts, rankColors, selectedVehicle,
     particleModificationBanner, particleModificationBannerRequest, outlineBatch, nextLicenseItems,
-    nextWrongWay,
+    nextWrongWay, nextAutopilot,
   } = resources;
   const session = host.session;
   const audio = host.audio;
@@ -214,6 +217,10 @@ export async function publishSoloRace(
   if (session.wrongWay) {
     session.wrongWay.dispose();
     session.wrongWay = undefined;
+  }
+  if (session.autopilot) {
+    session.autopilot.dispose();
+    session.autopilot = undefined;
   }
   session.balloonDecoration?.dispose();
   session.characterDecorations.forEach(({ render }) => render.dispose());
@@ -311,6 +318,7 @@ export async function publishSoloRace(
     host.scene.add(nextLicenseItems.object);
   }
   if (nextWrongWay) session.wrongWay = nextWrongWay;
+  if (nextAutopilot) session.autopilot = nextAutopilot;
   session.rankColors = rankColors;
   session.localName = host.getLocalNickname();
   session.outlineBatch = outlineBatch;

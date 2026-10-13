@@ -13,6 +13,8 @@ import { finishRacePresenterFrame,
 import { updateRacePresenterParticipants,
   type RacePresenterParticipantDependencies,
   type RacePresenterParticipantsHost } from "./race-presenter-participants";
+import { updateRacePresenterAutopilot,
+  type RacePresenterAutopilotHost } from "./race-presenter-autopilot";
 import { presentRaceResultFrame,
   type RacePresenterResultDependencies,
   type RacePresenterResultHost } from "./race-presenter-result-frame";
@@ -20,7 +22,7 @@ import { presentRaceResultFrame,
 export type RacePresenterFrameHost = RacePresenterResultHost &
   RacePresenterEventsHost & RacePresenterCameraHost &
   RacePresenterParticipantsHost & RacePresenterEffectsHost &
-  RacePresenterHudHost;
+  RacePresenterHudHost & RacePresenterAutopilotHost;
 
 export interface RacePresenterFrameDependencies {
   result: RacePresenterResultDependencies;
@@ -39,6 +41,7 @@ export function updateRacePresenterFrame(host: RacePresenterFrameHost,
   const height = host.size.y;
   advanceRacePresenterEvents(host, nowMs, actions, dependencies.events);
   updateRacePresenterCamera(host, nowMs, dependencies.events.racingState);
+  updateRacePresenterAutopilot(host, dependencies.events.racingState as number);
   const remotePoses = updateRacePresenterParticipants(host, nowMs,
     width, height, dependencies.participants);
   updateRacePresenterEffects(host, nowMs, width, height);

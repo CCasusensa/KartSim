@@ -25,6 +25,9 @@ export interface RacePresenterRenderHost {
   tachometer: unknown;
   /** 逆向提示 (ui/wrong-way-warning.ts), when it loaded. */
   wrongWay?: { render(renderer: RacePresenterRenderer, nowMs: number): void };
+  /** 创世 9 自动版's prompts (ui/autopilot-prank.ts), when this racer drives it. */
+  autopilot?: { render(renderer: RacePresenterRenderer, nowMs: number,
+    width: number, height: number): void };
   size: { y: number };
   warpBlackBar: { renderRatio(renderer: RacePresenterRenderer,
     ratio: number): void };
@@ -72,6 +75,8 @@ export function renderRacePresenterFrame(host: RacePresenterRenderHost,
       host.hud.render(renderer);
       dependencies.renderTachometer(host.tachometer, renderer);
       host.wrongWay?.render(renderer, nowMs);
+      host.autopilot?.render(renderer, nowMs,
+        Number(dependencies.worldAxis), Number(dependencies.depthAxis));
     }
     const blackBarPixels = Math.floor(
       host.size.y * dependencies.blackBarFraction + 0.5);

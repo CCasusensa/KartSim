@@ -2,6 +2,7 @@ import { beginRaceLoad } from "../resources/resource-manager";
 /** Resource and connection assembly for a live multiplayer race. */
 import { isItemRace, itemTrackCardModeKey } from "./lobby-item-mode";
 import { WrongWayWarning } from "../ui/wrong-way-warning";
+import { AutopilotPrank, loadAutopilotPrompts } from "../ui/autopilot-prank";
 export interface MultiplayerRaceLoaderDependencies {
   createToonStageBinding(): unknown;
   loadRaceAssets(assets: unknown, config: any, room: any, audio: unknown,
@@ -187,6 +188,12 @@ export function createMultiplayerRaceLoader(
           return undefined;
         });
         checkCancellation();
+        // 创世 9 自动版: its prompts only for the racer driving it.
+        if (presenter.autopilotSeats?.size) {
+          presenter.autopilot = new AutopilotPrank(presenter.autopilotSeats.has(connection.playerId)
+            ? await loadAutopilotPrompts(library, message => console.warn(message)) : undefined);
+          checkCancellation();
+        }
         presenter.warm(host.renderer, deps.now());
         checkCancellation();
         chat = await deps.loadRaceChat(library, root, connection, host.status);

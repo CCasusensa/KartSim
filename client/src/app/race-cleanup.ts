@@ -17,6 +17,8 @@ interface RaceSession {
   licenseItems?: Disposable;
   /** 逆向提示. */
   wrongWay?: Disposable;
+  /** 创世 9 自动版. */
+  autopilot?: Disposable;
   outlineBatch?: Disposable;
   vehicleRender?: Disposable;
   flyingPet?: Disposable;
@@ -118,6 +120,10 @@ export function releaseRaceForReady(
   if (session.wrongWay) {
     session.wrongWay.dispose();
     session.wrongWay = undefined;
+  }
+  if (session.autopilot) {
+    session.autopilot.dispose();
+    session.autopilot = undefined;
   }
   session.outlineBatch?.dispose();
   session.outlineBatch = undefined;
