@@ -1,20 +1,23 @@
 /**
  * The floating quest marks of 卡丁城 (server-go/CITY-QUESTS.md): a gold "!"
- * over a task-point NPC with a delivery to give, a gold "?" over the NPC a
- * delivery under way goes to. The marks bob just above the NPC's name tag
+ * over a task-point NPC with a quest to give, a gold "?" over the NPC a quest
+ * under way can be finished at, a gold "★" over each collection stop still
+ * to reach. The NPCs' marks bob just above their name tags
  * and are drawn on their own canvas over the race view (like the name tags),
  * sized by distance and hidden behind the camera or beyond MARK_RANGE.
  */
 import { Vector3, type PerspectiveCamera } from "three";
 import { CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
 
-export type QuestMark = "!" | "?";
+export type QuestMark = "!" | "?" | "★";
 
 /** Beyond this distance (m) no mark shows; the "?" of a delivery shows from further. */
 const MARK_RANGE = 140;
 const TARGET_RANGE = 400;
 /** The name tags' anchor over a standing NPC's feet (m; city-npcs heads + city-labels HEAD_HEIGHT). */
 const HEAD_HEIGHT = 1.6 * CITY_VEHICLE_SCALE;
+/** A collection stop's mark floats this high (m) over the road. */
+const STOP_HEIGHT = 2.2;
 /** The name tag takes this much (stage px at 900 high) over the anchor; the mark floats above it. */
 const TAG_TOP = 34;
 
@@ -36,7 +39,8 @@ export class CityQuestMarkers {
   }
 
   /** Draws `marks` (world feet positions) for `camera` at time `now` (ms). */
-  draw(camera: PerspectiveCamera, marks: ReadonlyArray<{ mark: QuestMark; x: number; y: number; z: number }>, now: number): void {
+  draw(camera: PerspectiveCamera, marks: ReadonlyArray<{ mark: QuestMark; x: number; y: number; z: number; tagless?: boolean }>,
+    now: number): void {
     if (this.disposed) return;
     const width = this.root.clientWidth, height = this.root.clientHeight;
     const ratio = Math.min(2, globalThis.devicePixelRatio || 1);
@@ -52,12 +56,14 @@ export class CityQuestMarkers {
     const eye = this.eye.setFromMatrixPosition(camera.matrixWorld);
     const forward = this.forward.setFromMatrixColumn(camera.matrixWorld, 2).negate();
     const scale = height / 900;
-    const lift = (TAG_TOP + 3 + Math.sin(now / 320) * 4) * scale;
+    const bob = Math.sin(now / 320) * 4;
     for (const mark of marks) {
-      this.point.set(mark.x, mark.y + HEAD_HEIGHT, mark.z);
+      // Over an NPC the mark floats above its name tag; a collection stop has none.
+      const lift = ((mark.tagless ? 0 : TAG_TOP + 3) + bob) * scale;
+      this.point.set(mark.x, mark.y + (mark.tagless ? STOP_HEIGHT : HEAD_HEIGHT), mark.z);
       const toward = this.point.clone().sub(eye);
       const distance = toward.length();
-      if (toward.dot(forward) <= 0 || distance > (mark.mark === "?" ? TARGET_RANGE : MARK_RANGE)) continue;
+      if (toward.dot(forward) <= 0 || distance > (mark.mark === "!" ? MARK_RANGE : TARGET_RANGE)) continue;
       this.point.project(camera);
       if (this.point.z > 1) continue;
       const x = (this.point.x + 1) / 2 * width, y = (1 - this.point.y) / 2 * height - lift;

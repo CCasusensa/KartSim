@@ -257,7 +257,8 @@ export function walkingAvatarColors(library: MyRoomSceneLibrary,
 /** Build the selected ordinary character with its original standing and walking motions. */
 export async function loadWalkingAvatar(library: MyRoomSceneLibrary,
   subject: MyRoomSceneSubject,
-  colors: { primary: number; high: number } | null): Promise<WalkingAvatar> {
+  colors: { primary: number; high: number } | null,
+  motionNames: { idle: string; walk: string } = { idle: "f10", walk: "f11" }): Promise<WalkingAvatar> {
   const source = library.get(subject.character.path) as CharacterFile | undefined;
   if (!source?.containerId) throw new Error("当前人物缺少独立模型容器。");
   const files = (library.files as readonly CharacterFile[]).filter(file =>
@@ -272,8 +273,9 @@ export async function loadWalkingAvatar(library: MyRoomSceneLibrary,
     subject.character.uniform ?? "1", subject.character.path);
   const costume = CR([...byName.keys()], identity);
   // The release loader uses this same local-costume-first, common-archive
-  // fallback order. f10 is standing; f11 is an alternating walking stride.
-  const motionFile = (name: "f10" | "f11"): CharacterFile => {
+  // fallback order. f10 is standing; f11 is an alternating walking stride
+  // (卡丁城's seated passengers use the kart pose f00 for both).
+  const motionFile = (name: string): CharacterFile => {
     const localPath = costume.motionFolder ? `${costume.motionFolder}/${name}.1s`
       : `${name}.1s`;
     const local = byName.get(localPath.toLowerCase());
@@ -285,8 +287,8 @@ export async function loadWalkingAvatar(library: MyRoomSceneLibrary,
     return common;
   };
   const [idle, walk] = await Promise.all([
-    FI(await motionFile("f10").bytes()),
-    FI(await motionFile("f11").bytes()),
+    FI(await motionFile(motionNames.idle).bytes()),
+    FI(await motionFile(motionNames.walk).bytes()),
   ]);
   const motions = { 3: idle, 4: walk, 5: walk, 8: idle, 9: idle,
     10: idle, 11: idle, 14: idle };

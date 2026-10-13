@@ -1,34 +1,53 @@
 /**
- * 卡丁城送货任务的原始数据（server-go/CITY-QUESTS.md）：任务点人物的故事模式
- * 立绘与背景、背景故事，以及送货任务（谁托付、送给谁、送什么、什么限制、
- * 对话）。build-city-quests.mjs 补上路程、限时和报酬，写成三份
- * city-quests.json。原版没有卡丁城和送货任务，故事与数值都是本项目编的。
+ * 卡丁城任务的原始数据（server-go/CITY-QUESTS.md）：任务点人物的故事模式
+ * 立绘与背景、背景故事，以及任务（类型、谁托付、交给谁、什么东西、什么限制、
+ * 收集点或寻物范围、对话）。build-city-quests.mjs 补上路程、限时、报酬和
+ * 寻物候选点，写成三份 city-quests.json。原版没有卡丁城和这些任务，故事与
+ * 数值都是本项目编的。type 省略即送货；载客任务的 item 是乘客自己。
  *
  * 立绘 id 是 stage_scene emotion.bml 的角色名；背景是 stage_scene/bg 的名字
  * （去掉 _1/_2）。对话里 who: "npc" 是托付人说话，"me" 是玩家。
  */
 
-/** 限制条件：倍率乘在按路程算出的报酬上。 */
+/**
+ * 报酬按路程算，再乘任务类型和限制条件两个倍率。原版没有这些数值，都是本项目定的。
+ */
 export const QUEST_RULES = {
-  /** 报酬 = (基础 + 每公里 × 路程公里数) × 倍率；金币取整到 10。 */
+  /** 报酬 = (基础 + 每公里 × 路程公里数) × 类型倍率 × 限制倍率；金币取整到 10。 */
   lucciBase: 60,
   lucciPerKm: 90,
   expBase: 25,
   expPerKm: 35,
-  /** 限时任务的时限 = 路程 ÷ timeSpeed（m/s）+ timeSlack 秒，向上取整到 5 秒。 */
+  /** 限时任务的时限 = 路程 ÷ timeSpeed（m/s）+ timeSlack 秒（寻物再加 search.extraTimeS），向上取整到 5 秒。 */
   timeSpeed: 15,
   timeSlackS: 30,
   /** 离收件人这么近（m）就算送到；离托付人这么近才能对话接任务。 */
   arriveRadius: 12,
   talkRadius: 12,
+  /** 收集点、寻物的藏匿点离这么近（m）就算拿到。 */
+  pickupRadius: 10,
   /** 超速持续这么久（ms）才判失败（一闪而过的超速不算）。 */
   speedGraceMs: 1000,
-  kinds: {
-    normal: { label: "普通配送", multiplier: 1.0 },
-    speed: { label: "限速配送", multiplier: 1.4 },
-    collision: { label: "易碎品配送", multiplier: 1.5 },
-    time: { label: "限时配送", multiplier: 1.6 },
+  /** 任务类型：送货（物品从托付人送到收件人）、载客（托付人坐进后座，送到收件人那里）、
+   *  收集（跑遍几个收集点，再交给收件人）、寻物（在一片范围里凭信号找到失物，再交给收件人）。 */
+  types: {
+    delivery: { label: "送货", multiplier: 1.0 },
+    passenger: { label: "载客", multiplier: 1.1 },
+    collect: { label: "收集", multiplier: 1.2 },
+    search: { label: "寻物", multiplier: 1.3 },
   },
+  kinds: {
+    normal: { label: "普通", multiplier: 1.0 },
+    speed: { label: "限速", multiplier: 1.4 },
+    collision: { label: "小心驾驶", multiplier: 1.5 },
+    time: { label: "限时", multiplier: 1.6 },
+  },
+  /** 载客：满意度从 100 起，每次碰撞扣 collisionPenalty，车速超过 comfortKmh 每秒扣
+   *  speedPenaltyPerS；扣到 0 乘客要求下车（失败）。小费 = 金币报酬 × tipMax × 满意度 ÷ 100，取整到 10。 */
+  passenger: { collisionPenalty: 15, comfortKmh: 80, speedPenaltyPerS: 4, tipMax: 0.3 },
+  /** 寻物：范围里沿车道取 spots 个候选点，节点每次接任务随机藏在其中一个；路程按到范围中心的往返
+   *  加 allowance × 半径算；信号按离失物的距离分 5 格（signalBands 内为 5、4、3、2 格，更远 1 格）。 */
+  search: { spots: 4, allowance: 2, signalBands: [25, 60, 120, 200], extraTimeS: 60 },
 };
 
 export const QUEST_NPCS = {
@@ -48,6 +67,16 @@ export const QUEST_NPCS = {
     story: "吉米是市中心的巡警，开着巡逻车维护全城的交通秩序。他坚信守法驾驶才是真正的车技，时不时还会考考路过的车手。" },
   "postman-starfish": { sprite: "mos", background: "park1",
     story: "小强是海星岛邮局唯一的邮差。岛上的住户天天网购，包裹堆得像小山一样。小强一个人忙不过来，正在招募靠谱的临时送货员。" },
+  "kite-beach": { sprite: "wenwen", background: "beach2",
+    story: "雯雯来自遥远的龙之国度，是伟大龙之家族的一员，也是皮蛋的好朋友。她一边在卡丁城旅行一边练车，在海滩上摆了个风筝摊，她扎的龙形风筝是全城最漂亮的。" },
+  "captain-vicepoint": { sprite: "lodumani", background: "pirate2",
+    story: "海盗船长曾经驰骋七海，如今在罪恶角开了一家船坞，修船、卖缆绳，顺便收集各种藏宝传说。他坐船从来不晕，坐卡丁车却晕得厉害，所以出门总得找人开车。" },
+  "foreman-downtown": { sprite: "brodi", background: "brodi_01",
+    story: "没人知道神秘工头叫什么名字，只知道市中心那片永远在施工的工地归他管。他的工具散落在全城各处，图纸上画的大楼好像永远也盖不完。" },
+  "busdriver-havana": { sprite: "tutu", background: "vill3",
+    story: "嘟嘟开了十年校车，小哈瓦那的孩子们都是坐着他的车长大的。他最得意的是从没让一位乘客晕过车——开得稳，才是真本事。" },
+  "florist-washington": { sprite: "marid", background: "beach5",
+    story: "蓝蓝在华盛顿海滩开了一家小花店，每天一大早就去各处采花。她养了一只调皮的小狗，三天两头溜出去玩，每次都要全街的人帮忙找。" },
 };
 
 const npc = text => ({ who: "npc", text });
@@ -150,4 +179,140 @@ export const QUESTS = [
     offer: [npc("机场食堂订了一盒海星岛农场的新鲜鸡蛋，收件人是葱头。"),
       npc("鸡蛋可脆了，路上最多磕碰两次，不然就变成炒蛋啦！"), me("我会轻拿轻放。")],
     thanks: "鸡蛋完好无损！今天的员工餐有荷包蛋吃啦～" },
+
+  // ---- 新人物的送货 ----
+  { id: "kite-letter", giver: "kite-beach", receiver: "postman-starfish", item: "寄回家乡的龙形风筝",
+    title: "寄给家乡的风筝", kind: "collision", maxCollisions: 3,
+    synopsis: "雯雯扎了一只最大的龙形风筝，要寄回龙之国度给家人看。风筝骨架是竹子做的，一撞就散。",
+    offer: [npc("这是我扎过最大的一只龙形风筝，我想把它寄回家乡给家人看！"),
+      npc("邮局在海星岛。风筝骨架很脆，路上碰撞别超过三次哦。"), me("我会小心的。")],
+    thanks: "好漂亮的风筝！我一定好好包起来，寄到龙之国度去。" },
+  { id: "captain-raisins", giver: "captain-vicepoint", receiver: "shop-havana", item: "一桶朗姆葡萄干",
+    title: "船长的葡萄干", kind: "speed", maxKmh: 45,
+    synopsis: "黑妞的咖啡馆要做新甜点，向海盗船长订了一桶航海用的朗姆葡萄干。桶盖是旧船上的，开快了会晃开。",
+    offer: [npc("哟嚯！黑妞订了我一桶珍藏的朗姆葡萄干，说要做新甜点。"),
+      npc("这桶是从旧船上拆下来的，盖子不牢靠，车速超过 45 它就要散架啦！"), me("我慢慢开，放心吧。")],
+    thanks: "葡萄干香极了！新甜点就叫“船长的宝藏”吧～" },
+  { id: "foreman-permit", giver: "foreman-downtown", receiver: "police-downtown", item: "施工许可证",
+    title: "施工许可证", kind: "time",
+    synopsis: "工地今晚要封路施工，许可证得在警局下班前交给巡警吉米盖章。",
+    offer: [npc("今晚工地要封半条路施工，许可证得让巡警吉米盖章。"),
+      npc("警局快下班了，你得在规定时间内送到，不然今晚又开不了工！"), me("马上出发！")],
+    thanks: "许可证收到，章已经盖好了。施工期间我会安排人指挥交通。" },
+  { id: "bus-schoolbag", giver: "busdriver-havana", receiver: "citizen-vicepoint", item: "落在校车上的书包",
+    title: "落下的书包", kind: "normal",
+    synopsis: "宝宝的小侄子把书包落在了校车上，里面有明天要交的作业。",
+    offer: [npc("唉，宝宝的小侄子又把书包落在校车上了，里面还有明天要交的作业。"),
+      npc("宝宝家在罪恶角海边，能帮我送过去吗？"), me("好，我这就去。")],
+    thanks: "书包找回来啦！作业还在，小侄子明天不用挨批评了，谢谢你！" },
+  { id: "florist-bouquet", giver: "florist-washington", receiver: "marshal-airport", item: "接机用的花束",
+    title: "接机花束", kind: "time",
+    synopsis: "葱头的妈妈今天坐飞机来卡丁城看他，葱头在蓝蓝的花店订了一束接机的鲜花。",
+    offer: [npc("葱头的妈妈今天坐飞机来看他，他在我这儿订了一束接机的花。"),
+      npc("飞机快落地了，得在规定时间内送到国际机场！"), me("赶在飞机落地前送到！")],
+    thanks: "花来得正好！妈妈刚下飞机，看到花一定很开心。" },
+
+  // ---- 载客：托付人坐进后座，送到收件人那里 ----
+  { id: "captain-ride", type: "passenger", giver: "captain-vicepoint", receiver: "mechanic-haiti", item: "海盗船长",
+    title: "晕车的船长", kind: "speed", maxKmh: 50,
+    synopsis: "海盗船长的船舵在胖墩那里修好了，可他一坐快车就晕。车速千万不能超过 50。",
+    offer: [npc("我的船舵在小海地胖墩那里修好了，得亲自去取。"),
+      npc("可我一坐快车就晕……你载我过去吧，车速别超过 50，不然我就……呕……"), me("上车吧船长，我开稳一点。")],
+    thanks: "到、到了？呼……这是我坐过最舒服的一次卡丁车！船舵我自己扛回去就行。" },
+  { id: "wenwen-ride", type: "passenger", giver: "kite-beach", receiver: "guide-beach", item: "雯雯",
+    title: "去找皮蛋", kind: "normal",
+    synopsis: "雯雯要去海洋海滩找皮蛋，约好了比一场赛车。她想坐车过去看看路线。",
+    offer: [npc("我跟皮蛋约好了比一场赛车！不过我想先坐车看看他平时跑的路线。"),
+      npc("载我去海洋海滩找他吧！开得平稳一点，我会给你小费的～"), me("没问题，上车！")],
+    thanks: "谢谢你送我过来！路线我都记住啦，皮蛋你等着吧！" },
+  { id: "tutu-ride", type: "passenger", giver: "busdriver-havana", receiver: "marshal-airport", item: "嘟嘟",
+    title: "赶去接小朋友", kind: "time",
+    synopsis: "春游的孩子们坐飞机回来了，可嘟嘟的校车偏偏在这时候抛锚。他得赶在飞机落地前到机场。",
+    offer: [npc("糟了！春游的孩子们马上坐飞机回来，我的校车却抛锚了！"),
+      npc("你能载我去国际机场吗？得在规定时间内赶到，孩子们还等着我呢！"), me("快上车！")],
+    thanks: "赶上了！孩子们刚出来。这车开得又快又稳，你可以来当校车司机了！" },
+  { id: "dao-ride", type: "passenger", giver: "guide-beach", receiver: "police-downtown", item: "皮蛋",
+    title: "导游上班", kind: "collision", maxCollisions: 2,
+    synopsis: "皮蛋要去市中心接新的旅行团，刚换上整洁的导游制服，可不想被颠得一身褶子。",
+    offer: [npc("新的旅行团在市中心等我，我得赶过去接他们。"),
+      npc("我刚换上新制服，路上别撞超过两次，不然一身褶子太没面子了！"), me("放心，保证不颠着你。")],
+    thanks: "制服还是平平整整的！吉米会帮我维持集合点的秩序，我去接客人啦。" },
+  { id: "bazzi-ride", type: "passenger", giver: "citizen-vicepoint", receiver: "shop-havana", item: "宝宝",
+    title: "去吃三明治", kind: "normal",
+    synopsis: "宝宝比完赛饿坏了，想去小哈瓦那吃黑妞做的古巴三明治，可他的车又被借走了。",
+    offer: [npc("比完赛饿得前胸贴后背……好想吃黑妞做的古巴三明治！"),
+      npc("我的车又被人借走了，你能载我去小哈瓦那吗？开得舒服我就多给小费！"), me("上车吧，饿肚子可不行。")],
+    thanks: "到啦！黑妞，五份三明治，今天我请客！" },
+
+  // ---- 收集：跑遍收集点，再交给收件人 ----
+  { id: "foreman-tools", type: "collect", giver: "foreman-downtown", receiver: "foreman-downtown", item: "工具箱",
+    title: "散落的工具箱", kind: "normal",
+    stops: [{ name: "市中心北口工具箱", at: [-1541, -1664] }, { name: "市中心东侧工具箱", at: [-1029, -1373] },
+      { name: "市中心西路工具箱", at: [-1638, -1160] }],
+    synopsis: "昨晚一阵大风，把工地的三个工具箱吹得满市中心都是。没有工具，今天的活儿就干不了。",
+    offer: [npc("昨晚风太大，三个工具箱被吹得满市中心都是！"),
+      npc("地图上标了它们的位置，开过去就能捡起来。全部捡回来交给我吧。"), me("我去把它们找回来。")],
+    thanks: "三个工具箱一个不少！今天总算能开工了，这栋楼说不定真能盖完呢。" },
+  { id: "kite-collect", type: "collect", giver: "kite-beach", receiver: "kite-beach", item: "被吹走的风筝",
+    title: "追风筝", kind: "time",
+    stops: [{ name: "海滩北边的风筝", at: [-785, 581] }, { name: "海滩西边的风筝", at: [-974, 978] },
+      { name: "海滩中间的风筝", at: [-590, 928] }],
+    synopsis: "一阵海风把雯雯摊子上的三只风筝吹跑了，落在海洋海滩各处。得赶在被人捡走前找回来。",
+    offer: [npc("呜呜，一阵大风把我的三只风筝吹跑了！"),
+      npc("它们落在海洋海滩各处，地图上标出来了。得在规定时间内捡回来，不然就被路人捡走啦！"), me("我这就去追！")],
+    thanks: "三只都回来了！为了谢谢你，这只小龙风筝送给你～" },
+  { id: "postman-mailboxes", type: "collect", giver: "postman-starfish", receiver: "postman-starfish", item: "邮筒里的信",
+    title: "收信", kind: "normal",
+    stops: [{ name: "海星岛西桥头邮筒", at: [-1223, 68] }, { name: "海星岛北邮筒", at: [-1002, -334] },
+      { name: "华盛顿海滩西邮筒", at: [-990, 191] }],
+    synopsis: "小强忙着送包裹，没空去收邮筒里的信。三个邮筒都快塞满了。",
+    offer: [npc("包裹太多，我已经三天没去收邮筒了，信都快塞不下了！"),
+      npc("帮我把这三个邮筒里的信收回来吧，开到邮筒旁边就行。"), me("交给我！")],
+    thanks: "这么多信！我今晚加个班，明天一早就全部寄出去。" },
+  { id: "havana-groceries", type: "collect", giver: "shop-havana", receiver: "shop-havana", item: "新鲜食材",
+    title: "采购食材", kind: "time",
+    stops: [{ name: "小哈瓦那西口菜摊", at: [-1950, 10] }, { name: "小哈瓦那东边面包房", at: [-1243, 649] },
+      { name: "小哈瓦那南边肉铺", at: [-1714, 1007] }],
+    synopsis: "午市就要开始，黑妞的咖啡馆还缺蔬菜、面包和火腿，三家店分在小哈瓦那三个方向。",
+    offer: [npc("午市马上就开始了，可蔬菜、面包和火腿都还没到！"),
+      npc("三家店分在小哈瓦那三个方向，得在规定时间内把食材都取回来！"), me("我跑得快，马上回来！")],
+    thanks: "食材齐了！午市的三明治有着落啦，今天给你加双份火腿！" },
+  { id: "florist-flowers", type: "collect", giver: "florist-washington", receiver: "florist-washington", item: "刚剪下的鲜花",
+    title: "清晨的鲜花", kind: "collision", maxCollisions: 3,
+    stops: [{ name: "华盛顿海滩西花圃", at: [-971, -348] }, { name: "华盛顿海滩中心花坛", at: [-490, -126] },
+      { name: "华盛顿海滩南花园", at: [-700, 574] }],
+    synopsis: "蓝蓝和三处花圃约好了今天取花。刚剪下的鲜花很娇嫩，一路颠簸花瓣就掉光了。",
+    offer: [npc("今天要去三处花圃取刚剪下的鲜花。"),
+      npc("鲜花可娇嫩了，一路上碰撞别超过三次，不然花瓣都要掉光了！"), me("我会开得稳稳的。")],
+    thanks: "花都还新鲜着呢！今天的花束一定是全城最漂亮的。" },
+
+  // ---- 寻物：在范围里凭信号找到失物，再交给收件人 ----
+  { id: "florist-puppy", type: "search", giver: "florist-washington", receiver: "florist-washington", item: "走丢的小狗",
+    title: "小狗去哪儿了", kind: "normal",
+    area: { name: "华盛顿海滩中部", at: [-600, 150], radius: 180 },
+    synopsis: "蓝蓝的小狗又溜出去玩了，最后一次有人看到它是在华盛顿海滩中部。",
+    offer: [npc("我家小狗又跑出去了！邻居说在华盛顿海滩中部见过它。"),
+      npc("它戴着会响的铃铛，靠得越近信号越强。找到它就带回来吧！"), me("我这就去找。")],
+    thanks: "小家伙，你又乱跑！谢谢你把它找回来，它好像很喜欢你呢。" },
+  { id: "captain-map", type: "search", giver: "captain-vicepoint", receiver: "captain-vicepoint", item: "藏宝图",
+    title: "失落的藏宝图", kind: "normal",
+    area: { name: "罪恶角中部", at: [-589, -941], radius: 200 },
+    synopsis: "海盗船长的藏宝图被海鸥叼走了，最后掉在了罪恶角中部的某个角落。",
+    offer: [npc("可恶的海鸥！把我的藏宝图叼走了，掉在罪恶角中部的某个地方！"),
+      npc("藏宝图的蜡封里有我的船长铃，靠得越近信号越强。帮我找回来，宝藏分你一份！"), me("一言为定！")],
+    thanks: "就是它！哟嚯——等我挖到宝藏，一定少不了你那份！" },
+  { id: "police-evidence", type: "search", giver: "police-downtown", receiver: "police-downtown", item: "被丢弃的证物",
+    title: "追查证物", kind: "time",
+    area: { name: "小海地", at: [-1600, -300], radius: 200 },
+    synopsis: "闯红灯的那辆卡丁车逃跑时把车牌甩掉了，车牌落在小海地一带。证物要尽快找回来。",
+    offer: [npc("那个连闯红灯的家伙逃跑时甩掉了车牌，掉在小海地一带。"),
+      npc("车牌上有定位贴片，靠得越近信号越强。得在规定时间内找回来，不然线索就断了！"), me("我去找！")],
+    thanks: "车牌找到了！这下可以顺藤摸瓜，抓住那个闯红灯的家伙了。" },
+  { id: "mechanic-hubcap", type: "search", giver: "mechanic-haiti", receiver: "mechanic-haiti", item: "飞出去的轮毂盖",
+    title: "飞走的轮毂盖", kind: "normal",
+    area: { name: "小哈瓦那中部", at: [-1571, 556], radius: 180 },
+    synopsis: "胖墩试车时一个镀金轮毂盖飞了出去，落在小哈瓦那中部。那可是客人的宝贝。",
+    offer: [npc("试车的时候一个镀金轮毂盖飞出去了，落在小哈瓦那中部！"),
+      npc("那是客人的宝贝，上面装着防盗信号器，靠得越近信号越强。帮我找回来吧！"), me("包在我身上。")],
+    thanks: "镀金轮毂盖！还一点划痕都没有，客人不会发现了，嘿嘿。" },
 ];

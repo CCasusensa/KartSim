@@ -287,3 +287,163 @@ func TestQuestTeleport(t *testing.T) {
 		t.Fatalf("hopping 360 m by resets: %v", failed)
 	}
 }
+
+// questDriver is a member with an account (so it has its own kart) in the
+// quest harness, driving it.
+func questDriver(h *harness, name string) *peer {
+	p := h.driver(name)
+	h.join(p, `{"type":"city-join"}`)
+	return p
+}
+
+// frameAt places p at (x, z) as if it drove there and sends a kind-3 frame
+// from there a tenth of a second after the last.
+func (h *harness) frameAt(p *peer, seq *uint32, x, z, speed float64, collisions uint32) {
+	h.t.Helper()
+	h.clock.Advance(100 * time.Millisecond)
+	h.droveTo(p, QuestNPC{X: x - 1, Z: z})
+	*seq++
+	h.svc.RelayMotion(p.c, presentationFrame(*seq, x, z, speed, collisions))
+}
+
+// A passenger rides only in a driven kart with a free back seat, takes the
+// seat from other members, loses satisfaction to collisions and speeding,
+// and tips by it at the end.
+func TestQuestPassenger(t *testing.T) {
+	h, rewards, book := questHarness(t)
+	quest := book.Quests["wenwen-ride"]
+	giver, receiver := book.NPCs[quest.Giver], book.NPCs[quest.Receiver]
+	p, other := questDriver(h, "Gus"), questDriver(h, "Hal")
+	h.atNPC(p, giver)
+	h.must(p, `{"type":"city-exit"}`)
+	h.clock.Advance(2 * time.Second)
+	h.refused(p, `{"type":"city-quest-accept","quest":"wenwen-ride"}`, "NOT_DRIVING")
+	h.must(p, fmt.Sprintf(`{"type":"city-enter","vehicle":%d}`, p.id))
+	h.clock.Advance(2 * time.Second)
+	other.sink.events(t)
+	accepted := h.must(p, `{"type":"city-quest-accept","quest":"wenwen-ride"}`)
+	if accepted["questType"] != QuestPassenger || accepted["satisfaction"] != float64(100) {
+		t.Fatalf("accept %v", accepted)
+	}
+	if seen := ofType(other.sink.events(t), "city-vehicle"); len(seen) != 1 ||
+		vehicleIn(t, seen[0])["npcPassenger"] != quest.Giver {
+		t.Fatalf("others see %v", seen)
+	}
+	h.atNPC(other, giver)
+	h.clock.Advance(2 * time.Second)
+	h.must(other, `{"type":"city-exit"}`)
+	h.clock.Advance(2 * time.Second)
+	h.refused(other, fmt.Sprintf(`{"type":"city-enter","vehicle":%d}`, p.id), "VEHICLE_FULL")
+
+	seq, collisions := uint32(0), uint32(7)
+	x := giver.X + 1
+	h.frameAt(p, &seq, x, giver.Z, 10, collisions)
+	collisions++ // one collision: −15
+	h.frameAt(p, &seq, x+1, giver.Z, 10, collisions)
+	for range 20 { // two seconds at 100 km/h: −8
+		x += 2.8
+		h.frameAt(p, &seq, x, giver.Z, 100/3.6, collisions)
+	}
+	progress := questEvents(t, p, "city-quest-progress")
+	if len(progress) == 0 || progress[0]["satisfaction"] != float64(85) ||
+		progress[len(progress)-1]["satisfaction"] != float64(77) {
+		t.Fatalf("satisfaction %v", progress)
+	}
+	h.clock.Advance(2 * time.Second)
+	h.droveTo(p, receiver)
+	done := h.must(p, `{"type":"city-quest-deliver"}`)
+	tip := int64(math.Round(float64(quest.Lucci)*0.3*0.77/10)) * 10
+	if done["satisfaction"] != float64(77) || done["tip"] != float64(tip) || len(rewards.requests) != 1 ||
+		rewards.requests[0].Lucci != quest.Lucci+tip {
+		t.Fatalf("deliver %v, credited %+v", done, rewards.requests)
+	}
+}
+
+// Leaving the driver's seat ends a ride; so does a passenger's patience.
+func TestQuestPassengerFails(t *testing.T) {
+	h, _, book := questHarness(t)
+	giver := book.NPCs[book.Quests["bazzi-ride"].Giver]
+	p := questDriver(h, "Ivy")
+	h.atNPC(p, giver)
+	h.must(p, `{"type":"city-quest-accept","quest":"bazzi-ride"}`)
+	h.clock.Advance(2 * time.Second)
+	h.must(p, `{"type":"city-exit"}`)
+	if failed := questEvents(t, p, "city-quest-failed"); len(failed) != 1 || failed[0]["reason"] != QuestFailExited {
+		t.Fatalf("exit: %v", failed)
+	}
+	h.clock.Advance(2 * time.Second)
+	h.must(p, fmt.Sprintf(`{"type":"city-enter","vehicle":%d}`, p.id))
+	h.clock.Advance(2 * time.Second)
+	h.must(p, `{"type":"city-quest-accept","quest":"bazzi-ride"}`)
+	seq, collisions := uint32(0), uint32(0)
+	h.frameAt(p, &seq, giver.X+1, giver.Z, 5, collisions)
+	for range 7 { // 7 × 15 > 100
+		collisions++
+		h.frameAt(p, &seq, giver.X+1, giver.Z, 5, collisions)
+	}
+	if failed := questEvents(t, p, "city-quest-failed"); len(failed) != 1 || failed[0]["reason"] != QuestFailUnhappy {
+		t.Fatalf("unhappy: %v", failed)
+	}
+}
+
+// A collection is finished only once every stop was reached.
+func TestQuestCollect(t *testing.T) {
+	h, rewards, book := questHarness(t)
+	quest := book.Quests["foreman-tools"]
+	giver := book.NPCs[quest.Giver]
+	p := questDriver(h, "Jo")
+	h.atNPC(p, giver)
+	accepted := h.must(p, `{"type":"city-quest-accept","quest":"foreman-tools"}`)
+	if got := accepted["collected"].([]any); len(got) != len(quest.Stops) || got[0] != false {
+		t.Fatalf("accept %v", accepted)
+	}
+	h.clock.Advance(2 * time.Second)
+	h.refused(p, `{"type":"city-quest-deliver"}`, "NOT_COLLECTED")
+	seq := uint32(0)
+	for i, stop := range quest.Stops {
+		h.frameAt(p, &seq, stop.X+20, stop.Z, 5, 0) // not there yet
+		h.frameAt(p, &seq, stop.X+6, stop.Z, 5, 0)
+		progress := questEvents(t, p, "city-quest-progress")
+		if len(progress) != 1 || progress[0]["collected"].([]any)[i] != true {
+			t.Fatalf("stop %d: %v", i, progress)
+		}
+	}
+	h.clock.Advance(2 * time.Second)
+	h.droveTo(p, book.NPCs[quest.Receiver])
+	h.must(p, `{"type":"city-quest-deliver"}`)
+	if len(rewards.requests) != 1 || rewards.requests[0].Lucci != quest.Lucci {
+		t.Fatalf("credited %+v", rewards.requests)
+	}
+}
+
+// A search's signal grows as the member nears the hidden item; passing by
+// it finds it, and only then can it be handed over.
+func TestQuestSearch(t *testing.T) {
+	h, _, book := questHarness(t)
+	h.svc.questPick = func(n int) int { return n - 1 }
+	quest := book.Quests["florist-puppy"]
+	giver := book.NPCs[quest.Giver]
+	spot := quest.Area.Spots[len(quest.Area.Spots)-1]
+	p := questDriver(h, "Kit")
+	h.atNPC(p, giver)
+	accepted := h.must(p, `{"type":"city-quest-accept","quest":"florist-puppy"}`)
+	if accepted["found"] != false || accepted["signal"].(float64) < 1 {
+		t.Fatalf("accept %v", accepted)
+	}
+	h.clock.Advance(2 * time.Second)
+	h.refused(p, `{"type":"city-quest-deliver"}`, "NOT_FOUND")
+	seq := uint32(0)
+	h.frameAt(p, &seq, spot.X+50, spot.Z, 5, 0)
+	h.clock.Advance(time.Second) // the tick reports the signal
+	if progress := questEvents(t, p, "city-quest-progress"); len(progress) == 0 ||
+		progress[len(progress)-1]["signal"] != float64(4) {
+		t.Fatalf("signal at 50 m: %v", progress)
+	}
+	h.frameAt(p, &seq, spot.X+5, spot.Z, 5, 0)
+	if progress := questEvents(t, p, "city-quest-progress"); len(progress) != 1 || progress[0]["found"] != true {
+		t.Fatalf("found: %v", progress)
+	}
+	h.clock.Advance(2 * time.Second)
+	h.droveTo(p, book.NPCs[quest.Receiver])
+	h.must(p, `{"type":"city-quest-deliver"}`)
+}

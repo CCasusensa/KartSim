@@ -266,6 +266,8 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
       onHover: () => host.getInterfaceAudio()?.playHover(),
       onStartActivate: () => host.getInterfaceAudio()?.playStart(),
       onActivate: () => host.getInterfaceAudio()?.playClick(),
+      // 卡丁城's 操作说明 shows the player's driving keys.
+      keyMap: () => host.getGameOptions().keyMap,
       // 卡丁城 has no room list: leaving the city closes the lobby and returns to 首页.
       onCityExit: () => {
         if (controller.multiplayer !== lobby || controller.disposed) return;

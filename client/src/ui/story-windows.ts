@@ -610,8 +610,10 @@ export interface StoryReadyOptions {
   startLabel?: string;
   closeLabel?: string;
   playable?: boolean;
-  /** Painted in the track card's place (卡丁城: the NPC the delivery goes to). */
+  /** Painted in the track card's place (卡丁城: the NPC the quest goes to). */
   portrait?: StoryPortrait;
+  /** A stage_scenarioReady mission picture instead of the mission kind's. */
+  missionImage?: string;
   onStart(): void;
   onClose(): void;
   onActivate?(): void;
@@ -684,7 +686,7 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
   // the mission type picture.
   const definition = pruneMissingTextures(library, mapTree(raw, node => {
     if (name(node) === "missionImage")
-      return withAttributes(node, { texture: storyMissionImage(mission) });
+      return withAttributes(node, { texture: options.missionImage ?? storyMissionImage(mission) });
     // The lobby drops the placeholder theme texture the same way.
     if (name(node) === "trackTheme") return withAttributes(node, { texture: undefined });
     if (name(node) === "step" && step.stepTitleId)

@@ -59,9 +59,14 @@ func (v *vehicle) object() lobby.Object {
 		}
 		return int(m.id)
 	}
-	return lobby.Object{lobby.F("id", int(v.id)), lobby.F("owner", int(v.owner.id)), lobby.F("playerId", v.owner.playerID),
+	fields := lobby.Object{lobby.F("id", int(v.id)), lobby.F("owner", int(v.owner.id)), lobby.F("playerId", v.owner.playerID),
 		lobby.F("ownerName", v.owner.name), lobby.F("equipment", v.equipment), lobby.F("pose", v.pose.object()),
 		lobby.F("locked", v.locked), lobby.F("driver", seat(v.driver)), lobby.F("passenger", seat(v.passenger))}
+	// A 载客 quest's NPC rides in the back seat (CITY-QUESTS.md).
+	if d := v.driver; d != nil && d.carriesPassenger() {
+		fields = append(fields, lobby.F("npcPassenger", d.quest.run.quest.Giver))
+	}
+	return fields
 }
 
 // drivenTank is the tank of the kart m drives, nil on foot, as a passenger
@@ -176,6 +181,7 @@ func (inst *instance) exit(m *member, in lobby.Request, now int64) (lobby.Reply,
 		v.passenger = nil
 	}
 	inst.footLocked(m, pose, now, "")
+	inst.questExited(m)
 	inst.vehicleEvent(v, nil)
 	return lobby.NewReply(lobby.Object{lobby.F("type", "city-seat"), lobby.F("seat", SeatFoot),
 		lobby.F("pose", pose.object()), lobby.F("vehicle", v.object())}), nil
@@ -200,7 +206,7 @@ func (inst *instance) enter(m *member, in lobby.Request, now int64) (lobby.Reply
 		return lobby.Reply{}, fail(http.StatusConflict, "TOO_FAR")
 	case v.locked && v.owner != m:
 		return lobby.Reply{}, fail(http.StatusConflict, "VEHICLE_LOCKED")
-	case v.driver != nil && v.passenger != nil:
+	case v.driver != nil && (v.passenger != nil || v.driver.carriesPassenger()):
 		return lobby.Reply{}, fail(http.StatusConflict, "VEHICLE_FULL")
 	}
 	if !m.seats.allow(now) {

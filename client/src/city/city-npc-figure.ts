@@ -24,6 +24,26 @@ interface CatalogLibrary {
   timeAttackGarageCatalog(): Promise<{ karts: CatalogEntry[]; characters: CatalogEntry[] }>;
 }
 
+/**
+ * An original character as My Room's walking rider loads it, coloured by its
+ * dye; motions default to standing (f10) and walking (f11).
+ */
+export async function loadNpcAvatar(host: Pick<CityNpcFigureHost, "library" | "environment" | "stageBinding">,
+  characterItem: number, dye: number, motions?: { idle: string; walk: string }): Promise<WalkingAvatar> {
+  const catalog = await (host.library as CatalogLibrary).timeAttackGarageCatalog();
+  const character = catalog.characters.find(item => item.itemId === characterItem) ?? catalog.characters[0];
+  const kart = catalog.karts[0];
+  if (!character || !kart) throw new Error("任务点人物缺少角色目录。");
+  const equipment = { itemIds: { 1: character.itemId, 70: dye } };
+  const subject = {
+    kart, character, profile: { equipment },
+    environment: host.environment, stageBinding: host.stageBinding,
+  } as unknown as MyRoomSceneSubject;
+  // The rider's colours come from its dye (slot 70), as My Room loads them.
+  const colors = await walkingAvatarColors(host.library as never, equipment);
+  return loadWalkingAvatar(host.library as never, subject, colors, motions);
+}
+
 /** How fast a figure turns to face someone (radians per second). */
 const TURN_RATE = 2.5;
 
@@ -51,18 +71,7 @@ export class CityNpcFigure {
   }
 
   private async load(): Promise<void> {
-    const catalog = await (this.host.library as CatalogLibrary).timeAttackGarageCatalog();
-    const character = catalog.characters.find(item => item.itemId === this.character) ?? catalog.characters[0];
-    const kart = catalog.karts[0];
-    if (!character || !kart) throw new Error("任务点人物缺少角色目录。");
-    const equipment = { itemIds: { 1: character.itemId, 70: this.dye } };
-    const subject = {
-      kart, character, profile: { equipment },
-      environment: this.host.environment, stageBinding: this.host.stageBinding,
-    } as unknown as MyRoomSceneSubject;
-    // The rider's colours come from its dye (slot 70), as My Room loads them.
-    const colors = await walkingAvatarColors(this.host.library as never, equipment);
-    const avatar = await loadWalkingAvatar(this.host.library as never, subject, colors);
+    const avatar = await loadNpcAvatar(this.host, this.character, this.dye);
     if (this.disposed) { disposeWalkingAvatar(avatar); return; }
     this.avatar = avatar;
     this.ground.add(avatar.scene.object);

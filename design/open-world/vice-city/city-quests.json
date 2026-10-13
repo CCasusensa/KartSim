@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "network": "ee0716549a4404cc",
  "rules": {
   "lucciBase": 60,
@@ -10,30 +10,67 @@
   "timeSlackS": 30,
   "arriveRadius": 12,
   "talkRadius": 12,
+  "pickupRadius": 10,
   "speedGraceMs": 1000,
+  "types": {
+   "delivery": {
+    "label": "送货",
+    "multiplier": 1
+   },
+   "passenger": {
+    "label": "载客",
+    "multiplier": 1.1
+   },
+   "collect": {
+    "label": "收集",
+    "multiplier": 1.2
+   },
+   "search": {
+    "label": "寻物",
+    "multiplier": 1.3
+   }
+  },
   "kinds": {
    "normal": {
-    "label": "普通配送",
+    "label": "普通",
     "multiplier": 1
    },
    "speed": {
-    "label": "限速配送",
+    "label": "限速",
     "multiplier": 1.4
    },
    "collision": {
-    "label": "易碎品配送",
+    "label": "小心驾驶",
     "multiplier": 1.5
    },
    "time": {
-    "label": "限时配送",
+    "label": "限时",
     "multiplier": 1.6
    }
+  },
+  "passenger": {
+   "collisionPenalty": 15,
+   "comfortKmh": 80,
+   "speedPenaltyPerS": 4,
+   "tipMax": 0.3
+  },
+  "search": {
+   "spots": 4,
+   "allowance": 2,
+   "signalBands": [
+    25,
+    60,
+    120,
+    200
+   ],
+   "extraTimeS": 60
   }
  },
  "npcs": {
   "guide-beach": {
    "name": "导游 · 皮蛋",
    "character": 2,
+   "dye": 4,
    "sprite": "dao",
    "background": "beach1",
    "story": "皮蛋是卡丁城最有名的导游。自从卡丁城对外开放，他每天带着一车又一车的游客沿海滨兜风。他常说：开车就像带团，最重要的是让每个人都平平安安到达。",
@@ -43,6 +80,7 @@
   "warden-washington": {
    "name": "交通协管员 · 小乖",
    "character": 8,
+   "dye": 9,
    "sprite": "uni",
    "background": "USA1",
    "story": "小乖是华盛顿海滩的交通协管员，能背出全城每一个红绿灯的周期，最看不得有人闯红灯。最近城里车多了起来，她忙得连午饭都顾不上吃。",
@@ -52,6 +90,7 @@
   "citizen-vicepoint": {
    "name": "热心市民 · 宝宝",
    "character": 1,
+   "dye": 1,
    "sprite": "bazzi",
    "background": "beach3",
    "story": "宝宝住在罪恶角的海边公寓，是个闲不住的热心市民，谁家有事都想帮一把。可他自己的卡丁车总被拿去比赛，结果常常要请别人帮忙跑腿。",
@@ -61,6 +100,7 @@
   "shop-havana": {
    "name": "店主 · 黑妞",
    "character": 3,
+   "dye": 7,
    "sprite": "dizini",
    "background": "vill2",
    "story": "黑妞在小哈瓦那开了一家古巴咖啡小馆，招牌是热腾腾的古巴三明治和冰咖啡。小馆生意红火，外卖单从城东排到了城西。",
@@ -70,6 +110,7 @@
   "mechanic-haiti": {
    "name": "修车师傅 · 胖墩",
    "character": 5,
+   "dye": 3,
    "sprite": "kephi",
    "background": "fac1",
    "story": "胖墩是小海地的修车师傅，修过的卡丁车比他吃过的面包还多。车库里永远堆满了零件，可他自己从不肯出门送货——说是要守着店。",
@@ -79,6 +120,7 @@
   "marshal-airport": {
    "name": "机场引导员 · 葱头",
    "character": 4,
+   "dye": 6,
    "sprite": "ethi",
    "background": "USA3",
    "story": "葱头在国际机场当地勤引导员，每天挥着指挥棒引导飞机滑行。旅客落下的行李、寄错地方的包裹，最后都会堆到他的值班室里。",
@@ -88,6 +130,7 @@
   "police-downtown": {
    "name": "巡警 · 吉米",
    "character": 15,
+   "dye": 11,
    "sprite": "mobi",
    "background": "USA2",
    "story": "吉米是市中心的巡警，开着巡逻车维护全城的交通秩序。他坚信守法驾驶才是真正的车技，时不时还会考考路过的车手。",
@@ -97,24 +140,76 @@
   "postman-starfish": {
    "name": "邮差 · 小强",
    "character": 7,
+   "dye": 5,
    "sprite": "mos",
    "background": "park1",
    "story": "小强是海星岛邮局唯一的邮差。岛上的住户天天网购，包裹堆得像小山一样。小强一个人忙不过来，正在招募靠谱的临时送货员。",
    "x": -1148.75,
    "z": 76.66
+  },
+  "kite-beach": {
+   "name": "风筝摊主 · 雯雯",
+   "character": 25,
+   "dye": 2,
+   "sprite": "wenwen",
+   "background": "beach2",
+   "story": "雯雯来自遥远的龙之国度，是伟大龙之家族的一员，也是皮蛋的好朋友。她一边在卡丁城旅行一边练车，在海滩上摆了个风筝摊，她扎的龙形风筝是全城最漂亮的。",
+   "x": -694.68,
+   "z": 1313.61
+  },
+  "captain-vicepoint": {
+   "name": "船坞老板 · 海盗船长",
+   "character": 9,
+   "dye": 8,
+   "sprite": "lodumani",
+   "background": "pirate2",
+   "story": "海盗船长曾经驰骋七海，如今在罪恶角开了一家船坞，修船、卖缆绳，顺便收集各种藏宝传说。他坐船从来不晕，坐卡丁车却晕得厉害，所以出门总得找人开车。",
+   "x": -548.61,
+   "z": -1557.47
+  },
+  "foreman-downtown": {
+   "name": "工地主管 · 神秘工头",
+   "character": 16,
+   "dye": 10,
+   "sprite": "brodi",
+   "background": "brodi_01",
+   "story": "没人知道神秘工头叫什么名字，只知道市中心那片永远在施工的工地归他管。他的工具散落在全城各处，图纸上画的大楼好像永远也盖不完。",
+   "x": -1439.14,
+   "z": -952.99
+  },
+  "busdriver-havana": {
+   "name": "校车司机 · 嘟嘟",
+   "character": 18,
+   "dye": 5,
+   "sprite": "tutu",
+   "background": "vill3",
+   "story": "嘟嘟开了十年校车，小哈瓦那的孩子们都是坐着他的车长大的。他最得意的是从没让一位乘客晕过车——开得稳，才是真本事。",
+   "x": -1469.63,
+   "z": 1203.27
+  },
+  "florist-washington": {
+   "name": "花店店主 · 蓝蓝",
+   "character": 6,
+   "dye": 6,
+   "sprite": "marid",
+   "background": "beach5",
+   "story": "蓝蓝在华盛顿海滩开了一家小花店，每天一大早就去各处采花。她养了一只调皮的小狗，三天两头溜出去玩，每次都要全街的人帮忙找。",
+   "x": -422.48,
+   "z": 432.29
   }
  },
  "quests": [
   {
    "id": "beach-brochures",
+   "type": "delivery",
    "giver": "guide-beach",
    "receiver": "warden-washington",
    "item": "一箱旅游手册",
    "title": "旅游手册告急",
    "kind": "normal",
-   "distanceM": 1883,
-   "lucci": 230,
-   "exp": 91,
+   "distanceM": 1622,
+   "lucci": 210,
+   "exp": 82,
    "synopsis": "华盛顿海滩的游客服务点没有旅游手册了，皮蛋手头刚好有一箱新印的。",
    "offer": [
     {
@@ -134,14 +229,15 @@
   },
   {
    "id": "beach-coconut",
+   "type": "delivery",
    "giver": "guide-beach",
    "receiver": "citizen-vicepoint",
    "item": "冰镇椰子汁",
    "title": "冰镇椰子汁",
    "kind": "time",
-   "distanceM": 3193,
-   "lucci": 560,
-   "exp": 219,
+   "distanceM": 2180,
+   "lucci": 410,
+   "exp": 162,
    "synopsis": "宝宝在罪恶角晒了一下午太阳，点了一大杯冰镇椰子汁——送晚了，冰就全化了。",
    "offer": [
     {
@@ -158,18 +254,19 @@
     }
    ],
    "thanks": "哇，还是冰的！透心凉～你开车真快！",
-   "timeLimitMs": 245000
+   "timeLimitMs": 180000
   },
   {
    "id": "washington-tape",
+   "type": "delivery",
    "giver": "warden-washington",
    "receiver": "police-downtown",
    "item": "路口监控录像带",
    "title": "闯红灯的证据",
    "kind": "time",
-   "distanceM": 2870,
-   "lucci": 510,
-   "exp": 201,
+   "distanceM": 2248,
+   "lucci": 420,
+   "exp": 166,
    "synopsis": "昨晚有人在华盛顿海滩的路口连闯三个红灯，录像带要尽快交给市中心的巡警吉米。",
    "offer": [
     {
@@ -186,18 +283,19 @@
     }
    ],
    "thanks": "录像带收到！这下看那个闯红灯的家伙往哪儿跑。",
-   "timeLimitMs": 225000
+   "timeLimitMs": 180000
   },
   {
    "id": "washington-camera",
+   "type": "delivery",
    "giver": "warden-washington",
    "receiver": "guide-beach",
    "item": "游客遗失的相机",
    "title": "失物招领",
    "kind": "collision",
-   "distanceM": 1773,
-   "lucci": 330,
-   "exp": 131,
+   "distanceM": 1622,
+   "lucci": 310,
+   "exp": 123,
    "synopsis": "一位游客把相机落在了路口岗亭，小乖认出那是皮蛋旅行团的客人。相机很娇贵，路上不能磕碰。",
    "offer": [
     {
@@ -218,14 +316,15 @@
   },
   {
    "id": "vicepoint-cake",
+   "type": "delivery",
    "giver": "citizen-vicepoint",
    "receiver": "shop-havana",
    "item": "三层奶油生日蛋糕",
    "title": "生日惊喜",
    "kind": "speed",
-   "distanceM": 3270,
-   "lucci": 500,
-   "exp": 195,
+   "distanceM": 2538,
+   "lucci": 400,
+   "exp": 159,
    "synopsis": "黑妞今天过生日，宝宝偷偷订了一个三层奶油蛋糕。蛋糕经不起颠簸，车速千万不能快。",
    "offer": [
     {
@@ -246,14 +345,15 @@
   },
   {
    "id": "vicepoint-postcards",
+   "type": "delivery",
    "giver": "citizen-vicepoint",
    "receiver": "postman-starfish",
    "item": "一叠明信片",
    "title": "寄往远方",
    "kind": "normal",
-   "distanceM": 2388,
-   "lucci": 270,
-   "exp": 109,
+   "distanceM": 1923,
+   "lucci": 230,
+   "exp": 92,
    "synopsis": "宝宝写了一叠明信片要寄给远方的赛车伙伴，得送到海星岛的邮局。",
    "offer": [
     {
@@ -273,14 +373,15 @@
   },
   {
    "id": "havana-sandwich",
+   "type": "delivery",
    "giver": "shop-havana",
    "receiver": "mechanic-haiti",
    "item": "热腾腾的古巴三明治",
    "title": "趁热送到",
    "kind": "time",
-   "distanceM": 1335,
-   "lucci": 290,
-   "exp": 115,
+   "distanceM": 589,
+   "lucci": 180,
+   "exp": 73,
    "synopsis": "小海地的修车师傅胖墩又点了外卖。三明治要趁热吃，凉了他可是会抱怨的。",
    "offer": [
     {
@@ -297,18 +398,19 @@
     }
    ],
    "thanks": "还热乎着呢！吃饱了才有力气修车，谢啦！",
-   "timeLimitMs": 120000
+   "timeLimitMs": 70000
   },
   {
    "id": "havana-glasses",
+   "type": "delivery",
    "giver": "shop-havana",
    "receiver": "citizen-vicepoint",
    "item": "一箱玻璃杯",
    "title": "派对用的杯子",
    "kind": "collision",
-   "distanceM": 3896,
-   "lucci": 620,
-   "exp": 242,
+   "distanceM": 2538,
+   "lucci": 430,
+   "exp": 171,
    "synopsis": "宝宝要在海边公寓开派对，向黑妞借了一整箱玻璃杯。玻璃杯一碰就碎。",
    "offer": [
     {
@@ -329,14 +431,15 @@
   },
   {
    "id": "haiti-engine",
+   "type": "delivery",
    "giver": "mechanic-haiti",
    "receiver": "marshal-airport",
    "item": "修好的引擎零件",
    "title": "机场的急件",
    "kind": "normal",
-   "distanceM": 1799,
-   "lucci": 220,
-   "exp": 88,
+   "distanceM": 1331,
+   "lucci": 180,
+   "exp": 72,
    "synopsis": "机场的行李牵引车坏了，葱头急等胖墩修好的引擎零件。",
    "offer": [
     {
@@ -356,14 +459,15 @@
   },
   {
    "id": "haiti-oil",
+   "type": "delivery",
    "giver": "mechanic-haiti",
    "receiver": "shop-havana",
    "item": "一桶咖啡机专用机油",
    "title": "小心洒出来",
    "kind": "speed",
-   "distanceM": 1269,
-   "lucci": 240,
-   "exp": 97,
+   "distanceM": 589,
+   "lucci": 160,
+   "exp": 64,
    "synopsis": "黑妞的咖啡机需要专用机油保养。油桶盖子不太严实，开太快会洒出来。",
    "offer": [
     {
@@ -384,14 +488,15 @@
   },
   {
    "id": "airport-luggage",
+   "type": "delivery",
    "giver": "marshal-airport",
    "receiver": "guide-beach",
    "item": "旅行团的行李箱",
    "title": "赶在出发前",
    "kind": "time",
-   "distanceM": 2744,
-   "lucci": 490,
-   "exp": 194,
+   "distanceM": 2500,
+   "lucci": 460,
+   "exp": 180,
    "synopsis": "皮蛋旅行团的一位游客把行李落在了机场，旅行团马上要出发去下一站。",
    "offer": [
     {
@@ -408,18 +513,19 @@
     }
    ],
    "thanks": "行李箱赶上了！客人可以安心出发啦，太感谢了！",
-   "timeLimitMs": 215000
+   "timeLimitMs": 200000
   },
   {
    "id": "airport-parcel",
+   "type": "delivery",
    "giver": "marshal-airport",
    "receiver": "police-downtown",
    "item": "来路不明的包裹",
    "title": "神秘包裹",
    "kind": "collision",
-   "distanceM": 3722,
-   "lucci": 590,
-   "exp": 233,
+   "distanceM": 3042,
+   "lucci": 500,
+   "exp": 197,
    "synopsis": "机场发现一个无人认领的包裹，葱头请巡警吉米检查。里面会不会是易碎品？保险起见别乱撞。",
    "offer": [
     {
@@ -440,14 +546,15 @@
   },
   {
    "id": "downtown-baton",
+   "type": "delivery",
    "giver": "police-downtown",
    "receiver": "warden-washington",
    "item": "新的交通指挥棒",
    "title": "新的指挥棒",
    "kind": "normal",
-   "distanceM": 2397,
-   "lucci": 280,
-   "exp": 109,
+   "distanceM": 2248,
+   "lucci": 260,
+   "exp": 104,
    "synopsis": "小乖的旧指挥棒用坏了，吉米从警局领了一根新的发光指挥棒。",
    "offer": [
     {
@@ -467,14 +574,15 @@
   },
   {
    "id": "downtown-keys",
+   "type": "delivery",
    "giver": "police-downtown",
    "receiver": "mechanic-haiti",
    "item": "巡逻车备用钥匙",
    "title": "守法驾驶示范",
    "kind": "speed",
-   "distanceM": 2116,
-   "lucci": 350,
-   "exp": 139,
+   "distanceM": 1898,
+   "lucci": 320,
+   "exp": 128,
    "synopsis": "吉米的巡逻车在胖墩那里保养，备用钥匙要送过去。吉米要求送钥匙的人做守法驾驶示范。",
    "offer": [
     {
@@ -495,14 +603,15 @@
   },
   {
    "id": "starfish-express",
+   "type": "delivery",
    "giver": "postman-starfish",
    "receiver": "shop-havana",
    "item": "加急包裹",
    "title": "加急件",
    "kind": "time",
-   "distanceM": 1454,
-   "lucci": 310,
-   "exp": 121,
+   "distanceM": 785,
+   "lucci": 210,
+   "exp": 84,
    "synopsis": "黑妞网购的新咖啡豆到了，还是加急件，得在时限内送到。",
    "offer": [
     {
@@ -519,18 +628,19 @@
     }
    ],
    "thanks": "新咖啡豆来得正好，今天的招牌咖啡有着落了！",
-   "timeLimitMs": 130000
+   "timeLimitMs": 85000
   },
   {
    "id": "starfish-eggs",
+   "type": "delivery",
    "giver": "postman-starfish",
    "receiver": "marshal-airport",
    "item": "一盒新鲜鸡蛋",
    "title": "新鲜鸡蛋",
    "kind": "collision",
-   "distanceM": 1913,
-   "lucci": 350,
-   "exp": 138,
+   "distanceM": 1664,
+   "lucci": 310,
+   "exp": 125,
    "synopsis": "机场员工食堂订了一盒海星岛农场的新鲜鸡蛋，鸡蛋可经不起撞。",
    "offer": [
     {
@@ -548,6 +658,745 @@
    ],
    "thanks": "鸡蛋完好无损！今天的员工餐有荷包蛋吃啦～",
    "maxCollisions": 2
+  },
+  {
+   "id": "kite-letter",
+   "type": "delivery",
+   "giver": "kite-beach",
+   "receiver": "postman-starfish",
+   "item": "寄回家乡的龙形风筝",
+   "title": "寄给家乡的风筝",
+   "kind": "collision",
+   "distanceM": 1985,
+   "lucci": 360,
+   "exp": 142,
+   "synopsis": "雯雯扎了一只最大的龙形风筝，要寄回龙之国度给家人看。风筝骨架是竹子做的，一撞就散。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这是我扎过最大的一只龙形风筝，我想把它寄回家乡给家人看！"
+    },
+    {
+     "who": "npc",
+     "text": "邮局在海星岛。风筝骨架很脆，路上碰撞别超过三次哦。"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "好漂亮的风筝！我一定好好包起来，寄到龙之国度去。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "captain-raisins",
+   "type": "delivery",
+   "giver": "captain-vicepoint",
+   "receiver": "shop-havana",
+   "item": "一桶朗姆葡萄干",
+   "title": "船长的葡萄干",
+   "kind": "speed",
+   "distanceM": 3266,
+   "lucci": 500,
+   "exp": 195,
+   "synopsis": "黑妞的咖啡馆要做新甜点，向海盗船长订了一桶航海用的朗姆葡萄干。桶盖是旧船上的，开快了会晃开。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "哟嚯！黑妞订了我一桶珍藏的朗姆葡萄干，说要做新甜点。"
+    },
+    {
+     "who": "npc",
+     "text": "这桶是从旧船上拆下来的，盖子不牢靠，车速超过 45 它就要散架啦！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开，放心吧。"
+    }
+   ],
+   "thanks": "葡萄干香极了！新甜点就叫“船长的宝藏”吧～",
+   "maxKmh": 45
+  },
+  {
+   "id": "foreman-permit",
+   "type": "delivery",
+   "giver": "foreman-downtown",
+   "receiver": "police-downtown",
+   "item": "施工许可证",
+   "title": "施工许可证",
+   "kind": "time",
+   "distanceM": 752,
+   "lucci": 200,
+   "exp": 82,
+   "synopsis": "工地今晚要封路施工，许可证得在警局下班前交给巡警吉米盖章。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "今晚工地要封半条路施工，许可证得让巡警吉米盖章。"
+    },
+    {
+     "who": "npc",
+     "text": "警局快下班了，你得在规定时间内送到，不然今晚又开不了工！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "许可证收到，章已经盖好了。施工期间我会安排人指挥交通。",
+   "timeLimitMs": 85000
+  },
+  {
+   "id": "bus-schoolbag",
+   "type": "delivery",
+   "giver": "busdriver-havana",
+   "receiver": "citizen-vicepoint",
+   "item": "落在校车上的书包",
+   "title": "落下的书包",
+   "kind": "normal",
+   "distanceM": 3231,
+   "lucci": 350,
+   "exp": 138,
+   "synopsis": "宝宝的小侄子把书包落在了校车上，里面有明天要交的作业。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "唉，宝宝的小侄子又把书包落在校车上了，里面还有明天要交的作业。"
+    },
+    {
+     "who": "npc",
+     "text": "宝宝家在罪恶角海边，能帮我送过去吗？"
+    },
+    {
+     "who": "me",
+     "text": "好，我这就去。"
+    }
+   ],
+   "thanks": "书包找回来啦！作业还在，小侄子明天不用挨批评了，谢谢你！"
+  },
+  {
+   "id": "florist-bouquet",
+   "type": "delivery",
+   "giver": "florist-washington",
+   "receiver": "marshal-airport",
+   "item": "接机用的花束",
+   "title": "接机花束",
+   "kind": "time",
+   "distanceM": 2617,
+   "lucci": 470,
+   "exp": 187,
+   "synopsis": "葱头的妈妈今天坐飞机来卡丁城看他，葱头在蓝蓝的花店订了一束接机的鲜花。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "葱头的妈妈今天坐飞机来看他，他在我这儿订了一束接机的花。"
+    },
+    {
+     "who": "npc",
+     "text": "飞机快落地了，得在规定时间内送到国际机场！"
+    },
+    {
+     "who": "me",
+     "text": "赶在飞机落地前送到！"
+    }
+   ],
+   "thanks": "花来得正好！妈妈刚下飞机，看到花一定很开心。",
+   "timeLimitMs": 205000
+  },
+  {
+   "id": "captain-ride",
+   "type": "passenger",
+   "giver": "captain-vicepoint",
+   "receiver": "mechanic-haiti",
+   "item": "海盗船长",
+   "title": "晕车的船长",
+   "kind": "speed",
+   "distanceM": 3108,
+   "lucci": 520,
+   "exp": 206,
+   "synopsis": "海盗船长的船舵在胖墩那里修好了，可他一坐快车就晕。车速千万不能超过 50。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我的船舵在小海地胖墩那里修好了，得亲自去取。"
+    },
+    {
+     "who": "npc",
+     "text": "可我一坐快车就晕……你载我过去吧，车速别超过 50，不然我就……呕……"
+    },
+    {
+     "who": "me",
+     "text": "上车吧船长，我开稳一点。"
+    }
+   ],
+   "thanks": "到、到了？呼……这是我坐过最舒服的一次卡丁车！船舵我自己扛回去就行。",
+   "maxKmh": 50
+  },
+  {
+   "id": "wenwen-ride",
+   "type": "passenger",
+   "giver": "kite-beach",
+   "receiver": "guide-beach",
+   "item": "雯雯",
+   "title": "去找皮蛋",
+   "kind": "normal",
+   "distanceM": 399,
+   "lucci": 110,
+   "exp": 43,
+   "synopsis": "雯雯要去海洋海滩找皮蛋，约好了比一场赛车。她想坐车过去看看路线。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我跟皮蛋约好了比一场赛车！不过我想先坐车看看他平时跑的路线。"
+    },
+    {
+     "who": "npc",
+     "text": "载我去海洋海滩找他吧！开得平稳一点，我会给你小费的～"
+    },
+    {
+     "who": "me",
+     "text": "没问题，上车！"
+    }
+   ],
+   "thanks": "谢谢你送我过来！路线我都记住啦，皮蛋你等着吧！"
+  },
+  {
+   "id": "tutu-ride",
+   "type": "passenger",
+   "giver": "busdriver-havana",
+   "receiver": "marshal-airport",
+   "item": "嘟嘟",
+   "title": "赶去接小朋友",
+   "kind": "time",
+   "distanceM": 1866,
+   "lucci": 400,
+   "exp": 159,
+   "synopsis": "春游的孩子们坐飞机回来了，可嘟嘟的校车偏偏在这时候抛锚。他得赶在飞机落地前到机场。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "糟了！春游的孩子们马上坐飞机回来，我的校车却抛锚了！"
+    },
+    {
+     "who": "npc",
+     "text": "你能载我去国际机场吗？得在规定时间内赶到，孩子们还等着我呢！"
+    },
+    {
+     "who": "me",
+     "text": "快上车！"
+    }
+   ],
+   "thanks": "赶上了！孩子们刚出来。这车开得又快又稳，你可以来当校车司机了！",
+   "timeLimitMs": 155000
+  },
+  {
+   "id": "dao-ride",
+   "type": "passenger",
+   "giver": "guide-beach",
+   "receiver": "police-downtown",
+   "item": "皮蛋",
+   "title": "导游上班",
+   "kind": "collision",
+   "distanceM": 3859,
+   "lucci": 670,
+   "exp": 264,
+   "synopsis": "皮蛋要去市中心接新的旅行团，刚换上整洁的导游制服，可不想被颠得一身褶子。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "新的旅行团在市中心等我，我得赶过去接他们。"
+    },
+    {
+     "who": "npc",
+     "text": "我刚换上新制服，路上别撞超过两次，不然一身褶子太没面子了！"
+    },
+    {
+     "who": "me",
+     "text": "放心，保证不颠着你。"
+    }
+   ],
+   "thanks": "制服还是平平整整的！吉米会帮我维持集合点的秩序，我去接客人啦。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "bazzi-ride",
+   "type": "passenger",
+   "giver": "citizen-vicepoint",
+   "receiver": "shop-havana",
+   "item": "宝宝",
+   "title": "去吃三明治",
+   "kind": "normal",
+   "distanceM": 2538,
+   "lucci": 320,
+   "exp": 125,
+   "synopsis": "宝宝比完赛饿坏了，想去小哈瓦那吃黑妞做的古巴三明治，可他的车又被借走了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "比完赛饿得前胸贴后背……好想吃黑妞做的古巴三明治！"
+    },
+    {
+     "who": "npc",
+     "text": "我的车又被人借走了，你能载我去小哈瓦那吗？开得舒服我就多给小费！"
+    },
+    {
+     "who": "me",
+     "text": "上车吧，饿肚子可不行。"
+    }
+   ],
+   "thanks": "到啦！黑妞，五份三明治，今天我请客！"
+  },
+  {
+   "id": "foreman-tools",
+   "type": "collect",
+   "giver": "foreman-downtown",
+   "receiver": "foreman-downtown",
+   "item": "工具箱",
+   "title": "散落的工具箱",
+   "kind": "normal",
+   "distanceM": 2887,
+   "lucci": 380,
+   "exp": 151,
+   "stops": [
+    {
+     "name": "市中心西路工具箱",
+     "x": -1638.2,
+     "y": 9.9,
+     "z": -1160
+    },
+    {
+     "name": "市中心北口工具箱",
+     "x": -1540.5,
+     "y": 10.9,
+     "z": -1664.1
+    },
+    {
+     "name": "市中心东侧工具箱",
+     "x": -1029,
+     "y": 21.1,
+     "z": -1372.9
+    }
+   ],
+   "synopsis": "昨晚一阵大风，把工地的三个工具箱吹得满市中心都是。没有工具，今天的活儿就干不了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "昨晚风太大，三个工具箱被吹得满市中心都是！"
+    },
+    {
+     "who": "npc",
+     "text": "地图上标了它们的位置，开过去就能捡起来。全部捡回来交给我吧。"
+    },
+    {
+     "who": "me",
+     "text": "我去把它们找回来。"
+    }
+   ],
+   "thanks": "三个工具箱一个不少！今天总算能开工了，这栋楼说不定真能盖完呢。"
+  },
+  {
+   "id": "kite-collect",
+   "type": "collect",
+   "giver": "kite-beach",
+   "receiver": "kite-beach",
+   "item": "被吹走的风筝",
+   "title": "追风筝",
+   "kind": "time",
+   "distanceM": 2556,
+   "lucci": 560,
+   "exp": 220,
+   "stops": [
+    {
+     "name": "海滩中间的风筝",
+     "x": -590.2,
+     "y": 9.2,
+     "z": 928
+    },
+    {
+     "name": "海滩西边的风筝",
+     "x": -973.7,
+     "y": 9.3,
+     "z": 978
+    },
+    {
+     "name": "海滩北边的风筝",
+     "x": -785,
+     "y": 9.3,
+     "z": 581
+    }
+   ],
+   "synopsis": "一阵海风把雯雯摊子上的三只风筝吹跑了，落在海洋海滩各处。得赶在被人捡走前找回来。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "呜呜，一阵大风把我的三只风筝吹跑了！"
+    },
+    {
+     "who": "npc",
+     "text": "它们落在海洋海滩各处，地图上标出来了。得在规定时间内捡回来，不然就被路人捡走啦！"
+    },
+    {
+     "who": "me",
+     "text": "我这就去追！"
+    }
+   ],
+   "thanks": "三只都回来了！为了谢谢你，这只小龙风筝送给你～",
+   "timeLimitMs": 205000
+  },
+  {
+   "id": "postman-mailboxes",
+   "type": "collect",
+   "giver": "postman-starfish",
+   "receiver": "postman-starfish",
+   "item": "邮筒里的信",
+   "title": "收信",
+   "kind": "normal",
+   "distanceM": 4238,
+   "lucci": 530,
+   "exp": 208,
+   "stops": [
+    {
+     "name": "海星岛西桥头邮筒",
+     "x": -1223.3,
+     "y": 10.1,
+     "z": 68.3
+    },
+    {
+     "name": "华盛顿海滩西邮筒",
+     "x": -990,
+     "y": 10,
+     "z": 191.4
+    },
+    {
+     "name": "海星岛北邮筒",
+     "x": -1002,
+     "y": 25.2,
+     "z": -334.4
+    }
+   ],
+   "synopsis": "小强忙着送包裹，没空去收邮筒里的信。三个邮筒都快塞满了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "包裹太多，我已经三天没去收邮筒了，信都快塞不下了！"
+    },
+    {
+     "who": "npc",
+     "text": "帮我把这三个邮筒里的信收回来吧，开到邮筒旁边就行。"
+    },
+    {
+     "who": "me",
+     "text": "交给我！"
+    }
+   ],
+   "thanks": "这么多信！我今晚加个班，明天一早就全部寄出去。"
+  },
+  {
+   "id": "havana-groceries",
+   "type": "collect",
+   "giver": "shop-havana",
+   "receiver": "shop-havana",
+   "item": "新鲜食材",
+   "title": "采购食材",
+   "kind": "time",
+   "distanceM": 3936,
+   "lucci": 800,
+   "exp": 312,
+   "stops": [
+    {
+     "name": "小哈瓦那东边面包房",
+     "x": -1243.1,
+     "y": 25.3,
+     "z": 649.3
+    },
+    {
+     "name": "小哈瓦那南边肉铺",
+     "x": -1713.8,
+     "y": 10.7,
+     "z": 1007.1
+    },
+    {
+     "name": "小哈瓦那西口菜摊",
+     "x": -1950,
+     "y": 10.4,
+     "z": 9.6
+    }
+   ],
+   "synopsis": "午市就要开始，黑妞的咖啡馆还缺蔬菜、面包和火腿，三家店分在小哈瓦那三个方向。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "午市马上就开始了，可蔬菜、面包和火腿都还没到！"
+    },
+    {
+     "who": "npc",
+     "text": "三家店分在小哈瓦那三个方向，得在规定时间内把食材都取回来！"
+    },
+    {
+     "who": "me",
+     "text": "我跑得快，马上回来！"
+    }
+   ],
+   "thanks": "食材齐了！午市的三明治有着落啦，今天给你加双份火腿！",
+   "timeLimitMs": 295000
+  },
+  {
+   "id": "florist-flowers",
+   "type": "collect",
+   "giver": "florist-washington",
+   "receiver": "florist-washington",
+   "item": "刚剪下的鲜花",
+   "title": "清晨的鲜花",
+   "kind": "collision",
+   "distanceM": 4259,
+   "lucci": 800,
+   "exp": 313,
+   "stops": [
+    {
+     "name": "华盛顿海滩南花园",
+     "x": -699.8,
+     "y": 9.3,
+     "z": 574.5
+    },
+    {
+     "name": "华盛顿海滩中心花坛",
+     "x": -490.4,
+     "y": 10.8,
+     "z": -126.2
+    },
+    {
+     "name": "华盛顿海滩西花圃",
+     "x": -971,
+     "y": 25.2,
+     "z": -348
+    }
+   ],
+   "synopsis": "蓝蓝和三处花圃约好了今天取花。刚剪下的鲜花很娇嫩，一路颠簸花瓣就掉光了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "今天要去三处花圃取刚剪下的鲜花。"
+    },
+    {
+     "who": "npc",
+     "text": "鲜花可娇嫩了，一路上碰撞别超过三次，不然花瓣都要掉光了！"
+    },
+    {
+     "who": "me",
+     "text": "我会开得稳稳的。"
+    }
+   ],
+   "thanks": "花都还新鲜着呢！今天的花束一定是全城最漂亮的。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "florist-puppy",
+   "type": "search",
+   "giver": "florist-washington",
+   "receiver": "florist-washington",
+   "item": "走丢的小狗",
+   "title": "小狗去哪儿了",
+   "kind": "normal",
+   "distanceM": 1347,
+   "lucci": 240,
+   "exp": 94,
+   "area": {
+    "name": "华盛顿海滩中部",
+    "x": -600,
+    "z": 150,
+    "radius": 180,
+    "spots": [
+     {
+      "x": -440.1,
+      "z": 175.7
+     },
+     {
+      "x": -759.8,
+      "z": 156.1
+     },
+     {
+      "x": -549.9,
+      "z": -3.9
+     },
+     {
+      "x": -595.1,
+      "z": 309.6
+     }
+    ]
+   },
+   "synopsis": "蓝蓝的小狗又溜出去玩了，最后一次有人看到它是在华盛顿海滩中部。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我家小狗又跑出去了！邻居说在华盛顿海滩中部见过它。"
+    },
+    {
+     "who": "npc",
+     "text": "它戴着会响的铃铛，靠得越近信号越强。找到它就带回来吧！"
+    },
+    {
+     "who": "me",
+     "text": "我这就去找。"
+    }
+   ],
+   "thanks": "小家伙，你又乱跑！谢谢你把它找回来，它好像很喜欢你呢。"
+  },
+  {
+   "id": "captain-map",
+   "type": "search",
+   "giver": "captain-vicepoint",
+   "receiver": "captain-vicepoint",
+   "item": "藏宝图",
+   "title": "失落的藏宝图",
+   "kind": "normal",
+   "distanceM": 1887,
+   "lucci": 300,
+   "exp": 118,
+   "area": {
+    "name": "罪恶角中部",
+    "x": -589,
+    "z": -941,
+    "radius": 200,
+    "spots": [
+     {
+      "x": -409.4,
+      "z": -952.4
+     },
+     {
+      "x": -600.8,
+      "z": -968.8
+     },
+     {
+      "x": -483.2,
+      "z": -1086.5
+     },
+     {
+      "x": -505.4,
+      "z": -959.7
+     }
+    ]
+   },
+   "synopsis": "海盗船长的藏宝图被海鸥叼走了，最后掉在了罪恶角中部的某个角落。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "可恶的海鸥！把我的藏宝图叼走了，掉在罪恶角中部的某个地方！"
+    },
+    {
+     "who": "npc",
+     "text": "藏宝图的蜡封里有我的船长铃，靠得越近信号越强。帮我找回来，宝藏分你一份！"
+    },
+    {
+     "who": "me",
+     "text": "一言为定！"
+    }
+   ],
+   "thanks": "就是它！哟嚯——等我挖到宝藏，一定少不了你那份！"
+  },
+  {
+   "id": "police-evidence",
+   "type": "search",
+   "giver": "police-downtown",
+   "receiver": "police-downtown",
+   "item": "被丢弃的证物",
+   "title": "追查证物",
+   "kind": "time",
+   "distanceM": 3754,
+   "lucci": 830,
+   "exp": 325,
+   "area": {
+    "name": "小海地",
+    "x": -1600,
+    "z": -300,
+    "radius": 200,
+    "spots": [
+     {
+      "x": -1702,
+      "z": -448.1
+     },
+     {
+      "x": -1625.9,
+      "z": -136.4
+     },
+     {
+      "x": -1437.5,
+      "z": -316.5
+     },
+     {
+      "x": -1771.2,
+      "z": -246.8
+     }
+    ]
+   },
+   "synopsis": "闯红灯的那辆卡丁车逃跑时把车牌甩掉了，车牌落在小海地一带。证物要尽快找回来。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "那个连闯红灯的家伙逃跑时甩掉了车牌，掉在小海地一带。"
+    },
+    {
+     "who": "npc",
+     "text": "车牌上有定位贴片，靠得越近信号越强。得在规定时间内找回来，不然线索就断了！"
+    },
+    {
+     "who": "me",
+     "text": "我去找！"
+    }
+   ],
+   "thanks": "车牌找到了！这下可以顺藤摸瓜，抓住那个闯红灯的家伙了。",
+   "timeLimitMs": 345000
+  },
+  {
+   "id": "mechanic-hubcap",
+   "type": "search",
+   "giver": "mechanic-haiti",
+   "receiver": "mechanic-haiti",
+   "item": "飞出去的轮毂盖",
+   "title": "飞走的轮毂盖",
+   "kind": "normal",
+   "distanceM": 1753,
+   "lucci": 280,
+   "exp": 112,
+   "area": {
+    "name": "小哈瓦那中部",
+    "x": -1571,
+    "z": 556,
+    "radius": 180,
+    "spots": [
+     {
+      "x": -1438,
+      "z": 647.9
+     },
+     {
+      "x": -1601.2,
+      "z": 397.4
+     },
+     {
+      "x": -1600.6,
+      "z": 700.4
+     },
+     {
+      "x": -1566.2,
+      "z": 551.1
+     }
+    ]
+   },
+   "synopsis": "胖墩试车时一个镀金轮毂盖飞了出去，落在小哈瓦那中部。那可是客人的宝贝。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "试车的时候一个镀金轮毂盖飞出去了，落在小哈瓦那中部！"
+    },
+    {
+     "who": "npc",
+     "text": "那是客人的宝贝，上面装着防盗信号器，靠得越近信号越强。帮我找回来吧！"
+    },
+    {
+     "who": "me",
+     "text": "包在我身上。"
+    }
+   ],
+   "thanks": "镀金轮毂盖！还一点划痕都没有，客人不会发现了，嘿嘿。"
   }
  ]
 }

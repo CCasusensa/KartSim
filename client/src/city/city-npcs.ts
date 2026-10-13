@@ -111,7 +111,10 @@ export class CityNpcs {
     const canvas = stage.host?.renderer?.domElement as HTMLCanvasElement | undefined;
     const width = canvas?.width ?? 1, height = canvas?.height ?? 1;
     for (const npc of this.tasks) {
-      const distance = local ? Math.hypot(local.position.x - npc.world.x, local.position.z - npc.world.z) : Infinity;
+      // A 载客 quest's NPC rides in someone's back seat instead of standing here.
+      const away = this.away.has(npc.definition.id);
+      const distance = away ? Infinity
+        : local ? Math.hypot(local.position.x - npc.world.x, local.position.z - npc.world.z) : Infinity;
       if (!npc.figure && !npc.failed && distance < LOAD_RADIUS) this.load(npc);
       const figure = npc.figure;
       if (!figure?.avatar) continue;
@@ -130,6 +133,9 @@ export class CityNpcs {
       figure.update(now, presenter.camera, width, height, distance < DRAW_RADIUS);
     }
   }
+
+  /** The task-point NPCs riding in a back seat (not standing at their spots). */
+  readonly away = new Set<string>();
 
   private load(npc: TaskNpc): void {
     const runtime = this.host.stage.runtime;
@@ -161,7 +167,7 @@ export class CityNpcs {
   /** A task-point NPC's feet (world), once its figure stands on the ground. */
   feetOf(id: string): { x: number; y: number; z: number } | undefined {
     const npc = this.tasks.find(task => task.definition.id === id);
-    return npc?.figure?.avatar && npc.grounded ? npc.world : undefined;
+    return npc?.figure?.avatar && npc.grounded && !this.away.has(id) ? npc.world : undefined;
   }
 
   /** Name tags over the task-point NPCs that are drawn, and over honking cars' drivers. */
@@ -170,7 +176,7 @@ export class CityNpcs {
     for (const car of this.traffic?.honking(performance.now(), HONK_SHOW_MS) ?? [])
       out.push({ id: `npc-car:${car.id}`, name: car.driver, position: car.position });
     for (const npc of this.tasks) {
-      if (!npc.figure?.avatar || !npc.figure.root.visible) continue;
+      if (!npc.figure?.avatar || !npc.figure.root.visible || this.away.has(npc.definition.id)) continue;
       out.push({ id: this.labelId(npc), name: npc.definition.name,
         position: { x: npc.world.x, y: npc.world.y + HEAD_OFFSET, z: npc.world.z } });
     }

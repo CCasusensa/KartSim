@@ -23,8 +23,8 @@ const FAR_FROM_TRAFFIC = 40;
 /**
  * Who stands where: an anchor (a spawn point id or design x/z), the
  * character item (catalog.json: 1 宝宝, 2 皮蛋, 3 黑妞, 4 葱头, 5 胖墩, 6 蓝蓝,
- * 7 小强, 8 小乖, 14 妮妮, 15 吉米; those with a story-mode sprite, for the
- * quest dialogues), the rider dye (slot 70: 1 红 2 黄
+ * 7 小强, 8 小乖, 9 海盗船长, 14 妮妮, 15 吉米, 16 神秘工头, 18 嘟嘟, 25 雯雯;
+ * those with a story-mode sprite, for the quest dialogues), the rider dye (slot 70: 1 红 2 黄
  * 3 朱黄 4 绿 5 青绿 6 蓝 7 紫 8 黑 9 粉 10 白 11 海蓝), the name tag and what
  * they say when someone stops by.
  */
@@ -62,6 +62,31 @@ const NPCS = [
   { id: "postman-starfish", dye: 5, anchor: [-1150, 120], character: 7, name: "邮差 · 小强", lines: [
     "海星岛的信件和包裹都要经过我的手。",
     "最近包裹多得堆成了山，正缺人手帮忙送货呢！",
+  ] },
+  { id: "kite-beach", dye: 2, anchor: [-694, 1310], character: 25, name: "风筝摊主 · 雯雯", lines: [
+    "今天的海风正适合放风筝！",
+    "要不要买一只龙形风筝？全城最漂亮的哦。",
+    "皮蛋说他开车比我快？哼，走着瞧！",
+  ] },
+  { id: "captain-vicepoint", dye: 8, anchor: [-547, -1555], character: 9, name: "船坞老板 · 海盗船长", lines: [
+    "哟嚯——欢迎来到罪恶角船坞！",
+    "坐船从来不晕，坐卡丁车倒是晕得厉害……",
+    "听说罪恶角埋着宝藏，嘿嘿嘿。",
+  ] },
+  { id: "foreman-downtown", dye: 10, anchor: [-1444, -953], character: 16, name: "工地主管 · 神秘工头", lines: [
+    "施工重地，戴好安全帽！",
+    "这栋楼啊……好像永远也盖不完。",
+    "别问我叫什么，叫我工头就行。",
+  ] },
+  { id: "busdriver-havana", dye: 5, anchor: [-1472, 1201], character: 18, name: "校车司机 · 嘟嘟", lines: [
+    "嘟嘟——校车要出发啦！",
+    "开车要稳，乘客才会开心哦。",
+    "小哈瓦那的孩子们都认识我的校车。",
+  ] },
+  { id: "florist-washington", dye: 6, anchor: [-428, 428], character: 6, name: "花店店主 · 蓝蓝", lines: [
+    "今天的花开得真好～",
+    "要不要带一束花送给朋友？",
+    "我家小狗又溜出去玩了，真让人头疼。",
   ] },
 ];
 

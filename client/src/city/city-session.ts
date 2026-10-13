@@ -29,6 +29,8 @@ import type { GarageChoice, GarageView, GarageViewOptions } from "../multiplayer
 import { formatMultiplayerError } from "../multiplayer/errors";
 import { discardLocalKart, installLocalKart, loadLocalFlyingPet, loadLocalKart } from "./city-local-kart";
 import { CityNpcs, withTraffic } from "./city-npcs";
+import { showCityHelpWindow, type CityHelpWindow } from "./city-help-window";
+import { CityQuestPassengers } from "./city-quest-passenger";
 import { CityQuests } from "./city-quests";
 export { groundHeightAt } from "./city-ground";
 
@@ -71,6 +73,17 @@ export interface CityLobbyHost {
 
 const CHANNEL = "speedIndiCombine";
 
+/** Whether this browser has shown the 卡丁城操作说明 already (it opens by itself once). */
+const HELP_SEEN_KEY = "kartsim.city.helpSeen";
+
+function helpSeen(): boolean {
+  try { return globalThis.localStorage?.getItem(HELP_SEEN_KEY) === "1"; } catch { return true; }
+}
+
+function markHelpSeen(): void {
+  try { globalThis.localStorage?.setItem(HELP_SEEN_KEY, "1"); } catch { /* private mode */ }
+}
+
 function uuid(): string {
   const webCrypto = globalThis.crypto as Crypto;
   if (typeof webCrypto.randomUUID === "function") return webCrypto.randomUUID();
@@ -109,7 +122,9 @@ export class CitySession {
   onFoot?: CityOnFoot;
   /** The node's traffic and the task-point NPCs. */
   npcs?: CityNpcs;
-  /** 送货任务 (CITY-QUESTS.md). */
+  /** 载客任务的乘客 (CITY-QUESTS.md). */
+  passengers?: CityQuestPassengers;
+  /** 城市任务 (CITY-QUESTS.md). */
   quests?: CityQuests;
   snapshot?: CitySnapshot;
   clockMapping?: { offsetMs: number };
@@ -213,8 +228,10 @@ export class CitySession {
       stage.scheduleStart(performance.now() - 7000);
       await rendered;
       if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
-      host.options.status(`欢迎来到${snapshot.name}。Enter 聊天，G 车库，Esc 离开。`);
-      stage.chat?.notice?.("按 G 打开车库，随时换车、换角色、换装扮");
+      host.options.status(`欢迎来到${snapshot.name}。H 操作说明，Enter 聊天，G 车库，Esc 离开。`);
+      stage.chat?.notice?.("按 H 查看卡丁城操作说明，按 G 打开车库换车换装");
+      // The 操作说明 opens by itself the first time.
+      if (!helpSeen()) { markHelpSeen(); void this.toggleHelp(); }
     } finally {
       loading.dispose();
     }
@@ -311,6 +328,7 @@ export class CitySession {
       },
       npcFeet: id => this.npcs?.feetOf(id),
       say: (npcId, text) => this.labels?.say(`npc-task:${npcId}`, text, performance.now()),
+      isDriving: () => !this.onFoot || this.onFoot.seat === "driver",
       notice: text => stage.chat?.notice?.(text),
       playerName: () => this.host.accountNickname ?? "我",
       playerCharacter: () => Number((this.host.options.currentEquipment?.() as { itemIds?: Record<string, number> } | undefined)
@@ -387,10 +405,18 @@ export class CitySession {
       setDriving: driving => this.setDriving(driving),
       viewport: () => ({ width: root.clientWidth, height: root.clientHeight }),
       navigator: () => this.navigator,
-      questTarget: () => this.quests?.target(),
+      questMarks: () => this.quests?.mapMarks(),
       root,
     });
     this.onFoot.install(snapshot.you.id, snapshot.members, snapshot.vehicles);
+    // 载客 quests' NPCs in back seats, everyone's (CITY-QUESTS.md).
+    this.passengers = new CityQuestPassengers({
+      figureHost: () => ({ library: this.host.options.library, environment: runtime.assets.map.environment,
+        stageBinding: runtime.assets.map.stageBinding }),
+      riders: () => this.onFoot?.npcRiders() ?? [],
+      mount: playerId => this.onFoot?.riderMount(playerId),
+      away: this.npcs?.away ?? new Set(),
+    });
 
     // 导航: M map destinations, the green route on the HUD minimap.
     this.navigator = new CityNavigator({
@@ -413,6 +439,14 @@ export class CitySession {
       const target = event.target as HTMLElement | null;
       if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
       if (this.quests?.windowOpen) return;
+      // The 操作说明 closes with its own keys (Esc, Enter, H, F1).
+      if (this.help || this.helpOpening || performance.now() - this.helpClosedAt < 400) return;
+      if ((event.code === "KeyH" || event.code === "F1") && !event.repeat && !event.ctrlKey && !event.metaKey &&
+        !event.altKey && !this.fuel?.windowOpen && !this.onFoot?.mapOpen) {
+        event.preventDefault();
+        void this.toggleHelp();
+        return;
+      }
       if (!this.fuel?.windowOpen && this.quests?.keydown(event)) return;
       if (!this.fuel?.windowOpen && this.onFoot?.keydown(event)) return;
       if (event.repeat) return;
@@ -553,7 +587,8 @@ export class CitySession {
   private pauseDriving(paused: boolean): void {
     const stage = this.stage;
     if (!paused && this.statusLine) this.statusLine.style.visibility = "";
-    stage?.host?.input?.setEnabled?.(!paused);
+    // Walking or on a back seat the race keys stay off (setDriving).
+    stage?.host?.input?.setEnabled?.(!paused && (this.onFoot?.seat ?? "driver") === "driver");
     if (paused) {
       stage?.runtime?.local?.cancelModeDrivingInput?.();
       stage?.runtime?.local?.physics?.hardCancelControls?.();
@@ -570,13 +605,45 @@ export class CitySession {
   /** A city window (refuel, rescue, map, garage) is up or opening. */
   private windowOpen(): boolean {
     return !!(this.fuel?.windowOpen || this.onFoot?.mapOpen || this.garageView || this.garageOpening ||
-      this.quests?.windowOpen);
+      this.quests?.windowOpen || this.help || this.helpOpening);
+  }
+
+  // ---- 操作说明 (H / F1) ----
+
+  private help?: CityHelpWindow;
+  private helpOpening = false;
+  private helpClosedAt = -Infinity;
+
+  /** Opens the 操作说明, or closes it. */
+  async toggleHelp(): Promise<void> {
+    if (this.help) { this.closeHelp(); return; }
+    if (this.helpOpening || this.disposed) return;
+    this.helpOpening = true;
+    try {
+      const keyMap = (this.host.options.keyMap as (() => Record<number, number> | undefined) | undefined)?.();
+      const help = await showCityHelpWindow({ library: this.host.options.library as never,
+        root: this.host.options.root as HTMLElement, keyMap, close: () => this.closeHelp() });
+      if (this.disposed) help.dispose();
+      else { this.help = help; this.pauseDriving(true); }
+    } catch (error) {
+      console.warn("卡丁城操作说明打开失败", error);
+    } finally {
+      this.helpOpening = false;
+    }
+  }
+
+  private closeHelp(): void {
+    if (!this.help) return;
+    this.help.dispose();
+    this.help = undefined;
+    this.helpClosedAt = performance.now();
+    if (!this.disposed && !this.quests?.windowOpen) this.pauseDriving(false);
   }
 
   private frame(now: number): void {
     this.chatAllowed?.(!this.windowOpen());
     // The M map covers most of the view: the HUD overlays above it step aside.
-    const covered = !!this.onFoot?.mapOpen;
+    const covered = !!this.onFoot?.mapOpen || !!this.help;
     this.fuel?.cover(covered);
     this.quests?.cover(covered);
     if (this.statusLine) this.statusLine.style.visibility = covered ? "hidden" : "";
@@ -586,6 +653,10 @@ export class CitySession {
     }
     this.atmosphere?.update(now);
     this.npcs?.update(now);
+    {
+      const canvas = this.stage?.host?.renderer?.domElement as HTMLCanvasElement | undefined;
+      this.passengers?.update(now, this.stage?.scene?.camera, canvas?.width ?? 1, canvas?.height ?? 1);
+    }
     this.quests?.update(now);
     this.labels?.draw(now);
     this.fuel?.frame(now);
@@ -596,7 +667,7 @@ export class CitySession {
       const district = design ? districtAt(design.x, design.z) : undefined;
       if (state) {
         const weather = state.weather === "rain" ? " · 雨" : state.weather === "snow" ? " · 雪" : "";
-        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1} · G 车库`);
+        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1} · G 车库 · H 说明`);
       }
     }
   }
@@ -786,6 +857,8 @@ export class CitySession {
     this.fuel?.dispose();
     this.fuel = undefined;
     this.atmosphere?.dispose();
+    this.closeHelp();
+    this.passengers?.dispose();
     this.npcs?.dispose();
     this.quests?.dispose();
     this.statusLine?.remove();

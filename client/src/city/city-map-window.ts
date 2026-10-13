@@ -43,8 +43,18 @@ export interface CityMapMarkers {
   /** The own kart (parked or driven by someone). */
   kart?: { x: number; z: number; locked: boolean; driven: boolean };
   others: Array<{ x: number; z: number }>;
-  /** Where the delivery under way goes (CITY-QUESTS.md): a gold "?" like the one over the NPC. */
-  quest?: { x: number; z: number; label: string };
+  /** The quest under way (CITY-QUESTS.md). */
+  quest?: CityMapQuest;
+}
+
+/**
+ * A quest on the map: a gold "?" where it can be finished and a "★" at each
+ * collection stop still to reach (like the marks in the city), and a
+ * search's area as a dashed gold circle.
+ */
+export interface CityMapQuest {
+  marks: Array<{ mark: "?" | "★"; x: number; z: number; label: string }>;
+  area?: { x: number; z: number; radius: number; label: string };
 }
 
 /** Design x/z → pixel of the 1024² minimap image. */
@@ -229,7 +239,12 @@ export function paintCityMap(context: CanvasRenderingContext2D, rect: Rect, stat
     context.stroke();
     label(context, markers.kart.driven ? "我的车（有人在开）" : markers.kart.locked ? "我的车 · 已上锁" : "我的车", p.x, p.y - 16, 13, "#ffb0b0");
   }
-  if (markers.quest) paintQuestTarget(context, rect, at(markers.quest.x, markers.quest.z), markers.quest.label);
+  if (markers.quest) {
+    const area = markers.quest.area;
+    if (area) paintSearchArea(context, at(area.x, area.z), area.radius * viewScale(view, rect), area.label);
+    for (const mark of markers.quest.marks)
+      paintQuestTarget(context, rect, at(mark.x, mark.z), mark.label, mark.mark);
+  }
   const destination = navigator?.destination;
   if (destination) {
     const p = at(destination.x, destination.z);
@@ -263,7 +278,8 @@ export function paintCityMap(context: CanvasRenderingContext2D, rect: Rect, stat
  * edge towards the target (clear of the scale bar), with a little arrow
  * pointing out.
  */
-function paintQuestTarget(context: CanvasRenderingContext2D, rect: Rect, p: { x: number; y: number }, text: string): void {
+function paintQuestTarget(context: CanvasRenderingContext2D, rect: Rect, p: { x: number; y: number }, text: string,
+  mark: "?" | "★" = "?"): void {
   const left = rect.x + 26, right = rect.x + rect.width - 26, top = rect.y + 30, bottom = rect.y + rect.height - 46;
   context.save();
   context.fillStyle = "#ffd21f";
@@ -274,8 +290,8 @@ function paintQuestTarget(context: CanvasRenderingContext2D, rect: Rect, p: { x:
     context.arc(p.x, p.y, 4, 0, Math.PI * 2);
     context.fill();
     context.stroke();
-    paintMark(context, "?", p.x, p.y - 5, 30);
-    label(context, text, p.x, p.y - 38, 13, "#ffe9a8");
+    paintMark(context, mark, p.x, p.y - 5, mark === "★" ? 24 : 30);
+    label(context, text, p.x, p.y - (mark === "★" ? 32 : 38), 13, "#ffe9a8");
   } else {
     const cx = (left + right) / 2, cy = (top + bottom) / 2;
     const dx = p.x - cx, dy = p.y - cy;
@@ -292,8 +308,24 @@ function paintQuestTarget(context: CanvasRenderingContext2D, rect: Rect, p: { x:
     context.fill();
     context.stroke();
     context.restore();
-    paintMark(context, "?", x, y + 10, 28);
+    paintMark(context, mark, x, y + 10, mark === "★" ? 22 : 28);
   }
+  context.restore();
+}
+
+/** A search's area: a translucent gold disc with a dashed rim and its name. */
+function paintSearchArea(context: CanvasRenderingContext2D, p: { x: number; y: number }, radius: number, text: string): void {
+  context.save();
+  context.beginPath();
+  context.arc(p.x, p.y, Math.max(radius, 8), 0, Math.PI * 2);
+  context.fillStyle = "rgba(255, 210, 31, 0.18)";
+  context.fill();
+  context.setLineDash([8, 6]);
+  context.lineWidth = 2.5;
+  context.strokeStyle = "#ffd21f";
+  context.stroke();
+  context.setLineDash([]);
+  label(context, text, p.x, p.y - Math.max(radius, 8) - 10, 13, "#ffe9a8");
   context.restore();
 }
 
@@ -366,7 +398,13 @@ function paintHelp(context: CanvasRenderingContext2D, rect: Rect): void {
   row((x, cy) => paintPump(context, x - 6, cy - 8, 14, "#ff9a3c"), "加油站（可点击）");
   row((x, cy) => { context.fillStyle = "#ffd23f"; context.beginPath(); context.arc(x, cy, 4, 0, Math.PI * 2); context.fill(); }, "其他玩家");
   row((x, cy) => paintPin(context, x, cy - 3, 8), "目的地");
-  row((x, cy) => paintMark(context, "?", x, cy + 8, 22), "送货目标");
+  row((x, cy) => paintMark(context, "?", x, cy + 8, 22), "任务目标");
+  row((x, cy) => paintMark(context, "★", x, cy + 7, 18), "收集点");
+  row((x, cy) => {
+    context.beginPath(); context.arc(x, cy, 7, 0, Math.PI * 2);
+    context.fillStyle = "rgba(255, 210, 31, 0.25)"; context.fill();
+    context.setLineDash([3, 3]); context.strokeStyle = "#d9a400"; context.lineWidth = 2; context.stroke(); context.setLineDash([]);
+  }, "寻物范围");
   row((x, cy) => {
     context.lineCap = "round";
     context.strokeStyle = `#${ROUTE_RIM.toString(16).padStart(6, "0")}`; context.lineWidth = 7;
@@ -401,7 +439,7 @@ export function cityMapWindowDefinition(): Node {
       button("kartButton", 162, "去我的车"),
       button("stationButton", 214, "去最近的加油站"),
       button("clearButton", 266, "清除导航"),
-      node("Panel", { name: "mapHelp", leftTopWH: "636 326 236 290" }),
+      node("Panel", { name: "mapHelp", leftTopWH: "636 326 236 350" }),
       button("okButton", 728, "关闭", true),
       node("Panel", { name: "closeKey", leftTopWH: "800 739 44 20" }),
     ]),
@@ -447,9 +485,11 @@ export async function showCityMapWindow(options: CityMapWindowOptions): Promise<
     if (centred) return;
     centred = true;
     const { me, quest } = options.markers();
-    if (me && quest) view = fitView([me, quest], rect, 2);
-    else if (me) view = clampView({ cx: me.x, cz: me.z, zoom: 2 }, rect);
-    else if (quest) view = clampView({ cx: quest.x, cz: quest.z, zoom: 2 }, rect);
+    const points: Array<{ x: number; z: number }> = [...(me ? [me] : []), ...(quest?.marks ?? [])];
+    if (quest?.area) points.push({ x: quest.area.x - quest.area.radius, z: quest.area.z - quest.area.radius },
+      { x: quest.area.x + quest.area.radius, z: quest.area.z + quest.area.radius });
+    if (points.length > 1) view = fitView(points, rect, 2);
+    else if (points[0]) view = clampView({ cx: points[0].x, cz: points[0].z, zoom: 2 }, rect);
   };
   /** The ＋/－ buttons zoom about the map's centre. */
   const zoomBy = (factor: number) => {

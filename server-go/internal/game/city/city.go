@@ -159,6 +159,8 @@ type Service struct {
 	// quests and questRewards run the deliveries (nil: off).
 	quests       *QuestBook
 	questRewards QuestRewards
+	// questPick picks a search's hiding spot (rand.IntN; tests fix it).
+	questPick func(n int) int
 	// saves counts the fuel saves in flight (Close waits for them).
 	saves sync.WaitGroup
 
@@ -225,7 +227,8 @@ func New(opts Options) (*Service, error) {
 		opts.QuestBook = book
 	}
 	s := &Service{opts: opts, clock: opts.Clock, profiles: opts.Profiles, cityMap: opts.Map, log: opts.Logger,
-		mutes: map[string]int64{}, fuel: opts.Fuel, quests: opts.QuestBook, questRewards: opts.QuestRewards}
+		mutes: map[string]int64{}, fuel: opts.Fuel, quests: opts.QuestBook, questRewards: opts.QuestRewards,
+		questPick: rand.IntN}
 	now := s.clock.Now()
 	for line := 1; line <= opts.Lines; line++ {
 		s.lines = append(s.lines, newInstance(s, line, now))

@@ -30,7 +30,7 @@ import { discardLocalKart, installLocalKart, loadLocalFlyingPet, loadLocalKart }
 import { mountRacer } from "./city-racer-mount";
 import { CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
 import type { CityFuel, CityMember, CityPose, CitySeat, CitySeatReply, CityVehicle } from "./city-protocol";
-import { loadCityMinimap, showCityMapWindow, type CityMapMarkers, type CityMapWindow } from "./city-map-window";
+import { loadCityMinimap, showCityMapWindow, type CityMapMarkers, type CityMapQuest, type CityMapWindow } from "./city-map-window";
 import type { CityNavigator } from "./city-navigator";
 
 export interface CityOnFootNetwork {
@@ -71,8 +71,8 @@ export interface CityOnFootHost {
   viewport(): { width: number; height: number };
   /** The M map's navigation (destinations and the route). */
   navigator?(): CityNavigator | undefined;
-  /** The delivery under way's receiver (design x/z), for the big map's "?". */
-  questTarget?(): { x: number; z: number; label: string } | undefined;
+  /** The quest under way, for the big map's "?", "★" and search area. */
+  questMarks?(): CityMapQuest | undefined;
   /** Where windows open. */
   root: HTMLElement;
 }
@@ -84,7 +84,7 @@ export const EXIT_SPEED_KMH = 12;
  * tail, -x to its right, +z up; 0.5 m per unit in the city): behind the
  * driver and a little to the right, so the chase camera shows both.
  */
-const PASSENGER_OFFSET = { right: 0.34, back: 0.5, up: 0.14 };
+export const PASSENGER_OFFSET = { right: 0.34, back: 0.5, up: 0.14 };
 /** Follow camera behind a walker, and behind the kart we ride (m, half-size riders). */
 const CAMERA = { distance: 2.4, height: 1.25, aim: 0.55, fov: 62 };
 const RIDE_CAMERA = { distance: 3.4, height: 1.7, aim: 0.5 };
@@ -408,7 +408,7 @@ export class CityOnFoot {
       const at = design(fleet.copyWebPose(member.playerId)?.position);
       if (at) others.push({ x: at.x, z: at.z });
     }
-    const quest = this.host.questTarget?.();
+    const quest = this.host.questMarks?.();
     return { me: me && { x: me.x, z: me.z, heading: me.heading, y: me.y }, kart, others, ...(quest ? { quest } : {}) };
   }
 
@@ -510,6 +510,25 @@ export class CityOnFoot {
   }
 
   // ---- back seats ----
+
+  /** The karts carrying a 载客 quest's NPC (CITY-QUESTS.md) and who drives them. */
+  npcRiders(): Array<{ vehicle: number; npc: string; driverPlayerId: string }> {
+    const out = [];
+    for (const vehicle of this.vehicles.values()) {
+      if (!vehicle.npcPassenger || !vehicle.driver) continue;
+      const driverPlayerId = vehicle.driver === this.myId ? this.host.playerId : this.members.get(vehicle.driver)?.playerId;
+      if (driverPlayerId) out.push({ vehicle: vehicle.id, npc: vehicle.npcPassenger, driverPlayerId });
+    }
+    return out;
+  }
+
+  /** A driver's kart rider mount and the size riders take on it. */
+  riderMount(driverPlayerId: string): { mount: any; scale: number } | undefined {
+    const participant = driverPlayerId === this.host.playerId ? participantOf(this.host.stage(), driverPlayerId)
+      : this.host.fleet()?.peers.get(driverPlayerId)?.participant;
+    const mount = riderMountOf(participant);
+    return mount ? { mount, scale: participant?.vehicle?.visual?.onCharacterSize ?? 1 } : undefined;
+  }
 
   private mountOf(driverPlayerId: string | undefined): any {
     if (!driverPlayerId) return undefined;

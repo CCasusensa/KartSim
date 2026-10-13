@@ -44,6 +44,8 @@ export interface CityVehicle {
   /** Member ids of who sits in it (0: empty seat). */
   driver: number;
   passenger: number;
+  /** A 载客 quest's NPC in the back seat (CITY-QUESTS.md). */
+  npcPassenger?: string;
 }
 
 export interface CityClock {
@@ -106,7 +108,7 @@ export type CityEvent =
   | { type: "city-seat"; instanceId: string; id: number; playerId: string; seat: CitySeat; vehicle: number;
       pose?: CityPose; reason?: string }
   | { type: "city-quest-failed"; instanceId: string; quest: string; reason: string; collisions: number }
-  | { type: "city-quest-progress"; instanceId: string; quest: string; collisions: number }
+  | ({ type: "city-quest-progress"; instanceId: string; quest: string } & CityQuestProgress)
   | { type: "city-kicked"; instanceId: string; reason: string };
 
 export const CITY_EVENT_TYPES = new Set([
@@ -156,6 +158,7 @@ export function parseCityVehicle(value: unknown): CityVehicle {
     id: vehicle.id as number, owner: vehicle.owner as number,
     playerId: text(vehicle.playerId) ? vehicle.playerId : "", ownerName: text(vehicle.ownerName) ? vehicle.ownerName : "",
     equipment: vehicle.equipment, pose, locked: vehicle.locked === true, driver: seat("driver"), passenger: seat("passenger"),
+    ...(text(vehicle.npcPassenger) ? { npcPassenger: vehicle.npcPassenger } : {}),
   };
 }
 
@@ -301,7 +304,7 @@ export function parseCityEvent(message: Record<string, unknown>): CityEvent | un
         collisions: finite(message.collisions) ? message.collisions : 0 };
     case "city-quest-progress":
       if (!text(message.quest) || !finite(message.collisions)) throw new Error("city-quest-progress 数据无效。");
-      return { type, instanceId, quest: message.quest, collisions: message.collisions };
+      return { type, instanceId, quest: message.quest, ...parseQuestProgress(message) };
     case "city-kicked": return { type, instanceId, reason: text(message.reason) ? message.reason : "UNKNOWN" };
     default: return undefined;
   }
@@ -369,18 +372,43 @@ export function encodeCityRadar(entries: readonly CityRadarEntry[]): Uint8Array 
 
 // ---- 送货任务 (server-go/CITY-QUESTS.md) ----
 
-/** city-quest: an accepted delivery (ticks are node ms). */
-export interface CityQuestRun {
+/** What a quest has done so far (city-quest and city-quest-progress), by type. */
+export interface CityQuestProgress {
+  collisions: number;
+  /** 载客: the passenger's satisfaction, 0–100. */
+  satisfaction?: number;
+  /** 收集: which stops were reached, in the quest's order. */
+  collected?: boolean[];
+  /** 寻物: whether the item was found and the signal (1–5 bars). */
+  found?: boolean;
+  signal?: number;
+}
+
+function parseQuestProgress(message: Record<string, unknown>): CityQuestProgress {
+  return {
+    collisions: finite(message.collisions) ? message.collisions : 0,
+    ...(finite(message.satisfaction) ? { satisfaction: message.satisfaction } : {}),
+    ...(Array.isArray(message.collected) ? { collected: message.collected.map(entry => entry === true) } : {}),
+    ...(typeof message.found === "boolean" ? { found: message.found } : {}),
+    ...(finite(message.signal) ? { signal: message.signal } : {}),
+  };
+}
+
+/** city-quest: an accepted quest (ticks are node ms). */
+export interface CityQuestRun extends CityQuestProgress {
   quest: string;
+  questType: string;
   runId: string;
   startedAt: number;
   /** 0 without a time limit. */
   deadline: number;
-  collisions: number;
 }
 
-/** city-quest-done: what the delivery credited and the account afterwards. */
+/** city-quest-done: what the quest credited and the account afterwards. */
 export interface CityQuestDone {
+  /** 载客: the passenger's satisfaction and tip (金币, in lucci before rates). */
+  satisfaction?: number;
+  tip?: number;
   quest: string;
   elapsedMs: number;
   collisions: number;
@@ -397,8 +425,8 @@ export function parseCityQuestRun(value: unknown): CityQuestRun {
   const reply = value as Record<string, unknown>;
   if (!reply || !text(reply.quest) || !text(reply.runId) || !finite(reply.startedAt) || !finite(reply.deadline))
     throw new Error("送货任务数据无效。");
-  return { quest: reply.quest, runId: reply.runId, startedAt: reply.startedAt, deadline: reply.deadline,
-    collisions: finite(reply.collisions) ? reply.collisions : 0 };
+  return { quest: reply.quest, questType: text(reply.questType) ? reply.questType : "delivery", runId: reply.runId,
+    startedAt: reply.startedAt, deadline: reply.deadline, ...parseQuestProgress(reply) };
 }
 
 export function parseCityQuestDone(value: unknown): CityQuestDone {
@@ -413,5 +441,7 @@ export function parseCityQuestDone(value: unknown): CityQuestDone {
   }) : [];
   return { quest: reply.quest, elapsedMs: reply.elapsedMs as number, collisions: reply.collisions as number,
     exp: reply.exp as number, lucci: reply.lucci as number, capped: reply.capped === true, levelUps,
-    walletLucci: reply.walletLucci as number, totalExp: reply.totalExp as number, level: reply.level as number };
+    walletLucci: reply.walletLucci as number, totalExp: reply.totalExp as number, level: reply.level as number,
+    ...(finite(reply.satisfaction) ? { satisfaction: reply.satisfaction } : {}),
+    ...(finite(reply.tip) ? { tip: reply.tip } : {}) };
 }
