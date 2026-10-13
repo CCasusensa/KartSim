@@ -16,6 +16,7 @@ import type { StoryGhostSource, StoryRaceOutcome } from "../story/story-race";
 import type { LicenseMenu, LicenseMenuStep } from "../ui/main-menu-view";
 import { readMainMenuStrings, type MainMenuNode } from "../ui/main-menu-view";
 import { loadMissionIcon } from "../ui/rider-school-art";
+import { resolveStrings } from "../ui/bml-kit";
 import { openMessengerMessage } from "../ui/messenger-dialogs";
 import { decodeStoryTexture, pruneMissingTextures } from "../ui/story-windows";
 import type { ReadySelection } from "./ready-flow";
@@ -618,6 +619,21 @@ export async function takeLicenseLevel(controller: ReadyLicenseController, level
   }
 }
 
+/**
+ * licenseCard@zz is sized for the card alone: in its 456x352 CaptionDialog the
+ * card ends 214 px into the client, while updateLevelText (bottom, 90 up) spans
+ * 178-208 and lands on the card's lower edge. Showing the text (the original's
+ * 恭喜！ popup) grows the window so the two lines sit 26 px under the card and
+ * 26 px over the HSection. [还原]
+ */
+const CARD_TEXT_ROOM = 62;
+
+function tallerRect(rect: string | undefined, by: number): string | undefined {
+  const parts = rect?.trim().split(/\s+/).map(Number);
+  return parts?.length === 4 && parts.every(Number.isFinite)
+    ? `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]! + by}` : rect;
+}
+
 async function openLicenseCard(controller: ReadyLicenseController, level: number, proUntil: number): Promise<void> {
   const lib = library(controller);
   if (!lib) return;
@@ -627,8 +643,15 @@ async function openLicenseCard(controller: ReadyLicenseController, level: number
       .catch(() => new Map<string, string>())]);
   if (stale(controller, started)) return;
   const roots = [CARD_ROOT, "stage_/common"];
-  const definition = pruneMissingTextures(lib, mapTree(raw, node =>
-    nodeName(node) === "bg" ? withAttributes(node, { texture: `bg_Level${level}@zz` }) : undefined), roots);
+  // resolveStrings: the 有效期 caption is #sb(proLevelExpire) of the card's own bag.
+  const definition = pruneMissingTextures(lib, mapTree(resolveStrings(raw, card), node => {
+    switch (nodeName(node)) {
+      case "capWnd": return withAttributes(node, { caption: card.get("updateLevelCaption") ?? "恭喜！",
+        windowRect: tallerRect(T(node, "windowRect") as string | undefined, CARD_TEXT_ROOM) });
+      case "bg": return withAttributes(node, { texture: `bg_Level${level}@zz` });
+    }
+    return undefined;
+  }), roots);
   const summary = activeBrowserSession()?.summary();
   const created = summary?.account.createdAt ? formatDate(summary.account.createdAt).slice(0, 10) : "";
   const text = (level === PRO_LEVEL ? card.get("updateLevelText6") : card.get("updateLevelText"))
@@ -642,7 +665,8 @@ async function openLicenseCard(controller: ReadyLicenseController, level: number
       switch (nodeName(node)) {
         case "name": return { text: summary?.account.nickname ?? "" };
         case "createTime": return { text: created };
-        case "level": return { text: `${licenseName(level)}驾照` };
+        // bg_Level6 draws the PRO驾照有效期 rule and box where the level row would sit.
+        case "level": return level === PRO_LEVEL ? { visible: false } : { text: `${licenseName(level)}驾照` };
         case "pro": return { visible: level === PRO_LEVEL };
         case "proLevelExpire": return { text: proUntil ? formatDate(proUntil) : "" };
         case "updateLevelText": return { visible: true,
