@@ -19,7 +19,7 @@ export interface RacePresenterLifecycleHost {
   disposed: boolean;
   scene: { clear(): void };
   assets: {
-    map: { readyCamera: { start(): void } };
+    map: { readyCamera: { hold(): void } };
     participants: ParticipantAsset[];
   };
   runtime: { local: { track: { skydome?: unknown } } };
@@ -73,7 +73,8 @@ export interface RacePresenterWarmRenderer {
 export function warmRacePresenter(host: RacePresenterLifecycleHost,
   renderer: RacePresenterWarmRenderer, nowMs: number,
   dependencies: RacePresenterLifecycleDependencies): void {
-  host.assets.map.readyCamera.start();
+  // The swoop waits for the start notice (race-presenter-camera.ts).
+  host.assets.map.readyCamera.hold();
   host.update(renderer, nowMs, []);
   dependencies.warmScene(renderer, host.scene, host.scene);
   for (const participant of host.assets.participants) {

@@ -154,7 +154,11 @@ export class ReadyCameraController {
     this.path = path;
   }
 
+  /** Showing the first frame until start(). */
+  waiting = false;
+
   start(): void {
+    this.waiting = false;
     for (const { runtime } of this.path) {
       if (runtime) {
         runtime.anchor = 0;
@@ -164,8 +168,19 @@ export class ReadyCameraController {
     }
   }
 
+  /**
+   * Show the first frame, high behind the kart, until start(). A multiplayer
+   * racer waits here for the others; the swoop to the kart (0-3333 ms) plays
+   * once the start is known.
+   */
+  hold(): void {
+    this.start();
+    this.waiting = true;
+  }
+
   apply(camera: PerspectiveCamera, timeMs: number, player: ReadyPlayerFrame): void {
-    const now = Math.trunc(timeMs) >>> 0;
+    // Time 0 leaves the PRS anchors unset, so start() still plays from the first key.
+    const now = this.waiting ? 0 : Math.trunc(timeMs) >>> 0;
     const world = new Matrix4().identity();
     for (const { source, controller, runtime } of this.path) {
       const staticPose: CameraPose = {

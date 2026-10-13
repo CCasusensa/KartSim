@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
-	"time"
 )
 
 func createRequest(overrides map[string]any) map[string]any {
@@ -233,7 +232,7 @@ func TestRaceChatAndAwardMotionRules(t *testing.T) {
 	for _, p := range players {
 		h.must(p, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	assertEqual(t, h.errorCode(players[0], map[string]any{"type": "award-motion", "roomId": roomID,
 		"raceId": raceID, "motion": 6}), "INVALID_MOTION")
 	assertEqual(t, h.errorCode(players[0], map[string]any{"type": "team-charge", "roomId": roomID,

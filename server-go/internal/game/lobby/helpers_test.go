@@ -50,6 +50,9 @@ func (c *fakeClock) AfterFunc(d time.Duration, f func()) {
 	c.timers = append(c.timers, fakeTimer{at: c.now + d.Milliseconds(), seq: c.seq, f: f})
 }
 
+// countdown is the time from the last racer's "loaded" to the start.
+const countdown = countdownLeadMs * time.Millisecond
+
 // Advance moves time forward by d, running every timer that falls due.
 func (c *fakeClock) Advance(d time.Duration) {
 	c.mu.Lock()

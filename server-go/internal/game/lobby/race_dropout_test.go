@@ -120,7 +120,7 @@ func TestRacerLeavingDuringLoadingStartsOthers(t *testing.T) {
 
 	h.must(carol, leaveRequest(roomID))
 	assertEqual(t, object(h.sink(alice).last(t)["room"])["phase"], "countdown")
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	assertEqual(t, object(h.sink(alice).last(t)["room"])["phase"], "racing")
 	h.clock.Advance(20 * time.Second)
 	h.must(alice, finishRequest(roomID, raceID, 20_000))
@@ -261,7 +261,7 @@ func TestLoadFailureDropsOnlyThatRacer(t *testing.T) {
 	}
 	assertEqual(t, h.errorCode(carol, loadedRequest(roomID, raceID)), "NOT_RACE_PARTICIPANT")
 
-	h.clock.Advance(23 * time.Second)
+	h.clock.Advance(countdown + 20*time.Second)
 	h.must(alice, finishRequest(roomID, raceID, 20_000))
 	room = h.command(bob, finishRequest(roomID, raceID, 20_100))
 	assertEqual(t, room["phase"], "finished")
@@ -300,7 +300,7 @@ func TestLoadTimeoutDropsOnlySlowRacers(t *testing.T) {
 	assertEqual(t, room["phase"], "countdown")
 	assertEqual(t, raceOf(room)["loadedIds"], []any{alice.playerID, bob.playerID})
 	assertEqual(t, h.errorCode(carol, loadedRequest(roomID, raceID)), "NOT_RACE_PARTICIPANT")
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	assertEqual(t, object(h.sink(carol).last(t)["room"])["phase"], "racing")
 }
 

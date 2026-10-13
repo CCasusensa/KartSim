@@ -30,7 +30,10 @@ function observeWarm(rewritten: boolean, mode: "normal" | "render-error" | "no-s
   Object.assign(host, {
     scene: { clear() {} },
     assets: {
-      map: { readyCamera: { start() { events.push(["ready-camera-start"]); } } },
+      map: { readyCamera: {
+        start() { events.push(["ready-camera-start"]); },
+        hold() { events.push(["ready-camera-hold"]); },
+      } },
       participants: [{ playerId: "local", vehicle: { effects: {
         warmDetachedScenes() { events.push(["warm-detached"]); },
       } } }],
@@ -140,7 +143,11 @@ function observeDispose(rewritten: boolean, alreadyDisposed: boolean) {
 
 test("multiplayer presentation warm target lifecycle matches release", () => {
   for (const mode of ["normal", "render-error", "no-sky"] as const) {
-    assert.deepEqual(observeWarm(true, mode), observeWarm(false, mode), mode);
+    // Unlike the release, the ready camera holds its first frame until the start notice.
+    const release = observeWarm(false, mode);
+    release.events = release.events.map(event =>
+      event[0] === "ready-camera-start" ? ["ready-camera-hold"] : event);
+    assert.deepEqual(observeWarm(true, mode), release, mode);
   }
 });
 

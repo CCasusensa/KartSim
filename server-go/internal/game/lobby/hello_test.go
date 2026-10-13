@@ -221,7 +221,7 @@ func TestSettlementCarriesAccountIDs(t *testing.T) {
 	for _, p := range players {
 		h.must(p, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	h.must(guest, map[string]any{"type": "finish", "roomId": roomID, "raceId": raceID, "elapsedMs": 50_000})
 	h.must(account, map[string]any{"type": "finish", "roomId": roomID, "raceId": raceID, "elapsedMs": 51_000})
 	settlements := h.recorder.settlements()

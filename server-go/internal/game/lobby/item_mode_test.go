@@ -357,7 +357,7 @@ func TestItemRequestChecksAndSequence(t *testing.T) {
 	}
 	// Countdown: the sequence is used up although the race is not running.
 	assertEqual(t, ir.reject(a, "swap", nil), "RACE_NOT_RUNNING")
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	ir.sequences[a] = 0
 	assertEqual(t, ir.reject(a, "swap", nil), "INVALID_SEQUENCE")
 	ir.sequences[a] = 1

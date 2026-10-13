@@ -155,7 +155,7 @@ func TestBrawlAIFramesAreValidAndThinnedByDistance(t *testing.T) {
 	room := h.brawlRace([]*Client{host}, brawl.Slots)
 	raceID := raceOf(room)["raceId"].(string)
 	// The countdown: the AI racers stand on the grid and send frames.
-	h.clock.Advance(3_000 * time.Millisecond)
+	h.clock.Advance(countdown)
 	h.clock.Advance(20 * time.Second)
 	sink := h.sink(host)
 	sink.mu.Lock()
@@ -211,7 +211,7 @@ func TestBrawlResultsAndRewards(t *testing.T) {
 	host := h.connect("Host")
 	room := h.brawlRace([]*Client{host}, brawl.Slots)
 	roomID, raceID := room["roomId"], raceOf(room)["raceId"]
-	h.clock.Advance(3 * time.Second) // racing
+	h.clock.Advance(countdown) // racing
 	h.clock.Advance(60 * time.Second)
 	room = h.command(host, map[string]any{"type": "finish", "roomId": roomID, "raceId": raceID,
 		"elapsedMs": 60_000})
@@ -257,7 +257,7 @@ func TestBrawlAIFinishOpensTheWindow(t *testing.T) {
 	h := newHarness(t)
 	host := h.connect("Host")
 	room := h.brawlRace([]*Client{host}, brawl.Slots)
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	// The player never finishes: the first AI finish opens the 10 s window,
 	// then the race ends with the player last.
 	h.clock.Advance(240 * time.Second)
@@ -285,7 +285,7 @@ func TestBrawlStopsWhenThePlayersLeave(t *testing.T) {
 	h := newHarness(t)
 	host := h.connect("Host")
 	room := h.brawlRace([]*Client{host}, brawl.Slots)
-	h.clock.Advance(5 * time.Second)
+	h.clock.Advance(countdown + 2*time.Second)
 	h.must(host, map[string]any{"type": "leave", "roomId": room["roomId"]})
 	h.clock.Advance(time.Second)
 	if pending := h.clock.pending(); pending > 1 {

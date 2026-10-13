@@ -1642,6 +1642,12 @@ func (l *Lobby) loaded(c *Client, in Request) (obj, error) {
 	return roomReply(r), nil
 }
 
+// countdownLeadMs is how far ahead of the start the countdown begins. The
+// browser shows the start camera (stage_common.rho readyCamera.1s, its swoop
+// to the kart lasts 3.3 s) until 3 s before the start, then counts 3-2-1, the
+// time attack timeline (start 7 s after the race resets).
+const countdownLeadMs = 7_000
+
 // startCountdownWhenLoaded starts the countdown of a loading race once every
 // racer still in the room has loaded.
 func (l *Lobby) startCountdownWhenLoaded(r *room) {
@@ -1649,13 +1655,13 @@ func (l *Lobby) startCountdownWhenLoaded(r *room) {
 	if !containsAll(rc.loadedIDs, racers(r)) {
 		return
 	}
-	startAt := l.clock.Now() + 3_000
+	startAt := l.clock.Now() + countdownLeadMs
 	rc.startAt = &startAt
 	if r.gameplay == "roadblock" {
 		deadline := startAt + roadblockLimitMs
 		rc.finishDeadline = &deadline
 		roomID, raceID := r.id, rc.id
-		l.schedule((roadblockLimitMs+3_000)*time.Millisecond,
+		l.schedule((roadblockLimitMs+countdownLeadMs)*time.Millisecond,
 			func() { l.roadblockTimeout(roomID, raceID) })
 	}
 	r.phase = "countdown"
@@ -1663,7 +1669,7 @@ func (l *Lobby) startCountdownWhenLoaded(r *room) {
 	l.startCheatRace(r)
 	l.startBrawlField(r)
 	roomID, raceID := r.id, rc.id
-	l.schedule(3*time.Second, func() { l.beginRace(roomID, raceID) })
+	l.schedule(countdownLeadMs*time.Millisecond, func() { l.beginRace(roomID, raceID) })
 }
 
 func (l *Lobby) beginRace(roomID, raceID string) {

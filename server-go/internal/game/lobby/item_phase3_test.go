@@ -100,7 +100,7 @@ func TestItemStartChangersAndConsumption(t *testing.T) {
 	assertEqual(t, startPushes(t, h, guest), []map[string]any{with(map[string]any{
 		"slots": []int{-1, -1}, "changers": changers(0, 0, false)})})
 
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	// The voucher changes the start item; the change waits for the next new item.
 	random.values = []int{pickFor(t, itemmode.TableIndiChanger, itemmode.GroupTop, itemmode.Shield)}
 	changed := ir.send(xun, "change", nil)

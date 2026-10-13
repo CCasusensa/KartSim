@@ -20,8 +20,12 @@ export interface RacePresenterCameraHost {
   camera: unknown;
   playerId: unknown;
   assets: {
-    map: { readyCamera: { apply(camera: unknown, nowMs: number,
-      body: Body): void } };
+    map: { readyCamera: {
+      /** Holding its first frame until the start is scheduled (warmRacePresenter). */
+      readonly waiting: boolean;
+      start(): void;
+      apply(camera: unknown, nowMs: number, body: Body): void;
+    } };
     participants: Array<{ playerId: unknown }>;
     /** 道具赛: how an item hit moves the drawn kart (the camera follows its lift, not its flips). */
     itemPresenter?: { kartMotion?(playerId: string, nowMs: number): Matrix4 | undefined };
@@ -42,6 +46,8 @@ export interface RacePresenterCameraHost {
         cameraFar?: number;
       };
       lifecycle: { state: unknown };
+      /** 0 until the server's start notice arrives. */
+      scheduledStartAtMs: number;
       warpNext: { fairyFovFactor(): number | undefined };
     };
     remotes: {
@@ -81,7 +87,11 @@ export function updateRacePresenterCamera(host: RacePresenterCameraHost,
   }
   const { physics, track } = host.runtime.local;
   if (host.cameraMode === "ready") {
-    host.assets.map.readyCamera.apply(host.camera, nowMs, physics.body);
+    const ready = host.assets.map.readyCamera;
+    // readyCamera.1s swoops in once everyone has loaded: the start notice
+    // comes 7 s ahead, leaving it 4 s before "3" as in time attack.
+    if (ready.waiting && host.runtime.local.scheduledStartAtMs !== 0) ready.start();
+    ready.apply(host.camera, nowMs, physics.body);
     return;
   }
   if (host.cameraMode === "surround") {

@@ -58,7 +58,7 @@ func TestAntiCheatKick(t *testing.T) {
 	raceID := room["race"].(map[string]any)["raceId"].(string)
 	alice.room(map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	bob.room(map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
-	n.clock.Advance(3 * time.Second)
+	n.clock.Advance(7 * time.Second) // the countdown (lobby countdownLeadMs)
 	alice.waitFor(func(m map[string]any) bool {
 		return m["type"] == "room" && m["room"].(map[string]any)["phase"] == "racing"
 	})

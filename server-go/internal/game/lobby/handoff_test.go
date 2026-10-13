@@ -198,7 +198,7 @@ func TestRoomRacesOnANodeAndComesBack(t *testing.T) {
 	for _, c := range []*Client{aliceNode, bobNode} {
 		g.node.command(c, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	g.node.clock.Advance(3 * time.Second)
+	g.node.clock.Advance(countdown)
 	for i, c := range []*Client{aliceNode, bobNode} {
 		g.node.command(c, map[string]any{"type": "finish", "roomId": roomID, "raceId": raceID,
 			"elapsedMs": 60_000 + i*1000})

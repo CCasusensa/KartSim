@@ -578,7 +578,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("relayed frame %v", bob.frames[0][:8])
 	}
 
-	n.clock.Advance(3 * time.Second)
+	n.clock.Advance(7 * time.Second) // the countdown (lobby countdownLeadMs)
 	alice.waitFor(func(m map[string]any) bool {
 		return m["type"] == "room" && m["room"].(map[string]any)["phase"] == "racing"
 	})

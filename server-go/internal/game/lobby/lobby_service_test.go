@@ -139,7 +139,7 @@ func TestDepartedReturnDoesNotEndPodiumForRemainingPlayers(t *testing.T) {
 	for _, player := range players {
 		h.must(player, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	h.clock.Advance(3_200 * time.Millisecond)
+	h.clock.Advance(countdown + 200*time.Millisecond)
 	for index, player := range players {
 		room = h.command(player, map[string]any{"type": "finish", "roomId": roomID,
 			"raceId": raceID, "elapsedMs": 10_000 + index*1_000})

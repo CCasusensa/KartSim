@@ -71,7 +71,7 @@ func TestRoadblockUsesRunnerDeadlineAndPersistsAnOutcome(t *testing.T) {
 	if _, ok := rc["finishWindowMs"]; ok {
 		t.Fatal("roadblock race has a finish window")
 	}
-	h.clock.Advance(3_100 * time.Millisecond)
+	h.clock.Advance(countdown + 100*time.Millisecond)
 	assertEqual(t, h.errorCode(players[1], map[string]any{"type": "finish",
 		"roomId": roomID, "raceId": raceID, "elapsedMs": 1_000}), "RUNNER_REQUIRED")
 	room = h.command(players[0], map[string]any{"type": "finish",
@@ -103,7 +103,7 @@ func TestRoadblockRunnerLeaveAndTimeoutGiveBlockersTheWin(t *testing.T) {
 				h.command(player, map[string]any{"type": "loaded",
 					"roomId": roomID, "raceId": raceID})
 			}
-			h.clock.Advance(3_100 * time.Millisecond)
+			h.clock.Advance(countdown + 100*time.Millisecond)
 			if reason == "runner-left" {
 				h.must(players[0], map[string]any{"type": "leave", "roomId": roomID})
 			} else {
@@ -147,7 +147,7 @@ func TestGiantRelaysOnlyOrderedLegalStateChanges(t *testing.T) {
 	for _, player := range players {
 		h.command(player, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	h.clock.Advance(3_100 * time.Millisecond)
+	h.clock.Advance(countdown + 100*time.Millisecond)
 	assertEqual(t, h.errorCode(players[0], map[string]any{"type": "giant-state",
 		"roomId": roomID, "raceId": raceID, "sequence": 1, "main": 0,
 		"extra": 0, "status": 0}), "INVALID_GIANT_STATE")
@@ -183,7 +183,7 @@ func TestTeamChargeBroadcastsMeterAndAwardMotionToPeers(t *testing.T) {
 	for _, player := range players {
 		h.command(player, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	h.clock.Advance(3_100 * time.Millisecond)
+	h.clock.Advance(countdown + 100*time.Millisecond)
 	host := players[0]
 	half := h.must(host, map[string]any{"type": "team-charge",
 		"roomId": roomID, "raceId": raceID, "sequence": 1, "charge": 4_000})

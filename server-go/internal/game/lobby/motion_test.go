@@ -105,7 +105,7 @@ func TestMotionRelayFiltering(t *testing.T) {
 	h.must(c, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	h.lobby.RelayMotion(a, motionFrame(raceID, 0, 0xFF, 171))
 	expect("countdown", [4]int{1, 2, 1, 0})
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	h.lobby.RelayMotion(c, motionFrame(raceID, 2, 0xFF, 171))
 	expect("racing", [4]int{2, 3, 1, 0})
 

@@ -118,7 +118,7 @@ func TestOneSeatPerAccountInRaces(t *testing.T) {
 	for _, p := range players {
 		h.must(p, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	h.clock.Advance(60 * time.Second)
 	for i, p := range []*Client{a2, a1, guest} {
 		h.must(p, map[string]any{"type": "finish", "roomId": roomID, "raceId": raceID, "elapsedMs": 60_000 + i})

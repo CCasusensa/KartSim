@@ -201,7 +201,7 @@ func TestPluginHearsTheRace(t *testing.T) {
 	}
 	race := g.races[0]
 	if race.info.TrackID != "village_R01" || race.info.Gameplay != "ordinary" || race.info.Mode != "team" ||
-		race.info.Speed != 7 || race.info.ResourceVersion != "p3553" || race.info.StartAt != h.clock.Now()+3_000 {
+		race.info.Speed != 7 || race.info.ResourceVersion != "p3553" || race.info.StartAt != h.clock.Now()+countdownLeadMs {
 		t.Fatalf("race info %+v", race.info)
 	}
 	// Countdown: a valid frame is not checked, an invalid one is.
@@ -209,7 +209,7 @@ func TestPluginHearsTheRace(t *testing.T) {
 	bad := h.kartFrame(raceID, 0, 10, 1)
 	binary.LittleEndian.PutUint32(bad[motionHeaderLength+16:], 0)
 	h.lobby.RelayMotion(a, bad)
-	h.clock.Advance(4 * time.Second) // racing for a second
+	h.clock.Advance(countdown + time.Second) // racing for a second
 	h.lobby.RelayMotion(a, h.kartFrame(raceID, 10, 1e7, 1))
 	x := race.racers[a.playerID]
 	if x == nil || x.kart != 1 || len(x.frames) != 2 || x.frames[0].valid || !x.frames[1].valid ||

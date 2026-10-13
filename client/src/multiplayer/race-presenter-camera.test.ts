@@ -132,3 +132,22 @@ test("multiplayer presenter frozen, ready, surround and drive camera behavior ma
       JSON.stringify(scenario));
   }
 });
+
+test("the ready camera holds its first frame until the start notice, then swoops in", () => {
+  const events: unknown[] = [];
+  const readyCamera = {
+    waiting: true,
+    start() { this.waiting = false; events.push("start"); },
+    apply(_camera: unknown, nowMs: number) { events.push(["apply", nowMs, this.waiting]); },
+  };
+  const local = { physics: { body: {} }, scheduledStartAtMs: 0 };
+  const host = { warpCameraFrozen: false, cameraMode: "ready", camera: {},
+    assets: { map: { readyCamera } }, runtime: { local } } as unknown as RacePresenterCameraHost;
+  updateRacePresenterCamera(host, 100, "Racing");
+  updateRacePresenterCamera(host, 200, "Racing");
+  local.scheduledStartAtMs = 7300;
+  updateRacePresenterCamera(host, 300, "Racing");
+  updateRacePresenterCamera(host, 400, "Racing");
+  assert.deepEqual(events, [["apply", 100, true], ["apply", 200, true], "start",
+    ["apply", 300, false], ["apply", 400, false]]);
+});

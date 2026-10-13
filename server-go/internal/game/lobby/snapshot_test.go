@@ -136,7 +136,7 @@ func TestRaceSnapshotShapeAndTeamSettlement(t *testing.T) {
 	for _, p := range players {
 		h.must(p, map[string]any{"type": "loaded", "roomId": roomID, "raceId": raceID})
 	}
-	h.clock.Advance(3 * time.Second)
+	h.clock.Advance(countdown)
 	// Team 1 = players 0 and 2, team 2 = players 1 and 3. Player 3 never finishes.
 	for i, p := range players[:3] {
 		h.must(p, map[string]any{"type": "finish", "roomId": roomID, "raceId": raceID,
