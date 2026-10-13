@@ -71,6 +71,18 @@ const dualEffectKind = {
 const exceedTablePath = "zeta_/cn/engine/exceedTypeChange.xml";
 const defaultWave = "effect";
 
+/**
+ * Physics state 16: the kart is held by a magnet (an `MZ` road, or the
+ * magnet item's pull). The kart audio plays the magnet's Use sound
+ * (sound_/fx/item/magnet/using.ogg) for it; its look is the same Use
+ * state's model, the magnetic field around the kart ([还原]: the original
+ * effect for an MZ road is not in the data; the item's Use model and its
+ * 3000 ms life match the road's 3000 ms magnet state).
+ */
+export const MAGNET_EFFECT_STATE = 16;
+export const MAGNET_EFFECT_KIND = "magnet";
+const magnetFieldPath = "item/magnet/item01.1s";
+
 export class KartBoosterSharedSources {
   parsedScenes = new Map<string, ParsedEffectScene>();
   textureCache = new Map<unknown, { dispose(): void }>();
@@ -169,6 +181,8 @@ export class KartBoosterEffectHost {
   dualVisual: "none" | "idle" | "use" = "none";
   dualFlavor: "solo" | "team" = "solo";
   exceedActive = false;
+  /** An item race's magnet item draws its own field on this kart (facing its target). */
+  magnetSuppressed = false;
   readonly hasTeamDual: boolean;
 
   constructor(readonly instances: BoosterInstance[], readonly kartRoot: EffectObject,
@@ -272,6 +286,14 @@ export class KartBoosterEffectHost {
         scene.object.visible = false;
         instances.push({ kind, scene });
       }
+      if (driving && (!allowed || allowed.has(MAGNET_EFFECT_KIND))) {
+        const resource = exactResource(library, magnetFieldPath);
+        if (resource) {
+          const scene = await loadScene(resource, { id: "item" }, false);
+          scene.object.visible = false;
+          instances.push({ kind: MAGNET_EFFECT_KIND, scene, family: "item" });
+        }
+      }
       return new this(instances, kart.object, textures, presentation, sharedSources, deps);
     } catch (error) {
       instances.forEach(({ scene }) => scene.dispose());
@@ -337,7 +359,20 @@ export class KartBoosterEffectHost {
     return changedState || refreshIdle;
   }
 
+  /**
+   * While the item presenter shows a magnet item's field on this kart, the
+   * kart's own magnet state shows nothing, so the field is not drawn twice.
+   */
+  setMagnetSuppressed(suppressed: boolean, time: number): void {
+    if (suppressed === this.magnetSuppressed) return;
+    this.magnetSuppressed = suppressed;
+    this.instances.forEach(instance => {
+      if (instance.kind === MAGNET_EFFECT_KIND) this.syncInstance(instance, true, this.exceedActive, time);
+    });
+  }
+
   isEffectActive(kind: string): boolean {
+    if (kind === MAGNET_EFFECT_KIND) return this.state === MAGNET_EFFECT_STATE && !this.magnetSuppressed;
     if (kind === "exceedWave") return this.exceedActive;
     if (kind === waveKindForState(this.state) ||
       (this.presentation === "driving" && kind === "baseBoosterWave" &&
@@ -352,7 +387,7 @@ export class KartBoosterEffectHost {
     const active = this.isEffectActive(instance.kind);
     if (instance.kind === "exceedWave")
       this.syncRootScene(instance, active, this.exceedActive !== previousExceed, time);
-    else if (["baseBoosterWave", "boosterWave", "driftBoostWave"].includes(instance.kind))
+    else if (["baseBoosterWave", "boosterWave", "driftBoostWave", MAGNET_EFFECT_KIND].includes(instance.kind))
       this.syncRootScene(instance, active, changedDual, time);
     instance.scene.object.visible = active;
     const restart = instance.kind === "exceedWave" ? !previousExceed : changedDual;

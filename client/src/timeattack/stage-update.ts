@@ -274,6 +274,9 @@ export function updateTimeAttackStage(
   );
   host.workProfiler?.mark("character", dependencies.nowMs());
 
+  // 驾照考试 item steps: the magnet item's field (item presenter) replaces the kart's own magnet state look.
+  const licenseItems = licenseItemsOf(host.session);
+  if (licenseItems) host.session.kartEffects?.setMagnetSuppressed?.(licenseItems.pulling(), effectiveNowMs);
   animationState = host.updateKartBoosterState(
     effectiveNowMs, cameraState.action8, animationState,
   );

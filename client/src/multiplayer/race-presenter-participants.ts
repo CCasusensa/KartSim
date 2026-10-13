@@ -42,6 +42,8 @@ interface VehicleAsset {
     };
   }>;
   decoration?: { scene: SceneUpdater & { object?: { visible: boolean } } };
+  /** The booster effects (kart-booster-effects.ts), magnet state look included. */
+  effects?: { setMagnetSuppressed?(suppressed: boolean, nowMs: number): void };
 }
 interface RacerAsset {
   playerId: unknown;
@@ -285,6 +287,9 @@ export function updateRacePresenterParticipants(host: RacePresenterParticipantsH
     }
     const imported = racer.vehicle.imported.renderScene !== undefined;
     racer.vehicle.lampFlares.update(nowMs, camera, imported);
+    // A magnet item's field (item presenter) replaces the kart's own magnet state look (MZ roads).
+    racer.vehicle.effects?.setMagnetSuppressed?.(assets.itemPresenter?.pulling?.call(assets.itemPresenter,
+      String(racer.playerId), nowMs) === true, nowMs);
     if (!isLocal && presentation) {
       // 50人乱斗: a kart away from the camera moves its effects with its rider's frames.
       if (presentation.animation && (!lod || lod.animate)) {

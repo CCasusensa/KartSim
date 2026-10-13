@@ -149,6 +149,11 @@ export interface ItemRacePresenter {
    * does not move.
    */
   kartMotion?(playerId: string, nowMs: number): Matrix4 | undefined;
+  /**
+   * A magnet item's field shows on this racer's kart now: the kart's own
+   * magnet state look (kart-booster-effects.ts) stands aside.
+   */
+  pulling?(playerId: string, nowMs: number): boolean;
   /** The XUN start item reached the slots: the charger sound (`sound_/fx/charger`). */
   startItemFlash?(atMs: number): void;
   /**
@@ -626,6 +631,12 @@ export class ItemRacePresenterImpl<Archive> implements ItemRacePresenter {
     }
     if (!list.length) this.kartMotions.delete(playerId);
     return undefined;
+  }
+
+  pulling(playerId: string, nowMs: number): boolean {
+    if (this.disposed) return false;
+    const slot = this.slots.get(slotKey(playerId, "pull"));
+    return !!slot && slot.startMs <= nowMs && nowMs < slot.endMs;
   }
 
   kartPresentation(playerId: string, nowMs: number): ItemKartPresentationState | undefined {

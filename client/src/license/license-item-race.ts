@@ -427,6 +427,11 @@ export class LicenseItemRace {
     this.controller.present({ nowMs: this.nowMs, camera, width, height });
   }
 
+  /** The magnet item's field shows on the player's kart now (its own magnet state look stands aside). */
+  pulling(): boolean {
+    return !this.disposed && this.presenter?.pulling?.(LICENSE_PLAYER, this.nowMs) === true;
+  }
+
   /** This frame's item HUD state (slots, aim, warnings, changer cards). */
   hudState(): ItemHudState {
     const state = this.controller.hudState(this.nowMs);

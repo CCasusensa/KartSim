@@ -562,9 +562,12 @@ test("the magnet field points at its target and ends with the pull", async () =>
   assert.equal(field!.model, "item/magnet/item01.1s");
   const toC = [30 / Math.hypot(30, 100), 0, 100 / Math.hypot(30, 100)];
   assert.ok(nearVec(field!.forward, toC));
+  // The kart's own magnet state look (an MZ road's) stands aside meanwhile.
+  assert.deepEqual([presenter.pulling("A", 100), presenter.pulling("C", 100)], [true, false]);
   presenter.endKartEffect("A", "pull");
   at(116);
   assert.deepEqual(models(presenter), []);
+  assert.equal(presenter.pulling("A", 116), false);
 });
 
 test("my own magnet field turns to the locked target once the use names it", async () => {
