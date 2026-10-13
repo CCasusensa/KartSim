@@ -10,6 +10,7 @@ import EconomyTab from './EconomyTab.vue'
 import GrantsTab from './GrantsTab.vue'
 import InvitesTab from './InvitesTab.vue'
 import LedgerTab from './LedgerTab.vue'
+import LobbyPromoTab from './LobbyPromoTab.vue'
 import LoginsTab from './LoginsTab.vue'
 import LotteryTab from './LotteryTab.vue'
 import MapsTab from './MapsTab.vue'
@@ -41,6 +42,7 @@ const views: Record<string, Component> = {
   clubs: ClubsTab,
   lottery: LotteryTab,
   economy: EconomyTab,
+  'lobby-promos': LobbyPromoTab,
   'reward-box': RewardBoxTab,
   notices: NoticesTab,
   replays: ReplaysTab,

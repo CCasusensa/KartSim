@@ -2,6 +2,7 @@ import { setLobbyHomeBackdrop, setLobbyShopBackdrop } from "./lobby-home-backdro
 import { LobbyTopBar, type LobbyAccountInfo, type LobbyExperience,
   type LobbyWallet } from "./lobby-top-bar";
 import type { LobbyTopBarArt } from "./lobby-top-bar-assets";
+import { openLobbyLink, type LobbyBanner, type LobbyBoard, type LobbyPromos } from "./lobby-promos";
 import { coverCrop } from "./main-menu-view";
 import type { MyRoomEnvironment } from "./my-room-catalog";
 import {
@@ -18,6 +19,7 @@ import {
  */
 
 export type { LobbyAccountInfo, LobbyExperience, LobbyWallet } from "./lobby-top-bar";
+export type { LobbyBanner, LobbyBoard, LobbyPromos } from "./lobby-promos";
 
 export interface LobbyImage { image: CanvasImageSource; width: number; height: number }
 
@@ -111,8 +113,8 @@ export interface LobbyHomeOptions {
   onAccount?(): void;
   /** Shown after the wallet in the top bar (the 资源下载 button). */
   topBarExtra?: HTMLElement;
-  /** Promotion carousel pictures. */
-  banners: readonly LobbyImage[];
+  /** Promotion carousel pictures until setPromos brings the admin-set ones. */
+  banners: readonly LobbyBanner[];
   /** Shown until the 3D lobby has been drawn. */
   backdrop?: LobbyImage;
   /** Mode card art for the two small promotion boards. */
@@ -124,6 +126,14 @@ export interface LobbyHomeOptions {
   onEntry(entry: QuickEntry): void;
   onHover?(): void;
   onActivate?(): void;
+}
+
+/** A promotion board's parts and what it shows (setPromos). */
+interface PromoBoard {
+  element: HTMLButtonElement;
+  text: HTMLSpanElement;
+  picture: HTMLCanvasElement;
+  promo: LobbyBoard;
 }
 
 const BANNER_INTERVAL_MS = 5_000;
@@ -172,6 +182,8 @@ const STYLES = `
 .ks-lobby-carousel{position:relative;height:20.2cqh;border-radius:.5cqh;overflow:hidden;
   box-shadow:0 .4cqh 1.2cqh rgba(0,0,0,.35);background:#16305e}
 .ks-lobby-carousel canvas{position:absolute;inset:0;width:100%;height:100%}
+.ks-lobby-carousel.ks-link canvas{cursor:pointer}
+.ks-lobby-carousel canvas:focus-visible{outline:.3cqh solid #ffe66b;outline-offset:-.3cqh}
 .ks-lobby-dots{position:absolute;left:0;right:0;bottom:.9cqh;display:flex;justify-content:center;gap:.9cqh}
 .ks-lobby-dot{width:1cqh;height:1cqh;border-radius:50%;background:rgba(255,255,255,.55);
   box-shadow:0 0 .3cqh rgba(0,0,0,.5)}
@@ -183,7 +195,9 @@ const STYLES = `
 .ks-lobby-board.ks-blue{background:linear-gradient(90deg,#1868e6,#1f94fb 55%,#56c8ff)}
 .ks-lobby-board.ks-purple{background:linear-gradient(90deg,#7a35e8,#a45af2 55%,#e27bff)}
 .ks-lobby-board canvas{position:absolute;right:0;top:0;height:100%}
+.ks-lobby-board canvas.ks-lobby-board-picture{inset:0;width:100%}
 .ks-lobby-board span{position:relative}
+.ks-lobby-board.ks-picture span,.ks-lobby-board.ks-picture canvas:not(.ks-lobby-board-picture){display:none}
 .ks-lobby-board:hover{filter:brightness(1.08)}
 .ks-lobby-events{margin-top:.6cqh;border-radius:.5cqh;background:rgba(10,22,44,.72);box-shadow:0 .3cqh .9cqh rgba(0,0,0,.3);
   padding:0 0 1cqh}
@@ -264,8 +278,12 @@ export class LobbyHomeView {
   private sceneLoaded = false;
   private entries: string[];
   private active = 0;
+  private banners: readonly LobbyBanner[];
+  private bannerInterval = BANNER_INTERVAL_MS;
   private banner = 0;
   private bannerTimer = 0;
+  /** The blue and purple promotion boards. */
+  private readonly boards: PromoBoard[] = [];
   private noticeTimer = 0;
   private snapshotTimer = 0;
   private readyFrame = 0;
@@ -273,6 +291,7 @@ export class LobbyHomeView {
 
   constructor(readonly root: HTMLElement, readonly options: LobbyHomeOptions) {
     installStyles();
+    this.banners = options.banners;
     this.entries = loadQuickEntries();
     const node = this.element;
     node.dataset.uiLayer = "stage";
@@ -306,9 +325,7 @@ export class LobbyHomeView {
       this.observer = new ResizeObserver(() => this.paint());
       this.observer.observe(node);
     }
-    if (options.banners.length > 1)
-      this.bannerTimer = window.setInterval(() => this.showBanner(this.banner + 1),
-        BANNER_INTERVAL_MS);
+    this.restartCarousel();
     this.paint();
   }
 
@@ -417,10 +434,30 @@ export class LobbyHomeView {
   }
 
   showBanner(index: number): void {
-    const count = this.options.banners.length;
+    const count = this.banners.length;
     if (!count) return;
     this.banner = ((index % count) + count) % count;
     this.paintCarousel();
+  }
+
+  /**
+   * 大厅宣传 (lobby-promos.ts): the admin-set carousel pictures (none keeps
+   * the built-in ones) and promotion boards, with their links.
+   */
+  setPromos(promos: LobbyPromos): void {
+    if (this.disposed) return;
+    if (promos.banners.length) {
+      this.banners = promos.banners;
+      this.bannerInterval = promos.intervalMs;
+      this.banner = 0;
+      this.buildDots();
+      this.restartCarousel();
+    }
+    promos.boards.forEach((promo, index) => {
+      const board = this.boards[index];
+      if (board) this.setBoard(board, promo);
+    });
+    this.paint();
   }
 
   dispose(): void {
@@ -583,20 +620,15 @@ export class LobbyHomeView {
     const promo = element("aside", "ks-lobby-promo");
     promo.setAttribute("aria-label", "活动");
     const carousel = element("div", "ks-lobby-carousel");
-    this.carousel.setAttribute("role", "img");
-    this.carousel.setAttribute("aria-label", "活动宣传图");
     carousel.append(this.carousel, this.dots);
-    this.options.banners.forEach((_, index) => {
-      const dot = element("button", "ks-lobby-dot");
-      dot.type = "button";
-      dot.setAttribute("aria-label", `宣传图 ${index + 1}`);
-      dot.addEventListener("click", () => {
-        this.options.onActivate?.();
-        this.showBanner(index);
-      });
-      this.dots.append(dot);
+    // A picture with a link opens it.
+    this.carousel.addEventListener("click", () => this.openBanner());
+    this.carousel.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      this.openBanner();
     });
-    if (this.options.banners.length < 2) this.dots.hidden = true;
+    this.buildDots();
     promo.append(carousel, this.board("ks-blue", this.options.boardArt?.[0]),
       this.board("ks-purple", this.options.boardArt?.[1]));
     const events = this.options.events ?? [];
@@ -639,15 +671,51 @@ export class LobbyHomeView {
     return panel;
   }
 
+  private buildDots(): void {
+    this.dots.replaceChildren(...this.banners.map((_, index) => {
+      const dot = element("button", "ks-lobby-dot");
+      dot.type = "button";
+      dot.setAttribute("aria-label", `宣传图 ${index + 1}`);
+      dot.addEventListener("click", () => {
+        this.options.onActivate?.();
+        this.showBanner(index);
+        // Choosing a picture starts its full time over.
+        this.restartCarousel();
+      });
+      return dot;
+    }));
+    this.dots.hidden = this.banners.length < 2;
+  }
+
+  private restartCarousel(): void {
+    window.clearInterval(this.bannerTimer);
+    this.bannerTimer = 0;
+    if (this.banners.length > 1)
+      this.bannerTimer = window.setInterval(() => this.showBanner(this.banner + 1), this.bannerInterval);
+  }
+
+  private openBanner(): void {
+    const link = this.banners[this.banner]?.link;
+    if (!link) return;
+    this.options.onActivate?.();
+    openLobbyLink(link);
+  }
+
   private board(tone: string, art: string | undefined): HTMLElement {
     const board = element("button", `ks-lobby-board ${tone}`);
     board.type = "button";
-    board.setAttribute("aria-label", "即将推出");
-    board.append(element("span", undefined, "COMING SOON"));
+    const text = element("span", undefined, "COMING SOON");
+    const picture = element("canvas", "ks-lobby-board-picture");
+    picture.setAttribute("aria-hidden", "true");
+    picture.hidden = true;
+    board.append(text, picture);
+    const entry: PromoBoard = { element: board, text, picture, promo: {} };
+    this.boards.push(entry);
+    this.setBoard(entry, {});
     this.bindSound(board);
     board.addEventListener("click", () => {
       this.options.onActivate?.();
-      this.showNotice("敬请期待");
+      if (!openLobbyLink(entry.promo.link)) this.showNotice("敬请期待");
     });
     if (art) {
       const image = new Image();
@@ -662,6 +730,17 @@ export class LobbyHomeView {
     return board;
   }
 
+  /** A board shows its picture, or the drawn board with its title (COMING SOON without one). */
+  private setBoard(board: PromoBoard, promo: LobbyBoard): void {
+    board.promo = promo;
+    board.text.textContent = promo.title ?? "COMING SOON";
+    board.element.setAttribute("aria-label", promo.title ?? (promo.link ? "宣传" : "即将推出"));
+    if (promo.title) board.element.title = promo.title;
+    else board.element.removeAttribute("title");
+    board.element.classList.toggle("ks-picture", !!promo.image);
+    board.picture.hidden = !promo.image;
+  }
+
   private bindSound(button: HTMLElement): void {
     button.addEventListener("mouseenter", () => this.options.onHover?.());
   }
@@ -670,6 +749,23 @@ export class LobbyHomeView {
     if (this.disposed || this.element.hidden) return;
     this.paintFallback();
     this.paintCarousel();
+    for (const board of this.boards) this.paintBoard(board);
+  }
+
+  private paintBoard(board: PromoBoard): void {
+    const image = board.promo.image;
+    const canvas = board.picture;
+    const width = board.element.clientWidth;
+    const height = board.element.clientHeight;
+    if (!image || !width || !height) return;
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.imageSmoothingQuality = "high";
+    const crop = coverCrop(image, canvas);
+    context.drawImage(image.image, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
   }
 
   private paintFallback(): void {
@@ -693,6 +789,18 @@ export class LobbyHomeView {
 
   private paintCarousel(): void {
     const canvas = this.carousel;
+    const banner = this.banners[this.banner];
+    // A picture with a link is clickable (Enter too).
+    const link = !!banner?.link;
+    canvas.parentElement?.classList.toggle("ks-link", link);
+    canvas.setAttribute("role", link ? "link" : "img");
+    canvas.setAttribute("aria-label", banner?.title ?? "活动宣传图");
+    if (link) canvas.tabIndex = 0;
+    else canvas.removeAttribute("tabindex");
+    if (banner?.title) canvas.title = banner.title;
+    else canvas.removeAttribute("title");
+    this.dots.querySelectorAll("button").forEach((dot, index) =>
+      dot.setAttribute("aria-current", String(index === this.banner)));
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
     if (!width || !height) return;
@@ -700,7 +808,6 @@ export class LobbyHomeView {
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     const context = canvas.getContext("2d");
-    const banner = this.options.banners[this.banner];
     if (!context) return;
     context.fillStyle = "#16305e";
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -710,8 +817,6 @@ export class LobbyHomeView {
       context.drawImage(banner.image, crop.x, crop.y, crop.width, crop.height,
         0, 0, canvas.width, canvas.height);
     }
-    this.dots.querySelectorAll("button").forEach((dot, index) =>
-      dot.setAttribute("aria-current", String(index === this.banner)));
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {

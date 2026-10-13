@@ -587,6 +587,39 @@ export interface EconomySettings {
   serverTime: number
 }
 
+/** 大厅宣传 (ADMIN.md 10): one carousel picture or promotion board. */
+export interface LobbyPromo {
+  /** The uploaded picture's id; '' for none (a board keeps its drawn look). */
+  image: string
+  /** The picture's path ('' for none). */
+  url: string
+  width: number
+  height: number
+  /** http(s) URL or a path of the game's site; '' for none. */
+  link: string
+  title: string
+}
+
+export interface LobbyPromos {
+  /** Seconds per carousel picture. */
+  interval: number
+  carousel: LobbyPromo[]
+  /** Blue, then purple. */
+  boards: LobbyPromo[]
+  updatedAt: number
+  updatedBy?: string
+}
+
+/** POST /api/admin/lobby-promos/images. */
+export interface UploadedPromoImage {
+  image: string
+  url: string
+  contentType: string
+  width: number
+  height: number
+  size: number
+}
+
 /** 联赛回放 (TIMEATTACK.md 4): a published copy of a ranked replay. */
 export interface FeaturedReplay {
   id: number

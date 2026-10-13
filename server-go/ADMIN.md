@@ -25,6 +25,7 @@
 | 俱乐部 | 俱乐部列表：名称、会长、等级、人数、创建时间 |
 | 抽奖活动、奖励箱、公告、邀请码 | 原后台的功能，用 Element Plus 表单与表格重做，接口不变 |
 | 经济设置 | 注册赠送与每场比赛赠送的点券/金币/K币，以及商城“点击获取点券”按钮的开关与每次数额（`GET`/`PUT /api/admin/economy`，`ECONOMY.md` 2.4/2.5）：表单、默认值提示、最后修改人与时间 |
+| 大厅宣传 | 大厅首页右侧轮播图与两块宣传板的图片上传、点击链接与标题（第 10 节）：轮播图可增删排序、设切换间隔，宣传板可只改链接和文字 |
 | 联赛回放 | 游戏 回放 → 联赛回放 的列表（`TIMEATTACK.md` 4）：已发布的联赛回放（标题、说明、赛道、设置、车手、卡丁车、成绩、大小、发布人与时间，删除），下方是排位录像池（各赛道、设置的前 10 名录像：时间、赛道、设置、车手、卡丁车、成绩、已发布次数；按账号/昵称/赛道搜索，赛道筛选），每行“发布为联赛回放”弹出标题与说明 |
 | 自制地图 | 地图工坊发布的全部地图（含隐藏的，第 9 节）：缩略图、名称与地图 ID、作者（点开是账号详情抽屉）、主题、圈数、难度（星级）、道具箱数、赛道包大小、状态（公开/已隐藏）、更新与发布时间；按地图名/作者/地图 ID 搜索，状态、作者、更新时间筛选；操作：预览（选图卡片与缩略图大图和全部字段）、隐藏/恢复（确认框）、删除（危险确认框，不可恢复） |
 
@@ -175,3 +176,14 @@
 - 隐藏/恢复：`POST /api/admin/maps/{id}/hidden {hidden}`。隐藏后地图从公开列表、自定义游戏、多人与道具房选图里消失，公开的文件接口 404（已经选了它的房间开赛时载入不了），作者的“我的地图”仍能看到。
 - 删除：`DELETE /api/admin/maps/{id}` → `{ok: true}`，连同赛道包、设计与图片永久删除；不存在 404 `MAP_NOT_FOUND`。
 - 隐藏、恢复、删除都写数据服务日志（`admin map hidden` / `admin map deleted`，带管理员用户名），并立即刷新道具房可选的地图表。
+
+## 10. 大厅宣传（schema v23 `lobby_promo_images` + `app_settings` 的 `lobbyPromos` 行）
+
+- 标签页“大厅宣传”（经济设置之后）配置大厅首页右侧的三个位置：上面的**轮播图**和下面的**蓝色、紫色两块宣传板**。每个位置可上传图片、填点击跳转的链接和标题。
+  - 轮播图 0–8 张，每张必须有图片，切换间隔 2–60 秒（默认 5）。一张都没配置时游戏显示原版的 4 张加载插画（没有链接）。
+  - 宣传板可以只填链接不传图：游戏保留原来的渐变底和角色，文字用“标题”（空着就是 COMING SOON）；传了图就整块显示图片（按比例裁切铺满）。
+  - 链接：空（点击提示“敬请期待”）、`http(s)://` 网址，或以 `/` 开头的游戏站内路径（如 `/editor.html`）；都在新标签页打开。最长 500 字符，不能有空格、引号、尖括号和反斜杠。标题最多 40 字。
+  - 建议尺寸：轮播图 1040×600（约 1.73:1），宣传板 1050×234（约 4.5:1）；图片按显示区域等比裁切铺满。
+- 图片：`POST /api/admin/lobby-promos/images`，请求体就是图片文件本身（PNG、JPEG、GIF 或 WebP，不收 SVG；最大 4 MiB、每边最多 4096 px）→ `{image, url, contentType, width, height, size}`。`image` 是内容 SHA-256 的前 32 位十六进制，同一张图重复上传得到同一个 ID。坏图 400 `INVALID_PROMO_IMAGE`，过大 413 `PROMO_IMAGE_TOO_LARGE`；库里已有 100 张且清理后仍满时 409 `PROMO_IMAGE_LIMIT`。上传后没被任何位置用到、超过一天的图片在下次保存（或上传满额）时删除。
+- 设置：`GET /api/admin/lobby-promos`；`PUT /api/admin/lobby-promos {interval, carousel:[{image, link, title}], boards:[{image, link, title}, {…}]}`（`boards` 依次是蓝、紫）。格式不对 400 `INVALID_LOBBY_PROMOS`，引用的图片不存在 400 `PROMO_IMAGE_NOT_FOUND`。两个接口都返回 `{interval, carousel[], boards[2], updatedAt, updatedBy}`，每项 `{image, url, width, height, link, title}`（没有图片时 `image`、`url` 为空串）。保存写数据服务日志（`admin lobby promos`）。
+- 游戏读取（不需要登录）：`GET /api/lobby/promos`，字段同上但没有 `updatedBy`；图片已删除的轮播项不返回。图片 `GET /api/lobby/promo-images/{id}` 公开、`Cache-Control: public, max-age=31536000, immutable`、带 `ETag`、`X-Content-Type-Options: nosniff` 与 `Cross-Origin-Resource-Policy: cross-origin`。玩家下次打开大厅首页时看到新设置（客户端缓存 1 分钟）。

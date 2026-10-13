@@ -67,6 +67,11 @@ const messages: Record<string, string> = {
   NODE_EXISTS: '该节点 ID 已存在',
   NODE_NOT_FOUND: '节点不存在或已删除',
   MAP_NOT_FOUND: '地图不存在或已删除',
+  INVALID_LOBBY_PROMOS: '宣传设置无效（轮播图最多 8 张且每张都要有图片，间隔 2–60 秒，链接须为 http(s):// 网址或以 / 开头的路径，标题最多 40 字）',
+  INVALID_PROMO_IMAGE: '图片无效（只支持 PNG、JPEG、GIF、WebP，每边最多 4096 像素）',
+  PROMO_IMAGE_TOO_LARGE: '图片过大（最大 4 MB）',
+  PROMO_IMAGE_NOT_FOUND: '图片不存在或已被清理，请重新上传',
+  PROMO_IMAGE_LIMIT: '图片库已满（100 张），请稍后再试',
   NOT_FOUND: '接口不存在（数据服务版本可能过旧）',
   METHOD_NOT_ALLOWED: '接口不支持该请求方法',
   HTTP_401: '登录已失效，请重新登录',
@@ -229,6 +234,30 @@ export async function fetchPicture(path: string): Promise<string> {
     reader.onerror = () => reject(new ApiError('NETWORK', 0, null))
     reader.readAsDataURL(blob)
   })
+}
+
+/**
+ * POSTs a file as the request body (its own Content-Type) and reads the
+ * JSON answer, like call.
+ */
+export async function upload<T>(path: string, file: Blob): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json' }
+  if (token) headers['Authorization'] = 'Bearer ' + token
+  headers['Content-Type'] = file.type || 'application/octet-stream'
+  let response: Response
+  try {
+    response = await fetch(path, { method: 'POST', headers, body: file, cache: 'no-store', credentials: 'omit' })
+  } catch {
+    throw new ApiError('NETWORK', 0, null)
+  }
+  let data: unknown = null
+  try {
+    data = await response.json()
+  } catch {
+    data = null
+  }
+  if (!response.ok) throw failure(response, data, {})
+  return data as T
 }
 
 export const api = {

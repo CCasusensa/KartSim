@@ -5,6 +5,7 @@ import { logoutAccount } from "../app/account-startup";
 import { openAccountPanel, type AccountPanelDocument, type AccountPanelHandle } from "../ui/account-panel";
 import { HomeScreen } from "../ui/home-screen";
 import { LobbyHomeView, type QuickEntry } from "../ui/lobby-home-view";
+import { loadLobbyPromos } from "../ui/lobby-promos";
 import { followAccountTopBar, lobbyAccountInfo } from "../ui/lobby-top-bar";
 import { loadLobbyTopBarArt, type TopBarArtLibrary } from "../ui/lobby-top-bar-assets";
 import { MAIN_MENU_FONT_FAMILY, MainMenuView, loadMainMenuAssets, type MainMenuAssets, type ReplayTab,
@@ -166,6 +167,8 @@ export async function openReadyHome(controller: ReadyHomeController,
   if (!library) return;
   const host = controller.host;
   controller.homeOpening = true;
+  // 大厅宣传 (server-go ADMIN.md 10): read while the home art loads.
+  const promos = loadLobbyPromos(activeBrowserSession());
   try {
     const assets = await homeAssets(library);
     if (controller.disposed || controller.activeHome || controller.activeHouse) return;
@@ -283,6 +286,10 @@ export async function openReadyHome(controller: ReadyHomeController,
     }
     const view = new HomeScreen(lobby, single, controller.homePage ?? "home");
     controller.activeHome = view;
+    // Usually read already, so the admin-set pictures replace the built-in ones before the first frame.
+    void promos.then(settings => {
+      if (settings && controller.activeHome === view) view.lobby.setPromos(settings);
+    });
     void attachLobbyScene(controller, view);
     // Release level glove and currency icons; the drawn ones stay if they are missing.
     void loadLobbyTopBarArt(library as unknown as TopBarArtLibrary,

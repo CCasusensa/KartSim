@@ -466,6 +466,12 @@ func (a *API) PublicHandler() http.Handler {
 	route("PUT /api/admin/lottery", a.adminSaveLottery)
 	route("GET /api/admin/economy", a.adminEconomy)
 	route("PUT /api/admin/economy", a.adminSaveEconomy)
+	// 大厅宣传 (ADMIN.md 10): the lobby home's carousel and promotion boards.
+	route("GET /api/lobby/promos", a.lobbyPromos)
+	route("GET /api/lobby/promo-images/{id}", a.lobbyPromoImage)
+	route("GET /api/admin/lobby-promos", a.adminLobbyPromos)
+	route("PUT /api/admin/lobby-promos", a.adminSaveLobbyPromos)
+	mux.Handle("POST /api/admin/lobby-promos/images", a.serveUpload(a.adminUploadPromoImage))
 	mux.Handle("GET /api/myroom/ws", a.rooms)
 	// The global lobby (GLOBAL_LOBBY.md): its socket, its tickets, and the
 	// WebRTC offer browsers try first.

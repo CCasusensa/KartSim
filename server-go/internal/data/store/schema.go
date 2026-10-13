@@ -937,6 +937,23 @@ var migrations = []migration{
 			CONSTRAINT fk_kart_fuel_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
 		) ` + tableTail,
 	}},
+	// v23: 大厅宣传 (ADMIN.md 10): the pictures the admin uploads for the
+	// lobby home's carousel and promotion boards, named by their content
+	// hash. Which picture shows where (and its link) is the "lobbyPromos"
+	// app_settings row.
+	{version: 23, statements: []string{
+		`CREATE TABLE IF NOT EXISTS lobby_promo_images (
+			id CHAR(32) ` + idColumn + ` NOT NULL,
+			content_type VARCHAR(32) ` + idColumn + ` NOT NULL,
+			width INT NOT NULL,
+			height INT NOT NULL,
+			byte_size INT NOT NULL,
+			data MEDIUMBLOB NOT NULL,
+			created_by VARCHAR(64) NOT NULL DEFAULT '',
+			created_at BIGINT NOT NULL,
+			PRIMARY KEY (id)
+		) ` + tableTail,
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.
