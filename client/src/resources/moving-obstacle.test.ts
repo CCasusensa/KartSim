@@ -3,15 +3,20 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { inflateSync } from "node:zlib";
+import { RhoReader } from "../codecs/rho";
+import { y9 } from "../generated/formats.js";
+import type { RhoArchiveIndex } from "./archive-index";
 import {
   admitMovingObstacle, invisibleTrackGeometry, MovingObstacleAnimator, obstacleBoundsRadius,
   obstacleTriangleCenter, obstacleTriangleNormal, transformObstaclePoint,
   type MovingObstacleObject, type ObstacleTrackNode,
 } from "./moving-obstacle";
+import type { ParsedTrackContainer } from "./track-model-admission";
 import { isTrackPrs, validatePrs } from "./track-prs-animation";
 
-const releaseFile = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
-  "../../../recovered/formatted/index.js");
+const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const releaseFile = path.resolve(project, "../recovered/formatted/index.js");
 
 async function releaseObstacle() {
   const source = await readFile(releaseFile, "utf8");
@@ -120,6 +125,36 @@ test("inv 标记只隐藏该节点下直接的网格（工厂 巨型齿轮的锤
     named("Relement", "로봇A23", [named("Relement", "r96", [robot])])], ["ob", "inv"]);
   const hidden = invisibleTrackGeometry([hammer, robotRoot]);
   assert.deepEqual([...hidden].map(entry => entry.name), ["001+_Geom", "mo_04+08_Geom"]);
+});
+
+test("真实 p3553 海盗 眩晕码头：滚桶的 inv 碰撞盒不画，桶身照画", async () => {
+  // Each barrel mo_Cylinder76x holds Box69x [ob, inv]: a box textured with
+  // transparency.dds (DXT3, alpha 0, orange RGB) and no alpha test, which drew
+  // its inner faces as an orange frame around the rolling barrel.
+  const archiveIndex = JSON.parse(inflateSync(await readFile(path.resolve(project,
+    "../mirror/__p3553/archive-index"))).toString("utf8")) as { rho: RhoArchiveIndex[] };
+  const archive = archiveIndex.rho.find(entry => entry.name === "track_pirate_I03.rho");
+  assert.ok(archive);
+  const bytes = await readFile(path.resolve(project, "../mirror/p3553", archive.name));
+  const copy = (chunk: Uint8Array): ArrayBuffer => Uint8Array.from(chunk).buffer as ArrayBuffer;
+  const reader = new RhoReader({ name: archive.name, size: bytes.length,
+    arrayBuffer: async () => copy(bytes),
+    slice: (start = 0, end = bytes.length) => ({
+      arrayBuffer: async () => copy(bytes.subarray(start, end)) }),
+  }, archive);
+  const parsed = y9(await reader.read("track.1s")) as ParsedTrackContainer;
+  const movables = parsed.root.trackObjects.flatMap(object =>
+    object.kind === "ToMovableObject" && "object" in object && object.object
+      ? [object.object as ObstacleTrackNode] : []);
+  const hidden = invisibleTrackGeometry([
+    parsed.root.scene as unknown as ObstacleTrackNode, ...movables]);
+  const barrels = movables.filter(root => root.name.startsWith("#mo_Cylinder"));
+  assert.equal(barrels.length, 4);
+  assert.deepEqual([...hidden].map(entry => entry.name),
+    ["Box692_Geom", "Box01_Geom", "Box691_Geom", "Box693_Geom"]);
+  for (const barrel of barrels)
+    assert.ok(barrel.children.some(child => child.className === "ReTriList" &&
+      !hidden.has(child)), `${barrel.name} 桶身应照常绘制`);
 });
 
 test("移动障碍物的 world matrix、节流、速度及缓存与发行版一致", async () => {
