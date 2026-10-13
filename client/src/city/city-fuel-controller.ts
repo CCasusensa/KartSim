@@ -57,6 +57,11 @@ export class CityFuelController {
   }
 
   get fuel(): CityFuel { return this.gauge.fuel!; }
+
+  /** Hides the gauge under a large window (the M map). */
+  cover(covered: boolean): void {
+    if (this.hud) this.hud.canvas.style.visibility = covered ? "hidden" : "";
+  }
   get windowOpen(): boolean { return this.opening || !!this.window; }
 
   /** True while an Esc should go to a fuel window, not the city's exit. */

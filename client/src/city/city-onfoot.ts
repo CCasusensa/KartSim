@@ -31,6 +31,7 @@ import { mountRacer } from "./city-racer-mount";
 import { CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
 import type { CityFuel, CityMember, CityPose, CitySeat, CitySeatReply, CityVehicle } from "./city-protocol";
 import { loadCityMinimap, showCityMapWindow, type CityMapMarkers, type CityMapWindow } from "./city-map-window";
+import type { CityNavigator } from "./city-navigator";
 
 export interface CityOnFootNetwork {
   exit(pose?: CityPose): Promise<CitySeatReply>;
@@ -68,6 +69,8 @@ export interface CityOnFootHost {
   setDriving(driving: boolean): void;
   /** The race view's size (CSS pixels). */
   viewport(): { width: number; height: number };
+  /** The M map's navigation (destinations and the route). */
+  navigator?(): CityNavigator | undefined;
   /** Where windows open. */
   root: HTMLElement;
 }
@@ -357,8 +360,9 @@ export class CityOnFoot {
       this.minimap ??= loadCityMinimap(this.host.library).catch(error => { console.warn("城市地图图片未能载入", error); return undefined; });
       const image = await this.minimap;
       if (this.disposed) return;
-      this.map = await showCityMapWindow({ library: this.host.library as never, root: this.host.root }, image,
-        () => this.mapMarkers(), () => this.closeMap());
+      this.map = await showCityMapWindow({ library: this.host.library as never, root: this.host.root, image,
+        markers: () => this.mapMarkers(), navigator: this.host.navigator?.(), close: () => this.closeMap(),
+        notice: text => this.host.notice(text) });
       if (this.disposed) this.closeMap();
     } catch (error) {
       console.warn("城市地图打开失败", error);
@@ -402,7 +406,7 @@ export class CityOnFoot {
       const at = design(fleet.copyWebPose(member.playerId)?.position);
       if (at) others.push({ x: at.x, z: at.z });
     }
-    return { me: me && { x: me.x, z: me.z, heading: me.heading }, kart, others };
+    return { me: me && { x: me.x, z: me.z, heading: me.heading, y: me.y }, kart, others };
   }
 
   private stepToRoad(): void {

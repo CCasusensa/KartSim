@@ -147,4 +147,4 @@
 - **坐后座**：乘客不能复位（`PASSENGER`），不能加油、叫救援（`NOT_DRIVING`），也不能开车库。
 - **车库**只能坐在自己车的驾驶座上打开，否则 `city-equipment` 返回 `NOT_IN_OWN_KART`。换车后车辆的 `equipment` 与油箱一起换成新车的（广播 `city-vehicle`）。
 - **离开城市**（`city-leave`、断线、换线路）：他开着的别人的车停在原地；他自己的车随他收回，广播 `city-vehicle-gone`，车上的人被放到车旁（`reason:"recalled"`）；他用过的油箱都保存一次。
-- 浏览器：E 上下车，L 锁车，M 打开卡丁城地图（标出自己、自己的车、加油站和其他成员），步行时 WASD/方向键走、按住 Shift 跑（原版角色只有走路动作 f11，跑步用同一套动作加快 1.9 倍播放，2.4 m/s），R 回到最近的路上。步行和坐后座时用跟随镜头，隐藏速度表与油表。代码在 `client/src/city/`：`city-onfoot.ts`、`city-foot-motion.ts`、`city-walker.ts`、`city-map-window.ts`。
+- 浏览器：E 上下车，L 锁车，M 打开卡丁城地图（标出自己、自己的车、加油站和其他成员；可以缩放平移，点击地图自动导航，HUD 小地图上画出绿色路线，路网与寻路全在浏览器里，见 `design/open-world/PLAN.md` “导航”），步行时 WASD/方向键走、按住 Shift 跑（原版角色只有走路动作 f11，跑步用同一套动作加快 1.9 倍播放，2.4 m/s），R 回到最近的路上。步行和坐后座时用跟随镜头，隐藏速度表与油表。代码在 `client/src/city/`：`city-onfoot.ts`、`city-foot-motion.ts`、`city-walker.ts`、`city-map-window.ts`。

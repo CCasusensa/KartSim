@@ -22,6 +22,8 @@ import { setTetherUnit } from "../vehicle/tether-motion";
 import { beginCityLoading, firstCityFrame, type CityLoadingHandle } from "./city-loading";
 import { CityFuelController } from "./city-fuel-controller";
 import { CityOnFoot } from "./city-onfoot";
+import { CityNavigator } from "./city-navigator";
+import { CityRouteMinimap } from "./city-route-minimap";
 import type { RaceChatMessage } from "../multiplayer/race-chat-overlay";
 import type { GarageChoice, GarageView, GarageViewOptions } from "../multiplayer/lobby-garage";
 import { formatMultiplayerError } from "../multiplayer/errors";
@@ -342,9 +344,19 @@ export class CitySession {
       setFuel: fuel => this.fuel?.setTank(fuel),
       setDriving: driving => this.setDriving(driving),
       viewport: () => ({ width: root.clientWidth, height: root.clientHeight }),
+      navigator: () => this.navigator,
       root,
     });
     this.onFoot.install(snapshot.you.id, snapshot.members, snapshot.vehicles);
+
+    // 导航: M map destinations, the green route on the HUD minimap.
+    this.navigator = new CityNavigator({
+      pose: () => this.onFoot?.mapMarkers().me,
+      notice: text => { this.stage?.chat?.notice?.(text); this.host.options.status(text); },
+    });
+    void this.navigator.ready();
+    const minimap = hud?.ui?.minimap;
+    if (minimap?.source) this.routeMinimap = new CityRouteMinimap(minimap, root, stage.host.renderer.domElement);
     this.footKeyUp = (event: KeyboardEvent) => this.onFoot?.keyup(event);
     this.footBlur = () => this.onFoot?.blur();
     window.addEventListener("keyup", this.footKeyUp);
@@ -507,6 +519,8 @@ export class CitySession {
   private statusLine?: HTMLDivElement;
   /** The chat overlay's own setAllowed (the city's override keeps it on outside windows). */
   private chatAllowed?: (allowed: boolean) => void;
+  navigator?: CityNavigator;
+  private routeMinimap?: CityRouteMinimap;
 
   /** A city window (refuel, rescue, map, garage) is up or opening. */
   private windowOpen(): boolean {
@@ -515,6 +529,14 @@ export class CitySession {
 
   private frame(now: number): void {
     this.chatAllowed?.(!this.windowOpen());
+    // The M map covers most of the view: the HUD overlays above it step aside.
+    const covered = !!this.onFoot?.mapOpen;
+    this.fuel?.cover(covered);
+    if (this.statusLine) this.statusLine.style.visibility = covered ? "hidden" : "";
+    if (this.navigator) {
+      this.navigator.frame(now);
+      this.routeMinimap?.update(this.navigator, covered);
+    }
     this.atmosphere?.update(now);
     this.npcs?.update(now);
     this.labels?.draw(now);
@@ -703,6 +725,9 @@ export class CitySession {
     this.stage?.host?.input?.setEnabled?.(true);
     this.labels?.dispose();
     this.onFoot?.dispose();
+    this.navigator?.dispose();
+    this.routeMinimap?.dispose();
+    this.routeMinimap = undefined;
     this.onFoot = undefined;
     if (this.footKeyUp) window.removeEventListener("keyup", this.footKeyUp);
     if (this.footBlur) window.removeEventListener("blur", this.footBlur);
