@@ -14,6 +14,7 @@ test("city size survives actual AL resets and frames without changing race karts
   applyCityVehicleScale(city.vehicle);
   applyCityVehicleScale(city.vehicle);
   assert.deepEqual(city.vehicle.state.visualScale, cityVisualScale());
+  assert.deepEqual(city.vehicle.driftVisualRuntime().visualScale, cityVisualScale());
   city.run(1000);
   assert.ok(city.vehicle.wheels.grounded);
   assert.ok(city.vehicle.body.position.z > 2);
@@ -21,6 +22,7 @@ test("city size survives actual AL resets and frames without changing race karts
 
   city.vehicle.reset(4, .3, 6, .4);
   assert.deepEqual(city.vehicle.state.visualScale, cityVisualScale());
+  assert.deepEqual(city.vehicle.driftVisualRuntime().visualScale, cityVisualScale());
   city.run(1000);
   assert.deepEqual(city.vehicle.state.visualScale, cityVisualScale());
   city.vehicle.runtime.eventScalePrimary = { x: .6, y: .8, z: 1.2 };
@@ -30,10 +32,13 @@ test("city size survives actual AL resets and frames without changing race karts
     y: Math.fround(1.2 * CITY_VEHICLE_SCALE),
     z: Math.fround(.8 * CITY_VEHICLE_SCALE),
   });
+  assert.deepEqual(city.vehicle.driftVisualRuntime().visualScale, city.vehicle.state.visualScale);
+  assert.notStrictEqual(city.vehicle.driftVisualRuntime().visualScale, city.vehicle.state.visualScale);
   city.vehicle.reset(0, .3, 0, 0);
   assert.deepEqual(city.vehicle.state.visualScale, cityVisualScale());
   race.run(1000);
   assert.deepEqual(race.vehicle.state.visualScale, unit);
+  assert.deepEqual(race.vehicle.driftVisualRuntime().visualScale, unit);
   assert.equal(race.vehicle.collisionShape.scaleX, 1);
   assert.equal(race.vehicle.collisionShape.scaleY, 1);
   assert.equal(race.vehicle.collisionShape.rawHeight, 1);

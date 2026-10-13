@@ -12,6 +12,7 @@ export interface DriftFrame {
   roadSurface: string;
   motionMode: number;
   position: DriftVector;
+  visualScale?: DriftVector;
   right: DriftVector;
   forward: DriftVector;
   presentationRight: DriftVector;
@@ -82,9 +83,6 @@ const drift2ForwardOffset = f32(1);
 const drift2Height = f32(0.05);
 
 function vector(): DriftVector { return { x: 0, y: 0, z: 0 }; }
-function copyFloatVector(value: DriftVector): DriftVector {
-  return { x: f32(value.x), y: f32(value.y), z: f32(value.z) };
-}
 function add(a: DriftVector, b: DriftVector): DriftVector {
   return { x: f32(a.x + b.x), y: f32(a.y + b.y), z: f32(a.z + b.z) };
 }
@@ -251,14 +249,14 @@ export function driftMode(frame: Pick<DriftFrame, "motionMode" | "roadSurface" |
     : frame.roadSurface === "slip" && frame.speedKmh > f32(25) ? 1 : 0;
 }
 function raycastWheelPosition(source: DriftSource, frame: DriftFrame, raycast: DriftRaycast): DriftVector {
-  const position = add(add(frame.position, multiply(frame.right, source.x)),
-    multiply(frame.forward, f32(-source.y)));
+  const position = add(add(frame.position, multiply(frame.right, source.x * (frame.visualScale?.x ?? 1))),
+    multiply(frame.forward, f32(-source.y * (frame.visualScale?.z ?? 1))));
   const rayOrigin = { x: position.x, y: f32(position.y + f32(1)), z: position.z };
   return raycast.rayQuery(rayOrigin, { x: 0, y: f32(-2), z: 0 }, false)?.point ?? position;
 }
 function skidPair(position: DriftVector, frame: DriftFrame, width: number, v: number): SkidPair {
   const orientation = Math.max(dot(frame.presentationRight, frame.right), f32(0.7));
-  const halfWidth = f32(f32(width * orientation) * f32(0.5));
+  const halfWidth = f32(f32(width * (frame.visualScale?.x ?? 1) * orientation) * f32(0.5));
   const lateral = multiply(frame.presentationRight, halfWidth);
   const center = { x: position.x, y: f32(position.y + skidGroundLift), z: position.z };
   return { center, first: add(center, multiply(lateral, -1)), second: add(center, lateral), v };
@@ -510,10 +508,11 @@ export function createDriftEffectClass(ops: DriftEffectOps) {
       const sameChannel = this.particles.filter(particle => particle.channel === channel);
       if (sameChannel.length >= particlesPerChannel)
         this.particles.splice(this.particles.indexOf(sameChannel[0]!), 1);
-      const origin = add(add(frame.position, multiply(frame.right, f32(side * 0.72))),
-        multiply(frame.forward, f32(-0.7)));
-      this.particles.push({ channel, origin, right: copyFloatVector(frame.presentationRight),
-        rear: multiply(frame.presentationForward, -1), up: copyFloatVector(frame.presentationUp),
+      const origin = this.particleOrigin(frame, side);
+      // Capture the scale at birth; existing particles stay in world space as the kart moves.
+      this.particles.push({ channel, origin, right: multiply(frame.presentationRight, frame.visualScale?.x ?? 1),
+        rear: multiply(frame.presentationForward, -(frame.visualScale?.z ?? 1)),
+        up: multiply(frame.presentationUp, frame.visualScale?.y ?? 1),
         sideSpan: this.driftSideSpans[channel], phase, age: 0, scale, renderScale: scale });
     }
 
@@ -531,11 +530,16 @@ export function createDriftEffectClass(ops: DriftEffectOps) {
       const sameChannel = this.drift2Particles.filter(particle => particle.channel === channel);
       if (sameChannel.length >= particlesPerChannel)
         this.drift2Particles.splice(this.drift2Particles.indexOf(sameChannel[0]!), 1);
-      const origin = add(add(frame.position, multiply(frame.right, f32(side * 0.72))),
-        multiply(frame.forward, f32(-0.7)));
-      this.drift2Particles.push({ channel, origin, right: copyFloatVector(frame.presentationRight),
-        rear: multiply(frame.presentationForward, -1), up: copyFloatVector(frame.presentationUp),
+      const origin = this.particleOrigin(frame, side);
+      this.drift2Particles.push({ channel, origin, right: multiply(frame.presentationRight, frame.visualScale?.x ?? 1),
+        rear: multiply(frame.presentationForward, -(frame.visualScale?.z ?? 1)),
+        up: multiply(frame.presentationUp, frame.visualScale?.y ?? 1),
         phase, age: 0, scale: 1, renderScale: 1 });
+    }
+
+    private particleOrigin(frame: DriftFrame, side: number): DriftVector {
+      return add(add(frame.position, multiply(frame.right, f32(side * 0.72) * (frame.visualScale?.x ?? 1))),
+        multiply(frame.forward, f32(-0.7) * (frame.visualScale?.z ?? 1)));
     }
 
     updateDrift2Particles(): void { this.ageParticles(this.drift2Particles); }

@@ -17,7 +17,7 @@ export interface VehiclePresentationContext {
     obstacleRayHit: boolean;
   };
   tuning: { motorcycleType: boolean };
-  state: { drifting: boolean };
+  state: { drifting: boolean; visualScale?: Vector3 };
   runtime: {
     eventScaleSecondary: Vector3;
     physicsState: number;
@@ -66,6 +66,7 @@ export interface VehiclePresentationContext {
     obstacleWheelHit: boolean;
     fullPhysicsBypass: boolean;
     position: Vector3;
+    visualScale?: Vector3;
     right: Vector3;
     forward: Vector3;
     up: Vector3;
@@ -173,6 +174,12 @@ export function updateDriftVisualView(vehicle: VehiclePresentationContext) {
   view.wheelCompressionBaseline = f32(0.5);
   view.obstacleWheelHit = wheels.obstacleRayHit;
   view.fullPhysicsBypass = runtime.fullPhysicsBypass;
+  if (vehicle.state.visualScale) {
+    view.visualScale ??= { x: 1, y: 1, z: 1 };
+    copyVector(view.visualScale, vehicle.state.visualScale);
+  } else {
+    delete view.visualScale;
+  }
   copyVector(view.position, body.position);
   copyVector(view.right, body.right);
   copyVector(view.forward, body.forward);
