@@ -1,7 +1,8 @@
 /**
- * 样条道路的采样：控制点之间用向心 Catmull-Rom 曲线插值，宽度和倾斜
- * 线性插值。结果给编辑器预览、路面网格、护墙和比赛路线共同使用，保证
- * 看到的和生成的完全一致。坐标是客户端坐标（z 向上）。
+ * 样条道路的采样：控制点之间平面上用向心 Catmull-Rom 曲线插值，高度用
+ * 单调三次插值（两点之间的路面高度一定在这两点之间，不会冲到地面下面），
+ * 宽度和倾斜平滑插值。结果给编辑器预览、路面网格、护墙和比赛路线共同
+ * 使用，保证看到的和生成的完全一致。坐标是客户端坐标（z 向上）。
  */
 import type { RoadDesign, RoadPoint, Vec3 } from "./design";
 
@@ -68,6 +69,15 @@ export function sampleRoad(road: Pick<RoadDesign, "points" | "closed" | "width">
     return control[i]!;
   };
   const segments = closed ? n : n - 1;
+  // 高度：Fritsch–Carlson 单调三次 Hermite（按水平弦长），控制点处是局部高低点时斜率为 0
+  const span = (i: number) => Math.max(1e-6, Math.hypot(at(i + 1).x - at(i).x, at(i + 1).y - at(i).y));
+  const secant = (i: number) => (at(i + 1).z - at(i).z) / span(i);
+  const slope = (i: number) => {
+    const before = secant(i - 1), after = secant(i);
+    if (before * after <= 0) return 0;
+    const h0 = span(i - 1), h1 = span(i);
+    return (3 * (h0 + h1)) / ((2 * h1 + h0) / before + (h1 + 2 * h0) / after);
+  };
   const raw: Vec3[] = [];
   const widths: number[] = [];
   const banks: number[] = [];
@@ -77,9 +87,13 @@ export function sampleRoad(road: Pick<RoadDesign, "points" | "closed" | "width">
     const count = Math.max(1, Math.ceil(chord / step));
     const w1 = at(i).width ?? road.width, w2 = at(i + 1).width ?? road.width;
     const b1 = at(i).bank ?? 0, b2 = at(i + 1).bank ?? 0;
+    const h = span(i), m1 = slope(i), m2 = slope(i + 1);
     for (let k = 0; k < count; k++) {
       const t = k / count;
-      raw.push(chord < 1e-6 ? p1 : catmullRom(p0, p1, p2, p3, t));
+      const point = chord < 1e-6 ? p1 : catmullRom(p0, p1, p2, p3, t);
+      const t2 = t * t, t3 = t2 * t;
+      point[2] = (2 * t3 - 3 * t2 + 1) * p1[2] + (t3 - 2 * t2 + t) * h * m1 + (-2 * t3 + 3 * t2) * p2[2] + (t3 - t2) * h * m2;
+      raw.push(point);
       // 平滑插值，宽度和倾斜在控制点附近不出现折角
       const e = t * t * (3 - 2 * t);
       widths.push(w1 + (w2 - w1) * e);

@@ -14,6 +14,7 @@ import {
 } from "../design";
 import { categoryInfo, surfaceRef, textureLabel, textureRef, themeTitle, type CatalogSky, type CatalogTexture, type ThemePreset } from "../catalog";
 import { sampleRoad } from "../road-geometry";
+import { ROAD_CLEARANCE, settleRoad, type SettleResult } from "../road-settle";
 import type { PieceInfo, SourceTrack } from "../source-tracks";
 import { templateRoad, type TrackTemplate } from "../templates";
 import { objectForPath, type AssembledScene, type EditorAssets } from "./assets";
@@ -483,17 +484,18 @@ export class EditorApp {
     if (!road) { this.startRoad(); road = this.state.selectedRoad()!; }
     const last = road.points[road.points.length - 1];
     const hit = this.viewport.pick(event, [this.views.roads, this.views.pieces, this.views.ground]);
+    // 路面至少比地面高 ROAD_CLEARANCE，贴着地面画会和草地打架、露出底图
+    const floor = this.roadFloor();
     let point: Vec3 | undefined;
     if (hit) {
       const p = toClient(hit.point);
       // 点在自己这条路上时沿用上一个点的高度，免得越画越高
-      point = hit.object.userData.roadId === road.id && last ? [p[0], p[1], last.z] : [p[0], p[1], p[2] + 0.05];
-    } else point = this.viewport.pickPlane(event, last?.z ?? this.state.design.ground?.z ?? 0);
+      point = hit.object.userData.roadId === road.id && last ? [p[0], p[1], last.z] : [p[0], p[1], Math.max(floor, p[2] + 0.05)];
+    } else point = this.viewport.pickPlane(event, last?.z ?? Math.max(floor, 0));
     if (!point) return;
     const first = road.points[0];
     if (first && road.points.length >= 3 && Math.hypot(point[0] - first.x, point[1] - first.y) < Math.max(8, road.width * 0.6)) {
-      const id = road.id;
-      this.state.commit(design => { const r = design.roads.find(x => x.id === id)!; r.closed = true; });
+      this.commitRoad(road.id, r => { r.closed = true; });
       this.setMode("select");
       this.say("赛道连成一圈啦！");
       return;
@@ -515,6 +517,32 @@ export class EditorApp {
       const id = road.id;
       this.state.commit(design => { design.roads = design.roads.filter(r => r.id !== id); });
       this.state.select(undefined);
+    } else if (road) this.commitRoad(road.id);
+  }
+
+  /** 路面最低能放多高：地面上方 ROAD_CLEARANCE（没有地面时不限）。 */
+  roadFloor(): number {
+    const ground = this.state.design.ground;
+    return ground ? ground.z + ROAD_CLEARANCE : -Infinity;
+  }
+
+  /**
+   * 改一条路，并在同一步里自动修顺（road-settle.ts：去掉太近的点、急弯修圆、
+   * 贴地的点抬高、太陡的坡摊平），撤销一次就整个回去。修了什么会提示一句。
+   */
+  commitRoad(roadId: string, change?: (road: RoadDesign, design: MapDesign) => void): void {
+    let result: SettleResult | undefined;
+    this.state.commit(design => {
+      const road = design.roads.find(item => item.id === roadId);
+      if (!road) return;
+      change?.(road, design);
+      if (road.points.length < 2) return;
+      result = settleRoad(road, design.ground?.z);
+      road.points = result.points;
+    });
+    if (result && (result.rounded || result.merged || result.lifted)) {
+      const parts = [result.rounded ? "急弯修圆了" : "", result.merged ? "挤在一起的点合并了" : "", result.lifted ? "太低太陡的地方垫平了" : ""].filter(Boolean);
+      this.say(`赛道自动修顺：${parts.join("，")}`, 3500);
     }
   }
 
@@ -582,7 +610,7 @@ export class EditorApp {
       const x = Math.round(handle.position.x * 100) / 100, y = Math.round(handle.position.y * 100) / 100;
       const z = Math.round((handle.position.z - radius * 0.8) * 100) / 100;
       const apply = (design: MapDesign) => { const point = design.roads.find(r => r.id === road.id)!.points[index]!; point.x = x; point.y = y; point.z = z; };
-      if (done) this.state.commit(apply); else this.state.preview(apply);
+      if (done) this.commitRoad(road.id, (_road, design) => apply(design)); else this.state.preview(apply);
       return;
     }
     if (selection?.kind !== "pieces") return;
@@ -871,6 +899,13 @@ export class EditorApp {
 
   /** 换一张设计（新建向导、打开）。 */
   loadNewDesign(design: MapDesign): void {
+    // 以前贴着地面画的路（比地面只高一点点）会和草地打架：打开时抬到地面上方
+    if (design.ground) {
+      const floor = design.ground.z + ROAD_CLEARANCE;
+      let lifted = 0;
+      for (const road of design.roads) for (const point of road.points) if (point.z < floor) { point.z = Math.round(floor * 100) / 100; lifted++; }
+      if (lifted) setTimeout(() => this.say("已经把贴着地面的路抬高了一点，不会再露出草地", 4000), 0);
+    }
     this.closeSource();
     if (this.tool.kind !== "select") this.setTool({ kind: "select" });
     this.state.load(design);

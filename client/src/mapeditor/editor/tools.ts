@@ -192,7 +192,11 @@ export class ToolController {
       const drag = this.drag;
       this.drag = undefined;
       this.app.views.draggingPieces.clear();
-      if (drag.moved) { this.app.state.commit(); return true; }
+      if (drag.moved) {
+        // 拖完路点顺手修顺这条路（急弯、太近、太低）
+        if (drag.point) this.app.commitRoad(drag.point.roadId); else this.app.state.commit();
+        return true;
+      }
     }
     return false;
   }

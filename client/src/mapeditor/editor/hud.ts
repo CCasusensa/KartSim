@@ -268,7 +268,8 @@ export class Hud {
     } else {
       const road = app.state.road(selection.id);
       if (!road) { this.actionBar.style.display = "none"; return; }
-      const commit = (change: (road: RoadDesign) => void) => app.state.commit(design => change(design.roads.find(r => r.id === road.id)!));
+      // 改路都走 commitRoad：同一步里自动修顺（急弯修圆、贴地抬高、太陡摊平）
+      const commit = (change: (road: RoadDesign) => void) => app.commitRoad(road.id, change);
       if (selection.point !== undefined && road.points[selection.point]) {
         const index = selection.point;
         const point = road.points[index]!;
@@ -279,7 +280,9 @@ export class Hud {
           iconButton("↶", "左歪", () => commit(r => { r.points[index]!.bank = Math.min(40, (r.points[index]!.bank ?? 0) + 8); }), { title: "路面往右边倾斜（左高右低）" }),
           iconButton("↷", "右歪", () => commit(r => { r.points[index]!.bank = Math.max(-40, (r.points[index]!.bank ?? 0) - 8); })),
           iconButton("＋", "加个点", () => {
-            commit(r => {
+            // 不走自动修顺：新点可能离两边很近，修顺会把它当成多余的点合并掉
+            app.state.commit(design => {
+              const r = design.roads.find(item => item.id === road.id)!;
               const a = r.points[index]!, b = r.points[(index + 1) % r.points.length] ?? a;
               r.points.splice(index + 1, 0, { x: (a.x + b.x) / 2 + (b === a ? 10 : 0), y: (a.y + b.y) / 2, z: (a.z + b.z) / 2 });
             });
