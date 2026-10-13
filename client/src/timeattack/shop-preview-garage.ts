@@ -4,7 +4,9 @@
  * and equipment cards from the garage catalog exactly like the garage item
  * grid, and each request is drawn once into a 2D canvas snapshot. Only the
  * models the shop is waiting for, plus a few recently drawn ones (so hovering
- * a card can draw its larger tooltip picture at once), stay loaded.
+ * a card can draw its larger tooltip picture at once), stay loaded. Items
+ * with an item-panel model of their own (auras, uniforms, pets, cards …,
+ * shop-item-models.ts) are drawn from it on the same renderer instead.
  *
  * The same panels draw the shop stage's rider: the garage live preview (the
  * rider in the kart with paint, dye, balloon, headband, goggles, gloves, aura,
@@ -26,6 +28,7 @@ import type {
 } from "./shop-preview";
 import type { GaragePreviewSelection } from "../ui/garage-live-panel-assets";
 import { EQUIPMENT_CATEGORIES } from "../ui/local-profile";
+import { shopModels, type ShopModelCard, type ShopModelLibrary } from "./shop-item-models";
 
 /**
  * Sizes of the shop's ItemWindows: the card's item container (shopCard*@cn
@@ -211,6 +214,18 @@ function pick<Entry extends { itemId: number; internalId: string }>(entries: Ent
   return matches.find(entry => entry.internalId.toLowerCase() === internalId) ?? matches[0];
 }
 
+/**
+ * The request with the garage catalog's internal id when it names none (box
+ * rewards give only category and itemId), for the item-panel models that
+ * are found by it.
+ */
+export function withInternalId(catalog: GarageShopCatalog, request: ShopPreviewRequest): ShopPreviewRequest {
+  if (request.internalId) return request;
+  const entry = catalog.equipment.find(candidate =>
+    candidate.category === request.category && candidate.itemId === request.itemId);
+  return entry ? { ...request, internalId: entry.internalId } : request;
+}
+
 /** The garage card item for a shop item, or undefined when the garage has none. */
 export function garageCardFor(catalog: GarageShopCatalog, request: ShopPreviewRequest): GarageCardItem | undefined {
   if (!(request.itemId > 0)) return undefined;
@@ -274,6 +289,39 @@ function createCanvas(): HTMLCanvasElement {
   return document.createElement("canvas");
 }
 
+/** An item drawn from its own item-panel model (shop-item-models.ts) instead of a garage card. */
+export interface ShopModelRequest { readonly key: string }
+
+/** The shop's item-panel models: which requests have one, and loading them. */
+export interface ShopModelSource {
+  resolve(request: ShopPreviewRequest): ShopModelRequest | undefined;
+  load(model: ShopModelRequest): Promise<ShopModelCard>;
+}
+
+interface ModelCardEntry {
+  readonly card: Promise<ShopModelCard>;
+  /** Snapshots drawing it now; only unused models are dropped. */
+  users: number;
+}
+
+/** Resolves the promise, rejecting once signal aborts or after LOAD_TIMEOUT_MS. */
+function waitFor<Value>(promise: Promise<Value>, signal: AbortSignal, timeout: string): Promise<Value> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => finish(new Error(timeout)), LOAD_TIMEOUT_MS);
+    const onAbort = () => finish(new Error("商店预览已取消。"));
+    const finish = (error?: Error, value?: Value) => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", onAbort);
+      if (error) reject(error);
+      else resolve(value!);
+    };
+    if (signal.aborted) return onAbort();
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(value => finish(undefined, value), (error: unknown) =>
+      finish(error instanceof Error ? error : new Error(String(error))));
+  });
+}
+
 /** Snapshots over one GarageLivePanels; owns it and the given resources. */
 export class GarageShopSnapshots implements ShopSnapshotBackend<ShopPreviewSnapshot> {
   private readonly wanted = new Map<string, { item: GarageCardItem; users: number }>();
@@ -284,13 +332,22 @@ export class GarageShopSnapshots implements ShopSnapshotBackend<ShopPreviewSnaps
   private readonly stages = new Set<ShopStageSession>();
   private disposed = false;
 
+  /** Item-panel models loaded or loading, least recently used first. */
+  private readonly modelCards = new Map<string, ModelCardEntry>();
+
   constructor(private readonly catalog: GarageShopCatalog,
     private readonly panels: GarageShopPanels, private readonly owned: Disposable[],
-    private readonly newCanvas: () => HTMLCanvasElement = createCanvas) {}
+    private readonly newCanvas: () => HTMLCanvasElement = createCanvas,
+    private readonly models?: ShopModelSource) {}
 
   /** Model keys the panels are asked to keep (for tests and diagnostics). */
   get loadedKeys(): string[] {
     return [...new Set([...this.retained.keys(), ...this.wanted.keys()])];
+  }
+
+  /** Item-panel models kept loaded (for tests and diagnostics). */
+  get modelKeys(): string[] {
+    return [...this.modelCards.keys()];
   }
 
   /** GarageLivePanels onReady: a card finished loading or failed. */
@@ -300,6 +357,8 @@ export class GarageShopSnapshots implements ShopSnapshotBackend<ShopPreviewSnaps
 
   async snapshot(request: ShopPreviewRequest, signal: AbortSignal): Promise<ShopPreviewSnapshot | undefined> {
     if (this.disposed || signal.aborted) return undefined;
+    const model = request.itemId > 0 ? this.models?.resolve(withInternalId(this.catalog, request)) : undefined;
+    if (model) return this.modelSnapshot(model, request.size, signal);
     const item = garageCardFor(this.catalog, request);
     if (!item) return undefined;
     const key = cardKey(item);
@@ -413,6 +472,9 @@ export class GarageShopSnapshots implements ShopSnapshotBackend<ShopPreviewSnaps
     this.listeners.clear();
     this.wanted.clear();
     this.retained.clear();
+    for (const entry of this.modelCards.values())
+      void entry.card.then(card => card.dispose(), () => undefined);
+    this.modelCards.clear();
     const renderer = this.panels.renderer;
     try { this.panels.dispose(); } catch { /* Best effort. */ }
     try { renderer.forceContextLoss?.(); } catch { /* Best effort. */ }
@@ -497,26 +559,57 @@ export class GarageShopSnapshots implements ShopSnapshotBackend<ShopPreviewSnaps
     return camera;
   }
 
+  /** An item-panel model, loaded once and shared, drawn like an equipment card. */
+  private async modelSnapshot(model: ShopModelRequest, size: ShopPreviewRequest["size"],
+    signal: AbortSignal): Promise<ShopPreviewSnapshot | undefined> {
+    let entry = this.modelCards.get(model.key);
+    if (entry) this.modelCards.delete(model.key);
+    else {
+      entry = { card: this.models!.load(model), users: 0 };
+      // A failed model is not kept, so a later page may try it again.
+      entry.card.catch(() => {
+        if (this.modelCards.get(model.key) === entry) this.modelCards.delete(model.key);
+      });
+    }
+    this.modelCards.set(model.key, entry);
+    entry.users++;
+    try {
+      this.trimModels();
+      const card = await waitFor(entry.card, signal, `商店物品模型加载超时：${model.key}`);
+      if (this.disposed || signal.aborted) return undefined;
+      const snapshot = this.capture(size, (_time, height, rectangle, frame) => {
+        this.panels.setViewport(height, rectangle);
+        card.update(rectangle.width, rectangle.height, frame);
+        this.panels.submitScene(card.scene, card.camera);
+      }, card.frames);
+      if (!snapshot && this.modelCards.get(model.key) === entry && entry.users === 1) {
+        // A model that draws nothing is not kept.
+        this.modelCards.delete(model.key);
+        card.dispose();
+      }
+      return snapshot;
+    } finally {
+      entry.users--;
+      if (!this.disposed) this.trimModels();
+    }
+  }
+
+  /** Keep at most MAX_MODELS item-panel models, dropping unused ones oldest first. */
+  private trimModels(): void {
+    for (const [key, entry] of this.modelCards) {
+      if (this.modelCards.size <= MAX_MODELS) break;
+      if (entry.users > 0) continue;
+      this.modelCards.delete(key);
+      void entry.card.then(card => card.dispose(), () => undefined);
+    }
+  }
+
   /** Draw one loaded card alone on the shared renderer and copy it out. */
   private draw(item: GarageCardItem, size: ShopPreviewRequest["size"]): ShopPreviewSnapshot | undefined {
     if (this.state(item) !== "ready") throw new Error("车库卡片已释放。");
-    const { width, height } = snapshotSize(size);
     const panels = this.panels;
-    const renderer = panels.renderer;
-    // A lost context (the browser reclaimed it) would only draw blank pictures.
-    if (renderer.getContext?.().isContextLost?.()) throw new Error("商店预览的 WebGL 上下文已丢失。");
-    const ratio = pixelRatio();
-    const time = performance.now();
-    const rectangle = { x: 0, y: 0, width, height };
-    panels.directFrame = undefined;
-    panels.pixelRatio = ratio;
-    renderer.setPixelRatio(ratio);
-    renderer.setSize(width, height, false);
-    renderer.setScissorTest(false);
-    renderer.clear(true, true, true);
-    panels.stageBinding.beginFrame(time);
-    renderer.setScissorTest(true);
-    try {
+    return this.capture(size, (time, height, rectangle) => {
+      const { width } = rectangle;
       if (item.kind === "kart") {
         panels.renderKartCard(time, height, item, rectangle, undefined, true);
       } else if (item.kind === "character") {
@@ -529,22 +622,114 @@ export class GarageShopSnapshots implements ShopSnapshotBackend<ShopPreviewSnaps
       } else {
         panels.renderEquipmentCard(height, item, rectangle);
       }
-    } finally {
+    });
+  }
+
+  /**
+   * Renders one picture of the size with render() on the shared renderer and
+   * copies it out. With frames (an item-panel model), the brightest of those
+   * animation moments is drawn over black and over white to find its
+   * coverage (unmatte).
+   */
+  private capture(size: ShopPreviewRequest["size"],
+    render: (time: number, height: number, rectangle: GaragePanelRectangle, frame: number) => void,
+    frames?: readonly number[]): ShopPreviewSnapshot | undefined {
+    const { width, height } = snapshotSize(size);
+    const panels = this.panels;
+    const renderer = panels.renderer;
+    // A lost context (the browser reclaimed it) would only draw blank pictures.
+    if (renderer.getContext?.().isContextLost?.()) throw new Error("商店预览的 WebGL 上下文已丢失。");
+    const ratio = pixelRatio();
+    const time = performance.now();
+    const rectangle = { x: 0, y: 0, width, height };
+    panels.directFrame = undefined;
+    panels.pixelRatio = ratio;
+    renderer.setPixelRatio(ratio);
+    renderer.setSize(width, height, false);
+    const pass = (frame: number) => {
       renderer.setScissorTest(false);
+      renderer.clear(true, true, true);
+      panels.stageBinding.beginFrame(time);
+      renderer.setScissorTest(true);
+      try {
+        render(time, height, rectangle, frame);
+      } finally {
+        renderer.setScissorTest(false);
+      }
+      const source = renderer.domElement;
+      const canvas = this.newCanvas();
+      canvas.width = source.width;
+      canvas.height = source.height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("商店预览缺少 2D 画布。");
+      context.drawImage(source, 0, 0);
+      return { canvas, context };
+    };
+    const pixels = (picture: ReturnType<typeof pass>) =>
+      picture.context.getImageData(0, 0, picture.canvas.width, picture.canvas.height);
+    const release = (picture: ReturnType<typeof pass>) => {
+      picture.canvas.width = 0;
+      picture.canvas.height = 0;
+    };
+    let picture: ReturnType<typeof pass>;
+    if (!frames) picture = pass(0);
+    else {
+      try {
+        renderer.setClearColor(0x000000, 1);
+        let best = frames[0] ?? 0;
+        if (frames.length > 1) {
+          let bestScore = -1;
+          for (const frame of frames) {
+            const candidate = pass(frame);
+            const score = brightness(pixels(candidate).data);
+            release(candidate);
+            if (score > bestScore) [best, bestScore] = [frame, score];
+          }
+        }
+        picture = pass(best);
+        renderer.setClearColor(0xffffff, 1);
+        const white = pass(best);
+        const image = pixels(picture);
+        unmatte(image.data, pixels(white).data);
+        picture.context.putImageData(image, 0, 0);
+        release(white);
+      } finally {
+        renderer.setClearColor(0, 0);
+      }
     }
-    const source = renderer.domElement;
-    const canvas = this.newCanvas();
-    canvas.width = source.width;
-    canvas.height = source.height;
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("商店预览缺少 2D 画布。");
-    context.drawImage(source, 0, 0);
+    const { canvas, context } = picture;
     if (blank(context, canvas.width, canvas.height)) {
-      canvas.width = 0;
-      canvas.height = 0;
+      release(picture);
       return undefined;
     }
     return { canvas, width, height };
+  }
+}
+
+/** How much a picture drawn over black shows: the sum of each pixel's brightest channel. */
+export function brightness(pixels: ArrayLike<number>): number {
+  let sum = 0;
+  for (let index = 0; index < pixels.length; index += 4)
+    sum += Math.max(pixels[index]!, pixels[index + 1]!, pixels[index + 2]!);
+  return sum;
+}
+
+/**
+ * Recovers a picture's coverage from renders over black (into which the
+ * result is written) and over white: a pixel covered with alpha a shows a·c
+ * over black and a·c + (1 − a) over white. Additive light (aura glow
+ * textures, whose black would otherwise show as a dark box on the card)
+ * comes out as white light of its brightness, brightening the card behind
+ * it like the original panel drawn onto the window.
+ */
+export function unmatte(black: Uint8ClampedArray, white: ArrayLike<number>): void {
+  for (let index = 0; index < black.length; index += 4) {
+    const difference = (white[index]! - black[index]! + white[index + 1]! - black[index + 1]! +
+      white[index + 2]! - black[index + 2]!) / 3;
+    const alpha = Math.min(255, Math.max(0, Math.round(255 - difference)));
+    for (let channel = 0; channel < 3; channel++)
+      black[index + channel] = alpha === 0 ? 0 : Math.min(255, Math.round(black[index + channel]! * 255 / alpha));
+    black[index + 3] = alpha;
   }
 }
 
@@ -562,7 +747,8 @@ export async function loadGarageShopPreview(library: unknown): Promise<ShopSnaps
     const card = SIZES.card;
     const panels = await E7.load(source, environment, binding, () => backend?.changed(),
       card, card, undefined, "preview") as unknown as GarageShopPanels;
-    backend = new GarageShopSnapshots(catalog, panels, [binding, environment]);
+    backend = new GarageShopSnapshots(catalog, panels, [binding, environment], undefined,
+      shopModels(source as unknown as ShopModelLibrary, environment, binding));
     return backend;
   } catch (error) {
     binding.dispose();

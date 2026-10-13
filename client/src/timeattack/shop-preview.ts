@@ -296,13 +296,15 @@ export interface ShopPreviewSnapshot {
 }
 
 /**
- * Item categories the garage draws as cards (garage-live-panel-assets.ts):
- * 1 character, 3 kart, and the equipment kinds with an equipment card loader
- * (flyingPet, balloon, goggle, headBand, handGearL, aura, skidMark, color,
- * dye, plate). Others (pets, uniforms, …) keep the kind icon.
+ * Item categories with a picture: the garage's cards
+ * (garage-live-panel-assets.ts: 1 character, 3 kart, and the equipment kinds
+ * with an equipment card loader: flyingPet, balloon, goggle, headBand,
+ * handGearL, skidMark, color, dye, plate) and the item-panel models
+ * (shop-item-models.ts: aura 26, uniform 18, decal 20, headphone 12, rider
+ * colour 31, cards 32/61/7, item skin card 58, slot background 71, pet 21).
  */
 export const SHOP_PREVIEW_CATEGORIES: ReadonlySet<number> =
-  new Set([1, 3, 52, 9, 8, 11, 16, 26, 27, 2, 70, 4]);
+  new Set([1, 3, 52, 9, 8, 11, 16, 26, 27, 2, 70, 4, 18, 20, 12, 31, 32, 61, 7, 58, 71, 21]);
 
 /** Copies a cached snapshot into its own 2D canvas inside host. */
 export function presentShopSnapshot(snapshot: ShopPreviewSnapshot, host: HTMLElement): () => void {

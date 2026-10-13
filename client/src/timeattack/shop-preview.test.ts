@@ -14,9 +14,10 @@ import {
 } from "./shop-preview";
 import {
   garageCardFor, GarageShopSnapshots, poseStageCamera, SHOP_STAGE_CAMERA, snapshotSize, STAGE_CAMERA_ZOOM,
-  stagePreviewSelection,
-  type GarageShopCatalog, type GarageShopPanels,
+  stagePreviewSelection, withInternalId,
+  type GarageShopCatalog, type GarageShopPanels, type ShopModelSource,
 } from "./shop-preview-garage";
+import type { ShopModelCard } from "./shop-item-models";
 import type { GaragePreviewSelection } from "../ui/garage-live-panel-assets";
 
 function request(itemId: number, size: ShopPreviewRequest["size"] = "card",
@@ -221,7 +222,8 @@ test("the shop's preview is lazy: creating and disposing it loads nothing", () =
   const preview = createShopPreview({ name: "library" });
   assert.equal(SHOP_PREVIEW_CATEGORIES.has(3), true);
   assert.equal(SHOP_PREVIEW_CATEGORIES.has(1), true);
-  assert.equal(SHOP_PREVIEW_CATEGORIES.has(21), false, "pets keep the icon");
+  for (const category of [26, 18, 21, 20, 12, 31, 32, 61, 7, 58, 71])
+    assert.equal(SHOP_PREVIEW_CATEGORIES.has(category), true, `item-panel model category ${category}`);
   preview.dispose();
 });
 
@@ -309,7 +311,7 @@ class FakePanels implements GarageShopPanels {
   }
   renderEquipmentCard(): void { this.events.push("equipment"); }
   setViewport(): void {}
-  submitScene(): void { this.events.push("submit"); }
+  submitScene(_scene?: unknown): void { this.events.push("submit"); }
   dispose(): void { this.events.push("panels.dispose"); }
 }
 
@@ -415,6 +417,157 @@ test("the garage backend keeps at most a page and a few drawn models loaded", as
   assert.equal(snapshots.loadedKeys[0], "kart|catalog:3:9");
   assert.equal(Math.max(...panels.synced.map(keys => keys.length)) <= 12, true);
   snapshots.dispose();
+});
+
+// --- Item-panel models ------------------------------------------------------
+
+/** Item-panel models whose picture brightness is set per frame; loads resolve when asked. */
+class FakeModels implements ShopModelSource {
+  readonly loads: string[] = [];
+  readonly disposed: string[] = [];
+  readonly pending = new Map<string, { resolve(card: ShopModelCard): void; reject(error: Error): void }>();
+  /** Brightness the model shows at each frame (default 1 everywhere). */
+  shade = new Map<string, (frame: number) => number>();
+  drawn: Array<[string, number]> = [];
+
+  resolve(request: ShopPreviewRequest) {
+    return request.category === 26 && request.internalId ? { key: `aura/${request.internalId}` } : undefined;
+  }
+  load(model: { key: string }): Promise<ShopModelCard> {
+    this.loads.push(model.key);
+    return new Promise((resolve, reject) => this.pending.set(model.key, { resolve, reject }));
+  }
+  arrive(key: string, frames: number[] = [0]): void {
+    const card = {
+      scene: { key } as never, camera: {} as never, frames,
+      update: (_width: number, _height: number, frame: number) => { this.drawn.push([key, frame]); },
+      dispose: () => this.disposed.push(key),
+    };
+    this.pending.get(key)!.resolve(card);
+  }
+}
+
+/** Panels whose WebGL picture is the current model's shade over the clear colour. */
+class ModelPanels extends FakePanels {
+  clear = [0, 0];
+  value = 0;
+  constructor(private readonly models: FakeModels) {
+    super();
+    Object.assign(this.renderer, {
+      setClearColor: (color: number, alpha: number) => {
+        this.clear = [color, alpha];
+        this.events.push(["clear-color", color, alpha]);
+      },
+    });
+  }
+  override submitScene(scene: unknown): void {
+    const [key, frame] = this.models.drawn.at(-1)!;
+    assert.equal((scene as { key: string }).key, key);
+    const shade = this.models.shade.get(key)?.(frame) ?? 1;
+    // An additive model: its light adds to the clear colour.
+    this.value = Math.min(255, (this.clear[0] === 0xffffff ? 255 : 0) + Math.round(shade * 100));
+    this.events.push("submit");
+  }
+}
+
+function modelGarage() {
+  const models = new FakeModels();
+  const panels = new ModelPanels(models);
+  const pictures: Array<{ data: Uint8ClampedArray; put?: Uint8ClampedArray }> = [];
+  const snapshots = new GarageShopSnapshots(catalog, panels, [], () => {
+    const picture: { data: Uint8ClampedArray; put?: Uint8ClampedArray } = { data: new Uint8ClampedArray(0) };
+    pictures.push(picture);
+    const canvas = {
+      width: 0, height: 0,
+      getContext: () => ({
+        drawImage: () => {
+          picture.data = new Uint8ClampedArray(canvas.width * canvas.height * 4);
+          for (let index = 0; index < picture.data.length; index += 4)
+            picture.data.set([panels.value, panels.value, panels.value, 255], index);
+        },
+        getImageData: () => ({ data: picture.put ?? picture.data }),
+        putImageData: (image: { data: Uint8ClampedArray }) => { picture.put = image.data; },
+      }),
+    };
+    return canvas as unknown as HTMLCanvasElement;
+  }, models);
+  return { models, panels, pictures, snapshots };
+}
+
+const aura = (internalId: string, size: ShopPreviewRequest["size"] = "card"): ShopPreviewRequest =>
+  ({ category: 26, itemId: 7, kind: "aura", internalId, name: internalId, size });
+
+test("an item-panel model is drawn at its brightest frame over black and white, then kept", async () => {
+  const { models, panels, pictures, snapshots } = modelGarage();
+  models.shade.set("aura/fade", frame => frame === 375 ? 0.9 : frame === 0 ? 0 : 0.3);
+  const pending = snapshots.snapshot(aura("fade"), signal());
+  await tick();
+  assert.deepEqual(models.loads, ["aura/fade"]);
+  models.arrive("aura/fade", [0, 375, 750]);
+  const snapshot = await pending;
+  assert.equal(snapshot?.width, 180);
+  // Three scoring passes over black, then the best frame over black and over white.
+  assert.deepEqual(models.drawn.map(([, frame]) => frame), [0, 375, 750, 375, 375]);
+  assert.deepEqual(panels.events.filter(event => Array.isArray(event) && event[0] === "clear-color"),
+    [["clear-color", 0, 1], ["clear-color", 0xffffff, 1], ["clear-color", 0, 0]]);
+  // Light of 90 over the card: white at alpha 90.
+  assert.deepEqual([...pictures.at(-2)!.put!.slice(0, 4)], [255, 255, 255, 90]);
+  assert.equal(snapshot!.canvas.width, 180);
+  assert.deepEqual(snapshots.modelKeys, ["aura/fade"]);
+  // The tooltip picture reuses the loaded model.
+  await snapshots.snapshot(aura("fade", "detail"), signal());
+  assert.deepEqual(models.loads, ["aura/fade"]);
+  assert.equal(snapshots.loadedKeys.length, 0, "no garage card was asked for");
+  snapshots.dispose();
+  await tick();
+  assert.deepEqual(models.disposed, ["aura/fade"]);
+});
+
+test("item-panel models that draw nothing, fail or are aborted are not kept", async () => {
+  const { models, snapshots } = modelGarage();
+  models.shade.set("aura/dark", () => 0);
+  const dark = snapshots.snapshot(aura("dark"), signal());
+  await tick();
+  models.arrive("aura/dark");
+  assert.equal(await dark, undefined);
+  assert.deepEqual(snapshots.modelKeys, []);
+  assert.deepEqual(models.disposed, ["aura/dark"]);
+
+  const broken = snapshots.snapshot(aura("broken"), signal());
+  await tick();
+  models.pending.get("aura/broken")!.reject(new Error("MtlProperty"));
+  await assert.rejects(broken, /MtlProperty/);
+  await tick();
+  assert.deepEqual(snapshots.modelKeys, []);
+
+  const abort = new AbortController();
+  const aborted = snapshots.snapshot(aura("slow"), abort.signal);
+  await tick();
+  abort.abort();
+  await assert.rejects(aborted, /取消/);
+  snapshots.dispose();
+});
+
+test("at most twelve unused item-panel models stay loaded", async () => {
+  const { models, snapshots } = modelGarage();
+  for (let index = 0; index < 14; index++) {
+    const pending = snapshots.snapshot(aura(`a${index}`), signal());
+    await tick();
+    models.arrive(`aura/a${index}`);
+    await pending;
+  }
+  assert.equal(snapshots.modelKeys.length, 12);
+  assert.equal(snapshots.modelKeys[0], "aura/a2");
+  await tick();
+  assert.deepEqual(models.disposed, ["aura/a0", "aura/a1"]);
+  snapshots.dispose();
+});
+
+test("requests without an internal id take the garage catalog's (box rewards)", () => {
+  const reward = { category: 52, itemId: 9, kind: "", internalId: "", name: "", size: "card" as const };
+  assert.equal(withInternalId(catalog, reward).internalId, "bee");
+  assert.equal(withInternalId(catalog, { ...reward, internalId: "own" }).internalId, "own");
+  assert.equal(withInternalId(catalog, { ...reward, itemId: 99 }).internalId, "");
 });
 
 // --- The shop stage (3D rider) ----------------------------------------------
