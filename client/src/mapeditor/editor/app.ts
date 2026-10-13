@@ -12,7 +12,7 @@ import {
   DEFAULT_ROAD_SURFACE, DEFAULT_WALL, MAP_LIMITS, defaultGround, newDesign, type MapDesign, type PieceDesign, type RoadDesign,
   type TextureRef, type Vec3,
 } from "../design";
-import { categoryInfo, surfaceRef, textureLabel, textureRef, themeTitle, type CatalogSky, type CatalogTexture, type ThemePreset } from "../catalog";
+import { surfaceRef, textureLabel, textureRef, themeTitle, type CatalogSky, type CatalogTexture, type ThemePreset } from "../catalog";
 import { sampleRoad } from "../road-geometry";
 import { ROAD_CLEARANCE, settleRoad, type SettleResult } from "../road-settle";
 import type { PieceInfo, SourceTrack } from "../source-tracks";
@@ -296,7 +296,7 @@ export class EditorApp {
       : this.mode === "source" && this.source
         ? `正在查看官方赛道「${this.source.track.title}」：点击物件选取（Shift 多选），再点左下角“放到我的地图”`
         : tool.kind === "place"
-          ? `放置「${tool.piece.label}」：点击放下${categoryInfo(tool.piece.category).paint === "single" ? "" : "，按住拖动连续摆放"}；Q/E 旋转，[ ] 大小，Esc 或右键结束`
+          ? `放置「${tool.piece.label}」：点击放下；滚轮或 Q/E 旋转，长按上下拖调高度，[ ] 大小，Esc 或右键结束`
           : tool.kind === "bulldoze" ? "推土机：点摆件推掉，按住拖动连片推；Esc 结束"
             : tool.kind === "items" ? "点道路放一排道具箱；Esc 结束" : "";
     clear(this.sourceBar);

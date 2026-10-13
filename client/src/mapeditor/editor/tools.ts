@@ -1,15 +1,14 @@
 /**
  * 视口里的工具（简单模式的主要操作）：
  *   放置：选好的物件跟着鼠标走，点一下放一个；滚轮转方向；长按左键再上下拖动
- *         调离地高度，松开放下；按住立刻拖动像刷子一样连续摆放（围栏、路灯沿
- *         拖动方向排成一排；树、花、石头随机朝向撒开），单个的建筑拖到哪放到哪；
+ *         调离地高度，松开放下；按住拖动是把它拖到别处再放（一次只放一个）；
  *   推土机：点到哪个摆件删哪个，按住拖动连片删除；
  *   道具箱：在比赛路线上点一下，横着放一排；
  *   选择：点选摆件或道路，按住拖动直接挪位置（不用手柄）。
  */
 import { BufferAttribute, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Vector3, type Intersection } from "three";
 import { MAP_LIMITS, type MapDesign, type PieceDesign, type Vec3 } from "../design";
-import { categoryInfo, pieceSize, type CatalogPiece, type PieceCategory } from "../catalog";
+import type { CatalogPiece } from "../catalog";
 import { sampleRoad } from "../road-geometry";
 import type { AssembledScene } from "./assets";
 import type { EditorApp } from "./app";
@@ -22,25 +21,15 @@ export type Tool =
   | { kind: "bulldoze" }
   | { kind: "items" };
 
-/** 连续摆放时两个物件之间至少隔多远（米）。 */
-const MIN_SPACING: Partial<Record<PieceCategory, number>> = {
-  light: 18, sign: 10, ad: 6, tree: 5, flower: 2, rock: 4, creature: 5, decor: 3,
-};
-
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
-interface Stroke {
-  pieces: PieceDesign[];
-  last?: Vec3;
-}
-
-/** 放置中按下左键以后：先等着看是单击、长按（调高度）还是拖动（连着放 / 拖着走）。 */
+/** 放置中按下左键以后：先等着看是单击、长按（调高度）还是拖动（拖到别处再放）。 */
 interface Press {
   x: number;
   y: number;
   /** 按下处的落点（调高度时物件就停在这里）。 */
   point: Vec3;
-  stage: "pending" | "lift" | "paint" | "move";
+  stage: "pending" | "lift" | "move";
   timer?: ReturnType<typeof setTimeout>;
   lastY: number;
   liftStart?: { y: number; height: number };
@@ -72,7 +61,6 @@ export class ToolController {
   private guide?: Line;
   private ghost?: { piece: CatalogPiece; root: Group; offset: Group; box: LineSegments; scene?: AssembledScene };
   private ghostPoint?: Vec3;
-  private stroke?: Stroke;
   private drag?: Drag;
   private hoverBox?: LineSegments;
   private bulldozing?: Set<string>;
@@ -252,18 +240,9 @@ export class ToolController {
     if (tool.kind === "place" && this.press) {
       const press = this.press;
       this.cancelPress();
-      // 单击、长按调高度、拖着走：都在一个点上放一个；连着放的已经放好了
-      if (press.stage !== "paint") {
-        const at = press.stage === "move" ? this.ghostPoint ?? press.point : press.point;
-        this.stroke = { pieces: [] };
-        this.paintAt(at, true);
-      }
-      const placed = this.stroke?.pieces.length ?? 0;
-      this.stroke = undefined;
-      if (placed) {
-        this.app.state.commit();
-        this.app.say(placed > 1 ? `放好了 ${placed} 个「${tool.piece.label}」` : `放好了「${tool.piece.label}」`, 2000);
-      }
+      // 单击、长按调高度、拖着走：一次都只放一个
+      const at = press.stage === "move" ? this.ghostPoint ?? press.point : press.point;
+      if (this.placeAt(at)) this.app.say(`放好了「${tool.piece.label}」`, 2000);
       if (press.stage === "lift") this.app.queueRender();
       return true;
     }
@@ -294,9 +273,7 @@ export class ToolController {
     press.lastY = event.clientY;
     if (press.stage === "pending" && Math.hypot(event.clientX - press.x, event.clientY - press.y) > DRAG_START) {
       clearTimeout(press.timer);
-      const paint = this.ghost && categoryInfo(this.ghost.piece.category).paint !== "single";
-      press.stage = paint ? "paint" : "move";
-      if (paint) { this.stroke = { pieces: [] }; this.paintAt(press.point, true); }
+      press.stage = "move";
     }
     if (press.stage === "lift" && press.liftStart) {
       // 物件跟着鼠标上下走：按物件所在深度把屏幕像素换成米
@@ -315,7 +292,6 @@ export class ToolController {
     if (!point) return;
     this.ghostPoint = point;
     this.applyGhostTransform();
-    if (press.stage === "paint") this.paintAt(point, false);
   }
 
   private cancelPress(): void {
@@ -337,59 +313,17 @@ export class ToolController {
     };
   }
 
-  private paintAt(point: Vec3, first: boolean): void {
-    const ghost = this.ghost, stroke = this.stroke;
-    if (!ghost || !stroke) return;
-    const piece = ghost.piece;
-    const info = categoryInfo(piece.category);
-    const size = pieceSize(piece);
-    const design = this.app.state.design;
-    const room = () => design.pieces.length < MAP_LIMITS.pieces;
-    if (first) {
-      if (!room()) { this.app.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`); return; }
-      // 第一个和鬼影一模一样（滚轮转好的方向）；拖出来的后面几个才随机
-      const placed = this.makePiece(point, this.yaw, this.scale);
-      this.app.views.popPieces.add(placed.id);
-      stroke.pieces.push(placed);
-      stroke.last = point;
-      this.app.state.preview(d => { d.pieces.push(placed); });
-      return;
+  /** 在一个点上放一个，方向、大小和鬼影一样；放不下（满了）返回 false。 */
+  private placeAt(point: Vec3): boolean {
+    if (!this.ghost) return false;
+    if (this.app.state.design.pieces.length >= MAP_LIMITS.pieces) {
+      this.app.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`);
+      return false;
     }
-    if (info.paint === "single" || !stroke.last) return;
-    const last = stroke.last;
-    const dx = point[0] - last[0], dy = point[1] - last[1];
-    const distance = Math.hypot(dx, dy);
-    const along = info.paint === "line" ? Math.max(size[0], size[1]) : Math.max(size[0], size[1]) * 1.1;
-    const spacing = Math.max(MIN_SPACING[piece.category] ?? 2, along * this.scale);
-    if (distance < spacing) return;
-    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-    const added: PieceDesign[] = [];
-    let cursor = last;
-    for (let travelled = spacing; travelled <= distance && room(); travelled += spacing) {
-      const t = travelled / distance;
-      const z = last[2] + (point[2] - last[2]) * t;
-      if (info.paint === "line") {
-        // 长边顺着拖动方向
-        const yaw = angle + (size[0] >= size[1] ? 0 : 90) + this.yaw;
-        cursor = [round2(last[0] + dx * t), round2(last[1] + dy * t), round2(z)];
-        added.push(this.makePiece(cursor, yaw, this.scale));
-      } else {
-        const jitter = spacing * 0.35;
-        cursor = [round2(last[0] + dx * t + (Math.random() - 0.5) * jitter), round2(last[1] + dy * t + (Math.random() - 0.5) * jitter), round2(z)];
-        added.push(this.makePiece(cursor, this.yaw + Math.random() * 360, round2(this.scale * (0.85 + Math.random() * 0.3))));
-      }
-    }
-    if (!added.length) return;
-    for (const piece of added) this.app.views.popPieces.add(piece.id);
-    stroke.pieces.push(...added);
-    stroke.last = info.paint === "line" ? cursor : point;
-    // 落到实际表面上（路、地面），沿线插值的高度可能悬空
-    for (const piece of added) {
-      const z = this.app.viewport.castDown([piece.position[0], piece.position[1], piece.position[2] + 60 - this.lift],
-        [this.app.views.roads, this.app.views.ground]);
-      if (z !== undefined) piece.position[2] = round2(z + this.lift);
-    }
-    this.app.state.preview(d => { d.pieces.push(...added); });
+    const placed = this.makePiece(point, this.yaw, this.scale);
+    this.app.views.popPieces.add(placed.id);
+    this.app.state.commit(design => { design.pieces.push(placed); });
+    return true;
   }
 
   // ------------------------------------------------------------------ 推土机
@@ -513,5 +447,5 @@ export class ToolController {
     });
   }
 
-  get dragging(): boolean { return !!this.drag?.moved || !!this.stroke || !!this.bulldozing; }
+  get dragging(): boolean { return !!this.drag?.moved || !!this.press || !!this.bulldozing; }
 }

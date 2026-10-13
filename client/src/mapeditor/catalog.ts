@@ -67,27 +67,25 @@ export interface CatalogData {
   presets: ThemePreset[];
 }
 
-/** 素材栏里物件的分类：名字、说明和摆放方式。 */
+/** 素材栏里物件的分类。 */
 export interface PieceCategoryInfo {
   id: PieceCategory;
   title: string;
-  /** 拖动连续摆放时：line 沿拖动方向排成一排（围栏、路灯），scatter 随机朝向撒开（树、花、石头）。 */
-  paint: "line" | "scatter" | "single";
 }
 
 export const PIECE_CATEGORIES: PieceCategoryInfo[] = [
-  { id: "building", title: "建筑", paint: "single" },
-  { id: "tree", title: "树木", paint: "scatter" },
-  { id: "flower", title: "花草", paint: "scatter" },
-  { id: "rock", title: "山石", paint: "scatter" },
-  { id: "fence", title: "围栏", paint: "line" },
-  { id: "light", title: "路灯", paint: "line" },
-  { id: "sign", title: "路标旗帜", paint: "line" },
-  { id: "ad", title: "广告牌", paint: "line" },
-  { id: "booster", title: "加速跳台", paint: "single" },
-  { id: "vehicle", title: "交通工具", paint: "single" },
-  { id: "creature", title: "动物人物", paint: "scatter" },
-  { id: "decor", title: "装饰", paint: "scatter" },
+  { id: "building", title: "建筑" },
+  { id: "tree", title: "树木" },
+  { id: "flower", title: "花草" },
+  { id: "rock", title: "山石" },
+  { id: "fence", title: "围栏" },
+  { id: "light", title: "路灯" },
+  { id: "sign", title: "路标旗帜" },
+  { id: "ad", title: "广告牌" },
+  { id: "booster", title: "加速跳台" },
+  { id: "vehicle", title: "交通工具" },
+  { id: "creature", title: "动物人物" },
+  { id: "decor", title: "装饰" },
 ];
 
 export function categoryInfo(id: PieceCategory): PieceCategoryInfo {

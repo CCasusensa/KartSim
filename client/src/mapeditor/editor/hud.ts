@@ -4,7 +4,6 @@
  * “贴图”“吸附”这类词；精确数值留给高级模式。
  */
 import { MAP_LIMITS, itemBoxCount, validateDesign, type MapDesign, type RoadDesign, type Vec3 } from "../design";
-import { categoryInfo } from "../catalog";
 import type { EditorApp } from "./app";
 import { modal } from "./actions";
 import { button, clear, h } from "./dom";
@@ -224,13 +223,12 @@ export class Hud {
         iconButton("↶", "撤一个点", () => app.state.undo(), { disabled: !count }),
         iconButton("✓", "画完了", () => app.finishDraw(), { class: "ed-primary" }));
     } else if (tool.kind === "place") {
-      const paint = categoryInfo(tool.piece.category).paint !== "single";
       const lift = app.tools.lift;
       // 两行：上面是在做什么，下面一行小字是怎么操作
       const say = app.tools.lifting
         ? h("span", { class: "ed-say" }, `离地 ${lift.toFixed(1)} 米`, h("small", {}, "上下拖动调高度，松开就放下"))
         : h("span", { class: "ed-say" }, `正在放「${tool.piece.label}」`,
-          h("small", {}, `点地面放下${paint ? " · 按住拖动连着放" : ""} · 滚轮转方向 · 长按上下拖调高度`));
+          h("small", {}, "点地面放下 · 滚轮转方向 · 长按上下拖调高度"));
       bar(app.dock.sprite(tool.piece.slot, 40, "ed-modebar-sprite"),
         say,
         Math.abs(lift) >= 0.05 && !app.tools.lifting ? h("span", { class: "ed-say ed-height" }, `离地 ${lift.toFixed(1)} 米`) : undefined,

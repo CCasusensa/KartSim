@@ -285,7 +285,7 @@ export class Dock {
       items: "道具箱让这张图也能开道具赛",
     };
     count.textContent = PIECE_SUBS.has(this.sub)
-      ? `${this.shelf.querySelectorAll(".ed-card").length} 种 · 点卡片后在地图上点击放置，按住拖动连续摆放`
+      ? `${this.shelf.querySelectorAll(".ed-card").length} 种 · 点卡片后在地图上点击放置`
       : hint[this.sub] ?? "";
   }
 
@@ -410,7 +410,7 @@ export class Dock {
         box.append(h("div", { class: "ed-title" }, piece.label),
           meta(`${themeTitle(piece.theme)} · ${categoryInfo(piece.category).title}`,
             `约 ${size[0].toFixed(0)}×${size[1].toFixed(0)}×${size[2].toFixed(0)} 米`,
-            categoryInfo(piece.category).paint === "single" ? "点地图放置；滚轮转方向，长按上下拖调高度" : "点地图放置，按住拖动连续摆放；滚轮转方向，长按上下拖调高度"));
+            "点地图放置；滚轮转方向，长按上下拖调高度"));
         void this.app.assets.track(piece.track).then(track => {
           const line = box.querySelector(".ed-meta");
           if (track && line && this.preview && box.contains(line)) line.append(h("br"), `来自「${track.title}」`);
