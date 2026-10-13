@@ -1,13 +1,19 @@
 /** Loads optional multiplayer race presentation owners before live racing. */
 
+import type { Object3D } from "three";
+
+import { kartAlignedPetOwner } from "../world/flying-pet-mount";
+
 interface Disposable { dispose(): void }
 interface Participant {
   playerId: unknown;
   profile: { equipment: { itemIds: Record<number, number> } };
   characters: {
-    ordinary?: { scene: { getDecorationOwner(): unknown } };
+    ordinary?: { scene: { getDecorationOwner(): Object3D } };
   };
-  vehicle: { imported: { model: unknown } };
+  vehicle: {
+    imported: { model: unknown; renderScene?: { bySource: Map<unknown, Object3D> } };
+  };
 }
 
 export interface RacePresenterSetupHost {
@@ -87,7 +93,10 @@ export async function prepareRacePresenterFlyingPet(host: RacePresenterSetupHost
   const ordinaryScene = participant.characters.ordinary?.scene;
   const riderMount = dependencies.serializedRoot(
     participant.vehicle.imported.model).children[6]?.value;
-  if (!ordinaryScene || !riderMount || !("transform" in riderMount)) {
+  const renderMount = riderMount
+    ? participant.vehicle.imported.renderScene?.bySource.get(riderMount)
+    : undefined;
+  if (!ordinaryScene || !riderMount || !("transform" in riderMount) || !renderMount) {
     throw new Error("Flying pet rider mount is missing.");
   }
   const pet = await dependencies.loadFlyingPet({
@@ -108,7 +117,7 @@ export async function prepareRacePresenterFlyingPet(host: RacePresenterSetupHost
     throw new Error("Flying pet race was disposed while loading.");
   }
   host.flyingPet = pet;
-  pet?.mount(ordinaryScene.getDecorationOwner());
+  pet?.mount(kartAlignedPetOwner(ordinaryScene.getDecorationOwner(), renderMount));
 }
 
 export async function prepareRacePresenterRoadblockFlag(

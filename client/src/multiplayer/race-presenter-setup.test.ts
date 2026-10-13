@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+import { Object3D } from "three";
+
 import { clearRacePresenterGiant, prepareRacePresenterFlyingPet,
   prepareRacePresenterGiant, prepareRacePresenterRoadblockFlag,
   prepareRacePresenterRoadblockResult,
@@ -91,7 +93,9 @@ async function observe(rewritten: boolean, method: Method, variant: Variant) {
     { playerId: "local", profile: { equipment: { itemIds: { 52: 8, 2: 0 } } },
       characters: { ordinary: { scene: { getDecorationOwner() {
         events.push(["decoration-owner"]); return "owner";
-      } } } }, vehicle: { imported: { model: "local-model" } } },
+      } } } }, vehicle: { imported: { model: "local-model",
+        // An unrotated rider mount: the pet hangs on the owner as in release.
+        renderScene: { bySource: { get: () => new Object3D() } } } } },
     { playerId: "remote", profile: { equipment: { itemIds: {} } },
       characters: {}, vehicle: { imported: { model: "remote-model" } } },
   ];
@@ -185,4 +189,43 @@ test("multiplayer presenter optional owner setup and disposal match release", as
     assert.deepEqual(await observe(true, method, variant),
       await observe(false, method, variant), `${method}:${variant}`);
   }
+});
+
+test("多人比赛：反向车的飞宠挂在抵消角色挂点旋转的节点上", async () => {
+  const mount = new Object3D();
+  mount.matrixAutoUpdate = false;
+  // flubber2 (Reverse='true'): ReKart root child 6 turns the rider 180°.
+  mount.matrix.set(-1, 0, 0, 0, 0, -1, 0, 0.18, 0, 0, 1, 0.52, 0, 0, 0, 1);
+  const owner = new Object3D();
+  mount.add(owner);
+  const serializedMount = { transform: { scale: [1, 1, 1] } };
+  let mounted: Object3D | undefined;
+  const host = {
+    disposed: false, playerId: "local", random: "random",
+    assets: {
+      participants: [{ playerId: "local",
+        profile: { equipment: { itemIds: { 52: 8, 2: 0 } } },
+        characters: { ordinary: { scene: { getDecorationOwner: () => owner } } },
+        vehicle: { imported: { model: "model",
+          renderScene: { bySource: new Map([[serializedMount, mount]]) } } } }],
+      map: { environment: "environment", stageBinding: "binding" },
+    },
+    runtime: { local: { physics: { addFlyingPetListener() {} } } },
+  } as unknown as RacePresenterSetupHost;
+  await prepareRacePresenterFlyingPet(host, "library", "audio", {
+    flyingPetItem: async () => ({ itemId: 8 }),
+    serializedRoot: () => ({ children: Array.from({ length: 7 }, (_, index) =>
+      index === 6 ? { value: serializedMount } : {}) }),
+    loadFlyingPet: async () => ({ dispose() {},
+      mount(parent: unknown) { mounted = parent as Object3D; } }),
+    paintColors: async () => "paint",
+  } as unknown as RacePresenterSetupDependencies);
+  assert.ok(mounted && mounted !== owner);
+  assert.equal(mounted.parent, owner);
+  // The aligned owner undoes the half turn: its axes are the kart's.
+  owner.updateWorldMatrix(true, false);
+  mounted.updateWorldMatrix(false, false);
+  const world = mounted.matrixWorld.elements;
+  [1, 0, 0, 0, 1, 0, 0, 0, 1].forEach((value, index) => assert.ok(
+    Math.abs(world[Math.floor(index / 3) * 4 + index % 3]! - value) < 1e-6, `axis ${index}`));
 });

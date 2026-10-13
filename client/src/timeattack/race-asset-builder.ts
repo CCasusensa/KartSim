@@ -7,6 +7,7 @@ import { LicenseScenes } from "../license/license-scenes";
 import { MissionTimerPanel } from "../license/mission-timer-panel";
 import { MissionResultAction, StoryAction2D } from "../story/mission-result-action";
 import { WrongWayWarning } from "../ui/wrong-way-warning";
+import { kartAlignedPetOwner } from "../world/flying-pet-mount";
 import type { StoryRaceRequest } from "../story/story-race";
 import { generateNpcGhostRecord } from "./duel-npc-ghost";
 import { racePlaylistReady } from "./race-bgm-loading";
@@ -446,7 +447,9 @@ async function buildLoadedSoloRace(
           audioContext,
           listen: (listener: any) => physics.addFlyingPetListener(listener),
         });
-        flyingPet?.mount(rider.scene.getDecorationOwner());
+        const renderMount = vehicle.imported.renderScene?.bySource.get(serializedMount);
+        if (!renderMount) throw new Error("Flying pet rider mount is missing.");
+        flyingPet?.mount(kartAlignedPetOwner(rider.scene.getDecorationOwner(), renderMount));
       }
       for (const accessory of vehicle.accessories) {
         if (!rider)
