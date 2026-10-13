@@ -20,7 +20,7 @@ import {
 } from "./design";
 import { MeshBuilder, type Corner } from "./mesh-builder";
 import { RgbaCanvas, encodePng, type Rgba } from "./png";
-import { rotateClosedSample, roadEdge, sampleRoad, type RoadSample } from "./road-geometry";
+import { pointAtDistance, rotateClosedSample, roadEdge, sampleRoad, type RoadSample } from "./road-geometry";
 import {
   applyAffine, loadSourceModel, measureSubtree, nodeAtPath, parentMatrix, placementMatrix,
   rotationRows, sourceTrackPath, type SourceEntry, type SourceFormats, type SourceLibrary,
@@ -47,7 +47,7 @@ export interface BuiltTrack {
   roadExtent: number;
   /** 路线总长（米）。 */
   routeLength: number;
-  stats: { meshes: number; triangles: number; textures: number; pieces: number; gates: number };
+  stats: { meshes: number; triangles: number; textures: number; pieces: number; gates: number; itemBoxes: number };
   warnings: string[];
 }
 
@@ -328,6 +328,39 @@ function routeRecords(sample: RoadSample, offset: Vec3) {
   });
 }
 
+/** 官方道具箱一排里相邻两个的间距（forest_I01 ic02/ic33/ic34：3.85 米）。 */
+const CUBE_SPACING = 3.85;
+/** 道具箱离路面的高度（官方 +1.0 ~ +2.0）。 */
+const CUBE_HEIGHT = 1.2;
+const CUBE_BASIS: Vec3[] = [[0.266, 0, 0], [0, 0.266, 0], [0, 0, 0.266]];
+
+/** 一排道具箱在设计坐标里的位置（编辑器预览与生成共用）。 */
+export function itemRowPositions(sample: RoadSample, distance: number, count: number): Vec3[] {
+  if (sample.points.length < 2) return [];
+  const { index } = pointAtDistance(sample, distance);
+  const width = sample.widths[index]!;
+  const spacing = count > 1 ? Math.min(CUBE_SPACING, Math.max(1.5, (width - 3) / (count - 1))) : 0;
+  return Array.from({ length: count }, (_, i) => {
+    const p = roadEdge(sample, index, (i - (count - 1) / 2) * spacing);
+    return [p[0], p[1], p[2] + CUBE_HEIGHT] as Vec3;
+  });
+}
+
+function itemCubeRecords(design: MapDesign, samples: { id: string; sample: RoadSample }[], offset: Vec3): TrackObjectRecord[] {
+  const records: TrackObjectRecord[] = [];
+  for (const row of design.items.rows) {
+    const sample = samples.find(entry => entry.id === row.road)?.sample;
+    if (!sample) continue;
+    for (const position of itemRowPositions(sample, row.distance, row.count)) {
+      const ordinal = records.length + 1;
+      records.push({ kind: "ToItemCube", name: `ic${String(ordinal).padStart(2, "0")}`, property: undefined,
+        transform: { basis: CUBE_BASIS.map(row => [...row]), position: [position[0] + offset[0], position[1] + offset[1], position[2] + offset[2]],
+          scale: [1, 1, 1] }, instanceOrdinal: ordinal });
+    }
+  }
+  return records;
+}
+
 interface MinimapFrame { centerX: number; centerY: number; scale: number }
 
 function minimapFrame(bounds: { min: Vec3; max: Vec3 }): MinimapFrame {
@@ -515,7 +548,9 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   ]);
   const trackObject: TrackObjectRecord = { kind: "TrackObject", name: "track", property: settings };
 
-  const model = makeTrackContainer("", sceneRoot, [routeObject, minimapObject, trackObject]);
+  // 道具箱（道具赛）：ToItemCube，网络编号 1..N
+  const cubes = itemCubeRecords(design, roads.map(({ design: road, built }) => ({ id: road.id, sample: built.sample })), offset);
+  const model = makeTrackContainer("", sceneRoot, [routeObject, minimapObject, trackObject, ...cubes]);
   const files: BuiltFile[] = [{ path: "track.1s", bytes: encodeTrackModel(model) }];
 
   const skyEntry = library.findSibling(skyPath, ["skydome.1s"]);
@@ -554,7 +589,8 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   return {
     trackId, containerName, files, container, offset, roadExtent,
     routeLength: routeSample.total,
-    stats: { meshes, triangles: Math.round(triangles), textures: textureFiles.length, pieces: placed, gates: records.length },
+    stats: { meshes, triangles: Math.round(triangles), textures: textureFiles.length, pieces: placed, gates: records.length,
+      itemBoxes: cubes.length },
     warnings,
   };
 }

@@ -1,7 +1,7 @@
 /**
  * 左侧素材库与右侧属性面板。
  */
-import { DEFAULT_WALL, MAP_LIMITS, defaultGround, validateDesign, type MapDesign, type PieceDesign, type RoadDesign, type TextureRef, type WallDesign } from "../design";
+import { DEFAULT_WALL, MAP_LIMITS, defaultGround, itemBoxCount, validateDesign, type MapDesign, type PieceDesign, type RoadDesign, type TextureRef, type WallDesign } from "../design";
 import { sampleRoad } from "../road-geometry";
 import { THEME_TITLES, type PieceInfo, type SourceTrack, type SurfaceTexture } from "../source-tracks";
 import { listDesigns } from "../draft-store";
@@ -333,6 +333,7 @@ function renderRoad(app: EditorApp, body: HTMLElement, road: RoadDesign, point: 
     road.thickness > 0 ? textureRow(app, "侧壁", road.underside ?? road.surface, picked => commit(r => { r.underside = { track: picked.track, name: picked.name }; })) : undefined,
   ));
   body.append(section("护墙", wallEditor(app, road, "left"), wallEditor(app, road, "right")));
+  body.append(itemSection(app, road, point, sample));
   if (point !== undefined && road.points[point]) {
     const p = road.points[point]!;
     const setPoint = (key: "x" | "y" | "z" | "width" | "bank") => (value: number) => commit(r => { r.points[point]![key] = value; });
@@ -357,6 +358,63 @@ function renderRoad(app: EditorApp, body: HTMLElement, road: RoadDesign, point: 
   } else {
     body.append(h("div", { class: "ed-note" }, "点视口里的白色圆点选中控制点，拖动手柄移动它。"));
   }
+}
+
+/** 道具箱（道具赛）：这条路上的各排，以及加一排、自动布置。 */
+function itemSection(app: EditorApp, road: RoadDesign, point: number | undefined, sample: ReturnType<typeof sampleRoad>): HTMLElement {
+  const rows = app.state.design.items.rows.filter(row => row.road === road.id);
+  const total = Math.max(1, Math.floor(sample.total));
+  const addRow = (distance: number, count = 4) => {
+    if (app.state.design.items.rows.length >= MAP_LIMITS.itemRows) { app.say(`道具箱最多 ${MAP_LIMITS.itemRows} 排。`); return; }
+    app.state.commit(design => {
+      design.items.rows.push({ id: app.state.newId("i"), road: road.id, distance: Math.round(distance) % total, count });
+      design.items.rows.sort((a, b) => a.road === b.road ? a.distance - b.distance : 0);
+    });
+  };
+  const pointDistance = () => {
+    const p = point !== undefined ? road.points[point] : undefined;
+    if (!p) return undefined;
+    let best = 0;
+    sample.points.forEach((q, i) => {
+      if (Math.hypot(q[0] - p.x, q[1] - p.y) < Math.hypot(sample.points[best]![0] - p.x, sample.points[best]![1] - p.y)) best = i;
+    });
+    return sample.s[best]!;
+  };
+  const list = rows.map((row, index) => h("div", { class: "ed-texture" },
+    h("span", { class: "ed-meta" }, `第 ${index + 1} 排`),
+    numberField("距离", row.distance, value => app.state.commit(design => {
+      const target = design.items.rows.find(item => item.id === row.id);
+      if (target) target.distance = Math.round(value);
+    }), { step: 10, min: 0, max: total, digits: 0, unit: "米" }),
+    numberField("个数", row.count, value => app.state.commit(design => {
+      const target = design.items.rows.find(item => item.id === row.id);
+      if (target) target.count = Math.round(value);
+    }), { step: 1, min: MAP_LIMITS.itemsPerRow[0], max: MAP_LIMITS.itemsPerRow[1], digits: 0 }),
+    button("删除", () => app.state.commit(design => { design.items.rows = design.items.rows.filter(item => item.id !== row.id); }),
+      { class: "ed-small" })));
+  const startAhead = (road.route ? app.state.design.start.offset : 0) + 80;
+  return section("道具箱（道具赛）",
+    h("div", { class: "ed-note" }, rows.length
+      ? `这条路上 ${rows.length} 排、${rows.reduce((sum, row) => sum + row.count, 0)} 个道具箱。距离从第 1 个控制点沿路量。`
+      : "放了道具箱的地图发布后，道具房也能选它。"),
+    ...list,
+    h("div", { class: "ed-actions" },
+      button("在选中点加一排", () => { const d = pointDistance(); if (d !== undefined) addRow(d); },
+        { class: "ed-small", disabled: point === undefined, title: "先点一个白色控制点" }),
+      button("在起点后加一排", () => addRow(startAhead), { class: "ed-small" }),
+      button("自动布置", () => {
+        const spacing = Math.max(150, Math.min(400, total / 4));
+        app.state.commit(design => {
+          design.items.rows = design.items.rows.filter(row => row.road !== road.id);
+          for (let d = startAhead; d < startAhead + total - spacing / 2; d += spacing)
+            design.items.rows.push({ id: app.state.newId("i"), road: road.id, distance: Math.round(d) % total, count: 4 });
+          design.items.rows = design.items.rows.slice(0, MAP_LIMITS.itemRows);
+        });
+        app.say("已按路线长度每隔一段放一排道具箱（每排 4 个）。");
+      }, { class: "ed-small", title: "清掉这条路上的道具箱，按间距重新放" }),
+      rows.length ? button("全部清除", () => app.state.commit(design => {
+        design.items.rows = design.items.rows.filter(row => row.road !== road.id);
+      }), { class: "ed-small" }) : undefined));
 }
 
 function renderMap(app: EditorApp, body: HTMLElement): void {
@@ -385,6 +443,11 @@ function renderMap(app: EditorApp, body: HTMLElement): void {
       numberField("高度", ground.z, value => commit(d => { d.ground!.z = value; }), { step: 0.5 }),
       numberField("贴图尺寸", ground.tile, value => commit(d => { d.ground!.tile = value; }), { step: 2, min: 1, max: 200, unit: "米" }),
       checkField("可以在地面上开", ground.drivable, on => commit(d => { d.ground!.drivable = on; }))) : undefined));
+  const boxes = itemBoxCount(design);
+  body.append(section("道具赛",
+    h("div", { class: "ed-note" }, boxes
+      ? `${boxes} 个道具箱（${design.items.rows.length} 排）：发布后竞速房和道具房都能选这张图。`
+      : "还没有道具箱，只能用于竞速。选中比赛路线，在“道具箱（道具赛）”里放道具箱。")));
   const issues = validateDesign(design);
   body.append(section("检查",
     issues.length ? h("div", { class: "ed-note" }, ...issues.flatMap(issue => [`· ${issue}`, h("br")]))

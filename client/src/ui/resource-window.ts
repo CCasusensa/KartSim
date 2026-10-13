@@ -14,8 +14,8 @@ import { FONT, ImageCache, indexRows, node, nodeName, paintText, prepare, type B
  * download (正在下载…资源, 后台下载).
  */
 
-const FOLDER = "dialog2_/questInfo2";
-const ROOTS = [FOLDER, "stage_/common"];
+export const FOLDER = "dialog2_/questInfo2";
+export const ROOTS = [FOLDER, "stage_/common"];
 const ROW = { width: 300, height: 26, gap: 3 };
 const CELL = { width: 196, height: 26, gapX: 6, gapY: 4 };
 const CELLS = 10;
@@ -23,7 +23,7 @@ const FILE_ROWS = 6;
 /** Row button art: the left box (state), the stretched middle, the right cap. */
 const ROW_LEFT = 72;
 const ROW_RIGHT = 12;
-const TEXT = "rgb(42,55,80)";
+export const TEXT = "rgb(42,55,80)";
 
 /** "341.4 MB", "1.24 GB". */
 export function formatBytes(bytes: number): string {
@@ -52,7 +52,7 @@ export function rowStatus(status: GroupStatus): string {
 }
 
 /** A row button image kept crisp at any width: left box, stretched middle, right cap. */
-function drawRow(context: CanvasRenderingContext2D, image: Texture, rect: Rect): void {
+export function drawRow(context: CanvasRenderingContext2D, image: Texture, rect: Rect): void {
   const left = Math.min(ROW_LEFT, image.width / 2);
   const right = Math.min(ROW_RIGHT, image.width / 4);
   const scale = rect.height / image.height;
@@ -65,7 +65,7 @@ function drawRow(context: CanvasRenderingContext2D, image: Texture, rect: Rect):
     rect.y, rightWidth, rect.height);
 }
 
-function drawLabel(context: CanvasRenderingContext2D, text: string, x: number, y: number, options: {
+export function drawLabel(context: CanvasRenderingContext2D, text: string, x: number, y: number, options: {
   size?: number; bold?: boolean; color?: string; align?: CanvasTextAlign; width?: number;
 } = {}): void {
   context.save();
@@ -83,7 +83,7 @@ function drawLabel(context: CanvasRenderingContext2D, text: string, x: number, y
 }
 
 /** gui_monocoque frame01: the TitleCapBottomGrey pieces (frame.bml). */
-const FRAME_TEXTURE = "gui_/monocoque/frame01.png";
+export const FRAME_TEXTURE = "gui_/monocoque/frame01.png";
 const GREY = { left: [161, 8, 9, 1], right: [170, 8, 9, 1], client: [168, 7, 2, 6], bottomLeft: [161, 11, 9, 8],
   bottomMiddle: [169, 11, 1, 8], bottomRight: [170, 11, 9, 8] } as const;
 
@@ -93,7 +93,7 @@ const GREY = { left: [161, 8, 9, 1], right: [170, 8, 9, 1], client: [168, 7, 2, 
  * leaving a white strip; sampling unsmoothed also keeps the atlas
  * neighbours from bleeding into the edges.
  */
-function drawGreyPanel(context: CanvasRenderingContext2D, frame: Texture, rect: Rect): void {
+export function drawGreyPanel(context: CanvasRenderingContext2D, frame: Texture, rect: Rect): void {
   const piece = (source: readonly number[], x: number, y: number, width: number, height: number) => {
     if (width > 0 && height > 0) context.drawImage(frame.image, source[0]!, source[1]!, source[2]!, source[3]!,
       x, y, width, height);
@@ -137,7 +137,7 @@ function drawGauge(context: CanvasRenderingContext2D, images: ImageCache, rect: 
 }
 
 /** A TextButton's state: the renderer draws `text`; `label` names it for assistive tech. */
-function button(text: string, action?: () => void, disabled = false): NodeState {
+export function button(text: string, action?: () => void, disabled = false): NodeState {
   return { text, label: text, disabled: disabled || !action, ...(action && !disabled ? { action } : {}) };
 }
 
@@ -147,7 +147,7 @@ async function decorate(library: BmlLibrary, definition: Node): Promise<Node> {
   return { ...definition, children: await Promise.all(definition.children.map(child => decorate(library, child))) };
 }
 
-async function loadWindow(library: BmlLibrary, root: HTMLElement, definition: Node, label: string,
+export async function loadWindow(library: BmlLibrary, root: HTMLElement, definition: Node, label: string,
   onCancel: () => void, state: (entry: Node) => NodeState,
   prepared?: (definition: Node) => void): Promise<WindowView> {
   const tree = prepare(library, await decorate(library, definition), ROOTS);

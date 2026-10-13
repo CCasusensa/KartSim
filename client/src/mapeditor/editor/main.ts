@@ -9,6 +9,7 @@ import { EditorAssets, type EditorLibrary } from "./assets";
 import { EditorApp } from "./app";
 import { installEditorSkin } from "./skin";
 import { h } from "./dom";
+import { loadDesign } from "../draft-store";
 
 installLocalMultiplayerConfig();
 
@@ -40,6 +41,13 @@ try {
   (window as unknown as { __mapEditor?: EditorApp }).__mapEditor = app;
   loading.remove();
   app.say("欢迎使用地图工坊。点“新道路”开始画比赛路线，或在左侧挑官方素材。", 8000);
+  // 游戏“自定义游戏”里的“在地图工坊修改 / 用地图工坊打开”：/editor.html?open=<地图 id>
+  const open = new URLSearchParams(location.search).get("open");
+  if (open && /^[0-9a-z]{6,16}$/.test(open)) {
+    history.replaceState(history.state, "", location.pathname);
+    if (await loadDesign(open)) await app.actions.openDraft(open);
+    else await app.actions.openPublished(open);
+  }
 } catch (error) {
   console.error(error);
   text.textContent = `地图工坊启动失败：${(error as Error).message}`;

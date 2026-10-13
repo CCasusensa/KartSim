@@ -129,10 +129,10 @@ export async function chooseLobbyTrack(host: LobbyTrackHost,
         ((modal.entered = true), !host.isChangingModalCurrent(modal))) return;
     // 道具赛 rooms pick from the item catalog and the item random cards only.
     const item = deps.gameplay(room) === "item";
+    // 地图工坊：多人房间只列已发布的地图（本机草稿别人下载不到）；道具房只列带道具箱的。
+    await refreshPublishedMaps(host.options.library);
     const itemChoices = item
       ? await (deps.itemTracks ?? loadItemTrackChoices)(host.options.library) : undefined;
-    // 地图工坊：多人房间只列已发布的地图（本机草稿别人下载不到）。
-    if (!item) await refreshPublishedMaps(host.options.library);
     const catalog = itemChoices?.tracks ??
       (await host.options.library.timeAttackTrackCatalog()).filter(track => !isDraftTrackId(track.id));
     const tracks = deps.gameplay(room) === "giant"

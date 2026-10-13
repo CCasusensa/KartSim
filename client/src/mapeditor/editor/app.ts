@@ -135,7 +135,8 @@ export class EditorApp {
       button("打开", () => this.actions.openDialog()),
       button("保存", () => void this.actions.save(), { title: "保存到本机（Ctrl+S）" }),
       button("导入", () => this.actions.importFile()),
-      button("导出", () => this.actions.exportFile()),
+      button("另存为", () => this.actions.saveAs(), { title: "复制成一张新地图" }),
+      button("导出", () => this.actions.exportDialog(), { title: "导出地图包、赛道包或设计文件" }),
       h("span", { class: "ed-sep" }),
       button("撤销", () => this.state.undo(), { disabled: !this.state.canUndo }),
       button("重做", () => this.state.redo(), { disabled: !this.state.canRedo }),
@@ -481,7 +482,10 @@ export class EditorApp {
         });
         this.state.select({ kind: "road", id: road.id, point: Math.min(index, road.points.length - 1) });
       } else if (confirm(`删除道路「${road.name}」？`)) {
-        this.state.commit(design => { design.roads = design.roads.filter(r => r.id !== road.id); });
+        this.state.commit(design => {
+          design.roads = design.roads.filter(r => r.id !== road.id);
+          design.items.rows = design.items.rows.filter(row => row.road !== road.id);
+        });
         this.state.select(undefined);
       }
     }

@@ -24,6 +24,8 @@ export interface CustomMapSummary {
   roadExtent: number;
   sha256: string;
   size: number;
+  /** 道具箱个数；0 表示只能竞速。 */
+  items: number;
   files: CustomMapFile[];
   updatedAt: number;
   /** local：本机草稿（只在本机计时赛可选）；server：已发布。 */
@@ -194,6 +196,13 @@ export function customMapMetadata(trackId: string): TrackMetadata | undefined {
 export function onCustomMapsChanged(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+/** 道具赛房间的选图条目：已发布、带道具箱的地图。 */
+export function customItemTrackChoices(): TrackChoice[] {
+  return customTrackChoices(true)
+    .filter(choice => (registry.get(choice.id)?.summary.items ?? 0) > 0)
+    .map(choice => ({ ...choice, gameType: "item" as const }));
 }
 
 /**

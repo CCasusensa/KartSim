@@ -75,6 +75,8 @@ func newLobbyHome(a *API, compression bool) *lobbyHome {
 		MaxRooms:    lobbyMaxPlayers / 2,
 		Logger:      a.log.With("service", "lobby"),
 		Home:        h,
+		// 地图工坊 maps with item boxes may be raced in item rooms (MAPS.md).
+		CustomItemTrack: a.itemMaps.has,
 	})
 	h.sockets = ws.NewServer(h.lobby, a.network, ws.Options{
 		MaxConnections:     lobbyMaxPlayers + 500,
@@ -262,9 +264,15 @@ func (h *lobbyHome) heartbeat(ctx context.Context) {
 func (h *lobbyHome) run(ctx context.Context) {
 	ticker := time.NewTicker(lobbyHeartbeat)
 	defer ticker.Stop()
+	refreshed := time.Time{}
 	for {
 		h.heartbeat(ctx)
 		h.watch(ctx)
+		// The item maps follow publishes at once; this catches other writers.
+		if time.Since(refreshed) > time.Minute {
+			h.a.itemMaps.refresh(ctx, h.a.store)
+			refreshed = time.Now()
+		}
 		select {
 		case <-ctx.Done():
 			return

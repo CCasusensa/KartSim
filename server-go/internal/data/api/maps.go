@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -35,6 +36,8 @@ const (
 	maxMapUpload = maxMapContainer + 2*maxMapPicture + maxMapDesign + 1<<20
 	// mapsPerAccount bounds how many maps one account may publish.
 	mapsPerAccount = 20
+	// maxMapItems bounds a map's item boxes (the client's cube ids run 1..2048).
+	maxMapItems = 2048
 	// mapUploadTimeout replaces requestTimeout for the upload itself.
 	mapUploadTimeout = 3 * time.Minute
 )
@@ -170,6 +173,7 @@ func parseMapUpload(id string, form *multipart.Form) (store.MapUpload, error) {
 		Laps       int             `json:"laps"`
 		Difficulty int             `json:"difficulty"`
 		RoadExtent int             `json:"roadExtent"`
+		Items      int             `json:"items"`
 		Files      []store.MapFile `json:"files"`
 	}
 	values := form.Value["meta"]
@@ -179,6 +183,7 @@ func parseMapUpload(id string, form *multipart.Form) (store.MapUpload, error) {
 	meta.Name = strings.TrimSpace(meta.Name)
 	if !validMapName(meta.Name) || !mapTheme.MatchString(meta.Theme) || meta.Laps < 1 || meta.Laps > 9 ||
 		meta.Difficulty < 1 || meta.Difficulty > 5 || meta.RoadExtent < 100 || meta.RoadExtent > 20000 ||
+		meta.Items < 0 || meta.Items > maxMapItems ||
 		len(meta.Files) == 0 || len(meta.Files) > maxMapFiles {
 		return store.MapUpload{}, errInvalidMap
 	}
@@ -214,7 +219,7 @@ func parseMapUpload(id string, form *multipart.Form) (store.MapUpload, error) {
 	digest := sha256.Sum256(container)
 	return store.MapUpload{
 		Map: store.CustomMap{ID: id, Name: meta.Name, Theme: meta.Theme, Laps: meta.Laps, Difficulty: meta.Difficulty,
-			RoadExtent: meta.RoadExtent, Files: meta.Files, SHA256: hex.EncodeToString(digest[:])},
+			RoadExtent: meta.RoadExtent, Items: meta.Items, Files: meta.Files, SHA256: hex.EncodeToString(digest[:])},
 		Design: string(design), Container: container, Card: card, Thumb: thumb,
 	}, nil
 }
@@ -247,7 +252,8 @@ func (a *API) publishMap(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	a.log.Info("map published", "map", saved.ID, "account", account.ID, "bytes", saved.Size)
+	a.log.Info("map published", "map", saved.ID, "account", account.ID, "bytes", saved.Size, "items", saved.Items)
+	a.itemMaps.refresh(r.Context(), a.store)
 	return writeJSON(w, http.StatusOK, saved)
 }
 
@@ -263,6 +269,7 @@ func (a *API) deleteMap(w http.ResponseWriter, r *http.Request) error {
 	if err := a.store.DeleteMap(r.Context(), id, account.ID, account.Admin); err != nil {
 		return err
 	}
+	a.itemMaps.refresh(r.Context(), a.store)
 	return writeJSON(w, http.StatusOK, map[string]any{"deleted": true})
 }
 
@@ -284,6 +291,7 @@ func (a *API) adminHideMap(w http.ResponseWriter, r *http.Request) error {
 	if err := a.store.SetMapHidden(r.Context(), id, request.Hidden); err != nil {
 		return err
 	}
+	a.itemMaps.refresh(r.Context(), a.store)
 	return writeJSON(w, http.StatusOK, map[string]any{"hidden": request.Hidden})
 }
 
@@ -301,4 +309,36 @@ func (a *API) serveUpload(handler handlerFunc) http.Handler {
 			apierr.WriteError(w, err)
 		}
 	})
+}
+
+// itemMapSet is the published maps with item boxes, for the global lobby's
+// item rooms: the lobby checks it with its lock held, so it never queries.
+type itemMapSet struct {
+	mu  sync.RWMutex
+	ids map[string]bool
+}
+
+// has reports whether trackID (custom_<id>) is a published item map.
+func (s *itemMapSet) has(trackID string) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.ids[strings.TrimPrefix(trackID, "custom_")]
+}
+
+// refresh reloads the set; a failure keeps the previous one.
+func (s *itemMapSet) refresh(ctx context.Context, st *store.Store) {
+	if st == nil {
+		return
+	}
+	ids, err := st.ItemMapIDs(ctx)
+	if err != nil {
+		return
+	}
+	next := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		next[id] = true
+	}
+	s.mu.Lock()
+	s.ids = next
+	s.mu.Unlock()
 }

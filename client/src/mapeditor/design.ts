@@ -89,6 +89,18 @@ export interface GroundDesign {
   drivable: boolean;
 }
 
+/** 一排道具箱：沿某条道路量 distance 米处横跨路面摆 count 个。 */
+export interface ItemBoxRow {
+  id: string;
+  road: string;
+  distance: number;
+  count: number;
+}
+
+export interface ItemsDesign {
+  rows: ItemBoxRow[];
+}
+
 export interface StartDesign {
   /** 起点线到比赛路线第一个控制点的距离（米，沿路线）。 */
   offset: number;
@@ -110,6 +122,8 @@ export interface MapDesign {
   roads: RoadDesign[];
   pieces: PieceDesign[];
   start: StartDesign;
+  /** 道具赛的道具箱；没有道具箱的地图只能用于竞速。 */
+  items: ItemsDesign;
   updatedAt: number;
 }
 
@@ -119,6 +133,8 @@ export const MAP_LIMITS = {
   roads: 64,
   roadPoints: 512,
   pieces: 4000,
+  itemRows: 64,
+  itemsPerRow: [1, 8] as const,
   width: [4, 80] as const,
   extent: 8000,
   wallHeight: [0.2, 30] as const,
@@ -178,6 +194,7 @@ export function newDesign(name = "我的赛道"): MapDesign {
     roads: [],
     pieces: [],
     start: { offset: 0 },
+    items: { rows: [] },
     updatedAt: Date.now(),
   };
 }
@@ -238,10 +255,23 @@ export function validateDesign(design: MapDesign): string[] {
       break;
     }
   }
+  if (design.items.rows.length > MAP_LIMITS.itemRows) issues.push(`道具箱最多 ${MAP_LIMITS.itemRows} 排。`);
+  for (const row of design.items.rows) {
+    if (!design.roads.some(road => road.id === row.road) || !finite(row.distance) || row.distance < 0 ||
+      !Number.isInteger(row.count) || row.count < MAP_LIMITS.itemsPerRow[0] || row.count > MAP_LIMITS.itemsPerRow[1]) {
+      issues.push("有一排道具箱的设置无效（所在道路被删了？）。");
+      break;
+    }
+  }
   if (design.ground && (!textureRef(design.ground.texture) || !finite(design.ground.size) ||
     design.ground.size < 20 || design.ground.size > MAP_LIMITS.extent * 2 || !finite(design.ground.tile) ||
     design.ground.tile <= 0)) issues.push("地面设置无效。");
   return issues;
+}
+
+/** 道具箱总数（道具赛需要至少一个）。 */
+export function itemBoxCount(design: Pick<MapDesign, "items">): number {
+  return design.items.rows.reduce((sum, row) => sum + row.count, 0);
 }
 
 /** 解析并补全一个设计文件（导入、读档）；格式不对时抛错。 */
@@ -260,6 +290,7 @@ export function parseDesign(text: string): MapDesign {
     })),
     pieces: value.pieces ?? [],
     start: value.start ?? { offset: 0 },
+    items: { rows: value.items?.rows ?? [] },
     difficulty: value.difficulty ?? 2,
   } as MapDesign;
   return design;

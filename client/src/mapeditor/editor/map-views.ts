@@ -9,7 +9,7 @@ import {
 } from "three";
 import type { MapDesign, PieceDesign, RoadDesign, Vec3 } from "../design";
 import { pointAtDistance, roadEdge, sampleRoad } from "../road-geometry";
-import { buildRoad, type TextureResolver } from "../track-builder";
+import { buildRoad, itemRowPositions, type TextureResolver } from "../track-builder";
 import type { PieceInfo } from "../source-tracks";
 import type { AssembledScene, EditorAssets } from "./assets";
 import type { Viewport } from "./viewport";
@@ -53,6 +53,21 @@ export function boxLines(min: Vec3, max: Vec3, color: number): LineSegments {
   return lines;
 }
 
+/** 道具箱预览：彩色方块上一个问号（游戏里是各主题的道具箱模型）。 */
+function itemBoxMaterial(): Material {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 64;
+  const context = canvas.getContext("2d")!;
+  const gradient = context.createLinearGradient(0, 0, 64, 64);
+  gradient.addColorStop(0, "#ff6ad5"); gradient.addColorStop(0.5, "#ffd23f"); gradient.addColorStop(1, "#3fd1ff");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 64, 64);
+  context.strokeStyle = "#fff"; context.lineWidth = 4; context.strokeRect(2, 2, 60, 60);
+  context.fillStyle = "#fff"; context.font = "bold 44px sans-serif"; context.textAlign = "center"; context.textBaseline = "middle";
+  context.fillText("?", 32, 35);
+  return new MeshBasicMaterial({ map: new CanvasTexture(canvas), transparent: true, opacity: 0.92 });
+}
+
 /** 起点线贴图：黑白格。 */
 function checkerTexture(): Texture {
   const canvas = document.createElement("canvas");
@@ -73,6 +88,9 @@ export class MapViews {
   readonly ground = new Group();
   readonly markers = new Group();
   readonly handles = new Group();
+  readonly items = new Group();
+  private builtItems = "";
+  private readonly itemMaterial = itemBoxMaterial();
   private readonly pieceViews = new Map<string, PieceView>();
   private readonly roadMaterials = new Map<string, Material>();
   private roadVersion = 0;
@@ -89,13 +107,16 @@ export class MapViews {
     this.roads.name = "roads";
     this.handles.name = "handles";
     this.markers.userData.noPick = true;
-    viewport.world.add(this.ground, this.roads, this.pieces, this.markers, this.handles);
+    this.items.userData.noPick = true;
+    viewport.world.add(this.ground, this.roads, this.pieces, this.markers, this.items, this.handles);
   }
 
   sync(design: MapDesign, selection: { roadId?: string; point?: number; pieceIds: string[] }): void {
     this.syncPieces(design);
     const roadsKey = JSON.stringify(design.roads) + design.start.offset;
     if (roadsKey !== this.builtRoads) { this.builtRoads = roadsKey; void this.rebuildRoads(design); }
+    const itemsKey = JSON.stringify(design.items) + JSON.stringify(design.roads);
+    if (itemsKey !== this.builtItems) { this.builtItems = itemsKey; this.rebuildItems(design); }
     const groundKey = JSON.stringify(design.ground);
     if (groundKey !== this.builtGround) { this.builtGround = groundKey; this.rebuildGround(design); }
     this.syncHandles(design, selection.roadId, selection.point);
@@ -288,6 +309,24 @@ export class MapViews {
       const mesh = new Mesh(arrowGeometry, new MeshBasicMaterial({ color: 0xffe14d, side: DoubleSide, transparent: true, opacity: 0.85, depthWrite: false }));
       mesh.userData.noPick = true;
       group.add(mesh);
+    }
+  }
+
+  // ------------------------------------------------------------------ 道具箱
+
+  private rebuildItems(design: MapDesign): void {
+    for (const child of [...this.items.children]) child.removeFromParent();
+    const box = new BoxGeometry(2, 2, 2);
+    for (const road of design.roads) {
+      const rows = design.items.rows.filter(row => row.road === road.id);
+      if (!rows.length) continue;
+      const sample = sampleRoad(road, 2);
+      for (const row of rows) for (const position of itemRowPositions(sample, row.distance, row.count)) {
+        const cube = new Mesh(box, this.itemMaterial);
+        cube.position.set(position[0], position[1], position[2]);
+        cube.rotation.z = Math.PI / 4;
+        this.items.add(cube);
+      }
     }
   }
 

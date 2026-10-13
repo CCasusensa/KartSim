@@ -2,6 +2,7 @@ import { decodeBinaryXml } from "../codecs/binary-xml";
 import type { ItemXmlNode } from "./item-bml";
 import type { ItemObjectDefinition } from "./item-catalog";
 import { XMAS_ITEM_CUBE_THEME } from "../resources/xmas-theme";
+import { customMapMetadata } from "../mapeditor/custom-tracks";
 
 /** three.js position (Y up). */
 export interface ItemVec3 { x: number; y: number; z: number }
@@ -149,7 +150,8 @@ export const FALLBACK_CUBE_THEME = "village";
 
 /** Folder order: customItemCube, the track id's theme prefix, then the fallback. */
 export function itemCubeThemes(trackId: string, customTheme?: string): string[] {
-  const prefix = trackId.replace(/_rvs$/i, "").split("_")[0] ?? "";
+  // 地图工坊的地图（custom_<id>）用地图的主题
+  const prefix = customMapMetadata(trackId)?.theme ?? trackId.replace(/_rvs$/i, "").split("_")[0] ?? "";
   return [...new Set([customTheme, prefix, FALLBACK_CUBE_THEME].filter((theme): theme is string => !!theme))];
 }
 

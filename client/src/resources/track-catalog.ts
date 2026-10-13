@@ -1,5 +1,6 @@
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
-import { customMapMetadata, customTrackChoices } from "../mapeditor/custom-tracks";
+import { customItemTrackChoices, customMapMetadata, customTrackChoices } from "../mapeditor/custom-tracks";
+import { isCustomTrackId } from "../mapeditor/design";
 
 /** A virtual file mounted from a Rho/Rho5 archive or a loose Data file. */
 export interface TrackResource {
@@ -382,9 +383,13 @@ export function itemTrackSelectable(metadata: TrackMetadata, rule?: TrackLocaleR
  */
 export async function itemTrackCatalog(library: TrackLibrary): Promise<TrackChoice[]> {
   const rules = await trackLocaleRules(library);
-  return resolveTrackCatalog(library,
+  const release = await resolveTrackCatalog(library,
     metadata => itemTrackSelectable(metadata, rules.tracks.get(metadata.id)) ? "item" : undefined,
     metadata => rules.reverse.has(metadata.id) && available(rules.reverse.get(metadata.id)));
+  // 地图工坊：已发布、带道具箱的地图（server-go/MAPS.md）
+  const custom = customItemTrackChoices().filter(choice =>
+    library.findSibling(choice.path, ["track.1s"]) !== undefined);
+  return custom.length ? [...release, ...custom] : release;
 }
 
 const SPECIAL_RANDOM_TYPES = new Set(["hot1", "hot2", "hot3", "hot4", "hot5", "crazy", "clubSpeed"]);
@@ -484,7 +489,9 @@ export async function itemRandomTrackGroups(library: TrackLibrary): Promise<Rand
     (/track_?\/common\//i.test(file.virtualPath) || /track_common/i.test(file.sourceName)));
   if (!random) return [];
   const root = decodeBinaryXml(await random.bytes());
-  return randomTrackGroupsFromBml(root, await itemTrackCatalog(library))
+  // 自制地图不进随机池：游戏节点只从官方道具赛道里抽。
+  const catalog = (await itemTrackCatalog(library)).filter(track => !isCustomTrackId(track.id));
+  return randomTrackGroupsFromBml(root, catalog)
     .filter(group => group.gameType === "item" && group.trackIds.length > 0)
     .map(drawableDisplay);
 }

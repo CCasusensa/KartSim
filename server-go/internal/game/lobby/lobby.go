@@ -119,6 +119,11 @@ type Options struct {
 	RaceBonus func() contract.CurrencyAmounts
 	// ItemMode is the item race data (nil: the embedded itemmode.json).
 	ItemMode *itemmode.Data
+	// CustomItemTrack reports whether a published 地图工坊 map (custom_<id>,
+	// server-go/MAPS.md) has item boxes, so item rooms may race it (nil:
+	// custom maps are not item tracks). Called with the lobby lock held;
+	// must not block.
+	CustomItemTrack func(trackID string) bool
 	// ItemRandom returns the random source of one item race's draws and
 	// random targets (nil: a PCG seeded from crypto/rand).
 	ItemRandom func() itemmode.Random
@@ -197,6 +202,7 @@ type Lobby struct {
 	busy        func() bool
 	rates       func() rewards.Rates
 	raceBonus   func() contract.CurrencyAmounts
+	customItem  func(trackID string) bool
 	log         *slog.Logger
 	items       *itemmode.Data
 	itemRandom  func() itemmode.Random
@@ -255,6 +261,7 @@ func New(opts Options) *Lobby {
 		raceBonus:    opts.RaceBonus,
 		log:          opts.Logger,
 		items:        opts.ItemMode,
+		customItem:   opts.CustomItemTrack,
 		itemRandom:   opts.ItemRandom,
 		itemTests:    opts.ItemTestGrants,
 		itemChangers: opts.ItemChangersInfinite,

@@ -36,6 +36,7 @@ type CustomMap struct {
 	Laps       int       `json:"laps"`
 	Difficulty int       `json:"difficulty"`
 	RoadExtent int       `json:"roadExtent"`
+	Items      int       `json:"items"`
 	Files      []MapFile `json:"files"`
 	SHA256     string    `json:"sha256"`
 	Size       int       `json:"size"`
@@ -54,14 +55,14 @@ type MapUpload struct {
 }
 
 const mapColumns = `m.id, m.owner_id, m.name, COALESCE(a.nickname, ''), m.theme, m.laps, m.difficulty, m.road_extent,
-	m.files_json, m.sha256, m.byte_size, m.hidden, m.created_at, m.updated_at`
+	m.items, m.files_json, m.sha256, m.byte_size, m.hidden, m.created_at, m.updated_at`
 
 func scanMap(row interface{ Scan(dest ...any) error }) (CustomMap, error) {
 	var m CustomMap
 	var files string
 	var hidden int
 	if err := row.Scan(&m.ID, &m.OwnerID, &m.Name, &m.Author, &m.Theme, &m.Laps, &m.Difficulty, &m.RoadExtent,
-		&files, &m.SHA256, &m.Size, &hidden, &m.CreatedAt, &m.UpdatedAt); err != nil {
+		&m.Items, &files, &m.SHA256, &m.Size, &hidden, &m.CreatedAt, &m.UpdatedAt); err != nil {
 		return m, err
 	}
 	m.Hidden = hidden != 0
@@ -88,6 +89,21 @@ func (s *Store) listMaps(ctx context.Context, where string, args ...any) ([]Cust
 // PublishedMaps lists every map that is not hidden, newest first.
 func (s *Store) PublishedMaps(ctx context.Context) ([]CustomMap, error) {
 	return s.listMaps(ctx, "WHERE m.hidden = 0")
+}
+
+// ItemMapIDs lists the published maps that have item boxes (item rooms may
+// race them).
+func (s *Store) ItemMapIDs(ctx context.Context) ([]string, error) {
+	ids := []string{}
+	err := s.queryRows(ctx, "SELECT id FROM custom_maps WHERE hidden = 0 AND items > 0", nil, func(rows *sql.Rows) error {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return err
+		}
+		ids = append(ids, id)
+		return nil
+	})
+	return ids, err
 }
 
 // OwnedMaps lists an account's maps (hidden ones too).
@@ -142,9 +158,9 @@ func (s *Store) SaveMap(ctx context.Context, ownerID string, upload MapUpload, l
 				return ErrTooManyMaps
 			}
 			if _, err := tx.ExecContext(ctx, `INSERT INTO custom_maps(id, owner_id, name, theme, laps, difficulty, road_extent,
-					files_json, sha256, byte_size, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					items, files_json, sha256, byte_size, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				upload.Map.ID, ownerID, upload.Map.Name, upload.Map.Theme, upload.Map.Laps, upload.Map.Difficulty,
-				upload.Map.RoadExtent, string(files), upload.Map.SHA256, len(upload.Container), now, now); err != nil {
+				upload.Map.RoadExtent, upload.Map.Items, string(files), upload.Map.SHA256, len(upload.Container), now, now); err != nil {
 				return err
 			}
 		case err != nil:
@@ -153,9 +169,9 @@ func (s *Store) SaveMap(ctx context.Context, ownerID string, upload MapUpload, l
 			return ErrMapNotOwner
 		default:
 			if _, err := tx.ExecContext(ctx, `UPDATE custom_maps SET name = ?, theme = ?, laps = ?, difficulty = ?,
-					road_extent = ?, files_json = ?, sha256 = ?, byte_size = ?, updated_at = ? WHERE id = ?`,
+					road_extent = ?, items = ?, files_json = ?, sha256 = ?, byte_size = ?, updated_at = ? WHERE id = ?`,
 				upload.Map.Name, upload.Map.Theme, upload.Map.Laps, upload.Map.Difficulty, upload.Map.RoadExtent,
-				string(files), upload.Map.SHA256, len(upload.Container), now, upload.Map.ID); err != nil {
+				upload.Map.Items, string(files), upload.Map.SHA256, len(upload.Container), now, upload.Map.ID); err != nil {
 				return err
 			}
 		}

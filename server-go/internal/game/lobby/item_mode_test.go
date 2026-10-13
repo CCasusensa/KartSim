@@ -249,6 +249,15 @@ func TestItemRoomTracks(t *testing.T) {
 		assertEqual(t, track(id), "")
 	}
 	assertEqual(t, h.recorder.savedRules(t, roomID.(string))["trackId"], "nemo_C02")
+	// 地图工坊 maps (MAPS.md): only the published ones the hook knows to have item boxes.
+	assertEqual(t, track("custom_abcdef1234"), "TRACK_NOT_ITEM") // no hook: a node lobby
+	h.lobby.customItem = func(id string) bool { return id == "custom_abcdef1234" }
+	assertEqual(t, track("custom_abcdef1234"), "")
+	for _, id := range []string{"custom_abcdef9999", "custom_abcdef1234_draft", "custom_x"} {
+		assertEqual(t, track(id), "TRACK_NOT_ITEM")
+	}
+	h.lobby.customItem = nil
+	assertEqual(t, track("nemo_C02"), "")
 	random := func(code int) string {
 		_, err := h.raw(host, map[string]any{"type": "random-track", "roomId": roomID, "randomTrackCode": code})
 		if err == nil {

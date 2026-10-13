@@ -917,6 +917,11 @@ var migrations = []migration{
 			CONSTRAINT fk_custom_map_files_map FOREIGN KEY (map_id) REFERENCES custom_maps (id) ON DELETE CASCADE
 		) ` + tableTail,
 	}},
+	// v21: 地图工坊 item races (MAPS.md): the number of item boxes a map has;
+	// item rooms accept the published maps that have any.
+	{version: 21, columns: []tableColumn{
+		{table: "custom_maps", name: "items", definition: "INT NOT NULL DEFAULT 0"},
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

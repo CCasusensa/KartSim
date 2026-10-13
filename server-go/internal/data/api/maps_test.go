@@ -27,7 +27,7 @@ type mapUpload struct {
 func validMapUpload(id string) mapUpload {
 	return mapUpload{
 		meta: map[string]any{"id": id, "name": "测试环线", "theme": "village", "laps": 3, "difficulty": 2,
-			"roadExtent": 900, "files": []map[string]any{{"path": "track.1s", "size": 10},
+			"roadExtent": 900, "items": 12, "files": []map[string]any{{"path": "track.1s", "size": 10},
 				{"path": "xt_minimap.png", "size": 3}, {"path": "xt_trackCard.png", "size": 3}}},
 		design:    `{"format":"kartsim-map","version":1}`,
 		container: bytes.Repeat([]byte("rho"), 100),
@@ -84,11 +84,15 @@ func TestCustomMapsAPI(t *testing.T) {
 	var saved store.CustomMap
 	h.publish(id, upload, author).expect(t, http.StatusOK, "").json(t, &saved)
 	digest := sha256.Sum256(upload.container)
-	if saved.ID != id || saved.Author != authorName || saved.SHA256 != hex.EncodeToString(digest[:]) ||
+	if saved.ID != id || saved.Author != authorName || saved.SHA256 != hex.EncodeToString(digest[:]) || saved.Items != 12 ||
 		saved.Size != len(upload.container) || len(saved.Files) != 3 || saved.Name != "测试环线" {
 		t.Fatalf("saved %+v", saved)
 	}
 
+	// The global lobby's item rooms now accept the map (it has item boxes).
+	if !h.api.itemMaps.has("custom_" + id) {
+		t.Fatal("published item map missing from the lobby's item maps")
+	}
 	var list struct{ Maps []store.CustomMap }
 	h.get("/api/maps", nil).expect(t, http.StatusOK, "").json(t, &list)
 	found := false
@@ -128,6 +132,9 @@ func TestCustomMapsAPI(t *testing.T) {
 	badCard := validMapUpload(id)
 	badCard.card = []byte("not a png")
 	h.publish(id, badCard, author).expect(t, http.StatusBadRequest, "INVALID_MAP")
+	tooMany := validMapUpload(id)
+	tooMany.meta["items"] = 5000
+	h.publish(id, tooMany, author).expect(t, http.StatusBadRequest, "INVALID_MAP")
 	badPath := validMapUpload(id)
 	badPath.meta["files"] = []map[string]any{{"path": "../track.1s", "size": 3}}
 	h.publish(id, badPath, author).expect(t, http.StatusBadRequest, "INVALID_MAP")
@@ -135,12 +142,16 @@ func TestCustomMapsAPI(t *testing.T) {
 	otherID.meta["id"] = "different"
 	h.publish(id, otherID, author).expect(t, http.StatusBadRequest, "INVALID_MAP")
 
-	// Republishing replaces the container and its hash.
+	// Republishing replaces the container and its hash; without item boxes it leaves the item rooms.
 	upload.container = bytes.Repeat([]byte("new"), 50)
+	upload.meta["items"] = 0
 	var updated store.CustomMap
 	h.publish(id, upload, author).expect(t, http.StatusOK, "").json(t, &updated)
 	if updated.SHA256 == saved.SHA256 || updated.Size != 150 {
 		t.Fatalf("updated %+v", updated)
+	}
+	if h.api.itemMaps.has("custom_" + id) {
+		t.Fatal("a map without item boxes stayed an item map")
 	}
 
 	h.post("/api/maps/"+id+"/delete", nil, other).expect(t, http.StatusForbidden, "MAP_NOT_OWNER")

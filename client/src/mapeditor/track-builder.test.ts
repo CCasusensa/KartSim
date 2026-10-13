@@ -12,6 +12,7 @@ import { customTrackId, draftTrackId, newDesign, type MapDesign } from "./design
 import { customTrackChoices, customTrackPath, registerCustomMap, removeCustomMap, type CustomMapSummary } from "./custom-tracks";
 import { listPieces, loadSourceModel, placementMatrix, applyAffine } from "./source-tracks";
 import { buildCustomTrack } from "./track-builder";
+import { collectItemCubes } from "../item/item-cube-source";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const mirrorReady = existsSync(`${root}mirror/p3553/track_village_R01.rho`) && existsSync(`${root}mirror/p3553/track_common.rho`);
@@ -31,6 +32,7 @@ async function sampleDesign(library: any, formats: any): Promise<MapDesign> {
   });
   design.ground = { texture: { track: "village_I01", name: "tilegrass_128_03" }, size: 700, z: -0.3, tile: 16, drivable: true };
   design.start.offset = 30;
+  design.items.rows.push({ id: "i1", road: "r1", distance: 120, count: 4 }, { id: "i2", road: "r1", distance: 500, count: 3 });
   const pieces = listPieces(await loadSourceModel(library, formats, "village_R01"));
   const house = pieces.find(piece => piece.name === "Object03")!;
   design.pieces.push({ id: "p1", track: "village_R01", path: house.path, label: house.name, origin: house.origin,
@@ -54,6 +56,7 @@ test("真实 p3553：生成的赛道包能被游戏读成闭合路线，挂进�
   const built = await buildCustomTrack(design, { library, formats });
   assert.deepEqual(built.warnings, []);
   assert.equal(built.stats.pieces, 2);
+  assert.equal(built.stats.itemBoxes, 7);
   assert.equal(built.containerName, "track_custom_test000001.rho");
   for (const name of ["track.1s", "skydome.1s", "track.xml", "xt_minimap.png", "xt_trackCard.png", "xt_trackThumb.png"])
     assert.ok(built.files.some(file => file.path === name), name);
@@ -70,10 +73,19 @@ test("真实 p3553：生成的赛道包能被游戏读成闭合路线，挂进�
   const expected = [design.roads[0]!.points[0]!.x + built.offset[0], design.roads[0]!.points[0]!.y + built.offset[1]];
   assert.ok(Math.hypot(start.x - expected[0]!, -start.z - (expected[1]! + 30)) < 10, `起点 ${start.x},${-start.z}`);
 
+  // 道具箱：道具赛按 ToItemCube 的序号和位置收集（与比赛相同的代码）
+  const cubes = collectItemCubes(parsed);
+  assert.deepEqual(cubes.map(cube => cube.id), [1, 2, 3, 4, 5, 6, 7]);
+  const [a, b] = cubes.map(cube => cube.clientPosition);
+  assert.ok(Math.abs(Math.hypot(b![0] - a![0], b![1] - a![1], b![2] - a![2]) - 3.85) < 0.01, "一排里间距 3.85 米");
+  // 道具箱在路面上方 1.2 米：路面高度约 0（平地）到 10（坡顶，样条略有过冲）
+  assert.ok(cubes.every(cube => cube.clientPosition[2] >= 0.8 && cube.clientPosition[2] <= 12),
+    cubes.map(cube => cube.clientPosition[2].toFixed(2)).join(","));
+
   // 挂进资源库：计时赛目录、元数据、文件读取和贴图查找
   const summary: CustomMapSummary = {
     id: design.id, name: design.name, author: "", theme: design.theme, laps: design.laps, difficulty: design.difficulty,
-    roadExtent: built.roadExtent, sha256: "local", size: built.container.length,
+    roadExtent: built.roadExtent, sha256: "local", size: built.container.length, items: 0,
     files: built.files.map(file => ({ path: file.path, size: file.bytes.length })), updatedAt: Date.now(), source: "local",
   };
   const before = library.files.length;

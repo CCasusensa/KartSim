@@ -41,6 +41,8 @@ export interface MainMenuAssets {
   riderSchool?: RiderSchoolArt;
   /** 回放 tab art (replayCard): the card states and its 删除 button. */
   replay?: ReplayTabArt;
+  /** The monocoque TextButton frames (four states) for the 自定义游戏 button. */
+  textButton?: { frames: WindowFrame[]; image: Texture };
 }
 
 /** Release art of the 回放 tab's cards: replay_list_01…04 (750×128) and btn_replayDelete_1…4. */
@@ -193,6 +195,8 @@ export interface MainMenuOptions {
   onReplayPickTrack?(): void;
   /** 其他回放: 切换速度 / 切换模式 on the settings card. */
   onReplaySetting?(kind: "speed" | "booster"): void;
+  /** 自定义游戏 (地图工坊 maps, server-go/MAPS.md): the button on the single-play title bar. */
+  onCustomGame?(): void;
   /** A favourite channel opens the multiplayer lobby on that channel. */
   onChannel(channel: string): void;
   onHover?(): void;
@@ -390,12 +394,14 @@ export async function loadMainMenuAssets(library: MainMenuLibrary): Promise<Main
       console.warn("[main menu] 驾照考试 art", error);
       return undefined;
     });
+    const textButton = await loadTextButtonArt(texture, frames).catch(() => undefined);
     const events = (await Promise.all(LOBBY_EVENTS.map(async entry => ({
       id: entry.id, label: entry.label,
       states: await Promise.all([1, 2, 3, 4].map(index => texture(ROOTS, `${entry.image}${index}`))),
     })))).filter((entry): entry is { id: LobbyEventId; label: string; states: Texture[] } =>
       entry.states.every(Boolean));
-    return { root, textures, strings, channels, banners, backdrop, font, story, events, riderSchool, replay };
+    return { root, textures, strings, channels, banners, backdrop, font, story, events, riderSchool, replay,
+      textButton };
   } catch (error) {
     G1(font);
     throw error;
@@ -453,6 +459,16 @@ async function loadStoryTabArt(root: MainMenuNode,
     scrollbar = undefined;
   }
   return { completed, newBadge, board, lock, clear, scrollbar };
+}
+
+/** gui_/monocoque frame.bml TextButton: the frames of its four states and their texture. */
+async function loadTextButtonArt(texture: (roots: string[], name: string) => Promise<Texture | undefined>,
+  frames: () => Promise<MainMenuNode>): Promise<{ frames: WindowFrame[]; image: Texture } | undefined> {
+  const tree = await frames();
+  const states = (tree.children.find(child => child.name === "TextButton")?.children ?? [])
+    .map(child => Ft(child) as WindowFrame);
+  const image = states[0] ? await texture(["gui_/monocoque"], states[0].texture) : undefined;
+  return image && states.length ? { frames: states, image } : undefined;
 }
 
 /** replayCard's ImageBoardButton states and its 删除 ImageButton. */
@@ -700,6 +716,7 @@ export class MainMenuView {
         : !name || SHOWN.has(name)) this.draw(child, rect);
     }
     if (this.currentPage === "single" && this.category === "cat_riderSchool") this.drawRiderSchool();
+    if (this.currentPage === "single" && this.options.onCustomGame) this.drawCustomGameButton();
     if (this.notice) this.drawNotice(this.notice);
     this.buttons.update(this.regions);
   }
@@ -1214,6 +1231,25 @@ export class MainMenuView {
     align: "left" | "center"): void {
     m9(this.context, text, rect, { family: FONT_FAMILY, size, kind: "label", color, align,
       verticalAlign: "center", stroke: 0, strokeColor: "black" });
+  }
+
+  /** 自定义游戏 at the right end of the single-play title bar (a monocoque TextButton). */
+  private drawCustomGameButton(): void {
+    const art = this.assets.textButton;
+    const rect = { x: 540, y: 131, width: 128, height: 32 };
+    const key = "customGame";
+    const state = st(key, this.hovered, this.pressed);
+    const frame = art?.frames[state] ?? art?.frames[0];
+    if (art && frame) C9(this.context, frame, art.image.image, rect);
+    else {
+      this.context.fillStyle = state ? "rgb(255,214,120)" : "rgb(240,244,250)";
+      this.context.fillRect(rect.x, rect.y, rect.width, rect.height);
+    }
+    m9(this.context, "自定义游戏", { x: rect.x, y: rect.y + (state === 2 ? 1 : 0), width: rect.width, height: rect.height }, {
+      family: FONT_FAMILY, size: 16, kind: "label", color: "rgb(42,55,80)", align: "center",
+      verticalAlign: "center", stroke: 0, strokeColor: "black" });
+    this.regions.push({ key, rect, label: "自定义游戏",
+      activate: () => { this.options.onActivate?.(); this.options.onCustomGame?.(); } });
   }
 
   private drawNotice(message: string): void {

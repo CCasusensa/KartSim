@@ -101,7 +101,9 @@ type API struct {
 	// nodeRegistry caches the nodes added in the console (nodes.go).
 	nodeRegistry nodeRegistry
 	// lobby is the global lobby (lobby_home.go).
-	lobby        *lobbyHome
+	lobby *lobbyHome
+	// itemMaps is the published 地图工坊 maps with item boxes (MAPS.md).
+	itemMaps     itemMapSet
 	publicOrigin string
 	log          *slog.Logger
 	now          func() time.Time

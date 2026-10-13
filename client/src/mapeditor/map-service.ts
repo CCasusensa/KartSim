@@ -36,6 +36,7 @@ export function parseMapSummary(value: unknown): CustomMapSummary {
     id, name: text("name") || id, author: text("author"), theme: text("theme") || "village",
     laps: Math.max(1, Math.round(number("laps")) || 3), difficulty: Math.max(1, Math.round(number("difficulty")) || 2),
     roadExtent: Math.max(100, number("roadExtent")), sha256: text("sha256"), size: number("size"),
+    items: Math.max(0, Math.round(number("items"))),
     files, updatedAt: number("updatedAt"), source: "server",
   };
 }
@@ -86,8 +87,8 @@ export interface PublishInput {
 export async function publishMap(input: PublishInput, token: string, origin = dataServiceOrigin(),
   fetchImpl = defaultFetch): Promise<CustomMapSummary> {
   const form = new FormData();
-  const { id, name, theme, laps, difficulty, roadExtent, files } = input.summary;
-  form.set("meta", JSON.stringify({ id, name, theme, laps, difficulty, roadExtent, files }));
+  const { id, name, theme, laps, difficulty, roadExtent, items, files } = input.summary;
+  form.set("meta", JSON.stringify({ id, name, theme, laps, difficulty, roadExtent, items, files }));
   form.set("design", new Blob([JSON.stringify(input.design)], { type: "application/json" }), "design.json");
   form.set("container", new Blob([input.container as BlobPart], { type: "application/octet-stream" }), `track_custom_${id}.rho`);
   form.set("card", new Blob([input.card as BlobPart], { type: "image/png" }), "card.png");

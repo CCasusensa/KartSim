@@ -23,6 +23,7 @@ import (
 	"math"
 	"math/rand/v2"
 	"net/http"
+	"regexp"
 	"slices"
 
 	"kartsim/internal/game/cheat"
@@ -59,8 +60,13 @@ func (l *Lobby) initializeItemTrack(r *room) {
 	}
 }
 
-// validateTrack checks a fixed track: item rooms accept only the exported
-// item tracks (TRACK_NOT_ITEM); other rooms follow their gameplay's rules.
+// customTrackPattern matches a published 地图工坊 map (drafts end in _draft
+// and never reach a room).
+var customTrackPattern = regexp.MustCompile(`^custom_[0-9a-z]{6,16}$`)
+
+// validateTrack checks a fixed track: item rooms accept the exported item
+// tracks and the published 地图工坊 maps with item boxes (TRACK_NOT_ITEM);
+// other rooms follow their gameplay's rules.
 func (l *Lobby) validateTrack(r *room, trackID string) error {
 	if r.gameplay != "item" {
 		return validateTrack(r, trackID)
@@ -68,10 +74,13 @@ func (l *Lobby) validateTrack(r *room, trackID string) error {
 	if l.items == nil {
 		return fail(http.StatusBadRequest, "INVALID_TRACK")
 	}
-	if _, ok := l.items.Track(trackID); !ok {
-		return fail(http.StatusBadRequest, "TRACK_NOT_ITEM")
+	if _, ok := l.items.Track(trackID); ok {
+		return nil
 	}
-	return nil
+	if l.customItem != nil && customTrackPattern.MatchString(trackID) && l.customItem(trackID) {
+		return nil
+	}
+	return fail(http.StatusBadRequest, "TRACK_NOT_ITEM")
 }
 
 // validateRandomTrack checks a random-track code: item rooms accept the

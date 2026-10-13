@@ -197,6 +197,8 @@ export async function openReadyHome(controller: ReadyHomeController,
       keepFont: true,
       onTimeAttack: () => closeReadyHome(controller),
       onPractice: () => closeReadyHome(controller),
+      // 自定义游戏: the 地图工坊 maps of every rider (server-go/MAPS.md).
+      onCustomGame: () => { void import("./ready-custom-game").then(module => module.openReadyCustomGame(controller)); },
       // 排位计时赛 (TIMEATTACK.md): the ranking window over this page.
       onRanking: () => { void openRankingWindow(controller as ReadyRankingController); },
       onChannel: channel => {
