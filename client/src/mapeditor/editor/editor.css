@@ -26,8 +26,16 @@ button, input, select { font: inherit; color: inherit; }
 .k-tab { background: #dfe7f3; border: 1px solid #a4b5cf; }
 .k-tab.k-on { background: #fff; }
 .k-tip { background: rgba(20, 30, 50, .85); border: 1px solid #6c7d9c; color: #f2f6ff; }
+.k-balloon, .k-bar, .k-toast { background: #1f2a3a; border: 1px solid #0c1420; color: #fff; }
+.k-tag { background: #2a8cff; color: #fff; }
+.k-ring, .k-glow { position: relative; }
+.k-ring::after, .k-glow::after { content: ""; position: absolute; inset: -3px; pointer-events: none; border-radius: 6px; }
+.k-ring::after { border: 2px solid #22c8ff; }
+.k-glow::after { border: 3px solid #fff; }
 .k-skinned .k-dialog, .k-skinned .k-inner, .k-skinned .k-black, .k-skinned .k-button, .k-skinned .k-blue,
-.k-skinned .k-edit, .k-skinned .k-combo, .k-skinned .k-row, .k-skinned .k-tab, .k-skinned .k-tip {
+.k-skinned .k-edit, .k-skinned .k-combo, .k-skinned .k-row, .k-skinned .k-tab, .k-skinned .k-tip,
+.k-skinned .k-balloon, .k-skinned .k-bar, .k-skinned .k-toast, .k-skinned .k-tag,
+.k-skinned .k-ring::after, .k-skinned .k-glow::after {
   background: none; border-radius: 0;
 }
 
@@ -36,17 +44,16 @@ button, input, select { font: inherit; color: inherit; }
 .ed-root {
   position: fixed; inset: 0;
   display: grid;
-  grid-template-columns: 0 1fr 280px;
+  grid-template-columns: 0 1fr 0;
   grid-template-rows: auto 1fr auto 26px;
   grid-template-areas: "bar bar bar" "left view right" "dock dock dock" "status status status";
   gap: 4px; padding: 4px;
   background: radial-gradient(ellipse at top, #1d3f78, #0b1730 70%);
 }
 .ed-root.ed-advanced { grid-template-columns: 318px 1fr 300px; }
-.ed-root:not(.ed-advanced) .ed-left { display: none; }
+.ed-root:not(.ed-advanced) .ed-left, .ed-root:not(.ed-advanced) .ed-right { display: none; }
 .ed-root.ed-advanced { column-gap: 4px; }
 .ed-root:not(.ed-advanced) { column-gap: 0; }
-.ed-root:not(.ed-advanced) .ed-view { margin-right: 4px; }
 .ed-bar { grid-area: bar; position: relative; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 44px; }
 .ed-left { grid-area: left; position: relative; display: flex; flex-direction: column; min-height: 0; }
 .ed-right { grid-area: right; position: relative; display: flex; flex-direction: column; min-height: 0; }
@@ -166,12 +173,9 @@ input[type="number"].k-edit { width: 76px; }
 .ed-card .ed-sprite { width: 76px; height: 76px; flex: none; background-repeat: no-repeat; border-radius: 3px; margin-top: 2px; }
 .ed-card .ed-label { width: 100%; text-align: center; font-size: 12px; line-height: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: none; }
 .ed-card .ed-badge { position: absolute; right: 4px; top: 4px; font-size: 10px; padding: 0 4px; border-radius: 3px; color: #fff; background: rgba(42, 95, 176, .85); }
-/* 选中、放置中、使用中的素材：橙色光框 + 角标 */
-.ed-card.k-selected { box-shadow: 0 0 0 3px #ff9c1a, 0 0 12px 3px rgba(255, 160, 30, .8); z-index: 1; }
-.ed-card.k-selected .ed-label { color: #b44b00; font-weight: bold; }
-.ed-card.k-selected .ed-sprite { background-color: rgba(255, 190, 80, .28); }
-.ed-card .ed-mark { position: absolute; left: 3px; top: 3px; font-size: 10px; line-height: 16px; padding: 0 4px; border-radius: 3px;
-  color: #fff; background: #ff8a00; box-shadow: 0 1px 2px rgba(0, 0, 0, .35); }
+/* 选中、放置中、使用中的素材：原版选中底 + 青色选中圈 + 蓝色角标 */
+.ed-card.k-selected .ed-label { color: #0d3d8c; }
+.ed-card .ed-mark { position: absolute; left: 3px; top: 3px; font-size: 11px; line-height: 16px; padding: 0 5px; color: #fff; }
 .ed-card.ed-tool .ed-sprite { display: flex; align-items: center; justify-content: center; font-size: 34px; color: #2a5fb0; background: rgba(42, 95, 176, .1); }
 .ed-card canvas.ed-sprite { background: rgba(42, 95, 176, .08); }
 .ed-shelf .ed-group { width: 100%; font-size: 12px; color: #0d3d8c; margin: 4px 2px 0; border-bottom: 1px solid #b9c8e0; }
@@ -214,3 +218,66 @@ details.ed-more > summary { cursor: pointer; color: #0d3d8c; font-size: 12px; }
 .ed-wizard .ed-card { width: 104px; height: 124px; }
 .ed-wizard .ed-card .ed-sprite { width: 88px; height: 88px; }
 .ed-wizard .ed-row-fields { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* ---------- 简单模式的游戏界面（叠在视口上，框体都是原版 frame.bml） ---------- */
+.ed-hud { position: absolute; inset: 0; pointer-events: none; }
+.ed-hud > * { pointer-events: auto; }
+.k-button.ed-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  width: 58px; min-width: 58px; height: 56px; padding: 0 2px; line-height: 1.1; }
+.k-button.ed-icon b { font-size: 20px; font-weight: normal; line-height: 24px; }
+.k-button.ed-icon span { font-size: 12px; white-space: nowrap; }
+.k-button.ed-icon.ed-primary { color: #b44b00; }
+.k-button.ed-icon.ed-danger { color: #c0392b; }
+.ed-pic { display: inline-block; width: 24px; height: 24px; flex: none; }
+.k-button.ed-icon .ed-pic { margin-bottom: 1px; }
+.ed-toolstrip { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; }
+.ed-toolstrip .k-button.ed-icon { width: 66px; height: 60px; }
+.ed-camera { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 3px; }
+.ed-camera .k-button.ed-icon { width: 50px; min-width: 50px; height: 50px; }
+.ed-mission { position: absolute; right: 10px; top: 10px; width: 262px; padding-bottom: 4px; }
+.ed-mission-head { display: flex; align-items: center; gap: 4px; margin: 2px 4px 4px; }
+.ed-mapname-button { flex: 1; min-width: 0; border: 0; background: none; padding: 2px 0; cursor: pointer; text-align: left;
+  font: inherit; font-size: 15px; color: #0d3d8c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-mapname-button small { color: var(--ed-dim); }
+.ed-mission .ed-step { margin: 4px 6px; padding: 2px 4px; align-items: center; font-size: 13px; color: var(--ed-text); }
+.ed-mission .ed-step span { flex: 1; }
+.ed-mission .ed-step.ed-done span { color: var(--ed-dim); }
+.ed-mission .ed-step .ed-pic { width: 18px; height: 18px; }
+.ed-mission .ed-step.ed-now span { color: #0d3d8c; }
+.ed-cheer { margin: 6px; color: #2b8a3e; font-size: 13px; }
+.ed-lively { display: flex; align-items: center; gap: 6px; margin: 6px 6px 2px; padding-top: 6px; border-top: 1px solid #b9c8e0; font-size: 12px; color: var(--ed-dim); }
+.ed-lively small { margin-left: auto; color: #b44b00; }
+.ed-stars i { font-style: normal; color: #c6cfdd; font-size: 15px; }
+.ed-stars i.ed-on { color: #ffb400; }
+/* 头顶的说话气泡（TalkBalloonLeftLeg，尖角在右下）：尖角指着选中的东西 */
+.ed-actbar { position: absolute; left: 0; top: 0; padding: 4px 8px 14px; }
+.ed-actbar-title { color: #ffd36b; font-size: 13px; margin: 0 2px 4px; white-space: nowrap; }
+.ed-actbar-row { display: flex; gap: 3px; }
+/* 底部动作条（GameReadyTitle） */
+.ed-modebar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px;
+  padding: 4px 8px; max-width: calc(100% - 300px); }
+.ed-modebar .ed-say { color: #fff; font-size: 14px; margin: 0 8px; }
+.ed-modebar .ed-modebar-sprite { width: 40px; height: 40px; flex: none; background-repeat: no-repeat; background-color: rgba(255, 255, 255, .85); }
+/* 提示条（OneLineToolTip） */
+.ed-toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); max-width: 60%; padding: 6px 22px;
+  color: #fff; font-size: 15px; text-align: center; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.ed-toast.ed-show { opacity: 1; }
+.ed-tip { position: absolute; left: 10px; bottom: 10px; padding: 4px 6px 4px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+/* 引导去哪里点：原版发光边框闪几下 */
+@keyframes ed-pulse { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+.ed-pulse::after { animation: ed-pulse .6s ease-in-out 3; opacity: 0; }
+
+/* 顶栏（简单模式） */
+.ed-bar .ed-mapname-button { flex: none; max-width: 220px; color: #ffd36b; font-size: 14px; margin-right: 6px; }
+.ed-bar .ed-saved { color: #9fe0b0; font-size: 12px; margin-right: 6px; white-space: nowrap; }
+.ed-bar .k-button.ed-play { font-size: 15px; }
+
+/* 地图设置 */
+.ed-settings { display: flex; flex-direction: column; gap: 10px; min-width: 340px; }
+.ed-settings .ed-field > span { min-width: 56px; }
+.ed-settings .ed-big { font-size: 20px; color: #0d3d8c; min-width: 28px; text-align: center; font-weight: normal; }
+.ed-star { border: 0; background: none; cursor: pointer; font-size: 24px; color: #c6cfdd; padding: 0 1px; }
+.ed-star.ed-on { color: #ffb400; text-shadow: 0 0 4px rgba(255, 170, 0, .6); }
+/* 简单模式不要底部状态栏：消息走提示气泡，保存状态在顶栏 */
+.ed-root:not(.ed-advanced) { grid-template-rows: auto 1fr auto 0; }
+.ed-root:not(.ed-advanced) .ed-status { display: none; }

@@ -32,6 +32,13 @@ export class Viewport {
   private height = 1;
   private disposed = false;
   stageBinding?: { beginFrame(time: number): void };
+  /**
+   * 左键拖动做什么（在按下的那一刻问）：pan 平移视角（拖空地），none 交给工具
+   * （放置、拖物件）。没有设置时左键不动视角。
+   */
+  leftDrag?: (event: PointerEvent) => "pan" | "none";
+  /** WASD 也能移动视角（简单模式；高级模式 W/E/R 是手柄）。 */
+  wasd = false;
 
   constructor(readonly element: HTMLElement) {
     this.renderer = new WebGLRenderer({ antialias: true });
@@ -61,7 +68,8 @@ export class Viewport {
     // Alt+左键旋转、空格+左键平移（触控板没有右键拖动）
     this.renderer.domElement.addEventListener("pointerdown", event => {
       if (event.button !== 0) return;
-      this.controls.mouseButtons.LEFT = (event.altKey ? MOUSE.ROTATE : this.keys.has("Space") ? MOUSE.PAN : -1) as MOUSE;
+      this.controls.mouseButtons.LEFT = (event.altKey ? MOUSE.ROTATE : this.keys.has("Space") ? MOUSE.PAN
+        : this.leftDrag?.(event) === "pan" ? MOUSE.PAN : -1) as MOUSE;
     }, { capture: true });
     this.renderer.domElement.addEventListener("contextmenu", event => event.preventDefault());
     window.addEventListener("keydown", event => {
@@ -116,10 +124,11 @@ export class Viewport {
     const distance = this.camera.position.distanceTo(this.controls.target);
     const speed = Math.max(20, distance * 0.9) * dt * (this.keys.has("ShiftLeft") || this.keys.has("ShiftRight") ? 3 : 1);
     const move = new Vector3();
-    if (this.keys.has("ArrowUp")) move.add(forward);
-    if (this.keys.has("ArrowDown")) move.sub(forward);
-    if (this.keys.has("ArrowRight")) move.add(right);
-    if (this.keys.has("ArrowLeft")) move.sub(right);
+    const held = (arrow: string, letter: string) => this.keys.has(arrow) || (this.wasd && this.keys.has(letter));
+    if (held("ArrowUp", "KeyW")) move.add(forward);
+    if (held("ArrowDown", "KeyS")) move.sub(forward);
+    if (held("ArrowRight", "KeyD")) move.add(right);
+    if (held("ArrowLeft", "KeyA")) move.sub(right);
     if (this.keys.has("PageUp")) move.y += 1;
     if (this.keys.has("PageDown")) move.y -= 1;
     if (move.lengthSq() === 0) return;
@@ -170,6 +179,26 @@ export class Viewport {
   /** 视角中心在客户端地面上的点。 */
   focusPoint(): ClientPoint {
     return toClient(this.controls.target);
+  }
+
+  /** 绕视角中心水平转（度，正值逆时针）。 */
+  orbit(degrees: number): void {
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    offset.applyAxisAngle(new Vector3(0, 1, 0), (degrees * Math.PI) / 180);
+    this.camera.position.copy(this.controls.target).add(offset);
+  }
+
+  /** 拉近（factor < 1）或拉远。 */
+  zoom(factor: number): void {
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    offset.setLength(Math.min(6000, Math.max(8, offset.length() * factor)));
+    this.camera.position.copy(this.controls.target).add(offset);
+  }
+
+  /** 客户端点在视口元素里的屏幕位置；在相机背后时 visible 为 false。 */
+  project(point: ClientPoint): { x: number; y: number; visible: boolean } {
+    const p = toThree(point).project(this.camera);
+    return { x: (p.x + 1) / 2 * this.width, y: (1 - p.y) / 2 * this.height, visible: p.z > -1 && p.z < 1 };
   }
 
   /** 把视角移到某个客户端点附近。 */

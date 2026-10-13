@@ -53,7 +53,7 @@ try {
     // 第一次来：直接打开新建向导
     openNewMapWizard(app, { firstRun: true });
   } else {
-    app.say("欢迎回来。点“打开”继续做之前的地图，或“新建”用向导开一张新的。", 8000);
+    app.say("欢迎回来！点“我的地图”接着做，或者“新地图”再做一张", 6000);
   }
 } catch (error) {
   console.error(error);

@@ -23,13 +23,14 @@ export function openNewMapWizard(app: EditorApp, options: { firstRun?: boolean }
   name.addEventListener("keydown", event => event.stopPropagation());
   const presetCards = h("div", { class: "ed-cards" });
   const shapeCards = h("div", { class: "ed-cards" });
+  // 选中：原版的选中底和青色选中圈
   const select = (container: HTMLElement, card: HTMLElement) => {
-    for (const other of container.children) other.classList.remove("k-selected");
-    card.classList.add("k-selected");
+    for (const other of container.children) other.classList.remove("k-selected", "k-ring");
+    card.classList.add("k-selected", "k-ring");
   };
   for (const item of data.presets) {
     const sky = data.skies.find(entry => entry.id === item.sky);
-    const card = h("button", { class: `k-row ed-card ${item === preset ? "k-selected" : ""}`, type: "button" },
+    const card = h("button", { class: `k-row ed-card ${item === preset ? "k-selected k-ring" : ""}`, type: "button" },
       h("div", { class: "ed-sprite", style: sky ? spriteStyle(data, sheets, sky.slot, 88) : "" }),
       h("span", { class: "ed-label" }, themeTitle(item.theme)));
     card.addEventListener("click", () => { preset = item; select(presetCards, card); });
@@ -38,7 +39,7 @@ export function openNewMapWizard(app: EditorApp, options: { firstRun?: boolean }
   for (const item of [...TRACK_TEMPLATES, undefined]) {
     const image = item ? drawTemplate(item, 88) : h("div", { style: "display:flex;align-items:center;justify-content:center;font-size:40px;color:#2a5fb0" }, "✎");
     image.classList.add("ed-sprite");
-    const card = h("button", { class: `k-row ed-card ${item === template ? "k-selected" : ""}`, type: "button", title: item?.description ?? "空白地图，自己画路" },
+    const card = h("button", { class: `k-row ed-card ${item === template ? "k-selected k-ring" : ""}`, type: "button", title: item?.description ?? "空白地图，自己画路" },
       image, h("span", { class: "ed-label" }, item?.title ?? "自己画"));
     card.addEventListener("click", () => { template = item; select(shapeCards, card); });
     shapeCards.append(card);
@@ -54,9 +55,10 @@ export function openNewMapWizard(app: EditorApp, options: { firstRun?: boolean }
     app.loadNewDesign(design);
     app.state.dirty = true;
     app.state.emit("meta");
+    app.scheduleAutosave();
     app.say(template
-      ? `「${design.name}」做好了！在底部素材栏挑建筑、树木摆上去，或者直接点“试跑”。`
-      : "空白地图：在素材栏“赛道”里选形状，或者点“画路”自己画。", 10000);
+      ? `「${design.name}」做好了！在下面素材栏挑建筑、树木摆上去，或者直接“开车试玩”`
+      : "空白地图：在素材栏“赛道”里选个形状，或者用左边的“画赛道”自己画", 10000);
   };
   const dialog = modal(options.firstRun ? "欢迎来到地图工坊" : "新建地图", content,
     options.firstRun ? [["开始做地图", create], ["先随便看看", () => app.resetDesign()]] : [["创建", create], ["取消", () => undefined]]);

@@ -76,11 +76,13 @@ export function drawTemplate(template: TrackTemplate, size: number): HTMLCanvasE
 
 /** 给卡片加上或去掉高亮和角标。 */
 function markCard(card: HTMLElement, mark: string | undefined): void {
+  // 原版的选中底（DefaultStaticButton_SelectedBlue）加青色选中圈（Selectored），角标用原版蓝色按钮框
   card.classList.toggle("k-selected", !!mark);
+  card.classList.toggle("k-ring", !!mark);
   card.classList.toggle("ed-marked", !!mark);
   let tag = card.querySelector<HTMLElement>(".ed-mark");
   if (!mark) { tag?.remove(); return; }
-  if (!tag) { tag = h("span", { class: "ed-mark" }); card.append(tag); }
+  if (!tag) { tag = h("span", { class: "ed-mark k-tag" }); card.append(tag); }
   tag.textContent = mark;
 }
 
@@ -147,14 +149,23 @@ export class Dock {
     return this.data?.skies.find(sky => sky.track === track);
   }
 
-  /** 打开某个大类下的某一小类。 */
-  open(sub: Sub): void {
+  /** 打开某个大类下的某一小类；pulse 时让那一类闪几下，告诉玩家去哪里点。 */
+  open(sub: Sub, pulse = false): void {
     const tab = TABS.find(item => item.subs.some(([id]) => id === sub));
     if (!tab) return;
     this.tab = tab;
     this.sub = sub;
     this.collapsed = false;
     this.render();
+    if (pulse) {
+      // 原版发光边框（GlowBorderPanel）闪几下
+      for (const element of [this.tabsRow.querySelector(".k-tab.k-on"), this.shelf]) {
+        element?.classList.remove("ed-pulse", "k-glow");
+        void (element as HTMLElement | null)?.offsetWidth;
+        element?.classList.add("ed-pulse", "k-glow");
+        setTimeout(() => element?.classList.remove("ed-pulse", "k-glow"), 1900);
+      }
+    }
   }
 
   setActive(item: DockItem | undefined): void {
@@ -296,7 +307,7 @@ export class Dock {
         return byTheme(data.presets).map(preset => ({ kind: "preset", id: `preset:${preset.theme}`, preset }));
       case "shape":
         return [
-          { kind: "tool", id: "tool:draw", title: "自己画", glyph: "✎", description: "在地图上依次点击放控制点，点回绿色起点闭合成环。", run: () => this.app.startRoad() },
+          { kind: "tool", id: "tool:draw", title: "自己画", glyph: "✎", description: "在地上一个点一个点地点出赛道，点回绿色起点就连成一圈。", run: () => this.app.startRoad() },
           ...TRACK_TEMPLATES.map(template => ({ kind: "template" as const, id: `template:${template.id}`, template })),
         ];
       case "items":
@@ -411,7 +422,7 @@ export class Dock {
         const what = texture.kind === "surface" ? "路面" : texture.kind === "wall" ? "护栏" : "地面";
         box.append(h("div", { class: "ed-title" }, `${textureLabel(texture)}${what === "路面" ? "" : ` · ${what}`}`),
           meta(`${themeTitle(texture.theme)} · ${texture.name}`, texture.kind === "surface"
-            ? "点一下换到选中的道路（没选中时换比赛路线）" : texture.kind === "wall" ? "点一下换到选中道路两侧的护栏" : "点一下换上地面"),
+            ? "点一下就换上（换的是选中的路，没选就换赛道）" : texture.kind === "wall" ? "点一下就给赛道换上这种护栏" : "点一下就换上这种地面"),
           h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       }

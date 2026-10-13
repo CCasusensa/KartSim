@@ -15,6 +15,7 @@ import { formats } from "./assets";
 import type { EditorApp } from "./app";
 import { button, h } from "./dom";
 import { toThree } from "./viewport";
+import { friendlyIssues, saveProgress } from "./hud";
 import { openNewMapWizard } from "./wizard";
 
 interface Modal { close(): void; body: HTMLElement; buttons: HTMLElement; setProgress(value: number, text?: string): void }
@@ -90,11 +91,11 @@ export class EditorActions {
     else go();
   }
 
-  async save(): Promise<boolean> {
+  async save(options: { quiet?: boolean } = {}): Promise<boolean> {
     try {
       await saveDesign(this.app.state.design);
       this.app.state.markSaved();
-      this.app.say("已保存到本机。");
+      if (!options.quiet) this.app.say("已保存到本机。");
       this.app.leftVersion++;
       this.app.queueRender();
       return true;
@@ -107,7 +108,7 @@ export class EditorActions {
   /** 打开：本机草稿和自己发布在服务器上的地图。 */
   openDialog(): void {
     const list = h("div", { class: "ed-open-list" }, h("div", { class: "ed-empty" }, "正在读取…"));
-    const dialog = modal("打开地图", list, [["导入文件…", () => this.importFile()], ["关闭", () => undefined]]);
+    const dialog = modal(this.app.advanced ? "打开地图" : "我的地图", list, [["导入文件…", () => this.importFile()], ["关闭", () => undefined]]);
     dialog.body.style.whiteSpace = "normal";
     const fill = async () => {
       const [designs, maps] = await Promise.all([listDesigns().catch(() => undefined), this.myMaps()]);
@@ -320,9 +321,13 @@ export class EditorActions {
   /** 生成赛道包，存进本机草稿；失败时弹出原因。 */
   private async build(title: string): Promise<{ built: BuiltTrack; stored: StoredBuild } | undefined> {
     const design = this.app.state.design;
+    if (!this.app.advanced) {
+      const issues = friendlyIssues(design);
+      if (issues.length) { modal("还差一点", `${issues.map(issue => `· ${issue}`).join("\n")}`, [["知道了", () => undefined]]); return undefined; }
+    }
     const issues = validateDesign(design);
     if (issues.length) { modal(title, `还不能生成：\n${issues.map(issue => `· ${issue}`).join("\n")}`); return undefined; }
-    const progress = modal(title, "正在生成赛道…", []);
+    const progress = modal(title, this.app.advanced ? "正在生成赛道…" : "正在把地图变成真正的赛道…", []);
     progress.setProgress(0.05);
     try {
       await this.save();
@@ -356,6 +361,8 @@ export class EditorActions {
   }
 
   openTestDrive(): void {
+    saveProgress(this.app.state.design.id, { tried: true });
+    this.app.queueRender();
     window.open(`/?testmap=${encodeURIComponent(this.app.state.design.id)}`, "kartsim-testdrive");
   }
 
@@ -365,6 +372,11 @@ export class EditorActions {
     if (!result) return;
     const { built } = result;
     const open = () => this.openTestDrive();
+    if (!this.app.advanced) {
+      modal("赛道做好了！", `一圈 ${built.routeLength.toFixed(0)} 米。点“出发”会打开游戏，选好这张图，按开始就能开车。\n` +
+        "开完回到这里还能接着改，改完再点“开车试玩”。", [["出发", open], ["等会儿", () => undefined]]);
+      return;
+    }
     modal("试跑", `赛道包已生成（${(built.container.length / 1e6).toFixed(1)} MB，路线 ${built.routeLength.toFixed(0)} 米，${built.stats.gates} 个检查点）。\n` +
       `游戏页会打开计时赛并选好这张地图（标着“[草稿]”），点“开始”即可。${this.warningsText(built)}`,
     [["打开游戏试跑", open], ["关闭", () => undefined]]);
@@ -374,7 +386,7 @@ export class EditorActions {
   async publish(): Promise<void> {
     await this.refreshAccount();
     if (!this.account) {
-      modal("发布", "发布需要登录。请在同一个浏览器里打开游戏并登录，然后回到这里再点“发布”。",
+      modal(this.app.advanced ? "发布" : "分享给大家", "发布需要登录。请在同一个浏览器里打开游戏并登录，然后回到这里再点“发布”。",
         [["打开游戏", () => window.open("/", "kartsim-game")], ["关闭", () => undefined]]);
       return;
     }
@@ -390,7 +402,13 @@ export class EditorActions {
       }, this.account.token);
       progress.close();
       this.app.leftVersion++;
+      saveProgress(this.app.state.design.id, { shared: true });
       this.app.queueRender();
+      if (!this.app.advanced) {
+        modal("分享成功！", `「${summary.name}」已经上线了。\n大家在游戏的“单人游戏 → 自定义游戏”里就能玩到；多人游戏选赛道时也能找到它${
+          summary.items > 0 ? "（道具赛也行）" : ""}。\n以后再改，点“分享给大家”会更新成新的样子。`, [["太好了", () => undefined]]);
+        return;
+      }
       modal("发布成功", `「${summary.name}」已发布（${(summary.size / 1e6).toFixed(1)} MB）。\n` +
         `单人游戏 → 自定义游戏里所有人都能玩到它；多人游戏的竞速房${summary.items > 0 ? "和道具房" : ""}里，在“选择赛道”的` +
         `“${THEME_TITLES[summary.theme] ?? summary.theme}”分类（或直接搜索名字）就能找到，其他玩家进房时会自动下载。` +
@@ -408,6 +426,20 @@ export class EditorActions {
   }
 
   help(): void {
+    if (!this.app.advanced) {
+      modal("怎么玩",
+        "做一张自己的跑跑卡丁车赛道，就像搭积木：\n\n" +
+        "① 铺赛道：点下面素材栏的“赛道”，选一种形状，赛道一下就铺好了。想自己画，就用左边的“画赛道”，在地上一个点一个点地点。\n" +
+        "② 摆东西：素材栏里有建筑、树木、路灯、广告牌……点一下卡片，再点地面就放下了。树和栏杆可以按住鼠标拖，一下种一排。\n" +
+        "③ 改一改：点一下地图上的东西，头顶会出现按钮：转向、变大、变小、抬高、复制、删除；按住它拖动就能挪位置。点赛道可以变宽、换路面、装护栏；拖赛道上的白色圆点能改形状。\n" +
+        "④ 放道具箱：素材栏“机关道具 → 道具箱”，点“自动布置”，这张图就能开道具赛了。\n" +
+        "⑤ 开车试玩：点右上角“开车试玩”，在游戏里跑一圈看看。\n" +
+        "⑥ 分享给大家：点“分享给大家”，所有人都能在“自定义游戏”里玩到。\n\n" +
+        "看地图：拖动空地移动，右键拖动转方向，滚轮拉近拉远，键盘 W A S D 也能移动。\n" +
+        "放错了别担心：点“↶ 撤销”就回去了。地图会自动保存。",
+        [["开始玩", () => undefined]]);
+      return;
+    }
     modal("地图工坊帮助",
       "【三步做一张地图】①“新建”向导里选主题和赛道形状（或在素材栏“赛道 → 形状”里换）；② 在底部素材栏挑建筑、树木、路灯……点卡片，再在地图上点击放置；③ 点“试跑”在游戏里跑一圈，满意了就“发布”。\n" +
       "【视角】右键拖动旋转，滚轮缩放，中键或按住空格左键拖动平移，方向键移动（Shift 加速），F 聚焦选中物。触控板可用 Alt+左键旋转。\n" +

@@ -19,6 +19,8 @@ const DEG = Math.PI / 180;
 interface PieceView {
   key: string;
   root: Group;
+  /** 新放下时弹一下的缩放（夹在 root 和 offset 之间，不碰设计里的缩放）。 */
+  pop: Group;
   offset: Group;
   box?: LineSegments;
   scene?: AssembledScene;
@@ -99,6 +101,9 @@ export class MapViews {
   private readonly checker = checkerTexture();
   /** 正在被手柄拖动的摆件不要被同步覆盖。 */
   draggingPieces = new Set<string>();
+  /** 下次出现时要弹一下的摆件（刚放下的）。 */
+  readonly popPieces = new Set<string>();
+  private readonly popping = new Map<Group, number>();
   warnings: string[] = [];
   onPieceLoaded?: () => void;
 
@@ -109,6 +114,18 @@ export class MapViews {
     this.markers.userData.noPick = true;
     this.items.userData.noPick = true;
     viewport.world.add(this.ground, this.roads, this.pieces, this.markers, this.items, this.handles);
+    viewport.onFrame(time => this.animatePops(time));
+  }
+
+  /** 弹出：从 40% 放大到略超过原尺寸再回落（easeOutBack），约 0.3 秒。 */
+  private animatePops(time: number): void {
+    for (const [group, start] of this.popping) {
+      const t = Math.min(1, (time - start) / 300);
+      const back = 1.7;
+      const eased = 1 + (back + 1) * (t - 1) ** 3 + back * (t - 1) ** 2;
+      group.scale.setScalar(0.4 + 0.6 * eased);
+      if (t >= 1) { group.scale.setScalar(1); this.popping.delete(group); }
+    }
   }
 
   sync(design: MapDesign, selection: { roadId?: string; point?: number; pieceIds: string[] }): void {
@@ -143,10 +160,16 @@ export class MapViews {
     const root = new Group();
     root.name = `piece:${piece.id}`;
     root.userData.pieceId = piece.id;
+    const pop = new Group();
     const offset = new Group();
-    root.add(offset);
+    root.add(pop);
+    pop.add(offset);
     this.pieces.add(root);
-    const view: PieceView = { key, root, offset };
+    const view: PieceView = { key, root, pop, offset };
+    if (this.popPieces.delete(piece.id)) {
+      pop.scale.setScalar(0.4);
+      this.popping.set(pop, performance.now());
+    }
     this.pieceViews.set(piece.id, view);
     void this.assets.pieces(piece.track).then(list => {
       const info = list.find(item => item.path.join(".") === piece.path.join("."));
@@ -185,6 +208,11 @@ export class MapViews {
 
   pieceObject(id: string): Group | undefined {
     return this.pieceViews.get(id)?.root;
+  }
+
+  /** 摆件里按来源坐标摆放的那一层（包围盒线框挂这里）。 */
+  pieceOffset(id: string): Group | undefined {
+    return this.pieceViews.get(id)?.offset;
   }
 
   pieceInfo(id: string): PieceInfo | undefined {

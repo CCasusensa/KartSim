@@ -6,7 +6,7 @@
  *   道具箱：在比赛路线上点一下，横着放一排；
  *   选择：点选摆件或道路，按住拖动直接挪位置（不用手柄）。
  */
-import { Group, LineSegments, Object3D, type Intersection } from "three";
+import { Group, LineSegments, type Intersection } from "three";
 import { MAP_LIMITS, type MapDesign, type PieceDesign, type Vec3 } from "../design";
 import { categoryInfo, pieceSize, type CatalogPiece, type PieceCategory } from "../catalog";
 import { sampleRoad } from "../road-geometry";
@@ -174,14 +174,14 @@ export class ToolController {
       this.stroke = undefined;
       if (placed) {
         this.app.state.commit();
-        this.app.say(`已放置 ${placed} 个「${tool.piece.label}」。继续点击放置，Esc 或右键结束。`, 4000);
+        this.app.say(placed > 1 ? `放好了 ${placed} 个「${tool.piece.label}」` : `放好了「${tool.piece.label}」`, 2000);
       }
       return true;
     }
     if (tool.kind === "bulldoze" && this.bulldozing) {
       const removed = this.bulldozing.size;
       this.bulldozing = undefined;
-      if (removed) { this.app.state.commit(); this.app.say(`推掉了 ${removed} 个摆件。`, 3000); }
+      if (removed) { this.app.state.commit(); this.app.say(`拆掉了 ${removed} 样东西`, 2000); }
       return true;
     }
     if (tool.kind === "items" && event.button === 0) {
@@ -221,6 +221,7 @@ export class ToolController {
       const yaw = scatter ? this.yaw + Math.random() * 360 : this.yaw;
       const scale = scatter ? round2(this.scale * (0.85 + Math.random() * 0.3)) : this.scale;
       const placed = this.makePiece(point, yaw, scale);
+      this.app.views.popPieces.add(placed.id);
       stroke.pieces.push(placed);
       stroke.last = point;
       this.app.state.preview(d => { d.pieces.push(placed); });
@@ -251,6 +252,7 @@ export class ToolController {
       }
     }
     if (!added.length) return;
+    for (const piece of added) this.app.views.popPieces.add(piece.id);
     stroke.pieces.push(...added);
     stroke.last = info.paint === "line" ? cursor : point;
     // 落到实际表面上（路、地面），沿线插值的高度可能悬空
@@ -283,10 +285,10 @@ export class ToolController {
     this.clearHover();
     if (!under) return;
     const info = this.app.views.pieceInfo(under.id);
-    const object = this.app.views.pieceObject(under.id);
-    if (!info || !object) return;
+    const offset = this.app.views.pieceOffset(under.id);
+    if (!info || !offset) return;
     this.hoverBox = boxLines(info.min, info.max, color);
-    (object.children[0] as Object3D | undefined)?.add(this.hoverBox);
+    offset.add(this.hoverBox);
   }
 
   clearHover(): void {
@@ -304,7 +306,7 @@ export class ToolController {
     const hit = this.app.viewport.pick(event, [this.app.views.roads]);
     const roadId = hit?.object.userData.roadId as string | undefined;
     const road = design.roads.find(r => r.id === roadId) ?? route;
-    if (!hit || !road) { this.app.say("点在道路上放道具箱。"); return; }
+    if (!hit || !road) { this.app.say("要点在赛道上哦"); return; }
     if (design.items.rows.length >= MAP_LIMITS.itemRows) { this.app.say(`道具箱最多 ${MAP_LIMITS.itemRows} 排。`); return; }
     const p = toClient(hit.point);
     const sample = sampleRoad(road, 2);
@@ -317,7 +319,7 @@ export class ToolController {
       d.items.rows.push({ id: this.app.state.newId("i"), road: road.id, distance, count: 4 });
       d.items.rows.sort((a, b) => a.road === b.road ? a.distance - b.distance : 0);
     });
-    this.app.say(`在「${road.name}」${distance} 米处放了一排道具箱。`, 3000);
+    this.app.say("放好了一排道具箱", 2000);
   }
 
   // ------------------------------------------------------------------ 拖动挪位置
@@ -342,9 +344,14 @@ export class ToolController {
     const pieceId = app.views.pieceIdOf(hit.object);
     if (!pieceId) return false;
     const piece = app.state.piece(pieceId);
-    if (!piece) return false;
+    if (!piece || event.shiftKey) return false;
+    // 按住没选中的东西：先选中它（一组的整组选中），再跟着鼠标走
     const current = app.state.selection?.kind === "pieces" ? app.state.selection.ids : [];
-    if (!current.includes(pieceId) || event.shiftKey) return false;
+    if (!current.includes(pieceId)) {
+      const ids = piece.group && !event.ctrlKey && !event.metaKey
+        ? app.state.design.pieces.filter(p => p.group === piece.group).map(p => p.id) : [pieceId];
+      app.state.select({ kind: "pieces", ids });
+    }
     const start = app.viewport.pickPlane(event, piece.position[2]);
     if (!start) return false;
     const pieces = new Map<string, Vec3>();

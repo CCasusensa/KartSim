@@ -36,6 +36,23 @@ const SKINS: Array<{ frame: string; selectors: string[] }> = [
   { frame: "DefaultTooltip", selectors: [".k-tip"] },
   { frame: "DefaultVerticalScrollArea", selectors: ["::-webkit-scrollbar-track"] },
   { frame: "DefaultVerticalScrollButton", selectors: ["::-webkit-scrollbar-thumb", "::-webkit-scrollbar-thumb:hover"] },
+  // 简单模式的游戏界面（hud.ts）：头顶的说话气泡、底部动作条、提示条、角标
+  { frame: "TalkBalloonLeftLeg", selectors: [".k-balloon"] },
+  { frame: "GameReadyTitle", selectors: [".k-bar"] },
+  { frame: "OneLineToolTip", selectors: [".k-toast"] },
+  { frame: "DefaultFocusedButton", selectors: [".k-tag"] },
+  // 叠在卡片上的框：选中（青色圈）、提示去点这里（发光边）
+  { frame: "Selectored", selectors: [".k-ring::after"] },
+  { frame: "GlowBorderPanel", selectors: [".k-glow::after"] },
+];
+
+/** 整张画出来当小图标用的框体（箭头、勾选框），按状态对应选择器。 */
+const PICTURES: Array<{ frame: string; size: number; selectors: string[] }> = [
+  { frame: "UpButton", size: 32, selectors: [".k-up"] },
+  { frame: "DownButton", size: 32, selectors: [".k-down"] },
+  { frame: "BulletLeftButton", size: 32, selectors: [".k-left"] },
+  { frame: "BulletRightButton", size: 32, selectors: [".k-right"] },
+  { frame: "DefaultCheckButton2", size: 32, selectors: [".k-check", ".k-check.k-done"] },
 ];
 
 async function decode(bytes: Uint8Array): Promise<HTMLCanvasElement> {
@@ -63,6 +80,14 @@ function frameCss(frame: Frame, image: CanvasImageSource): string | undefined {
   const url = canvas.toDataURL("image/png");
   return `border-style: solid; border-width: ${top}px ${right}px ${bottom}px ${left}px; ` +
     `border-image: url(${url}) ${top} ${right} ${bottom} ${left} fill / ${top}px ${right}px ${bottom}px ${left}px stretch;`;
+}
+
+/** 把框体整个画成 size×size 的小图（CSS 背景）。 */
+function framePicture(frame: Frame, image: CanvasImageSource, size: number): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  C9(canvas.getContext("2d")!, frame, image, { x: 0, y: 0, width: size, height: size });
+  return `background-image: url(${canvas.toDataURL("image/png")}); background-size: 100% 100%; background-repeat: no-repeat;`;
 }
 
 /** 装上游戏外观；失败时（缺资源）保留编辑器的纯 CSS 外观。 */
@@ -105,6 +130,15 @@ export async function installEditorSkin(library: SkinLibrary): Promise<void> {
         const texture = await image(definition.texture);
         const css = texture && frameCss(definition, texture);
         if (css) rules.push(`${selectors[state]} { ${css} }`);
+      }
+    }
+    for (const { frame, size, selectors } of PICTURES) {
+      const states = frames.get(frame);
+      if (!states?.length) continue;
+      for (let state = 0; state < selectors.length; state++) {
+        const definition = states[Math.min(state, states.length - 1)]!;
+        const texture = await image(definition.texture);
+        if (texture) rules.push(`${selectors[state]} { ${framePicture(definition, texture, size)} }`);
       }
     }
   } catch (error) {

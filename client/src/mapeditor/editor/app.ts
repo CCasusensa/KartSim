@@ -19,7 +19,7 @@ import { templateRoad, type TrackTemplate } from "../templates";
 import { objectForPath, type AssembledScene, type EditorAssets } from "./assets";
 import { button, clear, h } from "./dom";
 import { Dock } from "./dock";
-import { renderInspector } from "./inspector";
+import { Hud, openMapSettings } from "./hud";
 import { MapViews, boxLines, readPieceTransform } from "./map-views";
 import { EditorState } from "./state";
 import { ToolController, type Tool } from "./tools";
@@ -81,6 +81,11 @@ export class EditorApp {
   private readonly helpTip: HTMLElement;
   private readonly root: HTMLElement;
   private menu?: HTMLElement;
+  /** 简单模式的游戏界面（工具条、任务卡、头顶按钮…）。 */
+  readonly hud: Hud;
+  /** 选中道路时点到的位置：头顶按钮挂在这里。 */
+  selectionAnchor?: Vec3;
+  private autosaveTimer?: ReturnType<typeof setTimeout>;
   private readonly pivot = new Group();
   private dragStart?: { pivot: Matrix4; pieces: Map<string, Matrix4> };
   private pointerDown?: { x: number; y: number; button: number };
@@ -111,6 +116,14 @@ export class EditorApp {
     this.dock = new Dock(this);
     this.root.append(this.dock.element);
     this.root.classList.toggle("ed-advanced", this.advanced);
+    this.hud = new Hud(this, view);
+    this.viewport.wasd = !this.advanced;
+    // 左键按在空地上拖动＝移动视角；按在东西上交给工具（拖着挪、放置、拆除）
+    this.viewport.leftDrag = event => {
+      if (this.mode === "source" || this.mode === "draw") return "pan";
+      if (this.tool.kind !== "select" || (this.viewport.gizmo as unknown as { axis: string | null }).axis) return "none";
+      return this.viewport.pick(event, [this.views.handles, this.views.pieces]) ? "none" : "pan";
+    };
     this.bindViewport();
     this.bindKeys();
     this.state.on(kind => this.onChange(kind));
@@ -123,7 +136,18 @@ export class EditorApp {
   private onChange(kind: string): void {
     if (kind === "design" || kind === "selection") this.syncViews();
     if (kind === "design" && this.state.design.sky !== this.skyFolder) void this.loadSky(this.state.design.sky);
+    if (kind === "design" && this.state.dirty) this.scheduleAutosave();
     this.queueRender();
+  }
+
+  /** 改动停下 1.5 秒后自动存到本机（空地图不存）。 */
+  scheduleAutosave(): void {
+    clearTimeout(this.autosaveTimer);
+    this.autosaveTimer = setTimeout(() => {
+      const design = this.state.design;
+      if (!this.state.dirty || (!design.roads.length && !design.pieces.length)) return;
+      void this.actions.save({ quiet: true });
+    }, 1500);
   }
 
   queueRender(): void {
@@ -133,7 +157,8 @@ export class EditorApp {
   }
 
   refresh(): void {
-    if (this.advanced) { renderLeftPanel(this); renderRightPanel(this); } else renderInspector(this);
+    if (this.advanced) { renderLeftPanel(this); renderRightPanel(this); }
+    this.hud.render();
     this.dock.refreshMarks();
     this.renderBar();
     this.updateStatus();
@@ -152,6 +177,7 @@ export class EditorApp {
 
   private renderBar(): void {
     clear(this.bar);
+    if (!this.advanced) { this.renderSimpleBar(); return; }
     const mode = (label: string, value: typeof this.gizmoMode, key: string) =>
       button(`${label} ${key}`, () => this.setGizmoMode(value), { class: this.gizmoMode === value ? "k-on" : "" });
     const tool = (label: string, kind: "select" | "bulldoze", key: string, title: string) =>
@@ -183,17 +209,38 @@ export class EditorApp {
     );
   }
 
+  /** 简单模式的顶栏：只放玩家常用的几样，说法像游戏。 */
+  private renderSimpleBar(): void {
+    const design = this.state.design;
+    this.bar.append(
+      h("span", { class: "ed-title" }, "地图工坊"),
+      h("button", { type: "button", class: "ed-mapname ed-mapname-button", title: "改名字、圈数和难度", onclick: () => openMapSettings(this) },
+        `「${design.name}」 ✎`),
+      button("新地图", () => this.actions.newMap(), { title: "选主题和赛道形状，做一张新地图" }),
+      button("我的地图", () => this.actions.openDialog(), { title: "打开以前做的地图" }),
+      h("span", { class: "ed-sep" }),
+      button("↶ 撤销", () => this.state.undo(), { disabled: !this.state.canUndo, title: "Ctrl+Z" }),
+      button("↷ 重做", () => this.state.redo(), { disabled: !this.state.canRedo, title: "Ctrl+Y" }),
+      h("span", { class: "ed-spacer" }),
+      h("span", { class: "ed-saved" }, this.state.dirty ? "改动中…" : design.roads.length || design.pieces.length ? "✓ 已自动保存" : ""),
+      button("▶ 开车试玩", () => void this.actions.testDrive(), { class: "ed-primary ed-play", title: "在游戏里开这张图跑一圈" }),
+      button("★ 分享给大家", () => void this.actions.publish(), { class: "ed-primary", title: "上传到服务器，所有人都能玩" }),
+      button("更多 ▾", () => this.toggleMenu()),
+    );
+  }
+
   private toggleMenu(): void {
     if (this.menu) { this.menu.remove(); this.menu = undefined; return; }
     const close = () => { this.menu?.remove(); this.menu = undefined; window.removeEventListener("pointerdown", outside, true); };
     const item = (label: string, run: () => void) => button(label, () => { close(); run(); });
     const menu = h("div", { class: "ed-menu k-dialog" }, h("div", { class: "k-caption" }, "更多"),
+      item("怎么玩", () => this.actions.help()),
+      item("地图设置（名字、圈数、难度）", () => openMapSettings(this)),
+      item("复制一份", () => this.actions.saveAs()),
       item("导入地图文件…", () => this.actions.importFile()),
-      item("另存为新地图", () => this.actions.saveAs()),
-      item("导出…", () => this.actions.exportDialog()),
+      item("导出地图文件…", () => this.actions.exportDialog()),
       item("检查地图", () => this.actions.check()),
-      item(this.advanced ? "✓ 高级模式" : "高级模式", () => this.setAdvanced(!this.advanced)),
-      item("帮助", () => this.actions.help()));
+      item(this.advanced ? "✓ 高级模式（专业编辑）" : "高级模式（专业编辑）", () => this.setAdvanced(!this.advanced)));
     const outside = (event: Event) => { if (!menu.contains(event.target as Node)) close(); };
     window.addEventListener("pointerdown", outside, true);
     const rect = this.bar.getBoundingClientRect();
@@ -207,6 +254,7 @@ export class EditorApp {
     this.advanced = on;
     try { localStorage.setItem(ADVANCED_KEY, on ? "1" : "0"); } catch { /* 隐私模式 */ }
     this.root.classList.toggle("ed-advanced", on);
+    this.viewport.wasd = !on;
     if (!on && this.mode === "source") this.closeSource();
     this.attachGizmo();
     this.say(on ? "高级模式：左侧可以浏览整条官方赛道取件，W/E/R 用手柄移动、旋转、缩放，右侧有全部数值。" : "已回到简单模式。", 6000);
@@ -231,6 +279,7 @@ export class EditorApp {
   private messageTimer?: ReturnType<typeof setTimeout>;
   say(text: string, ms = 5000): void {
     this.message = text;
+    if (!this.advanced) this.hud.toast(text, Math.min(ms, 4000));
     this.updateStatus();
     clearTimeout(this.messageTimer);
     this.messageTimer = setTimeout(() => { this.message = ""; this.updateStatus(); }, ms);
@@ -248,7 +297,9 @@ export class EditorApp {
           : tool.kind === "bulldoze" ? "推土机：点摆件推掉，按住拖动连片推；Esc 结束"
             : tool.kind === "items" ? "点道路放一排道具箱；Esc 结束" : "";
     clear(this.sourceBar);
-    this.helpTip.style.display = this.mode === "source" ? "none" : "";
+    // 简单模式的提示在游戏界面里（底部动作条、提示气泡）
+    if (!this.advanced) this.hint.textContent = "";
+    this.helpTip.style.display = this.mode === "source" || !this.advanced ? "none" : "";
     clear(this.helpTip);
     this.helpTip.append("左键：选择 / 放置　右键拖动：转视角　滚轮：缩放　中键或空格+左键：平移", h("br"),
       this.advanced ? "W/E/R：移动/旋转/缩放手柄　D：画路　B：推土机　Ctrl+D：复制　Delete：删除　F：聚焦"
@@ -346,7 +397,7 @@ export class EditorApp {
     this.state.design.roads.push(road);
     this.state.select({ kind: "road", id: road.id });
     this.setMode("draw");
-    this.say("在地图上依次点击放置控制点。");
+    this.say("在地上点一下放一个点，一个一个点出赛道");
   }
 
   startDraw(): void {
@@ -417,7 +468,12 @@ export class EditorApp {
       return;
     }
     const roadId = hit.object.userData.roadId as string | undefined;
-    if (roadId) { this.state.select({ kind: "road", id: roadId }); return; }
+    if (roadId) {
+      const at = toClient(hit.point);
+      this.selectionAnchor = [at[0], at[1], at[2] + 4];
+      this.state.select({ kind: "road", id: roadId });
+      return;
+    }
     this.state.select(undefined);
   }
 
@@ -439,10 +495,10 @@ export class EditorApp {
       const id = road.id;
       this.state.commit(design => { const r = design.roads.find(x => x.id === id)!; r.closed = true; });
       this.setMode("select");
-      this.say("道路已闭合成环。");
+      this.say("赛道连成一圈啦！");
       return;
     }
-    if (road.points.length >= MAP_LIMITS.roadPoints) { this.say("控制点太多了。"); return; }
+    if (road.points.length >= MAP_LIMITS.roadPoints) { this.say("这条路的点太多啦"); return; }
     const id = road.id;
     const rounded: Vec3 = [Math.round(point[0] * 10) / 10, Math.round(point[1] * 10) / 10, Math.round(point[2] * 10) / 10];
     this.state.commit(design => {
@@ -596,7 +652,7 @@ export class EditorApp {
   duplicateSelection(): void {
     const pieces = this.state.selectedPieces();
     if (!pieces.length) return;
-    if (this.state.design.pieces.length + pieces.length > MAP_LIMITS.pieces) { this.say(`摆件最多 ${MAP_LIMITS.pieces} 个。`); return; }
+    if (this.state.design.pieces.length + pieces.length > MAP_LIMITS.pieces) { this.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`); return; }
     const group = pieces.length > 1 ? this.state.newId("g") : undefined;
     const copies = pieces.map(piece => ({
       ...structuredClone(piece), id: this.state.newId("p"), group,
@@ -786,7 +842,7 @@ export class EditorApp {
       for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i]!, v[i]!); max[i] = Math.max(max[i]!, v[i]!); }
     }
     // 留一圈边，整条路都在画面里
-    const pad = Math.max(max[0] - min[0], max[1] - min[1]) * 0.22 + 40;
+    const pad = Math.max(max[0] - min[0], max[1] - min[1]) * 0.1 + 20;
     this.viewport.frameBounds([min[0] - pad, min[1] - pad, min[2]], [max[0] + pad, max[1] + pad, max[2]]);
   }
 
@@ -841,7 +897,7 @@ export class EditorApp {
   /** 在视角中心放一组官方物件，保持它们原来的相对位置。 */
   placePieces(track: string, infos: PieceInfo[], at?: Vec3): void {
     if (!infos.length) return;
-    if (this.state.design.pieces.length + infos.length > MAP_LIMITS.pieces) { this.say(`摆件最多 ${MAP_LIMITS.pieces} 个。`); return; }
+    if (this.state.design.pieces.length + infos.length > MAP_LIMITS.pieces) { this.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`); return; }
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     for (const info of infos) for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i]!, info.min[i]!); max[i] = Math.max(max[i]!, info.max[i]!); }
     const anchor: Vec3 = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, min[2]];
@@ -1045,11 +1101,12 @@ export class EditorApp {
           break;
         case "BracketRight": if (placing) { this.tools.scaleGhost(1.15); this.queueRender(); } else this.scaleSelection(1.15); break;
         case "BracketLeft": if (placing) { this.tools.scaleGhost(1 / 1.15); this.queueRender(); } else this.scaleSelection(1 / 1.15); break;
+        // 简单模式 W A S D 移动视角，字母快捷键只在高级模式
         case "KeyW": if (this.advanced) this.setGizmoMode("translate"); break;
         case "KeyR": if (this.advanced) this.setGizmoMode("scale"); break;
-        case "KeyV": this.setTool({ kind: "select" }); break;
-        case "KeyB": this.setTool({ kind: this.tool.kind === "bulldoze" ? "select" : "bulldoze" }); break;
-        case "KeyD": if (this.mode === "draw") this.finishDraw(); else this.startDraw(); break;
+        case "KeyV": if (this.advanced) this.setTool({ kind: "select" }); break;
+        case "KeyB": if (this.advanced) this.setTool({ kind: this.tool.kind === "bulldoze" ? "select" : "bulldoze" }); break;
+        case "KeyD": if (!this.advanced) break; if (this.mode === "draw") this.finishDraw(); else this.startDraw(); break;
         case "KeyF": this.focusSelection(); break;
         case "Delete": case "Backspace": event.preventDefault(); this.deleteSelection(); break;
         case "Enter": if (this.mode === "draw") this.finishDraw(); break;
