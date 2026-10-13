@@ -3,7 +3,7 @@
  * drives the multiplayer race pipeline with a fabricated one-racer "race"
  * on the city track (no countdown wait, no finish), and layers the city on
  * top: members' karts (CityFleet), talk balloons and name tags, the day/night
- * and weather clock, chat on the near channel, resets to the nearest road.
+ * and weather clock, city/near chat channels, resets to the nearest road.
  */
 import { beginRaceLoad, downloadTrack } from "../resources/resource-manager";
 import { CityAtmosphere } from "./city-atmosphere";
@@ -18,6 +18,7 @@ import { cityWaterLevel, type CityWaterMap } from "./city-water";
 import { groundHeightAt } from "./city-ground";
 import { applyCityVehicleScale } from "./city-vehicle-scale";
 import { beginCityLoading, firstCityFrame, type CityLoadingHandle } from "./city-loading";
+import type { RaceChatMessage } from "../multiplayer/race-chat-overlay";
 export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
@@ -85,7 +86,7 @@ export class CitySession {
   clockMapping?: { offsetMs: number };
   readonly abort = new AbortController();
   disposed = false;
-  private chatListeners = new Set<(message: any) => void>();
+  private chatListeners = new Set<(message: RaceChatMessage) => void>();
   private chatSequence = 0;
   private lastStatus = -Infinity;
   private lastSent = 0;
@@ -228,6 +229,7 @@ export class CitySession {
     // Chat stays open while driving; the city has no finish.
     const chat = stage.chat;
     if (chat) {
+      chat.element?.setAttribute("aria-label", "卡丁城聊天");
       const setAllowed = chat.setAllowed.bind(chat);
       chat.setAllowed = () => setAllowed(true);
       if (chat.input) chat.input.maxLength = 60;
@@ -261,9 +263,9 @@ export class CitySession {
 
     // Esc twice within two seconds leaves the city (the race's Esc only cancels input).
     this.escapeListener = (event: KeyboardEvent) => {
-      if (event.code !== "Escape" || this.disposed) return;
+      if (event.code !== "Escape" || event.repeat || this.disposed) return;
       const target = event.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
       const now = performance.now();
       if (now - this.lastEscape < 2000) {
         this.lastEscape = -Infinity;
@@ -390,7 +392,7 @@ export class CitySession {
         break;
       case "city-chat": {
         const mine = event.playerId === this.host.playerId;
-        this.pushChat(event.text, event.playerId, event.name);
+        this.pushChat(event.text, event.playerId, event.name, event.channel);
         this.labels?.say(mine ? this.host.playerId : event.playerId, event.text, now);
         break;
       }
@@ -413,8 +415,8 @@ export class CitySession {
     }
   }
 
-  private pushChat(text: string, playerId = "system", name = "系统"): void {
-    const message = { sequence: ++this.chatSequence, playerId, name, text };
+  private pushChat(text: string, playerId = "system", name = "系统", channel?: string): void {
+    const message = { sequence: ++this.chatSequence, playerId, name, text, channel };
     for (const listener of this.chatListeners) {
       try { listener(message); } catch (error) { console.warn("聊天显示失败", error); }
     }

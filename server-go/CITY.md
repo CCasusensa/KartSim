@@ -23,6 +23,8 @@
 | `city-state` | `state`（`"driving"`、`"parked"`） | `{"type":"ok"}`；广播 `city-state`。`parked` 的成员不发运动帧也不会被判 AFK |
 | `city-respawn` | `spawn`（出生点 ID 字符串，来自地图数据）或 `pose {x,y,z,heading}` | `{"type":"ok"}`；服务器把该成员的"上次位置"重置为出生点，随后第一帧不做瞬移检查；广播 `city-respawn` 给兴趣范围内成员，让他们立刻重置预测 |
 
+客户端聊天界面只提供「全城」（`city`，当前线路的全部成员）和「附近」（`near`，当前线路内水平距离不超过聊天半径的成员，默认含 60 m 边界），两个频道都向发送者回传消息，不跨线路广播。`district` 保留协议兼容，界面不提供发送选项。
+
 无 `requestId` 的事件：
 
 | 事件 | 内容 |

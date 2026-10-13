@@ -6,6 +6,7 @@
  */
 import { GameMotionDecoder, GameMotionEncoder } from "../multiplayer/payload";
 import { MOTION_HEADER_BYTES, motionRaceTag } from "../multiplayer/motion";
+import type { RaceChatChannel, RaceChatMessage } from "../multiplayer/race-chat-overlay";
 import {
   CITY_MOTION_HEADER_BYTES, CITY_MOTION_MARKER, CITY_RADAR_MARKER,
   decodeCityMotionFrame, decodeCityRadar, parseCityEvent, parseCitySnapshot,
@@ -120,7 +121,7 @@ export class CityNetwork {
 
 /** The connection object the multiplayer race loader and its session expect. */
 export function createCityRaceConnection(network: CityNetwork, playerId: string, roomId: string,
-  raceId: string, hooks: { leave(): Promise<unknown>; onChat(listener: (line: string) => void): () => void }) {
+  raceId: string, hooks: { leave(): Promise<unknown>; onChat(listener: (message: RaceChatMessage) => void): () => void }) {
   const resolved = () => Promise.resolve(undefined);
   const noSubscription = () => () => {};
   return {
@@ -138,8 +139,13 @@ export function createCityRaceConnection(network: CityNetwork, playerId: string,
     subscribeItem: noSubscription,
     sendAwardMotion: resolved,
     subscribeAwardMotion: noSubscription,
-    sendRaceChat: (text: string) => network.chat(text, "near"),
-    subscribeRaceChat: (listener: (message: string | undefined) => void) => hooks.onChat(listener),
+    chatChannels: [
+      { id: "city", label: "全城", description: "发给当前线路的所有玩家" },
+      { id: "near", label: "附近", description: "发给周围的玩家" },
+    ] satisfies RaceChatChannel[],
+    sendRaceChat: (text: string, channel = "city") => channel === "city" || channel === "near"
+      ? network.chat(text, channel) : Promise.reject(new Error("无效的聊天频道。")),
+    subscribeRaceChat: (listener: (message: RaceChatMessage) => void) => hooks.onChat(listener),
     returnToRoom: resolved,
     reportFinish: resolved,
     sendMotion: (sample: unknown) => network.sendMotion(sample),

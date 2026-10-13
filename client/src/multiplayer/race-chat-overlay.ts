@@ -2,12 +2,15 @@
 
 import { brawlAiIds } from "./lobby-brawl-mode";
 
-interface RaceChatMessage {
+export interface RaceChatMessage {
   sequence: number;
   playerId: unknown;
   name: string;
   text: string;
+  channel?: string;
 }
+
+export interface RaceChatChannel { id: string; label: string; description: string }
 
 interface RaceChatRoom {
   roomId: unknown;
@@ -21,7 +24,8 @@ interface RaceChatConnection {
   roomId: unknown;
   raceId: unknown;
   playerId: unknown;
-  sendRaceChat?(text: string): Promise<unknown>;
+  chatChannels?: readonly RaceChatChannel[];
+  sendRaceChat?(text: string, channel?: string): Promise<unknown>;
   subscribeRaceChat?(listener: (message: RaceChatMessage) => void): () => void;
 }
 
@@ -59,8 +63,8 @@ function loadingLine(room: RaceChatRoom): string | undefined {
     : undefined;
 }
 
-function messageText(message: RaceChatMessage): string {
-  return `${message.name} : ${message.text}`;
+function messageText(message: RaceChatMessage, channelLabel?: string): string {
+  return `${channelLabel ? `[${channelLabel}] ` : ""}${message.name} : ${message.text}`;
 }
 
 export class RaceChatOverlay {
@@ -85,6 +89,7 @@ export class RaceChatOverlay {
   hideTimer?: number;
   roomChannel = false;
   loadingLine?: string;
+  readonly channelSelect?: HTMLSelectElement;
 
   constructor(root: HTMLElement, connection: RaceChatConnection,
     status: (message: string, error?: boolean) => void,
@@ -115,6 +120,27 @@ export class RaceChatOverlay {
     this.input.hidden = true;
     this.input.addEventListener("keydown", this.onInputKeyDown);
     this.element.append(this.canvas, this.log, this.input);
+    if (connection.chatChannels?.length) {
+      const select = document.createElement("select");
+      this.channelSelect = select;
+      select.className = "multiplayer-race-chat-channel";
+      select.setAttribute("aria-label", "聊天频道");
+      select.hidden = true;
+      select.style.cssText = "position:absolute;left:15px;bottom:7%;width:88px;height:24px;box-sizing:border-box;pointer-events:auto;background:#173550;color:#fff2a8;border:1px solid #87a6bf;border-radius:3px;font:inherit;font-size:14px;cursor:pointer;";
+      for (const channel of connection.chatChannels) {
+        const option = document.createElement("option");
+        option.value = channel.id;
+        option.textContent = channel.label;
+        select.append(option);
+      }
+      select.value = connection.chatChannels[0]!.id;
+      select.addEventListener("change", this.onChannelChange);
+      select.addEventListener("keydown", this.onChannelKeyDown);
+      this.input.style.left = "112px";
+      this.input.style.width = "calc(100% - 128px)";
+      this.updateChannelHint();
+      this.element.append(select);
+    }
     root.append(this.element);
     window.addEventListener("keydown", this.onWindowKeyDown, true);
     this.off = connection.subscribeRaceChat(message => this.append(message));
@@ -231,7 +257,7 @@ export class RaceChatOverlay {
       message, text: this.dependencies.parseChat(message.text, this.emotions).text,
     })).filter(line => line.text).map(({ message, text }) => ({
       color: message.playerId === this.connection.playerId ? "#a3ff2a" : "#fff",
-      line: messageText({ ...message, text }),
+      line: messageText({ ...message, text }, this.connection.chatChannels?.find(channel => channel.id === message.channel)?.label),
     })), ...notices.map(entry => ({ color: noticeColor, line: entry.text }))]
       .slice(-(this.loadingLine ? 4 : 5));
     lines.forEach(({ color, line }, index) => {
@@ -253,6 +279,7 @@ export class RaceChatOverlay {
   open(): void {
     if (!this.shown || !this.allowed || this.disposed) return;
     this.input.hidden = false;
+    if (this.channelSelect) this.channelSelect.hidden = false;
     this.renderMessages();
     this.input.focus();
   }
@@ -260,6 +287,10 @@ export class RaceChatOverlay {
   close(): void {
     if (this.input.hidden) return;
     this.input.hidden = true;
+    if (this.channelSelect) {
+      this.channelSelect.hidden = true;
+      this.channelSelect.blur();
+    }
     this.input.blur();
     this.renderMessages();
   }
@@ -276,6 +307,28 @@ export class RaceChatOverlay {
     event.preventDefault();
     event.stopImmediatePropagation();
     this.open();
+  };
+
+  private updateChannelHint(): void {
+    const channel = this.connection.chatChannels?.find(entry => entry.id === this.channelSelect?.value);
+    if (!channel) return;
+    this.input.placeholder = channel.description;
+    this.input.setAttribute("aria-label", `${channel.label}聊天内容`);
+    this.channelSelect!.title = channel.description;
+  }
+
+  readonly onChannelChange = (): void => {
+    this.updateChannelHint();
+    if (!this.input.hidden) this.input.focus();
+  };
+
+  readonly onChannelKeyDown = (event: KeyboardEvent): void => {
+    // Choosing a scope must never steer/reset the kart or trigger city exit.
+    event.stopPropagation();
+    if (event.key === "Escape" || event.code === "Escape") {
+      event.preventDefault();
+      this.close();
+    }
   };
 
   readonly onInputKeyDown = (event: KeyboardEvent): void => {
@@ -295,20 +348,22 @@ export class RaceChatOverlay {
       return;
     }
     if (this.sending || !this.allowed) return;
+    const channel = this.channelSelect?.value;
     this.sending = true;
     this.input.value = "";
     this.close();
-    void this.connection.sendRaceChat!(text)
+    // Keep the ordinary race call shape unchanged when it has no scope picker.
+    void (channel === undefined ? this.connection.sendRaceChat!(text) : this.connection.sendRaceChat!(text, channel))
       .then(() => { void this.disposed; })
       .catch(error => {
         if (this.disposed) return;
         const reason = error instanceof Error ? error.message : String(error);
         if (reason === "RACE_CHAT_CLOSED") this.setAllowed(false);
-        this.status(reason === "CHAT_RATE_LIMIT"
+        this.status(reason === "CHAT_RATE_LIMIT" || reason === "CHAT_MUTED"
           ? "发送过快，请稍后重试。"
           : reason === "RACE_CHAT_CLOSED"
             ? "当前阶段不能发送文字消息。"
-            : `比赛聊天发送失败：${reason}`, true);
+            : `${this.channelSelect ? "卡丁城" : "比赛"}聊天发送失败：${reason}`, true);
       })
       .finally(() => { this.sending = false; });
   };
@@ -320,6 +375,8 @@ export class RaceChatOverlay {
     this.off();
     window.removeEventListener("keydown", this.onWindowKeyDown, true);
     this.input.removeEventListener("keydown", this.onInputKeyDown);
+    this.channelSelect?.removeEventListener("change", this.onChannelChange);
+    this.channelSelect?.removeEventListener("keydown", this.onChannelKeyDown);
     this.dependencies.releaseFont(this.font);
     this.element.remove();
   }

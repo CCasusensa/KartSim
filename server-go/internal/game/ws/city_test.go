@@ -63,6 +63,11 @@ func cityFrame(sequence uint32, x, z float64) []byte {
 // city exclude each other.
 func TestCityJoinMotionAndExclusion(t *testing.T) {
 	l, zone, url := startCity(t)
+	designMap, err := city.Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	mainSpawn := designMap.Spawns[0]
 	request := func(conn *websocket.Conn, payload string) map[string]any {
 		t.Helper()
 		if err := conn.WriteMessage(websocket.TextMessage, []byte(payload)); err != nil {
@@ -171,7 +176,7 @@ func TestCityJoinMotionAndExclusion(t *testing.T) {
 	if ok := request(bob, `{"type":"city-respawn","requestId":"q","spawn":"spawn-main"}`); ok["type"] != "ok" {
 		t.Fatalf("respawn: %v", ok)
 	}
-	if err := alice.WriteMessage(websocket.BinaryMessage, cityFrame(1, 5, 95)); err != nil {
+	if err := alice.WriteMessage(websocket.BinaryMessage, cityFrame(1, mainSpawn.X+5, mainSpawn.Z)); err != nil {
 		t.Fatal(err)
 	}
 	readUntil(bob, func(kind int, data []byte) bool {
@@ -202,15 +207,35 @@ func TestCityJoinMotionAndExclusion(t *testing.T) {
 	if err := carol.WriteMessage(websocket.BinaryMessage, cityFrame(3, 0, 95)); err != nil {
 		t.Fatal(err)
 	}
-	// Chat reaches the neighbour; leaving opens the rooms again, and the
-	// line is empty once both are gone (the second by disconnect).
-	if ok := request(alice, `{"type":"city-chat","requestId":"q","text":"你好","channel":"near"}`); ok["type"] != "ok" {
-		t.Fatalf("chat: %v", ok)
+	// Both public channels reach the neighbour with their selected channel
+	// preserved through the WebSocket request/event path.
+	for _, channel := range []string{city.ChannelNear, city.ChannelCity} {
+		if ok := request(alice, `{"type":"city-chat","requestId":"q","text":"你好","channel":"`+channel+`"}`); ok["type"] != "ok" {
+			t.Fatalf("chat: %v", ok)
+		}
+		readUntil(bob, func(kind int, data []byte) bool {
+			if kind != websocket.TextMessage {
+				return false
+			}
+			var event map[string]any
+			if err := json.Unmarshal(data, &event); err != nil {
+				t.Fatal(err)
+			}
+			if event["type"] != "city-chat" {
+				return false
+			}
+			if event["text"] != "你好" || event["playerId"] != aliceID ||
+				event["channel"] != channel || event["instanceId"] != "city-1" {
+				t.Fatalf("chat event for %s: %v", channel, event)
+			}
+			return true
+		})
 	}
-	readUntil(bob, func(kind int, data []byte) bool {
-		return kind == websocket.TextMessage && strings.Contains(string(data), `"city-chat"`) &&
-			strings.Contains(string(data), `"你好"`) && strings.Contains(string(data), `"playerId":"`+aliceID+`"`)
-	})
+	if refused := request(alice, `{"type":"city-chat","requestId":"q","text":"你好","channel":"all"}`); refused["code"] != "INVALID_CHANNEL" {
+		t.Fatalf("chat channel validation: %v", refused)
+	}
+	// Leaving opens the rooms again, and the line is empty once both are
+	// gone (the second by disconnect).
 	if left := request(alice, `{"type":"city-leave","requestId":"q"}`); left["type"] != "city-left" {
 		t.Fatalf("leave: %v", left)
 	}
