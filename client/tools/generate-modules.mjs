@@ -1612,6 +1612,8 @@ const replacedWorldLocalDirectory = new Set();
 let retiredWorldLocalDirectoryKeys = false;
 let replacedCanvasContextDiagnostics = false;
 let retiredCanvasContextEvents = false;
+let replacedTrackFogChunks = false;
+let retiredTrackFogGuard = false;
 let replacedTouchLayoutEditor = false;
 let retiredTouchLayoutKeys = false;
 const retiredTouchLayout = new Set();
@@ -2433,6 +2435,21 @@ function II(version, speed) { return findSpeedTypeEntry(version, speed); }` });
     bodies.get("world").push({ at: node.start,
       text: "class qs0 extends CanvasContextDiagnostics {}" });
     replacedCanvasContextDiagnostics = true;
+    continue;
+  }
+  // Fog chunks: EXP2 distance per pixel (src/resources/fog-shader-chunks.ts).
+  if (declarationName === "Vr0") {
+    assert(node.type === "FunctionDeclaration" && originalSection(node.start) === "world",
+      "Track fog chunk installer moved from world.");
+    bodies.get("world").push({ at: node.start,
+      text: "function Vr0() { installTrackFogChunks(); }" });
+    replacedTrackFogChunks = true;
+    continue;
+  }
+  if (declarationName === "GE") {
+    assert(node.type === "VariableDeclaration" && originalSection(node.start) === "world",
+      "Track fog chunk guard moved from world.");
+    retiredTrackFogGuard = true;
     continue;
   }
   if (worldLocalDirectoryOverrides.has(declarationName)) {
@@ -4288,6 +4305,8 @@ assert(replacedWorldLocalDirectory.size === worldLocalDirectoryOverrides.size &&
   retiredWorldLocalDirectoryKeys && replacedCanvasContextDiagnostics &&
   retiredCanvasContextEvents,
   "The local resource directory and canvas diagnostics were not all replaced.");
+assert(replacedTrackFogChunks && retiredTrackFogGuard,
+  "The track fog chunk installer was not replaced.");
 assert(replacedTouchLayoutEditor && retiredTouchLayoutKeys &&
   retiredTouchLayout.size === retiredTouchLayoutHelpers.size,
   "The touch layout editor was not fully replaced.");
@@ -4630,6 +4649,7 @@ function renderModule(name) {
     lines.push('import { RoadblockResultPresentation, loadRoadblockResultParts } from "../world/roadblock-result-presentation.ts";');
     lines.push('import { createMultiplayerRaceLoader } from "../multiplayer/race-loader.ts";');
     lines.push('import { CanvasContextDiagnostics } from "../ui/canvas-context-diagnostics.ts";');
+    lines.push('import { installTrackFogChunks } from "../resources/fog-shader-chunks.ts";');
     lines.push('import { supportsLocalResourceDirectory as io0, recoverLocalResourceDirectory as ro0, chooseLocalResourceDirectory as so0 } from "../resources/local-directory-source.ts";');
     lines.push('import { initializeLocalRace } from "../multiplayer/local-race-construction.ts";');
     lines.push('import { KartPresentationView } from "../world/kart-presentation-view.ts";');
@@ -7155,6 +7175,7 @@ const manifest = {
   retiredItemHudSlotHelpers: [...retiredItemHudSlots].sort(),
   handwrittenWorldLocalDirectoryOverrides: [...worldLocalDirectoryOverrides],
   handwrittenCanvasContextDiagnostics: replacedCanvasContextDiagnostics,
+  handwrittenTrackFogChunks: replacedTrackFogChunks,
   handwrittenTouchLayoutEditor: replacedTouchLayoutEditor,
   handwrittenTouchDrivingControls: replacedTouchDrivingControls,
   handwrittenVehiclePreviewRenderer: replacedVehiclePreviewRenderer,

@@ -17,6 +17,7 @@ import { GiantRaceEffects } from "../world/giant-race-effects.ts";
 import { RoadblockResultPresentation, loadRoadblockResultParts } from "../world/roadblock-result-presentation.ts";
 import { createMultiplayerRaceLoader } from "../multiplayer/race-loader.ts";
 import { CanvasContextDiagnostics } from "../ui/canvas-context-diagnostics.ts";
+import { installTrackFogChunks } from "../resources/fog-shader-chunks.ts";
 import { supportsLocalResourceDirectory as io0, recoverLocalResourceDirectory as ro0, chooseLocalResourceDirectory as so0 } from "../resources/local-directory-source.ts";
 import { initializeLocalRace } from "../multiplayer/local-race-construction.ts";
 import { KartPresentationView } from "../world/kart-presentation-view.ts";
@@ -2357,70 +2358,7 @@ const _E = 1,
   Fr0 = 1,
   Dr0 = 300;
 
-let GE = !1;
-
-function Vr0() {
-  GE ||
-    ((GE = !0),
-    (z2.fog_pars_vertex = `
-#ifdef USE_FOG
-
-	varying float vFogDepth;
-	varying float vFogRadialDistance;
-
-#endif
-`),
-    (z2.fog_vertex = `
-#ifdef USE_FOG
-
-	vFogDepth = - mvPosition.z;
-	vFogRadialDistance = length( mvPosition.xyz );
-
-#endif
-`),
-    (z2.fog_pars_fragment = `
-#ifdef USE_FOG
-
-	uniform vec3 fogColor;
-	varying float vFogDepth;
-	varying float vFogRadialDistance;
-
-	#ifdef FOG_EXP2
-
-		uniform float fogDensity;
-
-	#else
-
-		uniform float fogNear;
-		uniform float fogFar;
-
-	#endif
-
-#endif
-`),
-    (z2.fog_fragment = `
-#ifdef USE_FOG
-
-	#ifdef FOG_EXP2
-
-		bool expFog = fogDensity < 0.0;
-		float density = abs( fogDensity );
-		float fogDist = expFog ? vFogDepth : vFogRadialDistance;
-		float fogFactor = expFog
-			? 1.0 - exp( - density * fogDist )
-			: 1.0 - exp( - density * density * fogDist * fogDist );
-
-	#else
-
-		float fogFactor = clamp( ( vFogDepth - fogNear ) / ( fogFar - fogNear ), 0.0, 1.0 );
-
-	#endif
-
-	gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
-
-#endif
-`));
-}
+function Vr0() { installTrackFogChunks(); }
 
 function kv(n, e) {
   Vr0();

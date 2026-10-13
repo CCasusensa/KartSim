@@ -838,6 +838,7 @@
     "co0"
   ],
   "handwrittenCanvasContextDiagnostics": true,
+  "handwrittenTrackFogChunks": true,
   "handwrittenTouchLayoutEditor": true,
   "handwrittenTouchDrivingControls": true,
   "handwrittenVehiclePreviewRenderer": true,
@@ -1893,8 +1894,8 @@
     },
     {
       "file": "world.js",
-      "bytes": 124304,
-      "sha256": "5c7c7f63ebd6c2946b0be18852133f0020569bb57150a240dc7fa03a45f8e23a",
+      "bytes": 123366,
+      "sha256": "659e364a1fa6c64f47623f53cb23cecb5914b24cbacf70c69a3c3c8339fdd620",
       "imports": 186,
       "exports": 81
     },
