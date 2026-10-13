@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
-  admitMovingObstacle, MovingObstacleAnimator, obstacleBoundsRadius,
+  admitMovingObstacle, invisibleTrackGeometry, MovingObstacleAnimator, obstacleBoundsRadius,
   obstacleTriangleCenter, obstacleTriangleNormal, transformObstaclePoint,
   type MovingObstacleObject, type ObstacleTrackNode,
 } from "./moving-obstacle";
@@ -99,6 +99,27 @@ test("障碍物准入、三角形方向、标记和错误原因与发行版一�
     assert.deepEqual(simplify(actual), simplify(expected),
       `class=${entry.object.children[0]?.className}`);
   }
+});
+
+test("inv 标记只隐藏该节点下直接的网格（工厂 巨型齿轮的锤子碰撞体）", () => {
+  const named = (className: string, name: string, children: ObstacleTrackNode[] = [],
+    markers: string[] = []) => node(className, { name, children, additionalProperty:
+    markers.length ? property("property", markers.map(marker => property(marker))) : undefined });
+  // factory_I02 mo_cylinder385+: 001+ [ob, inv] holds an untextured wedge,
+  // Cylinder3892+ [ob] is the visible hammer head.
+  const wedge = named("ReTriList", "001+_Geom");
+  const head = named("ReTriList", "Cylinder3892+_Geom");
+  const hammer = named("Relement", "#mo_Cylinder385+", [
+    named("Relement", "001+", [wedge], ["ob", "inv\0padding"]),
+    named("Relement", "Cylinder3892+", [head], ["ob"]),
+  ]);
+  // brodi_R01 mo_04+08 [ob, inv]: the box is collision, the robot under it is not.
+  const box = named("ReTriList", "mo_04+08_Geom");
+  const robot = named("ReTriStrip", "r96_Geom");
+  const robotRoot = named("Relement", "#mo_04+08", [box,
+    named("Relement", "로봇A23", [named("Relement", "r96", [robot])])], ["ob", "inv"]);
+  const hidden = invisibleTrackGeometry([hammer, robotRoot]);
+  assert.deepEqual([...hidden].map(entry => entry.name), ["001+_Geom", "mo_04+08_Geom"]);
 });
 
 test("移动障碍物的 world matrix、节流、速度及缓存与发行版一致", async () => {

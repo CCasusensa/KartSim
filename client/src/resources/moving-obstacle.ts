@@ -88,6 +88,28 @@ export function trackObjectType(property?: TrackPropertyNode): string | undefine
   return value.slice(0, terminator < 0 ? value.length : terminator);
 }
 
+/**
+ * Geometry the original client never draws: the meshes directly under a node
+ * marked `inv` (the same scope as `ob` collision). These are collision volumes
+ * such as 工厂 巨型齿轮's hammer wedge (no texture, so it would draw white) or
+ * a robot's 투명 bounding box. They stay in the scene for their matrices.
+ */
+export function invisibleTrackGeometry(roots: Iterable<ObstacleTrackNode>): Set<ObstacleTrackNode> {
+  const hidden = new Set<ObstacleTrackNode>();
+  const walk = (node: ObstacleTrackNode) => {
+    const invisible = !!(node.additionalProperty &&
+      findTrackPropertyChild(node.additionalProperty, "inv"));
+    for (const child of node.children) {
+      if (invisible && (child.className === "ReTriList" ||
+        child.className === "ReTriStrip" || child.className === "ReToonRigid"))
+        hidden.add(child);
+      walk(child);
+    }
+  };
+  for (const root of roots) walk(root);
+  return hidden;
+}
+
 export function isTrackModelNode(value: unknown): value is ObstacleTrackNode {
   return !!(value && typeof value === "object" &&
     (value as { kind?: string }).kind === "node");

@@ -33,9 +33,12 @@ export async function assembleTrackScene(model, library, label, resolveTexture,
   const inspections = roots.map(inspectRoot);
   inspections.forEach(validateInspection);
   const matrixOnlyRoots = new Set(options.matrixOnlyRoots ?? []);
+  // Hidden geometry keeps its node (and world matrix) but gets no mesh.
+  const hiddenNodes = options.hiddenNodes ?? new Set();
   const candidateByNode = new Map(inspections.flatMap((inspection, index) =>
     matrixOnlyRoots.has(roots[index]) ? [] :
-      inspection.candidates.map(candidate => [candidate.node, candidate])));
+      inspection.candidates.filter(candidate => !hiddenNodes.has(candidate.node))
+        .map(candidate => [candidate.node, candidate])));
   // The nodes load their textures one by one (their order matters below);
   // the textures' bytes are fetched together first, so each load finds its
   // file read instead of waiting a network round trip of its own.

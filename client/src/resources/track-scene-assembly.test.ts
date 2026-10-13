@@ -305,6 +305,27 @@ test("三角网格候选的共享缓冲区、材质和 scene store 与发行版�
   current.dispose();
 });
 
+test("hiddenNodes 的网格只保留节点矩阵，不建网格也不读贴图", async () => {
+  const node = sceneNode("001+_Geom");
+  node.sortDepthBias = 0;
+  node.vertexData = { vertexCount: 3, positions: [[0, 0, 0], [2, 0, 0], [0, 2, 0]],
+    uvSetsPerVertex: 0, indices: [0, 1, 2] };
+  const candidate = { node, geometryKind: "tri-list", issues: [], state: {
+    texture: { value: { name: undefined } }, alpha: { value: { blendEnable: 0 } } } };
+  const { adapter, environment, stageBinding } = harness();
+  Object.assign(adapter, {
+    inspectRoot: () => ({ candidates: [candidate], omitted: [] }),
+    allocateTriangleGeometry: () => assert.fail("hidden geometry 不应分配缓冲区"),
+  });
+  const scene = await assembleTrackScene({ root: node, settings: {} }, {}, "hidden",
+    () => assert.fail("hidden geometry 不应解析贴图"),
+    { environment, stageBinding, hiddenNodes: new Set([node]) }, adapter);
+  assert.equal(scene.rootObjects[0].isMesh, undefined);
+  assert.equal(scene.rootObjects[0].name, "001+_Geom");
+  assert.ok(scene.clientWorldElements(node));
+  scene.dispose();
+});
+
 test("Toon 刚性网格、轮廓和纹理缓存与发行版一致", async () => {
   const makeOriginal = await releaseScene();
   const source = await readFile(releaseFile, "utf8");

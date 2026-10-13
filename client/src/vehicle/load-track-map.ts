@@ -1,5 +1,6 @@
 import { alignLicenseFrames, alignLicenseSections, licenseEventScenes, markLicenseGoal } from "../license/license-course";
 import { itemGameObjectKind } from "./track-object-admission";
+import { invisibleTrackGeometry } from "../resources/moving-obstacle";
 import { trackMetadataOverride } from "../resources/track-overrides";
 
 export interface TrackMapOwner {
@@ -231,15 +232,17 @@ export async function loadTrackMap(
         ? [projection.renderRoot] : [];
     }), ...itemRoots.matrixOnly];
     environment = await ops.loadEnvironment(owner.assetHost.getLibrary());
+    const additionalRoots = [
+      ...admittedObjects.map((entry: any) => entry.renderRoot),
+      ...eventProjections.map((entry: any) => entry.renderRoot),
+      ...matrixRoots,
+      ...itemRoots.roots,
+    ];
     renderScene = await ops.loadScene(model, owner.assetHost.getLibrary(),
       path, metadata, {
-        additionalRoots: [
-          ...admittedObjects.map((entry: any) => entry.renderRoot),
-          ...eventProjections.map((entry: any) => entry.renderRoot),
-          ...matrixRoots,
-          ...itemRoots.roots,
-        ],
+        additionalRoots,
         matrixOnlyRoots,
+        hiddenNodes: invisibleTrackGeometry([model.root.scene, ...additionalRoots]),
         rootPoseOverrides,
         advertisementSources: advertisements,
         environment,

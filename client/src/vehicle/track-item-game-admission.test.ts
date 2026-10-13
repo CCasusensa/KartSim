@@ -145,13 +145,18 @@ test("item-game roots: hazards render, moving-cube anchors are matrix-only", () 
 function mapFixture() {
   const calls: Array<[string, ...unknown[]]> = [];
   const log = (name: string, result?: unknown) => (...args: unknown[]) => { calls.push([name, ...args]); return result; };
-  const anchor = { kind: "node", name: "mo_itemcube" };
-  const banana = { kind: "node", name: "banana" };
+  const anchor = { kind: "node", name: "mo_itemcube", children: [] };
+  // An `inv` collision box under the hazard: kept for its matrix, never drawn.
+  const collisionBox = { kind: "node", name: "box_Geom", className: "ReTriList", children: [] };
+  const banana = { kind: "node", name: "banana", children: [{ kind: "node", name: "box",
+    className: "Relement", children: [collisionBox],
+    additionalProperty: { name: "property", attributes: [], children: [{ name: "inv", attributes: [], children: [] }] } }] };
   const moving = [
     { kind: "ToMovableObject", name: "mo_itemcube", property: objectProperty({ type: "itemCube" }), object: anchor, transform: "t1" },
     { kind: "ToMovableObject", name: "banana", property: objectProperty({ type: "banana" }), object: banana, transform: "t2" },
   ];
-  const model = { root: { kind: "track", trackObjects: [{ kind: "ToMinimap", name: "minimap" }] } };
+  const model = { root: { kind: "track", scene: { kind: "node", name: "scene", children: [] },
+    trackObjects: [{ kind: "ToMinimap", name: "minimap" }] } };
   const disposable = { object: "scene", dispose: () => {} };
   const library = {
     files: [{ sourceName: "stage_common.rho", name: "readyCamera.1s", bytes: async () => new Uint8Array() }],
@@ -200,7 +205,7 @@ function mapFixture() {
     requireAsset: () => ({ extension: "1s", name: "track.1s", bytes: async () => new Uint8Array() }),
     getLibrary: () => library,
   } };
-  return { calls, ops, owner, anchor, banana, library, model };
+  return { calls, ops, owner, anchor, banana, collisionBox, library, model };
 }
 
 test("loadTrackMap with the item flag loads item sources and the item roots", async () => {
@@ -213,9 +218,10 @@ test("loadTrackMap with the item flag loads item sources and the item roots", as
   assert.equal((course[4] as { itemGame?: boolean }).itemGame, true);
   const scene = fixture.calls.find(call => call[0] === "scene")!;
   const options = scene[5] as { additionalRoots: unknown[]; matrixOnlyRoots: unknown[];
-    rootPoseOverrides: Map<unknown, unknown> };
+    rootPoseOverrides: Map<unknown, unknown>; hiddenNodes: Set<unknown> };
   assert.deepEqual(options.additionalRoots, [fixture.anchor, fixture.banana]);
   assert.deepEqual(options.matrixOnlyRoots, [fixture.anchor]);
+  assert.deepEqual([...options.hiddenNodes], [fixture.collisionBox]);
   assert.equal(options.rootPoseOverrides.get(fixture.anchor), "t1");
   assert.equal(map.itemCatalog, "catalog");
   assert.equal(map.itemCubeSource, "cubes");
