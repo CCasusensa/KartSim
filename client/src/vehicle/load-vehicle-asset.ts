@@ -44,6 +44,8 @@ export interface VehicleAssetOps {
   useClassicHud(forceNew: boolean, grade: number, selection: any, version: string): boolean;
   resourceVersion(key: string): string;
   loadClassicTachometer(): Promise<any>;
+  /** The classic dashboard in its 冰河圣诞版 skin (resources/xmas-theme.ts). */
+  loadXmasClassicTachometer(library: any): Promise<any>;
   loadTachometerConfig(library: any, selection: any): Promise<any>;
   makeTacho1(config: any): any;
   makeMqTacho(config: any): any;
@@ -77,7 +79,7 @@ export interface VehicleAssetOps {
 /** Selects a tachometer renderer from the garage visual metadata. */
 async function loadTachometer(library: any, visual: any, grade: number,
   environment: any, stageBinding: any, suppressClassic: boolean,
-  forceNew: boolean, ops: VehicleAssetOps): Promise<{
+  forceNew: boolean, ops: VehicleAssetOps, xmasDashboard = false): Promise<{
     selection: any; classicHud: boolean; renderer: any;
   }> {
   const selection = ops.tachometerSelection(
@@ -85,7 +87,9 @@ async function loadTachometer(library: any, visual: any, grade: number,
   const classicHud = !suppressClassic && ops.useClassicHud(
     forceNew, grade, selection, ops.resourceVersion("p3553"));
   if (classicHud) return {
-    selection, classicHud, renderer: await ops.loadClassicTachometer(),
+    selection, classicHud,
+    renderer: await (xmasDashboard
+      ? ops.loadXmasClassicTachometer(library) : ops.loadClassicTachometer()),
   };
   const config = await ops.loadTachometerConfig(library, selection);
   if (config.type === "Tacho1")
@@ -129,6 +133,7 @@ export async function loadVehicleAsset(
   suppressClassic = false,
   forceNew = false,
   ops: VehicleAssetOps,
+  xmasDashboard = false,
 ): Promise<LoadedVehicleAsset> {
   const library = owner.assetHost.getLibrary();
   if (!library) throw new Error("车辆资源库尚未建立。");
@@ -157,7 +162,7 @@ export async function loadVehicleAsset(
   try {
     const tachometer = await loadTachometer(library, runtime.visual,
       kartItem.engineGrade, environment, stageBinding, suppressClassic,
-      forceNew, ops);
+      forceNew, ops, xmasDashboard);
     tachometerRenderer = tachometer.renderer;
     audio = await ops.loadAudio(library, runtime.visual.engineSound,
       kartItem.engineGrade, body.chargeBoostBySpeed, audioContext, kartName);

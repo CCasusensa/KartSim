@@ -79,3 +79,23 @@ test("BGM provenance and exact resource failures match the release", () => {
       return true;
     });
 });
+
+test("冰河圣诞版 races to the xmas music, other tracks keep their theme", async () => {
+  const entries = {
+    "sound_/bgm/ice": [resource("ice_01.ogg", 1)],
+    "sound_/bgm/xmas": [resource("xmas_02.ogg", 2), resource("xmas_01.ogg", 1)],
+  };
+  const library = { ...fixture(entries),
+    archives: [{ mountPath: "sound_/bgm/ice" }, { mountPath: "sound_/bgm/xmas" }],
+    hasManifestMount: path => path in entries };
+  const decode = async (context, bytes) => new TextDecoder().decode(bytes);
+  assert.deepEqual((await loadRaceBgmPlaylist(library, { id: "ice_I01" }, {}, decode)).names,
+    ["xmas_01", "xmas_02"]);
+  assert.deepEqual((await loadRaceBgmPlaylist(library, { id: "ice_I07" }, {}, decode)).names,
+    ["ice_01"]);
+  // Resources without the xmas bank keep the ice music.
+  const plain = { ...library, archives: [{ mountPath: "sound_/bgm/ice" }],
+    hasManifestMount: path => path === "sound_/bgm/ice" };
+  assert.deepEqual((await loadRaceBgmPlaylist(plain, { id: "ice_I01" }, {}, decode)).names,
+    ["ice_01"]);
+});

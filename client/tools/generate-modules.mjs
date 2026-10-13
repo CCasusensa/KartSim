@@ -392,7 +392,7 @@ const vehicleKartAudioOverrides = new Set([
   "C30", "pv", "E30", "T30", "_30", "G30", "Be", "B30", "ll", "R30",
 ]);
 const vehicleAssetLoaderMethodOverrides = new Map([
-  ["loadVehicleAsset", "  async loadVehicleAsset(path, itemId, hint, body, kartName, environment, stageBinding, audioContext, coatingTexture, decorationOption, convertClientCoordinates, suppressClassic = false, forceNew = false) { return loadVehicleAsset(this, path, itemId, hint, body, kartName, environment, stageBinding, audioContext, coatingTexture, decorationOption, convertClientCoordinates, suppressClassic, forceNew, vehicleAssetOps); }"],
+  ["loadVehicleAsset", "  async loadVehicleAsset(path, itemId, hint, body, kartName, environment, stageBinding, audioContext, coatingTexture, decorationOption, convertClientCoordinates, suppressClassic = false, forceNew = false, xmasDashboard = false) { return loadVehicleAsset(this, path, itemId, hint, body, kartName, environment, stageBinding, audioContext, coatingTexture, decorationOption, convertClientCoordinates, suppressClassic, forceNew, vehicleAssetOps, xmasDashboard); }"],
   ["loadRaceCharacters", "  async loadRaceCharacters(characterPath, characterItem, kartItem, motionBasis, includeSpecialMotion, environment, stageBinding, award = false) { return loadRaceCharacters(this, characterPath, characterItem, kartItem, motionBasis, includeSpecialMotion, environment, stageBinding, award); }"],
   ["loadVehicleRuntime", "  async loadVehicleRuntime(path, textureKey, plateId, library, environment, stageBinding, profile = this.assetHost.userProfile, kartItemId, engineGrade, coatingTextureOverride, scope, convertClientCoordinates, deferEnvironment = false) { return loadVehicleRuntime(this, path, textureKey, plateId, library, environment, stageBinding, profile, kartItemId, engineGrade, coatingTextureOverride, scope, convertClientCoordinates, deferEnvironment, vehicleRuntimeOps); }"],
   ["loadCharacterAsset", "  async loadCharacterAsset(path, item, motionSource, animationType, includeF54, environment, stageBinding, linkMode, profile = this.assetHost.userProfile, outlineBatch, award = false) { return loadCharacterAsset(this, path, item, motionSource, animationType, includeF54, environment, stageBinding, linkMode, profile, outlineBatch, award, characterAssetOps); }"],
@@ -480,6 +480,17 @@ const itemWorldRaceAssetPatches = [
       itemCatalog: itemRaceFields?.catalog,
       itemCubes: itemRaceFields?.cubes,
       itemHazards: itemRaceFields?.hazards,`],
+];
+// 冰河圣诞版 (src/resources/xmas-theme.ts): the local racer's classic
+// dashboard takes the Christmas skin on a Christmas model.
+const xmasRaceAssetPatches = [
+  [`          !z,
+          z && l,
+        );`,
+    `          !z,
+          z && l,
+          C.data.xmas === !0,
+        );`],
 ];
 function applyItemWorldPatches(text, patches) {
   for (const [from, to] of patches) {
@@ -2311,6 +2322,18 @@ const iv = createDriftEffectClass(driftEffectDependencies);`,
       text: original.replace("n.chargerEffect,", "n.chargerEffect,\n    n.roadDust,") });
     continue;
   }
+  // 冰河圣诞版 (src/resources/xmas-theme.ts): the race HUD of a Christmas
+  // model takes the xmas item slot frame (slot_frameResource id 1).
+  if (declarationName === "eI") {
+    const original = source.slice(node.start, node.end);
+    assert(originalSection(node.start) === "library" &&
+      original.includes("async function eI(n, e, t, i) {") && original.includes("s00(n, t00(e)),"),
+      "Race HUD asset loading changed.");
+    bodies.get("library").push({ at: node.start,
+      text: original.replace("async function eI(n, e, t, i) {", "async function eI(n, e, t, i, xmas = !1) {")
+        .replace("s00(n, t00(e)),", "s00(n, xmasSlotFrame(t00(e), xmas)),") });
+    continue;
+  }
   // Individual rooms dress each racer in its slot's dye (not in the
   // release, which kept everyone's own dye there); team and roadblock dyes
   // are unchanged.
@@ -2330,7 +2353,7 @@ const iv = createDriftEffectClass(driftEffectDependencies);`,
             ? Q[F.team - 1].dyeId
             : individualRiderDye(e, F.slot),`).replace(dyedCharacters, `c0 = await (
           Q || F0 !== void 0
-            ? new ul(`), [...itemWorldRaceAssetPatches, ...cityRaceAssetPatches]) });
+            ? new ul(`), [...itemWorldRaceAssetPatches, ...cityRaceAssetPatches, ...xmasRaceAssetPatches]) });
     continue;
   }
   if (declarationName === "w40") { // city: a 卡丁城 session has a one-racer roster
@@ -4834,6 +4857,7 @@ function renderModule(name) {
     lines.push('import { TrackCoinOwner } from "../vehicle/track-coin-owner.ts";');
     lines.push('import { ChargerEffect } from "../vehicle/charger-effect.ts";');
     lines.push('import { RoadDustEffect } from "../vehicle/road-dust-effect.ts";');
+    lines.push('import { xmasClassicHud } from "../resources/xmas-theme.ts";');
     lines.push('import { CoatingOwner } from "../vehicle/coating-owner.ts";');
   }
   if (name === "driving") {
@@ -5005,6 +5029,7 @@ function renderModule(name) {
   }
   if (name === "library") {
     lines.push('import { RaceHudController } from "../ui/race-hud-controller.ts";');
+    lines.push('import { xmasSlotFrame } from "../resources/xmas-theme.ts";');
     lines.push('import { MultiplayerWindowView } from "../ui/multiplayer-window-view.ts";');
     lines.push('import { GarageConfirmationDialog } from "../ui/garage-confirmation-dialog.ts";');
     lines.push('import { garageConfirmationFontFamily as PR, loadGarageConfirmationFont, loadGarageConfirmationAssets, loadGarageConfirmationBlueprint, garageConfirmationPartEquipRequest, garageConfirmationLayout } from "../ui/garage-confirmation-assets.ts";');
@@ -5228,7 +5253,7 @@ function awardPodiumLoadDependencies() { return {
     lines.push('const vehicleRuntimeOps = { resolveResources: t3, wheelAssets: yw, palette: We, prepareAppearance: vw, garageKart: p5, parseParameters: cv, makeVisual: wk, shortAssetName: a40, loadCoating: (...args) => d7.load(...args), needsParticleModification: Bk, loadXunModification: (...args) => Do.loadXun(...args), loadParticleModification: (...args) => c6.load(...args), disposeObject: u5 };');
     lines.push('const kartAudioOps = { route: S9, setGain: he, setLoop: w4, roadSoundEnabled: BQ };');
     lines.push('const kartAudioLoadOps = { decodeMotor: (context, bytes) => decodeMotorAudio(context, bytes, S30), decodeAudio: Q9, parseRoadConfig: bytes => parseRoadSoundConfig(bytes, s2, T), createContext: () => new AudioContext() };');
-    lines.push('const vehicleAssetOps = { resolveKartIdentity: b4, tachometerSelection: O50, useClassicHud: E50, resourceVersion: Bt, loadClassicTachometer: () => uv.load(), loadTachometerConfig: $50, makeTacho1: config => new fv(config), makeMqTacho: config => new Fk(config), loadNineTacho: (...args) => p7.load(...args), loadV1Tacho: (...args) => Ta.load(...args), loadXGenTacho: (...args) => Gr.load(...args), loadAudio: (...args) => pv.load(...args), loadEffects: (...args) => Ca.load(...args), loadTrails: (...args) => Ea.load(...args), makeDriftSetup: Ze0, loadDriftEffects: (...args) => iv.load(...args), loadMotionBlur: (...args) => sv.load(...args), loadZetAir: (...args) => lv.load(...args), loadShockWave: (...args) => av.load(...args), loadExhaust: (...args) => rv.load(...args), loadCrash: (...args) => nv.load(...args), loadCharger: (...args) => tv.load(...args), createRoadDust: (library, parent, environment, stageBinding) => new RoadDustEffect(library, parent, environment, stageBinding, chargerEffectOps), loadLampFlares: (...args) => s6.load(...args), kartModelRoot: J5, loadShadow: (...args) => fr.load(...args), paintColor: We, loadDecoration: Jw, loadAccessory: hr, physicsParams: jt0, rootExtent: el, collisionShape: v90, disposeObject: u5 };');
+    lines.push('const vehicleAssetOps = { resolveKartIdentity: b4, tachometerSelection: O50, useClassicHud: E50, resourceVersion: Bt, loadClassicTachometer: () => uv.load(), loadXmasClassicTachometer: async library => new uv(S50(await xmasClassicHud(await vJ(), library, p2))), loadTachometerConfig: $50, makeTacho1: config => new fv(config), makeMqTacho: config => new Fk(config), loadNineTacho: (...args) => p7.load(...args), loadV1Tacho: (...args) => Ta.load(...args), loadXGenTacho: (...args) => Gr.load(...args), loadAudio: (...args) => pv.load(...args), loadEffects: (...args) => Ca.load(...args), loadTrails: (...args) => Ea.load(...args), makeDriftSetup: Ze0, loadDriftEffects: (...args) => iv.load(...args), loadMotionBlur: (...args) => sv.load(...args), loadZetAir: (...args) => lv.load(...args), loadShockWave: (...args) => av.load(...args), loadExhaust: (...args) => rv.load(...args), loadCrash: (...args) => nv.load(...args), loadCharger: (...args) => tv.load(...args), createRoadDust: (library, parent, environment, stageBinding) => new RoadDustEffect(library, parent, environment, stageBinding, chargerEffectOps), loadLampFlares: (...args) => s6.load(...args), kartModelRoot: J5, loadShadow: (...args) => fr.load(...args), paintColor: We, loadDecoration: Jw, loadAccessory: hr, physicsParams: jt0, rootExtent: el, collisionShape: v90, disposeObject: u5 };');
     lines.push('const trackMapOps = { decodeModel: y9, assetProvenance: X30, loadLteCoins: A10, loadWeather: A30, loadWarp: b30, validateCourse: Y30, lensFlareAnchor: c30, dummySounds: Vn0, extractRoad: YW, mapMovingObjects: K30, additionalMatrixRoots: j30, admitMovingObject: Um, parseEventProjection: $k, makeEventRuntime: projection => new Kn0(projection), hasDeferredRoad: mo, isDeferredRoadMaterial: Fl, unsupportedRoad: NG, hasRail: Ri, loadRailConfig: w30, loadRailCapture: y30, resourceVersion: Bt, isLteTrack: Vw, loadAdmission: J30, loadMultiplayerAdmission: Z30, makeReadyCamera: model => new I30(model), loadAdvertisements: Ln0, textureCandidates: hB, textureStatus: sn, loadEnvironment: library => rn.load(library), loadScene: c5, warpNextCamera: O30, configureSkydome: i40 };');
     lines.push(...itemWorldVehicleOps); // item-mode(world)
     lines.push('const characterAssetOps = { resolveIdentity: pk, chooseCostume: CR, decodeMotion: FI, linkedMotionNames: qp, specialMotionNames: HY, standardMotionNames: WY, linkedController: s40, specialController: o40, standardController: r40, awardController: (...args) => new b10(...args), faceTextureSources: SR, collectFaceMotionAssets: xR, palette: We, parseModel: xa, createScene: TR };');

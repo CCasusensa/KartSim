@@ -1,3 +1,5 @@
+import { isXmasTrack, XMAS_BGM_THEME } from "../resources/xmas-theme";
+
 /** Canonical archive discovery for the P3528 TimeAttack music playlist. */
 export const RACE_BGM_THEMES = [
   "steam", "forest", "desert", "village", "ice", "tomb", "mine",
@@ -83,7 +85,10 @@ export async function loadRaceBgmPlaylist(library: BgmArchiveLibrary,
   decode: (context: unknown, bytes: Uint8Array) => Promise<unknown>):
   Promise<{ buffers: unknown[]; names: string[] }> {
   const theme = selectRaceBgmTheme(track);
-  const resources = [theme, `${theme}2`].flatMap(name =>
+  // 冰河圣诞版 races to sound_/bgm/xmas (xmas-theme.ts).
+  const xmas = isXmasTrack(track.id)
+    ? raceBgmArchiveTracks(library, XMAS_BGM_THEME) : [];
+  const resources = xmas.length > 0 ? xmas : [theme, `${theme}2`].flatMap(name =>
     raceBgmArchiveTracks(library, name));
   if (!resources.length)
     throw new Error(`${track.id} 的 P3528 TimeAttack BGM 候选为空。`);

@@ -1,6 +1,7 @@
 import { decodeBinaryXml } from "../codecs/binary-xml";
 import type { ItemXmlNode } from "./item-bml";
 import type { ItemObjectDefinition } from "./item-catalog";
+import { XMAS_ITEM_CUBE_THEME } from "../resources/xmas-theme";
 
 /** three.js position (Y up). */
 export interface ItemVec3 { x: number; y: number; z: number }
@@ -170,13 +171,18 @@ export function decodeTrackLocale(bytes: Uint8Array): ItemXmlNode {
   return root;
 }
 
-/** Build the cube source from the parsed track, the cube definition and the locale table. */
+/**
+ * Build the cube source from the parsed track, the cube definition and the
+ * locale table. A 冰河圣诞版 model (`xmas`) takes the xmas cube skin
+ * (ice_item_xmas) unless trackLocale names one.
+ */
 export function createItemCubeSource(
   model: ItemTrackModel,
   trackId: string,
   cube: ItemObjectDefinition,
   trackLocale: ItemXmlNode | undefined,
   exists: (path: string) => boolean,
+  xmas = false,
 ): ItemCubeSource {
   const stay = cube.states.get("Stay");
   const eaten = cube.states.get("Eaten");
@@ -187,7 +193,8 @@ export function createItemCubeSource(
   const eatenSoundPath = `sound_/fx/item/${cube.folder}/${eaten.firedFx}.ogg`;
   for (const path of [eatenModelPath, eatenSoundPath])
     if (!exists(path)) throw Error(`道具箱缺少原件 ${path}。`);
-  const custom = trackLocale ? customItemCubeTheme(trackLocale, trackId) : undefined;
+  const custom = (trackLocale ? customItemCubeTheme(trackLocale, trackId) : undefined) ??
+    (xmas ? XMAS_ITEM_CUBE_THEME : undefined);
   const { theme, path } = resolveItemCubeModel(exists, trackId, custom);
   return {
     trackId, theme, modelPath: path, eatenModelPath, eatenSoundPath,

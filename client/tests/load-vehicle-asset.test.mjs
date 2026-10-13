@@ -219,3 +219,30 @@ test("vehicle asset failure and disposal order match release", async () => {
       await exercise("original", options), JSON.stringify(options));
   }
 });
+
+test("冰河圣诞版 swaps the classic dashboard for its Christmas skin only", async () => {
+  const run = async (options, xmas) => {
+    const f = fixture(options);
+    const loads = [];
+    f.ops.loadXmasClassicTachometer = async library => {
+      loads.push(library.name ?? "library");
+      return { name: "xmas classic tachometer" };
+    };
+    const result = await loadVehicleAsset(f.owner, "kart/model.1s", 100, "hint", {
+      name: "body", chargeBoostBySpeed: 2.5, defaultExceedType: 3,
+      motorcycleType: 0, effectSetupSelectorByte: 4,
+      normalBoosterTime: 100, footprintExtent0: 1, footprintExtent1: 2,
+    }, "kartname", "environment", "stage binding", "audio context",
+    "coating texture", "decoration option", false, false, !!options.forceNew, f.ops, xmas);
+    return { renderer: simplify(result.tachometerRenderer), loads };
+  };
+  const xmas = await run({ classic: true, forceNew: true }, true);
+  assert.equal(xmas.renderer, "xmas classic tachometer");
+  assert.equal(xmas.loads.length, 1);
+  // The plain classic dashboard off the Christmas tracks, and no classic HUD at all
+  // when the player keeps the new tachometer.
+  assert.notEqual((await run({ classic: true, forceNew: true }, false)).renderer, "xmas classic tachometer");
+  const modern = await run({}, true);
+  assert.notEqual(modern.renderer, "xmas classic tachometer");
+  assert.equal(modern.loads.length, 0);
+});

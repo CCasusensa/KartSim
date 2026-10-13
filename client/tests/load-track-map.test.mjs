@@ -233,3 +233,39 @@ test("mode-specific map entry points preserve release routing", () => {
   assert.deepEqual(calls.pop(), ["path", "track", "speed-individual",
     f.ops.loadMultiplayerAdmission, true]);
 });
+
+// The release fixtures predate the inv geometry pass; give it a scene to walk.
+function sceneFixture() {
+  const f = fixture();
+  const decode = f.ops.decodeModel;
+  f.ops.decodeModel = bytes => {
+    const model = decode(bytes);
+    model.root.scene = { kind: "node", children: [] };
+    return model;
+  };
+  f.ops.additionalMatrixRoots = () => [];
+  return f;
+}
+
+test("冰河圣诞版 tracks load their Christmas model and say so", async () => {
+  const f = sceneFixture();
+  const library = f.owner.assetHost.getLibrary();
+  library.findSibling = (path, names) => {
+    f.calls.push(["sibling", path, names]);
+    return names[0] === "track_xmas_rvs.1s"
+      ? { virtualPath: path.replace(/track_rvs\.1s$/, "track_xmas_rvs.1s") } : undefined;
+  };
+  const map = await loadTrackMap(f.owner, "track_/ice_I01/track_rvs.1s", "ice_I01_rvs",
+    "time-attack", f.dependencies.J30, false, f.ops);
+  const required = f.calls.filter(call => call[0] === "require asset").map(call => call[1]);
+  assert.deepEqual(required, ["track_/ice_I01/track_xmas_rvs.1s"]);
+  assert.equal(f.calls.find(call => call[0] === "weather")[2], "track_/ice_I01/track_xmas_rvs.1s");
+  assert.equal(map.path, "track_/ice_I01/track_xmas_rvs.1s");
+  assert.equal(map.data.xmas, true);
+  // A track without one (or another theme) keeps its own model.
+  const plain = sceneFixture();
+  const own = await loadTrackMap(plain.owner, "track_/ice_I07/track.1s", "ice_I07",
+    "time-attack", plain.dependencies.J30, false, plain.ops);
+  assert.equal(own.path, "track_/ice_I07/track.1s");
+  assert.equal(own.data.xmas, undefined);
+});

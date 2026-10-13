@@ -41,8 +41,9 @@ export interface MultiplayerHudDependencies {
   loadTimeGap(library: unknown, target: unknown): Promise<any>;
   resolveDye(library: unknown, itemId: number, category: number):
     Promise<{ primary: number }>;
+  /** `xmas`: the 冰河圣诞版 item slot frame (resources/xmas-theme.ts). */
   loadHudAssets(library: unknown, selection: unknown, slot: number,
-    grade: number): Promise<any>;
+    grade: number, xmas?: boolean): Promise<any>;
   attribute(node: unknown, name: string): string | undefined;
   loadMinimap(library: unknown, path: string, metadata: unknown,
     minimap: unknown, environment: unknown, binding: unknown,
@@ -104,7 +105,8 @@ export class MultiplayerRaceHud {
         (await dependencies.resolveDye(library, dyeId, 70)).primary & 0xffffff] as const;
     }));
     const source = await dependencies.loadHudAssets(library,
-      local.vehicle.tachometerSelection, 0, local.vehicle.kartItem.engineGrade);
+      local.vehicle.tachometerSelection, 0, local.vehicle.kartItem.engineGrade,
+      race.map.data?.xmas === true);
     const rankNodes = new Set([
       source.rank.rank, source.rank.suffix, source.rank.riderCount,
     ]);

@@ -98,6 +98,10 @@ test("the cube source reads the real cube definition and trackLocale skins", asy
     "village", "wkc", "world", "xyy"])
     assert.equal(resolveItemCubeModel(exists, `${theme}_I01`).theme, theme, theme);
   assert.equal(resolveItemCubeModel(exists, "village_I01").path, "item/itemCube/village/cn/itemCube.1s");
+  // 冰河圣诞版 models take the Christmas cube (ice_item_xmas).
+  const xmas = createItemCubeSource(track([cube("ic", 1, [1, 2, 3])]), "ice_I02_rvs", catalog.cube, locale, exists, true);
+  assert.deepEqual([xmas.theme, xmas.modelPath], ["xmas", "item/itemCube/xmas/zz/itemCube.1s"]);
+  assert.equal(createItemCubeSource(track([]), "ice_I02", catalog.cube, locale, exists).theme, "ice");
   const broken = { ...catalog.cube, states: new Map([...catalog.cube.states].filter(([name]) => name !== "Eaten")) };
   assert.throws(() => createItemCubeSource(track([]), "forest_I01", broken, locale, exists), /Stay\/Eaten/);
   assert.throws(() => createItemCubeSource(track([]), "forest_I01", catalog.cube, locale, () => false), /原件/);

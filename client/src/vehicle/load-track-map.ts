@@ -2,6 +2,7 @@ import { alignLicenseFrames, alignLicenseSections, licenseEventScenes, markLicen
 import { itemGameObjectKind } from "./track-object-admission";
 import { invisibleTrackGeometry } from "../resources/moving-obstacle";
 import { trackMetadataOverride } from "../resources/track-overrides";
+import { isXmasTrack, xmasTrackModelPath } from "../resources/xmas-theme";
 
 export interface TrackMapOwner {
   assetHost: {
@@ -49,7 +50,7 @@ export interface TrackMapOps {
   warpNextCamera(model: any, scene: any): any;
   configureSkydome(object: any): void;
   /** Item races: catalog, cube and hazard sources of the loaded track. */
-  loadItemGame?(library: any, model: any, trackId: string): Promise<{
+  loadItemGame?(library: any, model: any, trackId: string, xmas?: boolean): Promise<{
     catalog: unknown; cubes: unknown; hazards: unknown;
   }>;
 }
@@ -105,6 +106,10 @@ export async function loadTrackMap(
   if (itemGame && (mode !== "speed-individual" || lte))
     throw new Error("道具赛地图只走 speed-individual 准入。");
   const generation = owner.assetHost.generationValue();
+  // 冰河圣诞版: the ice tracks with a Christmas model race it (xmas-theme.ts).
+  const xmasPath = isXmasTrack(trackId)
+    ? xmasTrackModelPath(owner.assetHost.getLibrary(), path, trackId) : undefined;
+  if (xmasPath) path = xmasPath;
   const asset = owner.assetHost.requireAsset(path);
   if (asset.extension !== "1s" ||
     !/^(?:track|track_rvs|track_xmas|track_xmas_rvs)\.1s$/i.test(asset.name))
@@ -118,7 +123,7 @@ export async function loadTrackMap(
   if (itemGame && (!library || !ops.loadItemGame))
     throw new Error("道具赛地图缺少道具资源库。");
   const itemSources = itemGame
-    ? await ops.loadItemGame!(library, model, trackId) : undefined;
+    ? await ops.loadItemGame!(library, model, trackId, xmasPath !== undefined) : undefined;
   const [weather, warp] = await Promise.all([
     library ? ops.loadWeather(library, path) : undefined,
     library ? ops.loadWarp(library, path) : undefined,
@@ -319,6 +324,8 @@ export async function loadTrackMap(
       start: road.start,
       lapTarget: metadata.laps,
       ...(licenseEvents ? { licenseEvents } : {}),
+      // The HUD's Christmas item slot frame and dashboard follow the model.
+      ...(xmasPath ? { xmas: true } : {}),
     },
     scene,
     renderScene,

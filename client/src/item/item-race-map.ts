@@ -40,9 +40,12 @@ export interface ItemGameTrackSources {
 
 export const TRACK_LOCALE_PATH = "track_/common/trackLocale@cn.bml";
 
-/** Read the catalog, the trackLocale cube skin and the cube/hazard placements of a track. */
+/**
+ * Read the catalog, the trackLocale cube skin and the cube/hazard placements
+ * of a track; `xmas` for a 冰河圣诞版 model (its cubes are the xmas skin).
+ */
 export async function loadItemGameTrackSources(library: ItemCatalogLibrary, model: ItemTrackModel,
-  trackId: string): Promise<ItemGameTrackSources> {
+  trackId: string, xmas = false): Promise<ItemGameTrackSources> {
   const catalog = await itemCatalogFor(library);
   const locales = library.exactCanonicalCandidates(TRACK_LOCALE_PATH);
   if (locales.length > 1) throw Error(`${TRACK_LOCALE_PATH} 不唯一。`);
@@ -50,7 +53,7 @@ export async function loadItemGameTrackSources(library: ItemCatalogLibrary, mode
   const exists = (path: string) => catalog.has(path);
   return {
     catalog,
-    cubes: createItemCubeSource(model, trackId, catalog.cube, locale, exists),
+    cubes: createItemCubeSource(model, trackId, catalog.cube, locale, exists, xmas),
     hazards: createItemHazardSource(model, catalog),
   };
 }

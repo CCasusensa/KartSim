@@ -9,6 +9,7 @@
  * by the virtual paths they hold (DataPack3 track folders go to their
  * track theme).
  */
+import { XMAS_BGM_THEME } from "./xmas-theme";
 
 export interface ResourceFileSpec {
   readonly name: string;
@@ -190,10 +191,12 @@ function trackThemes(files: readonly ResourceFileSpec[], packs: readonly Rho5Pac
       if (theme && part) add(theme, part);
     }
   }
-  // Each theme also brings its textures and music.
+  // Each theme also brings its textures and music (冰河 also races to the
+  // 圣诞版 music, xmas-theme.ts).
   const names = new Map(files.map(file => [baseName(file.name).toLowerCase(), file.name]));
   for (const [theme, set] of themes) {
-    for (const extra of [`theme_${theme}`, `sound_bgm_${theme}`, `sound_bgm_${theme}2`, `sound_bgm_${theme}_2`]) {
+    for (const extra of [`theme_${theme}`, `sound_bgm_${theme}`, `sound_bgm_${theme}2`, `sound_bgm_${theme}_2`,
+      ...(theme === "ice" ? [`sound_bgm_${XMAS_BGM_THEME}`] : [])]) {
       const name = names.get(extra.toLowerCase());
       if (name) set.add(name);
     }

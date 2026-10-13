@@ -208,7 +208,7 @@ async function buildLoadedSoloRace(
         selection.vehicleItemId, selection.vehicleSystemKey, physicsSpec,
         selection.trackId, map.environment, map.stageBinding, audioContext,
         coatingStage?.textures(host.getLibrary()), boosterVisuals,
-        undefined, false, classicHud);
+        undefined, false, classicHud, map.data.xmas === true);
     } catch (error) {
       disposeNewBgm();
       outlineBatch.dispose();
@@ -316,7 +316,7 @@ async function buildLoadedSoloRace(
         snow = await ops.loadSnow(host.getLibrary(), host.targetRandom);
       const tachometer = await ops.loadTachometer(host.getLibrary(),
         vehicle.tachometerSelection, host.webTimeAttackAiDyeId,
-        vehicle.kartItem.engineGrade);
+        vehicle.kartItem.engineGrade, map.data.xmas === true);
       const minimap = await ops.loadMinimap(host.getLibrary(), map.path,
         map.metadata, map.minimap, map.environment, map.stageBinding,
         ghostSources.length);

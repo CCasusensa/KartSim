@@ -5,6 +5,7 @@ import { BRAWL_GAME_TYPE, BRAWL_SLOTS } from "../multiplayer/lobby-brawl-mode.ts
 import { itemTrackCatalog } from "../resources/track-catalog.ts"; // item-mode(lobby)
 
 import { RaceHudController } from "../ui/race-hud-controller.ts";
+import { xmasSlotFrame } from "../resources/xmas-theme.ts";
 import { MultiplayerWindowView } from "../ui/multiplayer-window-view.ts";
 import { GarageConfirmationDialog } from "../ui/garage-confirmation-dialog.ts";
 import { garageConfirmationFontFamily as PR, loadGarageConfirmationFont, loadGarageConfirmationAssets, loadGarageConfirmationBlueprint, garageConfirmationPartEquipRequest, garageConfirmationLayout } from "../ui/garage-confirmation-assets.ts";
@@ -3528,11 +3529,11 @@ const l3 = "stage_/speedIndiGame",
     "time_num",
   ]);
 
-async function eI(n, e, t, i) {
+async function eI(n, e, t, i, xmas = !1) {
   const [r, s, o, a, c, l] = await Promise.all([
       n00(n),
       i00(n, vx(e.folder, t)),
-      s00(n, t00(e)),
+      s00(n, xmasSlotFrame(t00(e), xmas)),
       r00(n, vx(e.folder, t)),
       QJ(n),
       ZJ(n),

@@ -215,7 +215,7 @@ test("loadTrackMap with the item flag loads item sources and the item roots", as
   const map = await loadTrackMap(fixture.owner, "track_/factory_I03/track.1s", "factory_I03",
     "speed-individual", () => "admission", false, fixture.ops, true);
   assert.deepEqual(fixture.calls.find(call => call[0] === "item"),
-    ["item", fixture.library, fixture.model, "factory_I03"]);
+    ["item", fixture.library, fixture.model, "factory_I03", false]);
   const course = fixture.calls.find(call => call[0] === "course")!;
   assert.equal((course[4] as { itemGame?: boolean }).itemGame, true);
   const scene = fixture.calls.find(call => call[0] === "scene")!;
