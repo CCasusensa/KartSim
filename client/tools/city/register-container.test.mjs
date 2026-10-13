@@ -54,8 +54,8 @@ async function temporaryMirror() {
   for (const name of ["resources", "archive-index"])
     copyFileSync(path.join(realMirrorRoot, "mirror/__p3553", name), path.join(meta, name));
   mkdirSync(path.join(temporary, "build"), { recursive: true });
-  const archive = await packRhoArchive("track_kartcity.rho", cityArchiveFiles());
-  const archivePath = path.join(temporary, "build/track_kartcity.rho");
+  const archive = await packRhoArchive("track_kartcity_registration_test.rho", cityArchiveFiles());
+  const archivePath = path.join(temporary, "build/track_kartcity_registration_test.rho");
   writeFileSync(archivePath, archive);
   return { temporary, archive, archivePath, meta };
 }
@@ -67,8 +67,8 @@ test("register-container 登记新容器：复制、清单、档案索引，且�
     const originalIndex = decodeIndexJson(readFileSync(path.join(meta, "archive-index")));
 
     const result = await registerContainer({ mirrorRoot: temporary, containerPath: archivePath, now: 1234567890123 });
-    assert.equal(result.name, "track_kartcity.rho");
-    assert.equal(result.target, path.join(temporary, "mirror/p3553/track_kartcity.rho"));
+    assert.equal(result.name, "track_kartcity_registration_test.rho");
+    assert.equal(result.target, path.join(temporary, "mirror/p3553/track_kartcity_registration_test.rho"));
     assert.deepEqual(result.files, ["track.1s", "xt_minimap.png"]);
     assert.deepEqual(readFileSync(result.target), Buffer.from(archive));
 
@@ -79,7 +79,7 @@ test("register-container 登记新容器：复制、清单、档案索引，且�
     assert.equal(manifestJson.version, originalManifest.version);
     assert.deepEqual(manifestJson.files.slice(0, -1), originalManifest.files);
     assert.deepEqual(manifestJson.files.at(-1), {
-      name: "track_kartcity.rho", size: archive.length, mtimeMs: 1234567890123, sha256: sha256Hex(archive),
+      name: "track_kartcity_registration_test.rho", size: archive.length, mtimeMs: 1234567890123, sha256: sha256Hex(archive),
     });
     assert.equal(manifestText, `${JSON.stringify(manifestJson, null, 2)}\n`);
     const manifest = parseResourceManifest(manifestJson, "p3553");
@@ -91,7 +91,7 @@ test("register-container 登记新容器：复制、清单、档案索引，且�
     assert.deepEqual(index.rho.slice(0, -1), originalIndex.rho);
     assert.deepEqual(index.rho5, originalIndex.rho5);
     const entry = index.rho.at(-1);
-    assert.equal(entry.name, "track_kartcity.rho");
+    assert.equal(entry.name, "track_kartcity_registration_test.rho");
     assert.equal(entry.version, "1.0");
     assert.equal(entry.mediaSize, archive.length);
     assert.deepEqual(entry.files.map(file => file.path), ["track.1s", "xt_minimap.png"]);
@@ -113,24 +113,24 @@ test("register-container 登记新容器：复制、清单、档案索引，且�
     const again = await registerContainer({ mirrorRoot: temporary, containerPath: archivePath, now: 5 });
     assert.match(again.log.join("\n"), /清单已替换/);
     const replaced = parseResourceManifest(JSON.parse(readFileSync(path.join(meta, "resources"), "utf8")), "p3553");
-    assert.equal(replaced.files.filter(file => file.name === "track_kartcity.rho").length, 1);
+    assert.equal(replaced.files.filter(file => file.name === "track_kartcity_registration_test.rho").length, 1);
     assert.equal(replaced.files.at(-1).mtimeMs, 5);
     const replacedIndex = await decodeArchiveIndex(
       new Blob([readFileSync(path.join(meta, "archive-index"))]).stream(), replaced);
-    assert.equal(replacedIndex.rho.filter(item => item.name === "track_kartcity.rho").length, 1);
+    assert.equal(replacedIndex.rho.filter(item => item.name === "track_kartcity_registration_test.rho").length, 1);
 
     // The browser's library loader reads the new container through the index
-    // (aaa.pk comes from the real mirror; the unmounted archive mounts as track_kartcity/).
+    // (aaa.pk comes from the real mirror; the unmounted archive mounts as track_kartcity_registration_test/).
     const { Sw } = await import("../../src/generated/library.js");
     const sources = [
       diskSource(path.join(realMirrorRoot, "mirror/p3553/aaa.pk"), "aaa.pk"),
-      diskSource(result.target, "track_kartcity.rho"),
+      diskSource(result.target, "track_kartcity_registration_test.rho"),
     ];
     const library = await loadSwWithReadableCodec(Sw, sources, undefined, replacedIndex);
     assert.deepEqual(library.errors, []);
-    const model = library.files.find(file => file.virtualPath === "track_kartcity/track.1s");
-    assert.ok(model, "track_kartcity/track.1s is listed");
-    assert.equal(model.sourceName, "track_kartcity.rho");
+    const model = library.files.find(file => file.virtualPath === "track_kartcity_registration_test/track.1s");
+    assert.ok(model, "track_kartcity_registration_test/track.1s is listed");
+    assert.equal(model.sourceName, "track_kartcity_registration_test.rho");
     assert.deepEqual(await model.bytes(), cityArchiveFiles()[0].bytes);
     const formats = await import("../../src/generated/formats.js");
     assert.equal(formats.y9(await model.bytes()).root.name, "kartcity");

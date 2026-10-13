@@ -40,6 +40,7 @@ import { createBasicTextureMaterial } from "../resources/basic-texture-material.
 import { decodePngRgba } from "../resources/png-decoder.ts";
 import { normalizeLegacyTextureAlpha } from "../resources/texture-alpha.ts";
 import { buildTrackCourseGraph } from "../resources/track-course-graph.ts";
+import { cameraCullingPlanes } from "../resources/camera-culling-planes.ts";
 const fontLayoutOps = { attribute: T, rectangle: lt, parseNumbers: j2 };
 import { $1, $i, Am, B2, Bl, Cm, D1, D2, D9, F1, GG, Gl, H, Hi, J9, M1, Mm, Nc, ON, Pl, R4, R9, S1, Sm, T2, Tl, VN, Vt, W2, Wi, Y2, Z9, _0, _9, _l, ao, bm, co, e5, e9, h3, h9, ir, l1, l2, lG, me, n5, oo, r1, r9, rG, ra, ro, rr, s1, s5, so, t9, tn, u1, u4, u9, v1, v2, v9, xm, y1, ym, yr, ys } from "./vendor.js";
 
@@ -1573,20 +1574,7 @@ const cB = Array.from({ length: 6 }, () => ({
 }));
 
 function lB(n) {
-  const e = x2(Math.tan((n.fov * Math.PI) / 360)),
-    t = x2(e * x2(n.aspect)),
-    i = x2(n.near),
-    r = x2(n.far),
-    s = n.matrixWorld.elements;
-  return (
-    si(0, 0, 0, 1, 0, 0, -i, s),
-    si(1, 0, 0, -1, 0, 0, -r, s),
-    si(2, 1, 0, t, x2(t * r), 0, -r, s),
-    si(3, -1, 0, t, x2(-t * r), 0, -r, s),
-    si(4, 0, -1, e, 0, x2(-e * r), -r, s),
-    si(5, 0, 1, e, 0, x2(e * r), -r, s),
-    cB
-  );
+  return cameraCullingPlanes(n);
 }
 
 function si(n, e, t, i, r, s, o, a) {

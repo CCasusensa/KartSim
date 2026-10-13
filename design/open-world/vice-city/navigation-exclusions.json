@@ -1,0 +1,769 @@
+{
+  "source": "Independent native collision report native-verification-before-navigation-trim.json",
+  "trackSha256": "16a2df1c661b7e6f0f030aec924def65179fa531b8daa953b8dd999b5ac6f317",
+  "designSha256": "83535140b741037a0300a8808ab6dd3623fa111182fd3966a73ce7fc87943b08",
+  "note": "Remove unsafe recovery segments and adjacent endpoints; original scene roads and native bridge collision remain. Re-audit after rebuild.",
+  "roads": [
+    {
+      "road": "vc-road-011",
+      "pointsSha256": "1dc715797c6048748bf5e3942f145861b6888aa51ff623925ae00094eca21041",
+      "segments": [
+        {
+          "index": 1,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 2,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-026",
+      "pointsSha256": "2a32d03f6f61c013cc42f77c046196466182138fa44ba943dca83e7da233af0e",
+      "segments": [
+        {
+          "index": 19,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 20,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-027",
+      "pointsSha256": "2581fbb17c0af8e7b306d3da7741a618721226131c92b3092a6532197264b057",
+      "segments": [
+        {
+          "index": 4,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 5,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 6,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-067",
+      "pointsSha256": "6707f3f4aa62945781d5f31b2fab4c3e5cefa5a321feec1cf7903d8c66edd724",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 1,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-075",
+      "pointsSha256": "6db2cfdc5247e2197b122ec3b09d0b34ba365ffae3bc89c8c20c0454bc3cb890",
+      "segments": [
+        {
+          "index": 12,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 13,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 14,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 15,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-186",
+      "pointsSha256": "5bc2a796823dc0acfeb70901fd4ff18906e77e855649618bb70597d41ae126dc",
+      "segments": [
+        {
+          "index": 14,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 15,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 16,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 17,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 18,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-190",
+      "pointsSha256": "62675f5dbcdfb9f5e3e882527be6716829955c127fd7d9e704e6cbb9bf61af4b",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-199",
+      "pointsSha256": "d8ea37e8af5c08b7f4b80cbc610c7d5d6ab3b0aac6d4fcbd0063dc89edcd745a",
+      "segments": [
+        {
+          "index": 13,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 14,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 15,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 50,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 51,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 52,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 75,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 76,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 77,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 90,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 91,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 92,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-247",
+      "pointsSha256": "d87cee6e2b5555a97f309c9da584d70f377ba85726a25831f7f9a0c129d71806",
+      "segments": [
+        {
+          "index": 12,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 13,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 14,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-248",
+      "pointsSha256": "698fd7c75f4207bc14480c373d8ac435b741242176701f660c13dbb8f0b8cd2a",
+      "segments": [
+        {
+          "index": 15,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 16,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 17,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-257",
+      "pointsSha256": "6040033ebfed6aea5ec1f2db7a0f13bf035e49850cdab4794cf53987afc98166",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-277",
+      "pointsSha256": "0a1a3b1c290334763ac9fe32f4406a201b46be0b93f8718f1307cd215fa3a843",
+      "segments": [
+        {
+          "index": 4,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 5,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 6,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 10,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 11,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 12,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 13,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 15,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 16,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 17,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 22,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 23,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 24,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 25,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 54,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 55,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 56,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 84,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 85,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 86,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-278",
+      "pointsSha256": "597dad16b3a78e6f0e0257398b315cb2633e9c20d997b6d51cba12b71446ae2a",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 1,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 2,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 17,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 18,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 19,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 26,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 27,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 28,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction",
+            "path-height-mismatch",
+            "path-steep-surface"
+          ]
+        },
+        {
+          "index": 29,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-height-mismatch",
+            "path-steep-surface"
+          ]
+        },
+        {
+          "index": 30,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-height-mismatch",
+            "path-steep-surface"
+          ]
+        },
+        {
+          "index": 31,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-steep-surface"
+          ]
+        },
+        {
+          "index": 32,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-steep-surface"
+          ]
+        },
+        {
+          "index": 33,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 55,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 56,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-279",
+      "pointsSha256": "81cb2f2e9a40eada2212164636d43e17ccd10c06b374ad9b610b7366ed2ac24f",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 1,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 2,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 5,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 6,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 7,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-303",
+      "pointsSha256": "2ecda8d9941d7c3f704e4a050618e5bc1a7b9429b36084ba839f29a405b170e3",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 1,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-height-mismatch"
+          ]
+        },
+        {
+          "index": 2,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-height-mismatch"
+          ]
+        },
+        {
+          "index": 3,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-304",
+      "pointsSha256": "1292aeb324388a2b07b1d0e245ba7cadbef540bd59ba9538604962b5a436c976",
+      "segments": [
+        {
+          "index": 18,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 19,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 20,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-306",
+      "pointsSha256": "49f62911e5aaa79959a7f752b198dd5e3e70e5e2f92c267f9e9399c58807dafd",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 1,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 2,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 3,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 4,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 5,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 6,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 7,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 8,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction",
+            "path-height-mismatch"
+          ]
+        },
+        {
+          "index": 9,
+          "reasons": [
+            "adjacent-recovery-clearance",
+            "path-forward-obstruction",
+            "path-height-mismatch"
+          ]
+        },
+        {
+          "index": 10,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-322",
+      "pointsSha256": "aaf36101ae7c05ef7e42ce47c2f0f8f9914619c94d3f307d701b94b3e80960d1",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        },
+        {
+          "index": 1,
+          "reasons": [
+            "path-forward-obstruction"
+          ]
+        },
+        {
+          "index": 2,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    },
+    {
+      "road": "vc-road-326",
+      "pointsSha256": "f6aba0a1f796ed8d48e24894c99985e672b5ef703bbb649f856dd920924a68fd",
+      "segments": [
+        {
+          "index": 0,
+          "reasons": [
+            "path-height-mismatch"
+          ]
+        },
+        {
+          "index": 1,
+          "reasons": [
+            "adjacent-recovery-clearance"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "glbBytes": 283677788,
+  "blendBytes": 203244485,
+  "meshes": 8699,
+  "triangles": 1139575,
+  "materials": 2629,
+  "images": 2495,
+  "exactOriginalImagePayloads": 2495,
+  "alphaModes": {
+    "OPAQUE": 2422,
+    "MASK": 204,
+    "BLEND": 3
+  },
+  "collisionMaterials": 2355,
+  "surfaceClasses": {
+    "water": 4,
+    "alpha-detail": 194,
+    "solid": 2355,
+    "foliage": 6,
+    "decorative-plane": 70
+  },
+  "extensions": [
+    "KHR_materials_specular"
+  ],
+  "copyright": "GTA Vice City original assets: Rockstar; third-party conversion: Father Of The Poor (FatherOfThepPoor), source labeled CC BY 4.0. See source.json for rights status.",
+  "overview": {
+    "minX": -3417.869568481445,
+    "maxX": 1271.7400213623046,
+    "minZ": -1990.4496923828124,
+    "maxZ": 2699.1598974609374
+  }
+}

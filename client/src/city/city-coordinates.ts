@@ -2,8 +2,8 @@
  * 卡丁城 coordinates. The design (city-map.json, the server protocol) uses
  * x east, z south, y up with the origin at the fountain; the generated track
  * sits in the engine's world with the design shifted so client coordinates
- * are positive (client x = design x + 1200, client y = 1200 − design z).
- * In the three.js world that is x = design x + 1200, z = design z − 1200.
+ * are positive using the independent X/Z bounds in meta.extent.
+ * The three.js world uses x = design x + OFFSET_X, z = design z − OFFSET_Z.
  */
 import cityMap from "./city-map.json";
 

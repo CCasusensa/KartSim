@@ -1,0 +1,46 @@
+{
+  "map": "卡丁城 · 罪恶都市",
+  "version": 6,
+  "rhoSha256": "248bc08e1d8069b6bf87971fb5623136870c66a7ea1fc493be8973e50a2a897c",
+  "designSha256": "c8201a56b1d1090f5e7aee38719d8a50ee29d248b6cee225f37e8fe229a2621d",
+  "trackSha256": "16a2df1c661b7e6f0f030aec924def65179fa531b8daa953b8dd999b5ac6f317",
+  "native": {
+    "passed": true,
+    "failureCount": 0,
+    "navigationWarningCount": 0,
+    "drivesPassed": 8
+  },
+  "browser": {
+    "url": "http://127.0.0.1:8782/",
+    "enteredFromLobby": true,
+    "streetDriveMeters": 24.919500203126297,
+    "bridgeDriveMeters": 35.51667569461176,
+    "bridgeSettledHeight": 25.1474609375,
+    "parkedAt": "spawn-main",
+    "screenshots": [
+      "game-ocean-beach.png",
+      "game-bridge.png",
+      "preview-overview.png"
+    ]
+  },
+  "onlineSmoke": {
+    "passed": true,
+    "checks": [
+      "city join",
+      "respawn",
+      "near chat",
+      "emote",
+      "motion relay",
+      "radar",
+      "city leave",
+      "room boundary"
+    ]
+  },
+  "tests": {
+    "goCity": "passed",
+    "containerRegistration": "passed",
+    "scopedTypescript": "passed",
+    "groundSnapAndCity": "7 passed",
+    "clientTargetedBeforeGroundSnap": "10 passed, resource-lookup blocked by pre-existing missing recovered/formatted/index.js"
+  }
+}

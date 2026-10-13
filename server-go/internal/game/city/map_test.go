@@ -2,9 +2,10 @@ package city
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
+	"reflect"
 	"testing"
 )
 
@@ -29,47 +30,81 @@ func TestDefaultMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.Name != "卡丁城" || len(m.Districts) != 7 || len(m.Spawns) != 7 {
-		t.Fatalf("name %q, %d districts, %d spawns", m.Name, len(m.Districts), len(m.Spawns))
+	var raw rawMap
+	if err := json.Unmarshal(embeddedMap, &raw); err != nil {
+		t.Fatal(err)
 	}
-	// Rotation order: the main spawn first, then the district spawns the
-	// city builder generated, as listed.
-	var order []string
-	for _, spawn := range m.Spawns {
-		order = append(order, spawn.ID)
-		if spawn.Heading < 0 || spawn.Heading >= 360 {
-			t.Fatalf("spawn %s heading %v", spawn.ID, spawn.Heading)
+	if m.Name == "" || m.Name != raw.Meta.Name || len(m.Districts) != len(raw.Districts) {
+		t.Fatalf("name %q, %d districts; source %q, %d districts", m.Name, len(m.Districts), raw.Meta.Name, len(raw.Districts))
+	}
+	// Compare every stored spawn field, keeping the main spawn first and all
+	// remaining spawn POIs in file order. Non-spawn POIs must be omitted.
+	var wantSpawns []Spawn
+	for _, main := range []bool{true, false} {
+		for _, poi := range raw.POIs {
+			if poi.Kind == "spawn" && (poi.ID == "spawn-main") == main {
+				wantSpawns = append(wantSpawns, Spawn{ID: poi.ID, X: poi.At[0], Y: poi.Y, Z: poi.At[1], Heading: poi.Heading})
+			}
 		}
 	}
-	if strings.Join(order, ",") != "spawn-main,spawn-city,spawn-ice,spawn-beach,spawn-village,spawn-desert,spawn-forest" || m.Spawns[0].X != 75 || m.Spawns[0].Z != 129.9 {
-		t.Fatalf("spawns %+v", m.Spawns)
+	if len(wantSpawns) < 2 || !reflect.DeepEqual(m.Spawns, wantSpawns) {
+		t.Fatalf("spawns %+v, want %+v", m.Spawns, wantSpawns)
 	}
-	// The map spans ±1200 m: the physics frame is shifted by that.
-	if m.OffsetX != 1200 || m.OffsetZ != 1200 {
-		t.Fatalf("offsets %v %v", m.OffsetX, m.OffsetZ)
+	for _, want := range wantSpawns {
+		if got, ok := m.Spawn(want.ID); !ok || got != want {
+			t.Errorf("Spawn(%q) = %+v, %v; want %+v", want.ID, got, ok, want)
+		}
+		if want.Heading < 0 || want.Heading >= 360 {
+			t.Errorf("spawn %s heading %v", want.ID, want.Heading)
+		}
 	}
-	if spawn, ok := m.Spawn("spawn-forest"); !ok || spawn.X != -206.9 || spawn.Z != -306.7 || spawn.Heading != 236 {
-		t.Fatalf("spawn-forest %+v %v", spawn, ok)
+	if _, ok := m.Spawn("__missing_spawn__"); ok {
+		t.Fatal("unknown spawn exists")
 	}
-	if _, ok := m.Spawn("spawn-moon"); ok {
-		t.Fatal("spawn-moon exists")
+	if len(raw.Meta.Extent) != 2 || m.OffsetX != -raw.Meta.Extent[0][0] || m.OffsetZ != raw.Meta.Extent[1][1] {
+		t.Fatalf("offsets %v %v, extent %v", m.OffsetX, m.OffsetZ, raw.Meta.Extent)
+	}
+	for i, want := range raw.Districts {
+		got := m.Districts[i]
+		if got.ID != want.ID || got.Name != want.Name || len(got.polygon) != len(want.Polygon) {
+			t.Fatalf("district %d = %+v, want %+v", i, got, want)
+		}
+		for j, point := range want.Polygon {
+			if got.polygon[j] != [2]float64{point[0], point[1]} {
+				t.Errorf("district %s point %d = %v, want %v", want.ID, j, got.polygon[j], point)
+			}
+		}
+		if len(want.Circle) == 3 && got.circle != [3]float64{want.Circle[0], want.Circle[1], want.Circle[2]} {
+			t.Errorf("district %s circle %v, want %v", want.ID, got.circle, want.Circle)
+		}
+	}
+	if !reflect.DeepEqual(m.Rules, raw.Rules) {
+		t.Fatalf("rules %v, want %v", m.Rules, raw.Rules)
+	}
+}
+
+func TestLoadRectangularMap(t *testing.T) {
+	// Unequal, asymmetric bounds catch swapped axes and half-size offsets
+	// even if the currently embedded map happens to be square or centered.
+	m, err := Load([]byte(`{"meta":{"name":"Rectangular fixture","extent":[[-900,-1500],[700,2300]]},
+		"districts":[{"id":"plaza","name":"Plaza","polygon":[[-400,-600],[400,-600],[400,0],[-400,0]]},
+		{"id":"harbor","name":"Harbor","circle":[800,700,100]}],
+		"pois":[{"id":"second","kind":"spawn","at":[100,200],"y":37.25,"heading":135},
+		{"id":"shop","kind":"function","at":[0,0]},
+		{"id":"spawn-main","kind":"spawn","at":[-200,-300],"y":9.5,"heading":270}],
+		"rules":{"instancePlayers":60}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []Spawn{{ID: "spawn-main", X: -200, Y: 9.5, Z: -300, Heading: 270},
+		{ID: "second", X: 100, Y: 37.25, Z: 200, Heading: 135}}
+	if m.Name != "Rectangular fixture" || m.OffsetX != 900 || m.OffsetZ != 2300 || !reflect.DeepEqual(m.Spawns, want) {
+		t.Fatalf("map %+v, spawns %+v", m, m.Spawns)
 	}
 	for _, tc := range []struct {
 		x, z float64
 		want string
-	}{
-		{0, 0, "plaza"},            // the fountain
-		{0, 120, "plaza"},          // inside the plaza disc (r 125)
-		{0, 150, "village"},        // the 城镇小屋 sector (south, 240°–300°)
-		{0, -370, "city"},          // 摩天城区 (north)
-		{320.4, -185, "ice"},       // 冰河乐园 (north-east)
-		{320.4, 185, "beach"},      // 阳光海滩 (south-east)
-		{-320.4, 185, "desert"},    // 金字塔沙漠 (south-west)
-		{-320.4, -185, "forest"},   // 森林公园 (north-west)
-		{0, 700, Outside},          // beyond the ring expressway
-		{1150, -1150, Outside},     // a corner outside every district
-		{-5000, 0, Outside},        // off the map
-	} {
+	}{{-200, -300, "plaza"}, {800, 700, "harbor"}, {899, 700, "harbor"}, {901, 700, Outside}, {-500, -300, Outside}} {
 		if got := m.DistrictAt(tc.x, tc.z); got != tc.want {
 			t.Errorf("DistrictAt(%v, %v) = %s, want %s", tc.x, tc.z, got, tc.want)
 		}
@@ -110,12 +145,12 @@ func TestLoadRefusesBrokenMaps(t *testing.T) {
 			t.Errorf("%s: accepted", name)
 		}
 	}
-	m, err := Load([]byte(`{"districts":[{"id":"a","circle":[0,0,5]}],"pois":[{"id":"s2","kind":"spawn","at":[1,2],"heading":45},
+	m, err := Load([]byte(`{"districts":[{"id":"a","circle":[0,0,5]}],"pois":[{"id":"s2","kind":"spawn","at":[1,2],"y":137.25,"heading":45},
 		{"id":"spawn-main","kind":"spawn","at":[3,4]},{"id":"shop","kind":"function","at":[9,9]}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(m.Spawns) != 2 || m.Spawns[0].ID != "spawn-main" || m.Spawns[1].Heading != 45 ||
+	if len(m.Spawns) != 2 || m.Spawns[0].ID != "spawn-main" || m.Spawns[1].Heading != 45 || m.Spawns[1].Y != 137.25 ||
 		m.OffsetX != 0 || m.OffsetZ != 0 {
 		t.Fatalf("spawns %+v, offsets %v %v", m.Spawns, m.OffsetX, m.OffsetZ)
 	}

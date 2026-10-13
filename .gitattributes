@@ -1,3 +1,5 @@
 mirror/p3553/*.rho5 filter=lfs diff=lfs merge=lfs -text
 mirror/p3553/*.rho filter=lfs diff=lfs merge=lfs -text
 design/open-world/tripo/*.glb filter=lfs diff=lfs merge=lfs -text
+design/open-world/vice-city/assets/*.blend filter=lfs diff=lfs merge=lfs -text
+design/open-world/vice-city/assets/*.glb filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,57 @@
+{
+  "title": "GTA Vice City full map, six GLB parts",
+  "game": "Grand Theft Auto: Vice City",
+  "uploader": "Father Of The Poor (FatherOfThepPoor)",
+  "modelPage": "https://sketchfab.com/3d-models/gtavc-bolum-4-6-3dmodel-d5b8f8b5cdd54bc29a4f0bbf7e800a5c",
+  "downloadPage": "https://dosya.co/0oklfr4rb9f2/gtavicecity_full-map-file.rar.html",
+  "downloadedOn": "2026-10-13",
+  "pricePaid": 0,
+  "uploaderLicenseLabel": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "rightsNote": "The third-party uploader labels the conversion CC BY 4.0. This record does not establish authorization from Rockstar or ownership of the original game models and textures. No official Rockstar asset license was located.",
+  "changes": [
+    "Uniform scale 100 with original shared scene coordinates",
+    "Deduplication of overlapping objects, materials, and embedded images",
+    "Restore PNG alpha as cutout or blended materials",
+    "Add native KartSim collision classification, native track route and minimap",
+    "Extract recovery navigation from original asphalt triangles; add city spawn metadata"
+  ],
+  "sourceFiles": [
+    {
+      "file": "bolum1.glb",
+      "bytes": 95594984,
+      "sha256": "51723ce7afe48402c339680673d18bd2805a8ff62dcb83b6f1b22b4c0666f8f6",
+      "triangles": 353222
+    },
+    {
+      "file": "bolum2.glb",
+      "bytes": 104159060,
+      "sha256": "0ef63cd2f63c859e6efee9f776c2f7b3936fbb09473765914f340335bf4036db",
+      "triangles": 316884
+    },
+    {
+      "file": "bolum3.glb",
+      "bytes": 82659936,
+      "sha256": "1c3733e3853b48ed22283f2403ffe3d745b9b85a7196f29eedb26f02054ba9ad",
+      "triangles": 184171
+    },
+    {
+      "file": "bolum4.glb",
+      "bytes": 91700448,
+      "sha256": "09d342cfc2cbc8df185ada4132f20283d7611901ce534cbc294176525cf85d92",
+      "triangles": 260435
+    },
+    {
+      "file": "bolum5.glb",
+      "bytes": 117443684,
+      "sha256": "988b74c34c5662fd1d79a8cc28eb59e16d9e765302ae441053edc1a1810a9b1d",
+      "triangles": 296581
+    },
+    {
+      "file": "bolum6.glb",
+      "bytes": 77319236,
+      "sha256": "64a11fdd649298824c807fb9a995787b245ea9698ab8ca35c79cc01806a347cb",
+      "triangles": 227649
+    }
+  ]
+}

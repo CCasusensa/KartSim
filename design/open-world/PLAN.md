@@ -1,5 +1,192 @@
 # 卡丁城：开放世界自由驾驶模式 —— 计划书
 
+## 2026-10-13 当前实现：罪恶都市原生地图已生成并注册
+
+按用户最新要求，已将免费的 **GTA Vice City 完整三维地图**转换为卡丁城使用的原生 `.1s` / RHO，并注册到 `mirror/p3553/track_kartcity.rho`。地图来自上传者 Father Of The Poor 提供的六块带内嵌贴图的 GLB；文件校验值、出处和改动记录保存在 [vice-city/source.json](vice-city/source.json)。来源为 [Sketchfab 模型页](https://sketchfab.com/3d-models/gtavc-bolum-4-6-3dmodel-d5b8f8b5cdd54bc29a4f0bbf7e800a5c)及作者链接的[免费 RAR 下载页](https://dosya.co/0oklfr4rb9f2/gtavicecity_full-map-file.rar.html)。没有购买付费包。
+
+上传者给转换模型标注 **CC BY 4.0**；本记录保留其署名与来源，但并未核实其拥有 Rockstar 原始游戏模型、贴图的授权，不能把这个第三方标签描述为 Rockstar 官方许可。
+
+六块共享同一世界坐标，合并时保持相对位置并统一放大 **100 倍**。游戏与导航范围为 **3.2 × 4.7 km**，设计坐标 X 为 `[-2800,400]`、Z 为 `[-2000,2700]`；普通主路实测约 9–27 m 宽。原始道路、建筑、机场、沙滩和跨海桥保留。设计数据为 v6，包含 **8 个区域、6 个兴趣点、6 个玩家出生点和 387 条恢复道路**。
+
+### 产物与转换结果
+
+| 产物 | 实际大小 | 路径 |
+| --- | --- | --- |
+| 可编辑 Blender 工程 | 203,244,485 字节（193.83 MiB） | `client/build/vice-city/out/kartcity.blend` |
+| 完整合并 GLB | 283,677,788 字节（270.54 MiB） | `client/build/vice-city/out/kartcity.glb` |
+| 原生地图对象图 | 90,352,975 字节（86.17 MiB） | `client/build/vice-city/native/track.1s` |
+| 原生地图资源包 | 170,541,312 字节（162.64 MiB） | `client/build/vice-city/native/track_kartcity.rho`，同内容注册到 `mirror/p3553/track_kartcity.rho` |
+
+源包有 1,638,942 个三角面、5,305 个图片引用。合并按完整几何、拆分法线、UV、材质图与最终世界变换去重，移除 **4,049 个精确重复实例**；最终 GLB 保留 **8,699 个网格、1,139,575 个三角面、2,629 个材质与 2,495 张唯一贴图**。逐图 SHA-256 检查确认导出图像载荷与原始图片一致。源 PNG 的透明区域已恢复，最终有 204 个 MASK 材质和 3 个 BLEND 材质；原漫反射贴图采用非金属材质响应。材质分类及来源说明随产物保存。
+
+原生导入按空间重新组织为 **140 个块、6,214 个渲染网格**，保留全部 1,139,575 个渲染三角面；实际物理读取到 **970,644 个碰撞三角面**。RHO 内有 **2,503 个资源文件**，包含贴图、天空、地图对象图和来源记录。注册时同步了 `design/open-world/city-map.json`、`client/src/city/city-map.json` 与 `server-go/internal/game/city/city-map.json`。
+
+北跨海桥的源模型在同一高度同时存在向上的沥青面与朝下的桥壳面，会使原生车辆选中错误法线。`road-collision-repair.mjs` 仅取消 **179 个与已确认向上道路完全重合的反向面**的碰撞，保留其渲染，也保留较低的真实桥底及侧墙。没有把全部向下面翻转，也没有删除桥梁模型。
+
+恢复导航从实际沥青、跑道与桥面提取。针对飞机、护栏等实体障碍，按独立碰撞检查记录排除 **103 段不适合复位的导航线段**；这是恢复线调整，原场景模型与障碍物均保留。排除记录在 [vice-city/navigation-exclusions.json](vice-city/navigation-exclusions.json)，每条输入恢复线使用几何哈希校验，源线变化时要求重新核查。
+
+### 已完成的原生验证
+
+卡丁城车辆使用原尺寸的 **75%**：本地物理碰撞、轮胎接地点、角色/卡丁车表现与远端显示共享相同比例，复位后保持。普通赛道尺寸不变，设计预览同步缩放。`city-vehicle-scale.test.ts` 使用真实 AL 检查尺寸、轮胎、重生、持续行驶与远端姿态。缩小车辆的全图验收记录为 `native-verification-city-scale.json`：8/8 驾驶通过，0 硬错误、0 导航警告。
+
+`client/build/vice-city/native-verification.json` 记录最终 `.1s` 的实际解析、地面射线、前向净空、车辆包围盒及原生 AL 车辆驾驶结果：**0 个硬错误、0 个导航警告、8/8 次驾驶通过**。8 次测试覆盖六个玩家出生点，以及北跨海桥向东、向西各至少 20 m 的驾驶；共执行 **22,966 个地面探针、13,685 次前向扫描**，出生点包围盒重叠为 0。该结论针对最终原生数据与自动驾驶检查。
+
+复位落地逻辑另作修正：原生地面射线会返回真实桥底的朝下面，旧逻辑可能在桥顶下方约 1.96 m 处选中桥底。正式卡丁城和 Blender 预览现共用 `city-ground.ts`，只把法线向上且满足原生坡度阈值的表面作为落地点，保留桥底的实际碰撞。使用真实 `StaticTrackSurface` 的双层桥、隧道及仅含朝下面场景完成回归；落地与大陆相关测试 **7/7 通过**，预览语法检查和局部 TypeScript 检查通过。
+
+正式游戏已从大厅“卡丁城 »”入口载入本版 RHO，使用现有账号的卡丁车、人物与原生 HUD。浏览器实际街道加速驶出 24.92 m；修复落点选择后，北跨海桥复位高度为路面上方 0.4 m，落地约 25.147 m，实际加速驶出 35.52 m。现场截图保存在 `client/build/vice-city/game-ocean-beach.png` 与 `game-bridge.png`。本地游玩地址为 **http://127.0.0.1:8782/**，已将测试车辆停在海洋海滩出生点。
+
+服务端 `go test ./internal/game/city` 通过；`city-smoke.mjs` 通过加入城市、出生点复位、附近聊天、表情、移动转发、雷达和离开流程。RHO 清单/索引重新扫描一致，三份地图 JSON 的 SHA-256 一致。客户端相关定向检查通过；`resource-lookup.test.ts` 仍因仓库既有缺失 `recovered/formatted/index.js` 无法运行，全量测试不能据此宣称全部通过。
+
+相关记录位于 `client/build/vice-city/`：`source-audit.json` 保存源审计；`out/vice-city-source-report.json`、`out/vice-city-export-check.json` 和 `out/vice-city-surface-classes.json` 保存合并、图像及材质检查；`out/navigation-report.json` 保存导航统计；`native-verification.json` 保存最终原生验收。`out/overview.png` 为 1536 × 1536 俯视图，精确像素对应范围在 `out/overview-bounds.json`。出处与授权记录同时保存在 `out/source.json`、`native/source.json` 和 RHO 内。
+
+### 可复现构建与注册
+
+先将已核验的 `bolum1.glb` 至 `bolum6.glb` 放入 `client/build/vice-city/source/`。在 `client/` 执行以下命令；Python 需安装 NumPy 与 Pillow，本机 Blender 路径可替换为其他平台的 Blender 5 可执行文件。
+
+```sh
+# 审计六块源文件，并抽取实际可行驶材质的道路三角面
+node tools/city/blender/verify-vice-city.mjs
+
+# 保持共同坐标、放大100倍、恢复透明材质，生成可编辑工程与GLB
+"$HOME/.cache/kartsim/Blender.app/Contents/MacOS/Blender" \
+  -b --disable-autoexec --python-exit-code 1 \
+  --python tools/city/blender/vice_city_scene.py -- --scale 100
+
+# 从源路面生成导航，应用已记录且经过几何哈希校验的障碍排除项
+python3 tools/city/blender/vice-city-navigation.py \
+  --exclusions ../design/open-world/vice-city/navigation-exclusions.json
+
+# 先写隔离的原生地图，再运行实际原生碰撞与车辆检查
+node --import tsx tools/city/blender/import-city.mjs \
+  --in build/vice-city/out --out build/vice-city/native
+node --import ./src/physics/node-raw-test-hook.mjs --import tsx \
+  tools/city/blender/verify-vice-city-native.mjs
+
+# 原生验收通过后注册RHO，并同步客户端、服务端与设计目录的地图JSON
+node --import tsx tools/city/blender/import-city.mjs \
+  --in build/vice-city/out --out build/vice-city/native --register
+```
+
+已有合并工程时，可将 Blender 命令末尾追加 `--resume-blend build/vice-city/out/kartcity.blend`，直接更新材质、俯视图与 GLB，无需重新读取六个源分块。场景设计预览入口为 `/tools/city/blender/preview.html?map=vice-city`，读取本版 GLB 和原生 `track.1s`；正式卡丁城使用已注册的 RHO。
+
+旧 v5 中间产物保存在 `client/build/map-variants/continent-v5-wip/`，其原生碰撞仍有未解决问题，不作为完成版本。下方 v5、v4 及早期计划均为历史记录。
+
+## 2026-10-13 历史设计：山海环游大陆 v5（未完成，已切换方向）
+
+v5 针对 v4 的地形衔接、散点建筑、过高植被与大面积灰色建筑底座进行重构。范围保持 **4.8 × 4.4 km**，保留城镇、都市、森林、雪域、沙漠、矿山、工厂与海湾八个跑跑主题区域。下方 v4 的数量、画面与验收结果仅作为历史记录；本节描述当前生成源码及其验证状态。
+
+### 参考与设计取舍
+
+本次所说的“乐高城”参考明确为 **Forza Horizon 4: LEGO Speed Champions**。Xbox 官方介绍展示了积木山谷中的城镇、赛车场、特技公园与海盗海湾等目的地；本地图借鉴其集中聚落、清楚地标和可开车到达的游乐地点。[Xbox 官方介绍](https://news.xbox.com/en-us/2019/06/09/forza-horizon-4-lego-speed-champions-announce/)
+
+**Mario Kart World** 的开发者访谈说明了将赛道、连接道路与自由漫游放在同一个连续世界中的设计。本地图据此把主题道路和新试驾环接入日常路网，让连接区域本身也有河谷、沿海与山岭驾驶体验。[Nintendo 官方开发者访谈](https://www.nintendo.com/us/whatsnew/ask-the-developer-vol-18-mario-kart-world-part-1/)
+
+这些游戏提供布局和游玩节奏的参考。本版由本项目的程序化地形、既有主题素材及生成模型构建，没有复制或移植 Forza、LEGO 或 Mario Kart 的地图、模型与贴图。
+
+### 大陆、道路与目的地
+
+- 路网从 34 条扩展为 **39 条**，按当前源码中心线统计总长约 **53.25 km**。保留外环、内环和各主题区联络高速，普通道路继续使用开放路肩。
+- 山体采用连续山脊、丘陵起伏与山口；取消随机摆放的巨大锥形雪山。道路以真实自然地形为初始高程，并通过全路网坡度约束形成连续山路、切坡和桥梁接近段。
+- 曲流、湖盆与海湾纳入同一高度场。海岸的零距离线、河道边界和湖岸边界与相应水面高度匹配，岸坡再逐渐接回陆地，减少看似干燥但实际浸水的岸线。
+- 草地、林地、干草原、沙漠、矿山、海岸与雪线使用连续的共享顶点颜色。雪量结合高程与坡度变化，陡面适当露岩；相邻 20 m 网格不再通过硬切换材质形成颜色棋盘。
+- **积木嘉年华试驾环** `festival-circuit`：城镇西南侧约 `(-420, -350)`，通过 `festival-access` 接入街区，设计为可自由驶入的紧凑环路、彩色模块看台和集结场，不设置外围封闭围墙。
+- **雪岭天际公路** `alpine-hairpins`：连接既有雪峰观景路，增加连续爬升、回头弯与山口视野。
+- **落日崖海岸线** `coastal-lookout`：沿西南海岸连接外环与海湾，形成海崖和沙滩之间的观景驾驶支路。
+- **林间河谷拉力线** `valley-rally`：把森林入口、河谷和沙漠联络路串成可驶入的土路探索路线。
+
+本节坐标均使用 Blender 设计坐标：X 向东、Y 向北、Z 向上；导出的游戏地图会进行对应坐标转换。
+
+### 聚落、景观与落地约束
+
+城镇和都市沿道路布置连续街坊，加入贴地人行铺装、门前院、树荫小庭院、长椅、路灯和广场斑马线。多数普通建筑回到约 0.9–1.15 倍素材尺度，钟楼、风车、雪城、井架与灯塔保留为区域地标。中央喷泉移至 `(-43, 43)` 并缩至 0.85 倍，两个穿越广场的道路中心线保持通畅。
+
+普通低面树由原先 22–46 m 的随机密布改为 **6.5–20 m** 的林簇，镇内外留出开阔草场和牧场；北方针叶树只在顶部树冠积雪。当前确定性布置 dry-run 生成 **830 个 Tripo 道具与 1,641 棵低面树**，包含约 210 幢城镇沿街建筑、35 幢都市沿街建筑及 83 幢港镇与绿洲沿街建筑；最终导出数量以构建产物为准。
+
+建筑使用地形内的平缓场地与贴地石质裙基。放置前对完整旋转足迹的四角、中心及四边中点共 **9 点**采样，地面高差超过 **2 m** 的普通建筑地块会被拒绝，避免用高大灰盒填补山坡。雪城、金字塔与矿场工坊等大地标使用专门的地形平台；平台保留道路缓冲范围，避免改变通行路面。道具导出数据记录朝向、足迹、采样坐标、基础高度和道路净空，供独立复验。
+
+### 当前验证状态与产物
+
+截至本节更新，已完成生成源码的 Python 语法检查与最新高度场上的完整布置 dry-run。所有地标找到可用地块；按九点全足迹统计，最高外露基础约 **1.980 m**，普通 Tripo 道具对最近道路边缘的保守包围圆净空最小约 **5.035 m**。海上船只作为水面地标单独标记，不套用普通建筑落地标准。
+
+正式 Blender 场景构建正在进行。**v5 的 RHO 导出、原生碰撞探测、实际卡丁城试驾和画面检查尚待本次构建完成后记录**，不能沿用下方 v4 的通过结果作为 v5 验收。
+
+生成入口仍为 `continent.py`、`continent_scene.py` 和 `scene_library.py`，继续输出可编辑的 `kartcity.blend`、`kartcity.glb` 与设计数据，并走现有 RHO / `.1s` 导入链路。新增 `continent-props.json` 的九点落地元数据与 `continent-landscape.json` 的街坊、树簇、目的地统计用于检查场景布局。构建和正式游戏启动命令见下方 v4 历史记录中的对应操作段落；最终资源规模及验证报告由本次 v5 构建结果补充。
+
+### 外部地图资源评估（2026-10-13）
+
+本次检查了官方资产目录、许可证、文件列表和小型 XML 配置，**没有下载完整地图资产包，也没有将下列外部地图导入 v5**。可复用资产与游戏引擎分别核对许可；“可以下载游戏或模组”不等于该地图资产已授予跨项目复用许可。
+
+| 候选及来源 | 实际格式与规模 | 可落地方式与许可范围 |
+| --- | --- | --- |
+| **SuperTuxKart · Overworld**：[Blender 源目录](https://svn.code.sf.net/p/supertuxkart/code/media/trunk/tracks/overworld/)、[可玩资产目录](https://svn.code.sf.net/p/supertuxkart/code/stk-assets/tracks/overworld/) | 源目录包含 `overworld.blend` 与贴图；发布数据为 `.spm`、`scene.xml`、`materials.xml`、`quads.xml`。是完整自由驾驶枢纽；解析官方 92 个道路四边形得到约 **219 × 620 世界单位**的路网包围范围，这不是完整场景外边界，也不是数公里大陆。 | 最接近现有 Blender → GLB → RHO 管线，适合改成单个区域。[资产 licenses.txt](https://svn.code.sf.net/p/supertuxkart/code/stk-assets/tracks/overworld/licenses.txt) 明确默认 **CC-BY-SA 3.0**，另列 CC0 / 公有领域例外。旧 [licence2.txt](https://svn.code.sf.net/p/supertuxkart/code/stk-assets/tracks/overworld/licence2.txt) 对 `palm_b`、`tree_1` 等保留许可待澄清注记；实际使用前应核清或替换这些素材，并保留资产署名和相同方式共享要求。 |
+| **Stunt Rally 3 · MountCaro / BeachCity**：[官方赛道源库](https://github.com/stuntrally/tracks3) | `heightmap*.f32` 高度图、`road*.xml` 样条与 `scene.xml`。官方 [MountCaro 道路数据](https://raw.githubusercontent.com/stuntrally/tracks3/main/For18-MountCaro/road.xml)记录约 **21.75 km**路线、**1,411 m**高差，含海滨、村庄、山谷和隧道；道路控制点占地约 **1.75 × 1.68 km**。[BeachCity 道路数据](https://raw.githubusercontent.com/stuntrally/tracks3/main/Grc10-BeachCity/road.xml)记录约 **3.56 km**路线及城市海滨探索区域。 | 可将高度图与道路骨架转换进本项目，重新适配坡度、自由路网和卡丁车碰撞。源库明确将**赛道数据本身**以 **GPL 3.0 或后续版本**发布。共用贴图和模型需另外核对；官方 [data.md](https://github.com/stuntrally/stuntrally3/blob/main/docs/data.md)仍记录部分媒体许可清理事项，不能把整款游戏的素材都当成 CC0。它们是完整赛道场景，并非现成的大型自由道路网络。 |
+| **Kenney · Starter Kit Racing**：[官方项目](https://github.com/KenneyNL/Starter-Kit-Racing)、[Racing Kit](https://kenney.nl/assets/racing-kit) | 官方项目直接提供 `models/*.glb`、Godot 的 `scenes/main.tscn` 和可驾驶示例；包含道路拼块、树林、帐篷与车辆。Racing Kit 页面列出 110 件资源。未声称有公里级大地图。 | GLB 可直接进入现有美术流程，适合补齐试驾环和节庆区域。官方 README 将**美术/音效定为 CC0，代码定为 MIT**。这是可扩展的场景组件和小型驾驶示例，不应当作完整开放世界交付。 |
+
+**Mario Kart World** 已核实的官方公开资料是世界地图展示、截图、视频及设计访谈；本次没有找到官方发布、明确允许跨游戏复用的完整 3D 地图源包。[任天堂内容分享规则](https://www.nintendo.co.jp/networkservice_guideline/en/index.html)覆盖视频和截图平台，不能据此推导获得地图模型与贴图的再发布许可。这一结论针对已找到的资源与授权范围，**不表示技术上无法转换**；若提供已获授权的网格、贴图和场景数据，仍可检查格式后通过 Blender 与本项目原生地图管线接入。
+
+---
+
+## 2026-10-12 历史实现：山海环游大陆 v4
+
+v4 地图采用当时选定的 [A 方案](concepts/2026-10-12/a-grand-continent.png)。本节记录 v4 当时的实现与验收；当前实现以顶部的罪恶都市 v6 记录为准。下方 2026-10-11 计划继续保留为更早的历史背景。
+
+- 地图边界 **4.8 × 4.4 km**，约 **47.8 km** 道路；34 条道路全部连通。外环高速约 10.5 km，内环与七条联络高速连接各区。
+- 八区：中央城镇老街、东方摩天都市、西北森林秘境、北方冰河雪域、西南金字塔沙漠、东北矿山峡谷、东南机械工厂、南方海盗海湾。
+- 普通路面无封闭围墙，26 m 高速路面外是每侧 4 m 碎石路肩，再接连续、可碰撞的地形。河床、湖泊与海湾形成真实水域；桥上保留护栏，矿山有可穿行的岩石廊道。
+- 20 m 网格地形包含山脊、丘陵、沙丘、河谷、湖岸与海岸。道路与肩部裁切到同一组地形三角形，防止穿插与碰撞台阶。相邻路段共享坡度约束，交汇区域采用连续高程混合。
+- 新增 8 个 Tripo 低模模型：海盗船、港口瞭望塔、矿井井架、矿车、矿山工坊、工厂、巨型齿轮、储罐。与原有素材共同形成 726 个主题摆件实例，另有约 2400 棵低面数植被。
+- 草地、林地、沙地、雪地与海水使用新生成的手绘贴图。原图和提示词保存在 [textures/v4](textures/v4/prompts.json)；道路、路肩和石材采用可复现的细粒度程序材质。
+- 出生点和最近道路复位均携带真实高程。离开公路不会自动复位；水下、跌出地形或物理异常才触发恢复。
+- 地图已接入正式游戏的“卡丁城”入口，使用玩家装备的卡丁车和人物、原生驾驶 HUD、城市线路与多人同步。远景下的相机剔除改为与 WebGL 实际投影一致，避免车辆在镜头内消失；原生小地图保持 256 单位投影，贴图提高为 1024×1024。
+
+### 在卡丁城里游玩
+
+本次本地完整服务地址为 **http://127.0.0.1:8782/**，从首页点击 **卡丁城 »** 即可进入山海环游大陆。方向键驾驶、Shift 漂移、Enter 聊天、连续两次 Esc 离开。此入口使用地图的原生 RHO / `.1s` 资源；下方 8780 地址是 Blender 场景设计预览。
+
+本次启动使用隔离的开发 MySQL / Redis（13306 / 16379），账号服务为 8787，游戏节点为 8788；没有占用已有 3306 / 6379 服务。已有 Docker 依赖运行时，从仓库根目录重新启动游戏的命令为：
+
+```sh
+KART_VITE_PORT=8782 \
+KART_MYSQL_DSN='kart:kart@tcp(127.0.0.1:13306)/kartsim?charset=utf8mb4&collation=utf8mb4_0900_as_ci' \
+KART_REDIS_ADDR=127.0.0.1:16379 KART_CITY=true ./run-full-local.sh
+```
+
+### 当前生成入口
+
+源文件位于 `client/tools/city/blender/`：`continent.py` 管道路、地形和地图数据，`continent_scene.py` 管 Blender 场景，`scene_library.py` 管材质、模型缓存和碰撞代理。旧 `kartcity.py` 为 v3 历史生成器。
+
+在 `client/` 执行：
+
+```sh
+# 首次准备官方主题材质；原有及本次生成的 Tripo 模型已保存在仓库目录中
+node --import tsx tools/city/blender/export-props.mjs
+
+# BLENDER 环境变量或 --blender 可以指定其他平台的可执行文件
+node tools/city/blender/blender-city.mjs build --render
+node --import tsx tools/city/blender/import-city.mjs --register
+
+# 读取实际 RHO，检查道路、出生点、路肩，并使用原生 AL 车辆驶出高速
+node --import ./src/physics/node-raw-test-hook.mjs --import tsx tools/city/blender/verify-continent.mjs
+
+# 本地场景与车辆物理预览
+npm run dev
+# http://127.0.0.1:8780/tools/city/blender/preview.html
+```
+
+本机 Blender 位于 `~/.cache/kartsim/Blender.app/Contents/MacOS/Blender`。构建会输出 `client/build/blender/out/kartcity.blend`（材质已打包、分集合可编辑）、`kartcity.glb` 和 `continent-overview.png`。导入器生成 `client/build/kartcity/track_kartcity.rho`，注册到 `mirror/p3553/`，同时同步设计、客户端、服务端三份 `city-map.json`。该 RHO 使用现有 `.1s` 编码器与游戏加载链路，不需要增加地图加载格式。
+
+预览支持全境旋转缩放、八区定位和 WASD / 方向键驾驶，Shift 漂移、R 返回道路；画面读取 GLB，碰撞和驾驶读取导出的 `track.1s` 并使用游戏的 TrackWorld / AL。正式卡丁城仍从大厅进入，需要原有账号服务和开启 `KART_CITY` 的游戏节点。
+
+实景可查看 [Blender 全境渲染](previews/2026-10-12/continent-overview.png)、[城镇试驾](previews/2026-10-12/town-drive.jpg)和[森林试驾](previews/2026-10-12/forest-drive.jpg)。预览车是用于检查比例和物理的简易车辆；正式卡丁城仍使用玩家选择的卡丁车。
+
+验证报告输出为 `client/build/kartcity/continent-verification.json`。最终 RHO 包含 216,809 个碰撞三角形；1,356 个道路采样、20,536 个普通路肩采样、8 个出生点全部通过。九条高速双侧共 18 次原生车辆驶出测试全部通过，普通路肩每 0.5 m 采样的最大高差为 0.207 m。桥梁和隧道单独标记，不计入开放路肩承诺。34 条道路连成同一网络，三份地图数据和两个 RHO 副本一致。浏览器森林试驾实测可以加速到约 103 km/h，车辆保持着地。
+
+`go test ./internal/game/city`、3 项大陆测试、4 项城市协议测试、2 项容器注册测试、2 项相机剔除回归测试与生产构建通过。完整 `npm run typecheck` 仍会遇到仓库缺少未发布文件 `recovered/embedded-data/vehicle-physics-overrides.mjs` 的既有问题；临时排除此单个历史对照测试后类型检查通过。既有发行版对照测试也依赖缺失的 `recovered/formatted/index.js`；未为此修改或跳过正式测试。
+
+本地账号服务、游戏节点与客户端已实际启动。`server-go/test/city-smoke.mjs` 通过两个测试账号验证进城、成员广播、复位、聊天、表情、运动帧、雷达、离开与城市内开房限制。浏览器通过首页“卡丁城”入口加载该资源，使用正式人物和车辆试驾：城镇行驶 19.25 m，达到 99.36 km/h；森林高速驶离中心线 26.10 m（路面半宽 13 m），达到 87.66 km/h，仍着地且未触发复位。截图见 [卡丁城内实景](previews/2026-10-12/kartcity-in-game.jpg)。
+
+---
+
 > 目标：玩家进入一张持久的城市地图，开着自己的卡丁车到处闲逛、停车聊天、碰头后一键开房比赛。
 > 本文档基于 2026-10-11 对代码的实际探索（文件行号均指向本仓库），地图图纸见同目录的
 > [city-map.svg](city-map.svg)（[city-map.png](city-map.png) 为预览），地图数据见 [city-map.json](city-map.json)

@@ -72,6 +72,7 @@ type rawMap struct {
 		ID      string    `json:"id"`
 		Kind    string    `json:"kind"`
 		At      []float64 `json:"at"`
+		Y       float64   `json:"y"`
 		Heading float64   `json:"heading"`
 	} `json:"pois"`
 	Rules map[string]any `json:"rules"`
@@ -120,7 +121,7 @@ func Load(data []byte) (*Map, error) {
 		if poi.ID == "" || len(poi.At) != 2 {
 			return nil, fmt.Errorf("city-map.json: spawn %q needs an id and at: [x, z]", poi.ID)
 		}
-		m.Spawns = append(m.Spawns, Spawn{ID: poi.ID, X: poi.At[0], Z: poi.At[1], Heading: poi.Heading})
+		m.Spawns = append(m.Spawns, Spawn{ID: poi.ID, X: poi.At[0], Y: poi.Y, Z: poi.At[1], Heading: poi.Heading})
 	}
 	if len(m.Spawns) == 0 {
 		return nil, errors.New("city-map.json: no spawn point")

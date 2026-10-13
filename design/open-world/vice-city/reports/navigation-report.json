@@ -1,0 +1,88 @@
+{
+  "roads": 387,
+  "filteredRecoverySegments": 103,
+  "skeletonPixels": 26042,
+  "thinningIterations": 80,
+  "routePoints": 97,
+  "spawns": [
+    {
+      "id": "spawn-main",
+      "name": "海洋海滩出生点",
+      "kind": "spawn",
+      "at": [
+        -700,
+        1006
+      ],
+      "y": 9.273,
+      "heading": 0.0,
+      "desc": "根据原始路面高度设置，进入后由原生碰撞落地。",
+      "n": 1
+    },
+    {
+      "id": "spawn-washington",
+      "name": "华盛顿海滩出生点",
+      "kind": "spawn",
+      "at": [
+        -348,
+        -404
+      ],
+      "y": 9.944,
+      "heading": 0,
+      "desc": "根据原始路面高度设置，进入后由原生碰撞落地。",
+      "n": 2
+    },
+    {
+      "id": "spawn-vice-point",
+      "name": "罪恶角出生点",
+      "kind": "spawn",
+      "at": [
+        -278,
+        -944
+      ],
+      "y": 9.862,
+      "heading": 270.0,
+      "desc": "根据原始路面高度设置，进入后由原生碰撞落地。",
+      "n": 3
+    },
+    {
+      "id": "spawn-havana",
+      "name": "小哈瓦那出生点",
+      "kind": "spawn",
+      "at": [
+        -1596,
+        446
+      ],
+      "y": 9.887,
+      "heading": 0.0,
+      "desc": "根据原始路面高度设置，进入后由原生碰撞落地。",
+      "n": 4
+    },
+    {
+      "id": "spawn-haiti",
+      "name": "小海地出生点",
+      "kind": "spawn",
+      "at": [
+        -1628,
+        -120
+      ],
+      "y": 9.866,
+      "heading": 0.0,
+      "desc": "根据原始路面高度设置，进入后由原生碰撞落地。",
+      "n": 5
+    },
+    {
+      "id": "spawn-airport",
+      "name": "机场道路出生点",
+      "kind": "spawn",
+      "at": [
+        -2506,
+        406
+      ],
+      "y": 13.658,
+      "heading": 90.0,
+      "desc": "根据原始路面高度设置，进入后由原生碰撞落地。",
+      "n": 6
+    }
+  ],
+  "sourceTriangles": 15795
+}

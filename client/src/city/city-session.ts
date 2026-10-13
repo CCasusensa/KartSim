@@ -13,7 +13,11 @@ import { designHeading, designToWorld, districtAt, nearestRoadPoint, physicsHead
 import { CityFleet } from "./city-fleet";
 import { CityLabels } from "./city-labels";
 import type { CityEvent, CityPose, CitySnapshot } from "./city-protocol";
-import { CITY_TRACK_ID, registerCityTrack } from "./city-track";
+import { CITY_MAP, CITY_TRACK_ID, registerCityTrack } from "./city-track";
+import { cityWaterLevel, type CityWaterMap } from "./city-water";
+import { groundHeightAt } from "./city-ground";
+import { applyCityVehicleScale } from "./city-vehicle-scale";
+export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
   client: CityClient;
@@ -64,29 +68,6 @@ export function fabricateCityRace(snapshot: CitySnapshot, playerId: string, name
     phase: "racing", trackId: CITY_TRACK_ID, members: [member], race,
   };
   return { room, race };
-}
-
-/**
- * Surface height under a world column for a pose whose own height is only a
- * hint (spawns and road points are stored without elevation): the lowest
- * surface at or above `hintY - 2` (a tunnel floor beats the hill over it, a
- * bridge deck beats the bay under it), else the highest surface found; the
- * rays start above the 150 m mountain. Undefined when nothing is below.
- */
-export function groundHeightAt(track: { rayQuery(origin: { x: number; y: number; z: number },
-  movement: { x: number; y: number; z: number }, includeWalls: boolean): { point: { y: number } } | undefined },
-x: number, z: number, hintY: number): number | undefined {
-  const hits: number[] = [];
-  let y = 420;
-  for (let i = 0; i < 8 && y > -40; i++) {
-    const hit = track.rayQuery({ x, y, z }, { x: 0, y: -(y + 40), z: 0 }, false)?.point;
-    if (!hit) break;
-    hits.push(hit.y);
-    y = hit.y - 0.05;
-  }
-  if (hits.length === 0) return undefined;
-  const above = hits.filter(h => h >= hintY - 2);
-  return above.length > 0 ? Math.min(...above) : Math.max(...hits);
 }
 
 export class CitySession {
@@ -160,6 +141,7 @@ export class CitySession {
     const stage = this.stage;
     const runtime = stage.runtime;
     const presenter = stage.scene;
+    applyCityVehicleScale(runtime.local.physics);
     const root = stage.host.renderer.domElement.parentElement as HTMLElement;
     this.fleet = new CityFleet({
       assets: runtime.assets, presenter, track: runtime.local.track,
@@ -309,17 +291,19 @@ export class CitySession {
     if (!runtime) return;
     const physics = runtime.local.physics;
     const requested = physics.consumeAutomaticResetRequest?.() ?? false;
-    // Below −6 m is the bay (bed at −8 m) unless the nearest road is itself low
-    // (the tunnel floor is at −12 m), so measure the fall from that road.
+    // Only water, falling below the world, or an explicit physics reset causes
+    // recovery. Ordinary terrain remains freely driveable beyond road edges.
     let road: RoadSample | undefined;
-    let design: { x: number; z: number } | undefined;
-    if (physics.body.position.y < -6 || requested) {
-      design = this.localDesignPose();
+    const design = this.localDesignPose();
+    const world = (CITY_MAP as typeof CITY_MAP & { world?: CityWaterMap }).world;
+    const water = design ? cityWaterLevel(world, design.x, design.z) : undefined;
+    const submerged = water !== undefined && physics.body.position.y < water - 1.5;
+    if (physics.body.position.y < -6 || requested || submerged) {
       if (design) road = nearestRoadPoint(design.x, design.z);
     }
     if (!road) return;
     const fell = physics.body.position.y < road.y - 6;
-    if (!fell && !requested) return;
+    if (!fell && !requested && !submerged) return;
     const heading = ((Math.atan2(road.tx, -road.tz) * 180) / Math.PI + 360) % 360;
     this.teleportLocal({ x: road.x, y: road.y, z: road.z, heading });
     this.host.options.status("已复位到最近的道路。");

@@ -1,0 +1,6040 @@
+{
+  "designFile": "/Users/winde/Documents/跑跑/client/build/vice-city/out/kartcity-design.json",
+  "trackFile": "/Users/winde/Documents/跑跑/client/build/vice-city/native/track.1s",
+  "limits": {
+    "sampleSpacing": 6,
+    "roadHeightError": 0.7,
+    "maximumGrade": 0.25,
+    "sweepHeight": 0.7,
+    "spawnDriveDistance": 20
+  },
+  "stats": {
+    "groundProbes": 22966,
+    "forwardSweeps": 13685,
+    "bodyOverlaps": 0,
+    "maximumHeightError": 0.5228492202758783,
+    "maximumGrade": 0.19829847654348082
+  },
+  "roads": [
+    {
+      "id": "ring",
+      "category": "road",
+      "important": true,
+      "points": 97,
+      "samples": 248,
+      "length": 619.1959594928937,
+      "maximumHeightError": 0.014474136352539801,
+      "maximumGrade": 0.004779754054248978,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-001",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 28,
+      "length": 97.31370849898477,
+      "maximumHeightError": 0.14812140401204488,
+      "maximumGrade": 0.056403836261172964,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-002",
+      "category": "road",
+      "important": false,
+      "points": 59,
+      "samples": 171,
+      "length": 506.0243866176398,
+      "maximumHeightError": 0.07528125762939553,
+      "maximumGrade": 0.017361337553023184,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-003",
+      "category": "road",
+      "important": false,
+      "points": 125,
+      "samples": 321,
+      "length": 839.2203461105336,
+      "maximumHeightError": 0.24809988403320204,
+      "maximumGrade": 0.05640392558441623,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-004",
+      "category": "road",
+      "important": false,
+      "points": 26,
+      "samples": 89,
+      "length": 320.85281374238576,
+      "maximumHeightError": 0.2864055290222165,
+      "maximumGrade": 0.0700984126115311,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-005",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 31,
+      "length": 129.65685424949237,
+      "maximumHeightError": 0.052763420104980696,
+      "maximumGrade": 0.03536169366331616,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-006",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 13,
+      "length": 68,
+      "maximumHeightError": 0.00027295684814454546,
+      "maximumGrade": 2.9836656678264555e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-007",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 24,
+      "length": 71.31370849898477,
+      "maximumHeightError": 0.08196739451090451,
+      "maximumGrade": 0.050051216145602796,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-008",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 30,
+      "length": 135.65685424949237,
+      "maximumHeightError": 0.27137868652343755,
+      "maximumGrade": 0.0693007390224572,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-009",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 42,
+      "length": 136.6274169979695,
+      "maximumHeightError": 0.01345790100097588,
+      "maximumGrade": 0.02309301648678579,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-010",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 12,
+      "length": 36,
+      "maximumHeightError": 0.00044935607910190356,
+      "maximumGrade": 8.25287372663297e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-011-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 4,
+      "length": 18,
+      "maximumHeightError": 0.0004731292724606817,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-012",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 14,
+      "length": 39.65685424949238,
+      "maximumHeightError": 0.13526525421142566,
+      "maximumGrade": 0.15496005872368865,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-013",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 56,
+      "length": 81.59797974644665,
+      "maximumHeightError": 0.0004926300048833099,
+      "maximumGrade": 0.13241951982833325,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-014",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 42,
+      "length": 171.31370849898474,
+      "maximumHeightError": 0.08475345102946008,
+      "maximumGrade": 0.03797925121098172,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-015",
+      "category": "road",
+      "important": false,
+      "points": 87,
+      "samples": 194,
+      "length": 377.4802307403552,
+      "maximumHeightError": 0.19462122889927436,
+      "maximumGrade": 0.1739774065380515,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-016",
+      "category": "road",
+      "important": false,
+      "points": 28,
+      "samples": 115,
+      "length": 444.76955262170054,
+      "maximumHeightError": 0.19611434728448884,
+      "maximumGrade": 0.03698409145076669,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-017",
+      "category": "road",
+      "important": false,
+      "points": 41,
+      "samples": 163,
+      "length": 621.7401153701778,
+      "maximumHeightError": 0.07547289276122982,
+      "maximumGrade": 0.024405057724810754,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-018",
+      "category": "road",
+      "important": false,
+      "points": 159,
+      "samples": 379,
+      "length": 867.8477631085032,
+      "maximumHeightError": 0.25760006713867156,
+      "maximumGrade": 0.17994617555754397,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-019",
+      "category": "road",
+      "important": false,
+      "points": 46,
+      "samples": 97,
+      "length": 187.25483399593898,
+      "maximumHeightError": 0.05949265289306638,
+      "maximumGrade": 0.18312859253049743,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-020",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 23,
+      "length": 66.62741699796952,
+      "maximumHeightError": 0.04454344024658141,
+      "maximumGrade": 0.05824511619166093,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-021",
+      "category": "road",
+      "important": false,
+      "points": 38,
+      "samples": 112,
+      "length": 346.2842712474619,
+      "maximumHeightError": 0.269766479492187,
+      "maximumGrade": 0.1739774065380515,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-022",
+      "category": "road",
+      "important": false,
+      "points": 145,
+      "samples": 289,
+      "length": 443.6223663640865,
+      "maximumHeightError": 0.0004997558593746732,
+      "maximumGrade": 0.13933987401860554,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-023",
+      "category": "road",
+      "important": false,
+      "points": 46,
+      "samples": 98,
+      "length": 174.42640687119282,
+      "maximumHeightError": 0.12794199117024618,
+      "maximumGrade": 0.17825179000863653,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-024",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 34,
+      "length": 72.97056274847714,
+      "maximumHeightError": 0.0003292922973638923,
+      "maximumGrade": 0.000003076904704819052,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-025",
+      "category": "road",
+      "important": false,
+      "points": 64,
+      "samples": 126,
+      "length": 183.39696961966993,
+      "maximumHeightError": 0.00011471557617248607,
+      "maximumGrade": 8.408045895410797e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-026-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 50,
+      "length": 121.65685424949237,
+      "maximumHeightError": 0.16850940704345696,
+      "maximumGrade": 0.19272071548076278,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-027-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 8,
+      "length": 8,
+      "maximumHeightError": 0.00047629547119143467,
+      "maximumGrade": 1.6844303729612875e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-027-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 35,
+      "length": 156.97056274847714,
+      "maximumHeightError": 0.1329714202880865,
+      "maximumGrade": 0.09163556184493415,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-028",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 16,
+      "length": 36.485281374238575,
+      "maximumHeightError": 0.06363950347900271,
+      "maximumGrade": 0.06291751253657557,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-029",
+      "category": "road",
+      "important": false,
+      "points": 30,
+      "samples": 67,
+      "length": 161.11269837220806,
+      "maximumHeightError": 0.026160331726075015,
+      "maximumGrade": 0.0754602170082038,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-030",
+      "category": "road",
+      "important": false,
+      "points": 72,
+      "samples": 156,
+      "length": 316.71067811865476,
+      "maximumHeightError": 0.024049402872721615,
+      "maximumGrade": 0.0754602170082038,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-031",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 42,
+      "length": 62.97056274847715,
+      "maximumHeightError": 0.0002450180053710227,
+      "maximumGrade": 0.0000018729140208179403,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-032",
+      "category": "road",
+      "important": false,
+      "points": 38,
+      "samples": 81,
+      "length": 172.76955262170043,
+      "maximumHeightError": 0.041102020263672046,
+      "maximumGrade": 0.13471640571477722,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-033",
+      "category": "road",
+      "important": false,
+      "points": 31,
+      "samples": 93,
+      "length": 297.94112549695427,
+      "maximumHeightError": 0.035956405639648636,
+      "maximumGrade": 0.010648270145165088,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-034",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 54,
+      "length": 151.94112549695427,
+      "maximumHeightError": 0.0024885991414382858,
+      "maximumGrade": 0.0013540497896135154,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-035",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 14,
+      "length": 43.65685424949238,
+      "maximumHeightError": 0.0002450180053710227,
+      "maximumGrade": 9.177140896099445e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-036",
+      "category": "road",
+      "important": false,
+      "points": 33,
+      "samples": 72,
+      "length": 138.6274169979695,
+      "maximumHeightError": 0.05319677734375006,
+      "maximumGrade": 0.12431157104027865,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-037",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 23,
+      "length": 82.48528137423857,
+      "maximumHeightError": 0.12671420288085855,
+      "maximumGrade": 0.023429507807617055,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-038",
+      "category": "road",
+      "important": false,
+      "points": 39,
+      "samples": 77,
+      "length": 111.59797974644665,
+      "maximumHeightError": 0.00036928558349558216,
+      "maximumGrade": 0.032101950594737375,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-039",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 10,
+      "length": 46.97056274847714,
+      "maximumHeightError": 0.00019143295288071016,
+      "maximumGrade": 3.184749111859311e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-040",
+      "category": "road",
+      "important": false,
+      "points": 44,
+      "samples": 88,
+      "length": 136.42640687119282,
+      "maximumHeightError": 0.04278243255615166,
+      "maximumGrade": 0.08270442231244786,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-041",
+      "category": "road",
+      "important": false,
+      "points": 47,
+      "samples": 104,
+      "length": 208.56854249492375,
+      "maximumHeightError": 0.046550659179686704,
+      "maximumGrade": 0.11941199612234321,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-042",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 27,
+      "length": 48.97056274847715,
+      "maximumHeightError": 0.011113761901857089,
+      "maximumGrade": 0.05343364404654625,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-043",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 24,
+      "length": 55.65685424949238,
+      "maximumHeightError": 0.0006180623372404881,
+      "maximumGrade": 0.0016833976276853517,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-044",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 48,
+      "length": 220.6274169979695,
+      "maximumHeightError": 0.0002309265136730687,
+      "maximumGrade": 7.140898787838523e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-045",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 13,
+      "length": 52.82842712474619,
+      "maximumHeightError": 0.19125983428954996,
+      "maximumGrade": 0.041952825297998084,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-046",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 19,
+      "length": 84.82842712474618,
+      "maximumHeightError": 0.0002309265136730687,
+      "maximumGrade": 2.850177740019668e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-047",
+      "category": "road",
+      "important": false,
+      "points": 138,
+      "samples": 294,
+      "length": 506.3086578651017,
+      "maximumHeightError": 0.09650897979736328,
+      "maximumGrade": 0.03531158356099232,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-048",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 31,
+      "length": 64.14213562373095,
+      "maximumHeightError": 0.08724006652832017,
+      "maximumGrade": 0.0459346548162445,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-049",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 21,
+      "length": 53.65685424949238,
+      "maximumHeightError": 0.38719938659667896,
+      "maximumGrade": 0.032101950594737375,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-050",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 22,
+      "length": 59.65685424949238,
+      "maximumHeightError": 0.12183055369059304,
+      "maximumGrade": 0.03656203565626332,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-051",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 48,
+      "length": 184.14213562373092,
+      "maximumHeightError": 0.23754857940673801,
+      "maximumGrade": 0.09197682892235685,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-052",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 43,
+      "length": 168.97056274847714,
+      "maximumHeightError": 0.00022123718261646275,
+      "maximumGrade": 0.0000018396967481643123,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-053",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 15,
+      "length": 84,
+      "maximumHeightError": 0.13410123879568836,
+      "maximumGrade": 0.021203727880041084,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-054",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 10,
+      "length": 52,
+      "maximumHeightError": 0.0003593063354490056,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-055",
+      "category": "road",
+      "important": false,
+      "points": 110,
+      "samples": 220,
+      "length": 329.88225099390854,
+      "maximumHeightError": 0.0004904556274407668,
+      "maximumGrade": 0.03226711050113102,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-056",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 32,
+      "length": 86.97056274847714,
+      "maximumHeightError": 0.0002404479980455676,
+      "maximumGrade": 0.00009702978504075406,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-057",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 14,
+      "length": 52,
+      "maximumHeightError": 0.00023175048828250056,
+      "maximumGrade": 7.039654849940178e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-058",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 40,
+      "length": 110,
+      "maximumHeightError": 0.0002404632568371312,
+      "maximumGrade": 0.00000192619908607345,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-059",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 14,
+      "length": 74,
+      "maximumHeightError": 0.00045523071288755546,
+      "maximumGrade": 8.800273101467977e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-060",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 27,
+      "length": 76.48528137423857,
+      "maximumHeightError": 0.05489708709716723,
+      "maximumGrade": 0.10573155006001468,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-061",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 29,
+      "length": 129.65685424949237,
+      "maximumHeightError": 0.0016610921223954023,
+      "maximumGrade": 0.0039280216917833444,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-062",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 21,
+      "length": 93.65685424949237,
+      "maximumHeightError": 0.06757330322265709,
+      "maximumGrade": 0.026912424499222997,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-063",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 42,
+      "length": 108.14213562373094,
+      "maximumHeightError": 0.05223769378662091,
+      "maximumGrade": 0.01953817963848857,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-064",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 51,
+      "length": 172.14213562373092,
+      "maximumHeightError": 0.18158958435058636,
+      "maximumGrade": 0.13933987401860554,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-065",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 48,
+      "length": 174.9705627484771,
+      "maximumHeightError": 0.12795314025878923,
+      "maximumGrade": 0.05903384333576912,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-066",
+      "category": "road",
+      "important": false,
+      "points": 97,
+      "samples": 236,
+      "length": 593.137084989848,
+      "maximumHeightError": 0.095965988159179,
+      "maximumGrade": 0.13933987401860554,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-068",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 22,
+      "length": 43.65685424949238,
+      "maximumHeightError": 0.0004692306518556677,
+      "maximumGrade": 2.1254648174817703e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-069",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 8,
+      "length": 38,
+      "maximumHeightError": 0.2371854520525254,
+      "maximumGrade": 0.030019572445586937,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-070",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 27,
+      "length": 106.48528137423857,
+      "maximumHeightError": 0.19254823608398475,
+      "maximumGrade": 0.06891136534974304,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-071",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 23,
+      "length": 58.485281374238575,
+      "maximumHeightError": 0.05559620920817032,
+      "maximumGrade": 0.0241294606894696,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-072",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 15,
+      "length": 66.82842712474618,
+      "maximumHeightError": 0.11261740766252792,
+      "maximumGrade": 0.06646535494214377,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-073",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 14,
+      "length": 58.82842712474619,
+      "maximumHeightError": 0.19605984242757302,
+      "maximumGrade": 0.07061407013713435,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-074",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 14,
+      "length": 56.82842712474619,
+      "maximumHeightError": 0.13201397705078222,
+      "maximumGrade": 0.04989466562599865,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-075-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 24,
+      "length": 30.485281374238575,
+      "maximumHeightError": 0.0003291549682611361,
+      "maximumGrade": 6.288513532126672e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-075-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 12,
+      "length": 16.82842712474619,
+      "maximumHeightError": 0.5228492202758783,
+      "maximumGrade": 0.08058699893792999,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-076",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 12,
+      "length": 62,
+      "maximumHeightError": 0.10777372464266755,
+      "maximumGrade": 0.060816664550733146,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-077",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 35,
+      "length": 126.14213562373094,
+      "maximumHeightError": 0.16235620880126866,
+      "maximumGrade": 0.0553130467082387,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-078",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 9,
+      "length": 28.82842712474619,
+      "maximumHeightError": 0.10166217295328828,
+      "maximumGrade": 0.027464348834015405,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-079",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 22,
+      "length": 37.31370849898476,
+      "maximumHeightError": 0.0003489837646490912,
+      "maximumGrade": 0.0023320524254022024,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-080",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 9,
+      "length": 24.82842712474619,
+      "maximumHeightError": 0.00045140838622970136,
+      "maximumGrade": 0.0006674881789810041,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-081",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 19,
+      "length": 88.82842712474618,
+      "maximumHeightError": 0.12199526323590959,
+      "maximumGrade": 0.026492573239351613,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-082",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 24,
+      "length": 84.48528137423855,
+      "maximumHeightError": 0.06831047821044933,
+      "maximumGrade": 0.06883070232448309,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-083",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 16,
+      "length": 86,
+      "maximumHeightError": 0.00022839355468740052,
+      "maximumGrade": 1.8932968259832705e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-084",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 18,
+      "length": 34.48528137423857,
+      "maximumHeightError": 0.0003913269042961076,
+      "maximumGrade": 0.0006675853270214986,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-085",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 41,
+      "length": 85.31370849898477,
+      "maximumHeightError": 0.02468952178955064,
+      "maximumGrade": 0.03243323463390147,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-086",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 12,
+      "length": 64,
+      "maximumHeightError": 0.0004067993164067474,
+      "maximumGrade": 0.0007732984878269069,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-087",
+      "category": "road",
+      "important": false,
+      "points": 28,
+      "samples": 82,
+      "length": 266.7695526217004,
+      "maximumHeightError": 0.0004799270629884944,
+      "maximumGrade": 0.000668746064804702,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-088",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 30,
+      "length": 101.31370849898477,
+      "maximumHeightError": 0.06754959869384791,
+      "maximumGrade": 0.046966886192850076,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-089",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 56,
+      "length": 102.97056274847714,
+      "maximumHeightError": 0.000440147399903168,
+      "maximumGrade": 0.06462942307938496,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-090",
+      "category": "road",
+      "important": false,
+      "points": 36,
+      "samples": 75,
+      "length": 151.31370849898477,
+      "maximumHeightError": 0.0037332763671873437,
+      "maximumGrade": 0.039734493669927776,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-091",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 22,
+      "length": 72.48528137423857,
+      "maximumHeightError": 0.12107276480538509,
+      "maximumGrade": 0.04482190867391005,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-092",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 67,
+      "length": 147.94112549695424,
+      "maximumHeightError": 0.0650713653564452,
+      "maximumGrade": 0.04482190867391005,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-093",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 21,
+      "length": 38.82842712474619,
+      "maximumHeightError": 0.0005576019287119038,
+      "maximumGrade": 0.04495407468949456,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-094",
+      "category": "road",
+      "important": false,
+      "points": 37,
+      "samples": 92,
+      "length": 251.11269837220806,
+      "maximumHeightError": 0.106430480957032,
+      "maximumGrade": 0.07142465998586778,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-095",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 31,
+      "length": 86.14213562373095,
+      "maximumHeightError": 0.29550339508056744,
+      "maximumGrade": 0.05255083590161283,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-096",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 35,
+      "length": 84.97056274847714,
+      "maximumHeightError": 0.115946067810059,
+      "maximumGrade": 0.051621891685725584,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-097",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 33,
+      "length": 124.14213562373094,
+      "maximumHeightError": 0.03729272460937594,
+      "maximumGrade": 0.06642937407058362,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-098",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 35,
+      "length": 97.31370849898475,
+      "maximumHeightError": 0.0003972167968750995,
+      "maximumGrade": 0.00003243668666868139,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-099",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 26,
+      "length": 91.31370849898477,
+      "maximumHeightError": 0.10374591318766235,
+      "maximumGrade": 0.06647988798732182,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-100",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 37,
+      "length": 92.97056274847714,
+      "maximumHeightError": 0.0671076583862309,
+      "maximumGrade": 0.06596301195542918,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-101",
+      "category": "road",
+      "important": false,
+      "points": 57,
+      "samples": 145,
+      "length": 367.74011537017765,
+      "maximumHeightError": 0.02362149810791081,
+      "maximumGrade": 0.06596301195542918,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-102",
+      "category": "road",
+      "important": false,
+      "points": 27,
+      "samples": 55,
+      "length": 107.45584412271569,
+      "maximumHeightError": 0.10159018707275536,
+      "maximumGrade": 0.06596301195542918,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-103",
+      "category": "road",
+      "important": false,
+      "points": 21,
+      "samples": 48,
+      "length": 98.28427124746187,
+      "maximumHeightError": 0.02591122436523463,
+      "maximumGrade": 0.049135887812736145,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-104",
+      "category": "road",
+      "important": false,
+      "points": 57,
+      "samples": 134,
+      "length": 285.1959594928933,
+      "maximumHeightError": 0.0004972991943361649,
+      "maximumGrade": 0.0010226967338248843,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-105",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 22,
+      "length": 40.48528137423857,
+      "maximumHeightError": 0.2283713734944648,
+      "maximumGrade": 0.10440438267312867,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-106",
+      "category": "road",
+      "important": false,
+      "points": 31,
+      "samples": 63,
+      "length": 93.9411254969543,
+      "maximumHeightError": 0.10576554870605648,
+      "maximumGrade": 0.10324524207460592,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-107",
+      "category": "road",
+      "important": false,
+      "points": 23,
+      "samples": 45,
+      "length": 69.1126983722081,
+      "maximumHeightError": 0.1354925537109395,
+      "maximumGrade": 0.10066435341305263,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-108",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 13,
+      "length": 24.48528137423857,
+      "maximumHeightError": 0.06851390075683561,
+      "maximumGrade": 0.1785605354730698,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-109",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 29,
+      "length": 124.82842712474618,
+      "maximumHeightError": 0.19102821350097798,
+      "maximumGrade": 0.14557440779770647,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-110",
+      "category": "road",
+      "important": false,
+      "points": 24,
+      "samples": 51,
+      "length": 110.42640687119284,
+      "maximumHeightError": 0.05748930358886639,
+      "maximumGrade": 0.09162225343100865,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-111",
+      "category": "road",
+      "important": false,
+      "points": 46,
+      "samples": 92,
+      "length": 134.42640687119282,
+      "maximumHeightError": 0.0003225097656240905,
+      "maximumGrade": 0.0000022956878741169686,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-112",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 15,
+      "length": 47.65685424949238,
+      "maximumHeightError": 0.0507968343098959,
+      "maximumGrade": 0.04864358081035573,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-113",
+      "category": "road",
+      "important": false,
+      "points": 25,
+      "samples": 53,
+      "length": 103.88225099390856,
+      "maximumHeightError": 0.007731307983398494,
+      "maximumGrade": 0.073458023116314,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-114",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 21,
+      "length": 64.48528137423858,
+      "maximumHeightError": 0.11441281636555978,
+      "maximumGrade": 0.05316104435711494,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-115",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 30,
+      "length": 39.798989873223334,
+      "maximumHeightError": 0.00034838867187403366,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-116",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 12,
+      "length": 30.82842712474619,
+      "maximumHeightError": 0.025802337646483764,
+      "maximumGrade": 0.10791692755722285,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-117",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 19,
+      "length": 68.48528137423858,
+      "maximumHeightError": 0.14040425872802764,
+      "maximumGrade": 0.053351282802395816,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-118",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 26,
+      "length": 66.14213562373095,
+      "maximumHeightError": 0.06166153717041034,
+      "maximumGrade": 0.0705339600997304,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-119",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 41,
+      "length": 142.14213562373095,
+      "maximumHeightError": 0.11252232360839898,
+      "maximumGrade": 0.07905755995337967,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-120",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 12,
+      "length": 34.14213562373095,
+      "maximumHeightError": 0.164191497802733,
+      "maximumGrade": 0.08911153425775026,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-121",
+      "category": "road",
+      "important": false,
+      "points": 25,
+      "samples": 56,
+      "length": 120.2253967444162,
+      "maximumHeightError": 0.03513226826985694,
+      "maximumGrade": 0.06391908459891603,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-122",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 34,
+      "length": 96.97056274847714,
+      "maximumHeightError": 0.24296141560872364,
+      "maximumGrade": 0.08949054396475976,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-123",
+      "category": "road",
+      "important": false,
+      "points": 35,
+      "samples": 84,
+      "length": 185.5979797464466,
+      "maximumHeightError": 0.15439461517333974,
+      "maximumGrade": 0.049135887812736145,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-124",
+      "category": "road",
+      "important": false,
+      "points": 44,
+      "samples": 99,
+      "length": 179.82337649086287,
+      "maximumHeightError": 0.053209579467775825,
+      "maximumGrade": 0.05864344509256709,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-125",
+      "category": "road",
+      "important": false,
+      "points": 47,
+      "samples": 107,
+      "length": 209.94112549695424,
+      "maximumHeightError": 0.009242838541666742,
+      "maximumGrade": 0.02948980040523699,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-126",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 37,
+      "length": 102.97056274847714,
+      "maximumHeightError": 0.16676101684570277,
+      "maximumGrade": 0.0459565512953419,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-127",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 20,
+      "length": 51.65685424949238,
+      "maximumHeightError": 0.03172375488281354,
+      "maximumGrade": 0.02904176695359686,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-128",
+      "category": "road",
+      "important": false,
+      "points": 31,
+      "samples": 65,
+      "length": 117.8822509939086,
+      "maximumHeightError": 0.06740265401204404,
+      "maximumGrade": 0.038414066441246675,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-129",
+      "category": "road",
+      "important": false,
+      "points": 33,
+      "samples": 69,
+      "length": 140.99494936611669,
+      "maximumHeightError": 0.0920593032836905,
+      "maximumGrade": 0.06642221251357897,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-130",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 46,
+      "length": 90.62741699796952,
+      "maximumHeightError": 0.02614800262451311,
+      "maximumGrade": 0.0334571989529622,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-131",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 25,
+      "length": 52.627416997969526,
+      "maximumHeightError": 0.2565191853841142,
+      "maximumGrade": 0.06650338249725099,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-132",
+      "category": "road",
+      "important": false,
+      "points": 82,
+      "samples": 204,
+      "length": 518.994949366117,
+      "maximumHeightError": 0.1851168136596666,
+      "maximumGrade": 0.07493937635154226,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-133",
+      "category": "road",
+      "important": false,
+      "points": 46,
+      "samples": 96,
+      "length": 176.56854249492378,
+      "maximumHeightError": 0.03771171569824183,
+      "maximumGrade": 0.144503871804551,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-134",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 14,
+      "length": 50.82842712474619,
+      "maximumHeightError": 0.16287819366455025,
+      "maximumGrade": 0.07621512748283425,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-135",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 30,
+      "length": 66.14213562373095,
+      "maximumHeightError": 0.05521858215332287,
+      "maximumGrade": 0.11924711180088515,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-136",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 27,
+      "length": 46.2842712474619,
+      "maximumHeightError": 0.0007586593627930682,
+      "maximumGrade": 0.05251129943626724,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-137",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 30,
+      "length": 66.14213562373095,
+      "maximumHeightError": 0.09268656921386764,
+      "maximumGrade": 0.11884478592353015,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-138",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 10,
+      "length": 24.82842712474619,
+      "maximumHeightError": 0.009847946166992472,
+      "maximumGrade": 0.013716639871031203,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-139",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 10,
+      "length": 26.82842712474619,
+      "maximumHeightError": 0.00046093750000153477,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-140",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 21,
+      "length": 60.485281374238575,
+      "maximumHeightError": 0.00046093750000153477,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-141",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 10,
+      "length": 26.82842712474619,
+      "maximumHeightError": 0.00046093750000153477,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-142",
+      "category": "road",
+      "important": false,
+      "points": 43,
+      "samples": 88,
+      "length": 136.71067811865476,
+      "maximumHeightError": 0.2321334152221688,
+      "maximumGrade": 0.19829847654348082,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-143",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 21,
+      "length": 59.31370849898476,
+      "maximumHeightError": 0.00046093750000153477,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-144",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 18,
+      "length": 51.65685424949238,
+      "maximumHeightError": 0.00046093750000153477,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-145",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 100,
+      "length": 411.7989898732234,
+      "maximumHeightError": 0.286980734252932,
+      "maximumGrade": 0.13549877215933626,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-146",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 18,
+      "length": 51.65685424949238,
+      "maximumHeightError": 0.00046093750000153477,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-147",
+      "category": "road",
+      "important": false,
+      "points": 23,
+      "samples": 101,
+      "length": 417.45584412271575,
+      "maximumHeightError": 0.22477742004394585,
+      "maximumGrade": 0.13546207871418675,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-148",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 28,
+      "length": 118.14213562373095,
+      "maximumHeightError": 0.0013627844916452858,
+      "maximumGrade": 0.0012506520777063974,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-149",
+      "category": "road",
+      "important": false,
+      "points": 40,
+      "samples": 86,
+      "length": 152.08326112068517,
+      "maximumHeightError": 0.00047845458984419054,
+      "maximumGrade": 0.03634115138693833,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-150",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 38,
+      "length": 58.14213562373095,
+      "maximumHeightError": 0.0004055404663088069,
+      "maximumGrade": 0.0008122707834388777,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-151",
+      "category": "road",
+      "important": false,
+      "points": 88,
+      "samples": 195,
+      "length": 366.509667991878,
+      "maximumHeightError": 0.0004986572265632816,
+      "maximumGrade": 0.0008545075991338294,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-152",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 8,
+      "length": 24.82842712474619,
+      "maximumHeightError": 0.16708811442057403,
+      "maximumGrade": 0.041768373186790726,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-153",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 62,
+      "length": 94.6274169979695,
+      "maximumHeightError": 0.05657257080078182,
+      "maximumGrade": 0.08578322484008924,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-154",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 40,
+      "length": 70.91168824543142,
+      "maximumHeightError": 0.0004619674682615482,
+      "maximumGrade": 0.08534066857258055,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-155",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 37,
+      "length": 162.48528137423858,
+      "maximumHeightError": 0.13250875176323795,
+      "maximumGrade": 0.03519770635353976,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-156",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 14,
+      "length": 47.65685424949238,
+      "maximumHeightError": 0.011358784266882083,
+      "maximumGrade": 0.01423009522578527,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-157",
+      "category": "road",
+      "important": false,
+      "points": 66,
+      "samples": 152,
+      "length": 311.5391052434009,
+      "maximumHeightError": 0.09785153961181692,
+      "maximumGrade": 0.03928968753878806,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-158",
+      "category": "road",
+      "important": false,
+      "points": 52,
+      "samples": 108,
+      "length": 198.4264068711928,
+      "maximumHeightError": 0.14020746103922477,
+      "maximumGrade": 0.05850415601944394,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-159",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 17,
+      "length": 84,
+      "maximumHeightError": 0.22755473175048913,
+      "maximumGrade": 0.049690012272973115,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-160",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 8,
+      "length": 28.82842712474619,
+      "maximumHeightError": 0.002126380920410398,
+      "maximumGrade": 0.0116392496685754,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-161",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 26,
+      "length": 94.48528137423857,
+      "maximumHeightError": 0.18203471628824808,
+      "maximumGrade": 0.06135386574491638,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-162",
+      "category": "road",
+      "important": false,
+      "points": 60,
+      "samples": 146,
+      "length": 335.0538238691624,
+      "maximumHeightError": 0.12236031777518086,
+      "maximumGrade": 0.03812817156305593,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-163",
+      "category": "road",
+      "important": false,
+      "points": 21,
+      "samples": 54,
+      "length": 138.6274169979695,
+      "maximumHeightError": 0.009016708374023352,
+      "maximumGrade": 0.03519687949787865,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-164",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 43,
+      "length": 150.9705627484771,
+      "maximumHeightError": 0.12540550689697127,
+      "maximumGrade": 0.02682402296836014,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-165",
+      "category": "road",
+      "important": false,
+      "points": 95,
+      "samples": 199,
+      "length": 328.8528137423858,
+      "maximumHeightError": 0.023846031188965,
+      "maximumGrade": 0.061004602362352146,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-166",
+      "category": "road",
+      "important": false,
+      "points": 57,
+      "samples": 125,
+      "length": 253.8233764908628,
+      "maximumHeightError": 0.02391708374023338,
+      "maximumGrade": 0.1034593243141778,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-167",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 23,
+      "length": 67.31370849898477,
+      "maximumHeightError": 0.004839706420897372,
+      "maximumGrade": 0.017738809119964328,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-168",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 28,
+      "length": 118.48528137423857,
+      "maximumHeightError": 0.1716732177734368,
+      "maximumGrade": 0.07585042662203442,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-169",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 35,
+      "length": 151.65685424949237,
+      "maximumHeightError": 0.07159526824951179,
+      "maximumGrade": 0.03928968753878806,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-170",
+      "category": "road",
+      "important": false,
+      "points": 27,
+      "samples": 80,
+      "length": 240.6274169979695,
+      "maximumHeightError": 0.0027289886474619607,
+      "maximumGrade": 0.019155994224430813,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-171",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 31,
+      "length": 145.65685424949237,
+      "maximumHeightError": 0.24174755096435518,
+      "maximumGrade": 0.07102644144757461,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-172",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 7,
+      "length": 36,
+      "maximumHeightError": 0.1208654276529959,
+      "maximumGrade": 0.051188129248604726,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-173",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 18,
+      "length": 50.485281374238575,
+      "maximumHeightError": 0.05334247589111385,
+      "maximumGrade": 0.07843572976147481,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-174",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 89,
+      "length": 397.45584412271575,
+      "maximumHeightError": 0.28532813415527336,
+      "maximumGrade": 0.13566483449955058,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-175",
+      "category": "road",
+      "important": false,
+      "points": 21,
+      "samples": 102,
+      "length": 434.62741699796953,
+      "maximumHeightError": 0.16317575836181675,
+      "maximumGrade": 0.17074469847886287,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-176",
+      "category": "road",
+      "important": false,
+      "points": 23,
+      "samples": 57,
+      "length": 139.1126983722081,
+      "maximumHeightError": 0.000996932983397869,
+      "maximumGrade": 0.0025453500421358227,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-177",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 31,
+      "length": 85.31370849898477,
+      "maximumHeightError": 0.17310724639892605,
+      "maximumGrade": 0.05856987559507362,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-178",
+      "category": "road",
+      "important": false,
+      "points": 40,
+      "samples": 86,
+      "length": 180.65180361560903,
+      "maximumHeightError": 0.039269297281901316,
+      "maximumGrade": 0.12737705148791462,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-179",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 69,
+      "length": 142.48528137423855,
+      "maximumHeightError": 0.2697646128336597,
+      "maximumGrade": 0.15377902836100726,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-180",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 20,
+      "length": 65.65685424949238,
+      "maximumHeightError": 0.18918128204345663,
+      "maximumGrade": 0.05171685669742189,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-181",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 54,
+      "length": 155.4558441227157,
+      "maximumHeightError": 0.07110841369628851,
+      "maximumGrade": 0.10280170589639871,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-182",
+      "category": "road",
+      "important": false,
+      "points": 42,
+      "samples": 107,
+      "length": 290.0832611206852,
+      "maximumHeightError": 0.1003068466186523,
+      "maximumGrade": 0.10078520843144688,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-183",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 21,
+      "length": 33.65685424949238,
+      "maximumHeightError": 0.02735507965087791,
+      "maximumGrade": 0.04404646943425884,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-184",
+      "category": "road",
+      "important": false,
+      "points": 18,
+      "samples": 36,
+      "length": 75.79898987322333,
+      "maximumHeightError": 0.0044407577514640195,
+      "maximumGrade": 0.03439717974286438,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-185",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 18,
+      "length": 82.82842712474618,
+      "maximumHeightError": 0.0005938583374014428,
+      "maximumGrade": 0.0024414496004984414,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-186-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 28,
+      "length": 28,
+      "maximumHeightError": 0.00004353332519535513,
+      "maximumGrade": 0.0000012365449182131205,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-186-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 19,
+      "samples": 36,
+      "length": 36,
+      "maximumHeightError": 0.00007023620605473013,
+      "maximumGrade": 0.0000012365449182131205,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-187",
+      "category": "road",
+      "important": false,
+      "points": 24,
+      "samples": 58,
+      "length": 140.16652224137047,
+      "maximumHeightError": 0.026097859700520587,
+      "maximumGrade": 0.07138519611209977,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-188",
+      "category": "road",
+      "important": false,
+      "points": 18,
+      "samples": 46,
+      "length": 132.6274169979695,
+      "maximumHeightError": 0.10304615783691418,
+      "maximumGrade": 0.02835511086725103,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-189",
+      "category": "road",
+      "important": false,
+      "points": 38,
+      "samples": 77,
+      "length": 94,
+      "maximumHeightError": 0.0003267745971680114,
+      "maximumGrade": 0.000007004174676694674,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-191",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 34,
+      "length": 135.31370849898474,
+      "maximumHeightError": 0.2696235326131191,
+      "maximumGrade": 0.053190742634128485,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-192",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 34,
+      "length": 77.1126983722081,
+      "maximumHeightError": 0.0039144897460943184,
+      "maximumGrade": 0.10673638076233787,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-193",
+      "category": "road",
+      "important": false,
+      "points": 88,
+      "samples": 303,
+      "length": 1059.4802307403556,
+      "maximumHeightError": 0.2032420134110886,
+      "maximumGrade": 0.13978318638413778,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-194",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 45,
+      "length": 130.6274169979695,
+      "maximumHeightError": 0.10820986938476551,
+      "maximumGrade": 0.05282975068597964,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-195",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 10,
+      "length": 40,
+      "maximumHeightError": 0.2203020095825181,
+      "maximumGrade": 0.07880658244183633,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-196",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 19,
+      "length": 88.82842712474618,
+      "maximumHeightError": 0.16246884918212956,
+      "maximumGrade": 0.04144027782521631,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-197",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 51,
+      "length": 122.28427124746187,
+      "maximumHeightError": 0.02368534088134666,
+      "maximumGrade": 0.1069755302649661,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-198",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 18,
+      "length": 44.485281374238575,
+      "maximumHeightError": 0.011336242675781705,
+      "maximumGrade": 0.09853656355211587,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-199-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 71,
+      "length": 300.4852813742386,
+      "maximumHeightError": 0.0011240463256836364,
+      "maximumGrade": 0.000026321610264563063,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-199-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 35,
+      "samples": 68,
+      "length": 68,
+      "maximumHeightError": 0.0003611068725586364,
+      "maximumGrade": 3.5762786865234375e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-199-safe-3",
+      "category": "road",
+      "important": false,
+      "points": 23,
+      "samples": 44,
+      "length": 51.65685424949238,
+      "maximumHeightError": 0.00048344421386659064,
+      "maximumGrade": 0.00003207859117537737,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-199-safe-4",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 24,
+      "length": 34.97056274847714,
+      "maximumHeightError": 0.00025456237792909064,
+      "maximumGrade": 0.000040379118154800574,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-199-safe-5",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 40,
+      "length": 94.82842712474618,
+      "maximumHeightError": 0.003275108337401633,
+      "maximumGrade": 0.0025588108887915823,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-200",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 26,
+      "length": 113.05382386916237,
+      "maximumHeightError": 0.00034870910644535513,
+      "maximumGrade": 0.000009557852304957452,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-201",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 26,
+      "length": 107.31370849898477,
+      "maximumHeightError": 0.07014815165201771,
+      "maximumGrade": 0.0323630980219677,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-202",
+      "category": "road",
+      "important": false,
+      "points": 114,
+      "samples": 268,
+      "length": 563.8233764908631,
+      "maximumHeightError": 0.001760200500488196,
+      "maximumGrade": 0.01384788890273368,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-203",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 27,
+      "length": 59.941125496954285,
+      "maximumHeightError": 0.07223658752441509,
+      "maximumGrade": 0.07501456603601585,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-204",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 34,
+      "length": 96.6274169979695,
+      "maximumHeightError": 0.06131690216064456,
+      "maximumGrade": 0.10078520843144688,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-205",
+      "category": "road",
+      "important": false,
+      "points": 66,
+      "samples": 138,
+      "length": 242.65180361560897,
+      "maximumHeightError": 0.09373831939697297,
+      "maximumGrade": 0.04316142946337255,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-206",
+      "category": "road",
+      "important": false,
+      "points": 43,
+      "samples": 84,
+      "length": 113.74011537017759,
+      "maximumHeightError": 0.000277786254882173,
+      "maximumGrade": 0.0011153337657649296,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-207",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 16,
+      "length": 27.65685424949238,
+      "maximumHeightError": 0.0004425659179680963,
+      "maximumGrade": 0.021566666809311935,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-208",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 42,
+      "length": 66.62741699796953,
+      "maximumHeightError": 0.00047663116455076704,
+      "maximumGrade": 0.0325207934043295,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-209",
+      "category": "road",
+      "important": false,
+      "points": 26,
+      "samples": 50,
+      "length": 65.9411254969543,
+      "maximumHeightError": 0.00048828125,
+      "maximumGrade": 0.03393803963317473,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-210",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 54,
+      "length": 138.28427124746187,
+      "maximumHeightError": 0.0016052169799820604,
+      "maximumGrade": 0.003429815414546869,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-211",
+      "category": "road",
+      "important": false,
+      "points": 25,
+      "samples": 61,
+      "length": 141.94112549695427,
+      "maximumHeightError": 0.03510032399495344,
+      "maximumGrade": 0.022530151071989447,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-212",
+      "category": "road",
+      "important": false,
+      "points": 21,
+      "samples": 57,
+      "length": 174.6274169979695,
+      "maximumHeightError": 0.2571863708496096,
+      "maximumGrade": 0.17673844438859293,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-213",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 13,
+      "length": 27.656854249492383,
+      "maximumHeightError": 0.0006349563598639918,
+      "maximumGrade": 0.022422045498317337,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-214",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 30,
+      "length": 170,
+      "maximumHeightError": 0.0004949493408208383,
+      "maximumGrade": 0.00001479736496042419,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-215",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 29,
+      "length": 124.82842712474618,
+      "maximumHeightError": 0.0003134460449221166,
+      "maximumGrade": 0.000018713251396215933,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-216",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 64,
+      "length": 206.42640687119282,
+      "maximumHeightError": 0.22731310348510725,
+      "maximumGrade": 0.12333357604088581,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-217",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 15,
+      "length": 42,
+      "maximumHeightError": 0.06570490010579455,
+      "maximumGrade": 0.02486257717835113,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-218",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 59,
+      "length": 215.7989898732233,
+      "maximumHeightError": 0.09784392547607368,
+      "maximumGrade": 0.09071205807778758,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-219",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 22,
+      "length": 122,
+      "maximumHeightError": 0.0004396362304692758,
+      "maximumGrade": 0.00003484633304374585,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-220",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 22,
+      "length": 126,
+      "maximumHeightError": 0.0004377288818364633,
+      "maximumGrade": 0.000030338014451983186,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-221",
+      "category": "road",
+      "important": false,
+      "points": 56,
+      "samples": 111,
+      "length": 175.7401153701776,
+      "maximumHeightError": 0.04257109832763639,
+      "maximumGrade": 0.023447961707300808,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-222",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 11,
+      "length": 58,
+      "maximumHeightError": 0.00036368865966807107,
+      "maximumGrade": 7.008157774423232e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-223",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 36,
+      "length": 94.97056274847714,
+      "maximumHeightError": 0.09496353912353506,
+      "maximumGrade": 0.06645459007696913,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-224",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 38,
+      "length": 97.79898987322332,
+      "maximumHeightError": 0.040360084533691776,
+      "maximumGrade": 0.050979498788601,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-225",
+      "category": "road",
+      "important": false,
+      "points": 34,
+      "samples": 86,
+      "length": 243.25483399593898,
+      "maximumHeightError": 0.08777841949462939,
+      "maximumGrade": 0.10504421278667697,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-226",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 12,
+      "length": 64,
+      "maximumHeightError": 0.0006684570312494031,
+      "maximumGrade": 7.168028093549664e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-227",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 8,
+      "length": 33.31370849898476,
+      "maximumHeightError": 0.016885978698731208,
+      "maximumGrade": 0.17938168542801747,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-228",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 48,
+      "length": 153.79898987322332,
+      "maximumHeightError": 0.05370456695556669,
+      "maximumGrade": 0.050979498788601,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-229",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 79,
+      "length": 282.6274169979695,
+      "maximumHeightError": 0.0046797993977865104,
+      "maximumGrade": 0.003191579893356106,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-230",
+      "category": "road",
+      "important": false,
+      "points": 23,
+      "samples": 78,
+      "length": 285.59797974644664,
+      "maximumHeightError": 0.0012160644531249432,
+      "maximumGrade": 0.0032359371026237475,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-231",
+      "category": "road",
+      "important": false,
+      "points": 28,
+      "samples": 65,
+      "length": 174.76955262170043,
+      "maximumHeightError": 0.009209182739258637,
+      "maximumGrade": 0.050979498788601,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-232",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 7,
+      "length": 25.31370849898476,
+      "maximumHeightError": 0.000193027496337983,
+      "maximumGrade": 0.000015045276950855403,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-233",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 25,
+      "length": 72.48528137423857,
+      "maximumHeightError": 0.00025557708740286955,
+      "maximumGrade": 0.00002990132491172172,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-234",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 29,
+      "length": 151.65685424949237,
+      "maximumHeightError": 0.00011443328857474455,
+      "maximumGrade": 0.000015696891750419892,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-235",
+      "category": "road",
+      "important": false,
+      "points": 99,
+      "samples": 232,
+      "length": 501.5290039756344,
+      "maximumHeightError": 0.13079893493652328,
+      "maximumGrade": 0.029315193041925924,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-236",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 46,
+      "length": 268,
+      "maximumHeightError": 0.0001096649169927133,
+      "maximumGrade": 0.000016018703775922808,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-237",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 16,
+      "length": 88,
+      "maximumHeightError": 0.00012969207763724455,
+      "maximumGrade": 0.00002975031366271552,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-238",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 20,
+      "length": 89.65685424949238,
+      "maximumHeightError": 0.0001039428710942758,
+      "maximumGrade": 0.000016265323214660644,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-239",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 38,
+      "length": 49.45584412271572,
+      "maximumHeightError": 0.0004820632934574576,
+      "maximumGrade": 0.002172850826646078,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-240",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 33,
+      "length": 90.22539674441619,
+      "maximumHeightError": 0.00010006713867127814,
+      "maximumGrade": 0.000004168122814007802,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-241",
+      "category": "road",
+      "important": false,
+      "points": 101,
+      "samples": 216,
+      "length": 406.4507934888324,
+      "maximumHeightError": 0.00018000793457062514,
+      "maximumGrade": 0.0000016296275420773925,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-242",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 29,
+      "length": 64.97056274847715,
+      "maximumHeightError": 0.003160400390624929,
+      "maximumGrade": 0.0021937031567273897,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-243",
+      "category": "road",
+      "important": false,
+      "points": 110,
+      "samples": 219,
+      "length": 298.9360748630708,
+      "maximumHeightError": 0.02250033569335841,
+      "maximumGrade": 0.019930099333108887,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-244",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 39,
+      "length": 62.97056274847714,
+      "maximumHeightError": 0.005861534118652756,
+      "maximumGrade": 0.032520338701687274,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-245",
+      "category": "road",
+      "important": false,
+      "points": 68,
+      "samples": 140,
+      "length": 244.39191898578662,
+      "maximumHeightError": 0.0003036422729500998,
+      "maximumGrade": 0.000001936167790235092,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-246",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 15,
+      "length": 29.656854249492383,
+      "maximumHeightError": 0.0010073623657227415,
+      "maximumGrade": 0.002064176923240009,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-247-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 24,
+      "length": 40.14213562373095,
+      "maximumHeightError": 0.00046887207031254263,
+      "maximumGrade": 0.0001677936987292504,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-247-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 47,
+      "samples": 92,
+      "length": 95.65685424949238,
+      "maximumHeightError": 0.0001525192260736219,
+      "maximumGrade": 6.46642547508236e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-248-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 30,
+      "length": 30,
+      "maximumHeightError": 0.00048413085937504263,
+      "maximumGrade": 0.0001677936987292504,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-249",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 38,
+      "length": 45.45584412271572,
+      "maximumHeightError": 0.0004965286254883239,
+      "maximumGrade": 0.00004271479575297766,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-250",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 26,
+      "length": 95.65685424949238,
+      "maximumHeightError": 0.23132600021362304,
+      "maximumGrade": 0.16280200770115574,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-251",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 17,
+      "length": 69.65685424949238,
+      "maximumHeightError": 0.0004914031982412581,
+      "maximumGrade": 0.000032536709952911904,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-252",
+      "category": "road",
+      "important": false,
+      "points": 23,
+      "samples": 103,
+      "length": 423.5979797464467,
+      "maximumHeightError": 0.0001134796142583383,
+      "maximumGrade": 0.000026813067961484194,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-253",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 31,
+      "length": 153.65685424949237,
+      "maximumHeightError": 0.0018279825846363451,
+      "maximumGrade": 0.00034824744888256517,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-254",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 21,
+      "length": 116,
+      "maximumHeightError": 0.00027640151977514904,
+      "maximumGrade": 0.000014852661479380913,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-255",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 10,
+      "length": 52,
+      "maximumHeightError": 0.001583431667752322,
+      "maximumGrade": 0.00034824744888256517,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-256",
+      "category": "road",
+      "important": false,
+      "points": 28,
+      "samples": 62,
+      "length": 133.94112549695427,
+      "maximumHeightError": 0.1078391967773431,
+      "maximumGrade": 0.033836965311596134,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-258",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 29,
+      "length": 69.39696961966999,
+      "maximumHeightError": 0.0001601486206048719,
+      "maximumGrade": 9.123199333771481e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-259",
+      "category": "road",
+      "important": false,
+      "points": 43,
+      "samples": 117,
+      "length": 331.7888886054565,
+      "maximumHeightError": 0.014444886779784838,
+      "maximumGrade": 0.008361666585402824,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-260",
+      "category": "road",
+      "important": false,
+      "points": 24,
+      "samples": 52,
+      "length": 116.28427124746187,
+      "maximumHeightError": 0.0001277236938470594,
+      "maximumGrade": 3.5762786865234375e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-261",
+      "category": "road",
+      "important": false,
+      "points": 25,
+      "samples": 60,
+      "length": 144.76955262170046,
+      "maximumHeightError": 0.014922477722167926,
+      "maximumGrade": 0.005029751798940198,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-262",
+      "category": "road",
+      "important": false,
+      "points": 60,
+      "samples": 204,
+      "length": 721.39696961967,
+      "maximumHeightError": 0.23980130440848058,
+      "maximumGrade": 0.08543576243794082,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-263",
+      "category": "road",
+      "important": false,
+      "points": 32,
+      "samples": 72,
+      "length": 146.0832611206852,
+      "maximumHeightError": 0.0004986572265632816,
+      "maximumGrade": 0.004403159911760751,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-264",
+      "category": "road",
+      "important": false,
+      "points": 33,
+      "samples": 73,
+      "length": 143.94112549695427,
+      "maximumHeightError": 0.0032668609619133093,
+      "maximumGrade": 0.000389200663365143,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-265",
+      "category": "road",
+      "important": false,
+      "points": 37,
+      "samples": 77,
+      "length": 131.25483399593904,
+      "maximumHeightError": 0.04070435333251865,
+      "maximumGrade": 0.0000750821978176538,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-266",
+      "category": "road",
+      "important": false,
+      "points": 17,
+      "samples": 47,
+      "length": 135.79898987322332,
+      "maximumHeightError": 0.0011000457763667981,
+      "maximumGrade": 0.0008053949977955353,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-267",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 15,
+      "length": 45.798989873223334,
+      "maximumHeightError": 0.00014775085449159064,
+      "maximumGrade": 0.000016325848362828877,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-268",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 39,
+      "length": 216.8183258569795,
+      "maximumHeightError": 0.0001429824829095594,
+      "maximumGrade": 0.000002236497573843978,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-269",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 6,
+      "length": 30,
+      "maximumHeightError": 0.0001467971801751844,
+      "maximumGrade": 5.887565080401054e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-270",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 34,
+      "length": 129.31370849898477,
+      "maximumHeightError": 0.0007191848754874997,
+      "maximumGrade": 0.0008050568444758231,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-271",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 30,
+      "length": 66.97056274847715,
+      "maximumHeightError": 0.1733885574340821,
+      "maximumGrade": 0.1793607886497587,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-272",
+      "category": "road",
+      "important": false,
+      "points": 41,
+      "samples": 91,
+      "length": 196.56854249492375,
+      "maximumHeightError": 0.0003389282226571311,
+      "maximumGrade": 0.0000015290566511940966,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-273",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 42,
+      "length": 85.31370849898475,
+      "maximumHeightError": 0.054034578959146984,
+      "maximumGrade": 0.04870091386716409,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-274",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 32,
+      "length": 174.5340546095176,
+      "maximumHeightError": 0.00014775085449159064,
+      "maximumGrade": 0.000003469453570409774,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-275",
+      "category": "road",
+      "important": false,
+      "points": 89,
+      "samples": 177,
+      "length": 206.97056274847714,
+      "maximumHeightError": 0.00014012145996034064,
+      "maximumGrade": 3.874287415328581e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-276",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 26,
+      "length": 105.33809511662427,
+      "maximumHeightError": 0.0001563339233392469,
+      "maximumGrade": 0.000001945943495229585,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-277-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 8,
+      "length": 13.65685424949238,
+      "maximumHeightError": 0.00043003845214784064,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-277-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 6,
+      "length": 9.65685424949238,
+      "maximumHeightError": 0.00042813110351502814,
+      "maximumGrade": 3.5762786865234375e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-277-safe-4",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 8,
+      "length": 13.65685424949238,
+      "maximumHeightError": 0.00041859436035096564,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-277-safe-5",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 56,
+      "length": 90.76955262170046,
+      "maximumHeightError": 0.00041859436035096564,
+      "maximumGrade": 2.3842039809096605e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-277-safe-6",
+      "category": "road",
+      "important": false,
+      "points": 28,
+      "samples": 54,
+      "length": 58,
+      "maximumHeightError": 0.0004119186401361219,
+      "maximumGrade": 4.887470481662604e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-277-safe-7",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 41,
+      "length": 166,
+      "maximumHeightError": 0.00043766784667909064,
+      "maximumGrade": 0.0000033204114508867853,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-278-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 28,
+      "length": 28,
+      "maximumHeightError": 0.00043003845214784064,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-278-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 12,
+      "length": 12,
+      "maximumHeightError": 0.00043194580078065314,
+      "maximumGrade": 2.3841768381771544e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-278-safe-3",
+      "category": "road",
+      "important": false,
+      "points": 22,
+      "samples": 42,
+      "length": 42,
+      "maximumHeightError": 0.00043766784667909064,
+      "maximumGrade": 2.3841768381771544e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-279-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 33,
+      "samples": 64,
+      "length": 95.25483399593901,
+      "maximumHeightError": 0.00043576049804627814,
+      "maximumGrade": 2.3841768381771544e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-280",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 32,
+      "length": 147.65685424949237,
+      "maximumHeightError": 0.0040715525010046605,
+      "maximumGrade": 0.0026591019315402426,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-281",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 32,
+      "length": 96.14213562373095,
+      "maximumHeightError": 0.00013232421875031264,
+      "maximumGrade": 0.0000014557351415720348,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-282",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 22,
+      "length": 49.65685424949238,
+      "maximumHeightError": 0.00046420288085968764,
+      "maximumGrade": 0.000023495647844292136,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-283",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 28,
+      "length": 55.31370849898477,
+      "maximumHeightError": 0.00047755432128937514,
+      "maximumGrade": 0.000029797936763664566,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-284",
+      "category": "road",
+      "important": false,
+      "points": 151,
+      "samples": 300,
+      "length": 302.8284271247462,
+      "maximumHeightError": 0.00022023010253846564,
+      "maximumGrade": 0.000002859149161831424,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-285",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 35,
+      "length": 79.31370849898477,
+      "maximumHeightError": 0.0001677780151361219,
+      "maximumGrade": 0.0000026586187023351283,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-286",
+      "category": "road",
+      "important": false,
+      "points": 56,
+      "samples": 114,
+      "length": 214.4264068711928,
+      "maximumHeightError": 0.0004986572265632816,
+      "maximumGrade": 0.0008052127268348938,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-287",
+      "category": "road",
+      "important": false,
+      "points": 21,
+      "samples": 46,
+      "length": 97.45584412271572,
+      "maximumHeightError": 0.1987270812988271,
+      "maximumGrade": 0.09060462887894397,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-288",
+      "category": "road",
+      "important": false,
+      "points": 64,
+      "samples": 131,
+      "length": 255.25483399593898,
+      "maximumHeightError": 0.0004956868489589539,
+      "maximumGrade": 0.0008106608968412049,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-289",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 9,
+      "length": 46,
+      "maximumHeightError": 0.00014012145996034064,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-290",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 20,
+      "length": 24,
+      "maximumHeightError": 0.0001429824829095594,
+      "maximumGrade": 2.9802436074533034e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-291",
+      "category": "road",
+      "important": false,
+      "points": 26,
+      "samples": 62,
+      "length": 152.42640687119282,
+      "maximumHeightError": 0.00022023010253846564,
+      "maximumGrade": 3.2782554626464844e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-292",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 28,
+      "length": 48,
+      "maximumHeightError": 0.0001467971801751844,
+      "maximumGrade": 2.9802436074533034e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-293",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 17,
+      "length": 84.82842712474618,
+      "maximumHeightError": 0.0018056520734521797,
+      "maximumGrade": 0.002662047224606088,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-294",
+      "category": "road",
+      "important": false,
+      "points": 42,
+      "samples": 96,
+      "length": 223.5979797464466,
+      "maximumHeightError": 0.08363640594482469,
+      "maximumGrade": 0.03815513107791857,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-295",
+      "category": "road",
+      "important": false,
+      "points": 133,
+      "samples": 280,
+      "length": 401.39696961967013,
+      "maximumHeightError": 0.00019924926757752814,
+      "maximumGrade": 6.135632020232151e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-296",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 25,
+      "length": 124.82842712474618,
+      "maximumHeightError": 0.00004958343505911955,
+      "maximumGrade": 0.000026813067961484194,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-297",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 14,
+      "length": 78,
+      "maximumHeightError": 0.00005339813232474455,
+      "maximumGrade": 0.000019026904023386732,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-298",
+      "category": "road",
+      "important": false,
+      "points": 46,
+      "samples": 104,
+      "length": 213.59797974644667,
+      "maximumHeightError": 0.04549699401855456,
+      "maximumGrade": 0.004716496018840764,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-299",
+      "category": "road",
+      "important": false,
+      "points": 26,
+      "samples": 58,
+      "length": 125.33809511662426,
+      "maximumHeightError": 0.0005028686523438353,
+      "maximumGrade": 0.01116339537823544,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-300",
+      "category": "road",
+      "important": false,
+      "points": 50,
+      "samples": 108,
+      "length": 197.94112549695424,
+      "maximumHeightError": 0.04149508666992219,
+      "maximumGrade": 0.004504703258642661,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-301",
+      "category": "road",
+      "important": false,
+      "points": 23,
+      "samples": 53,
+      "length": 116.6274169979695,
+      "maximumHeightError": 0.009160652160643323,
+      "maximumGrade": 0.005731689783556602,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-302",
+      "category": "road",
+      "important": false,
+      "points": 21,
+      "samples": 51,
+      "length": 121.31370849898475,
+      "maximumHeightError": 0.0055998992919921164,
+      "maximumGrade": 0.004749004935774688,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-303-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 26,
+      "samples": 52,
+      "length": 91.4558441227157,
+      "maximumHeightError": 0.0001582412719720594,
+      "maximumGrade": 0.000003647175214927237,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-304-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 19,
+      "samples": 36,
+      "length": 38,
+      "maximumHeightError": 0.00014965820312440314,
+      "maximumGrade": 0,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-304-safe-2",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 16,
+      "length": 23.656854249492383,
+      "maximumHeightError": 0.0001544265747064344,
+      "maximumGrade": 3.278242957094335e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-305",
+      "category": "road",
+      "important": false,
+      "points": 30,
+      "samples": 87,
+      "length": 233.39696961967,
+      "maximumHeightError": 0.00018017578124940314,
+      "maximumGrade": 4.409951088746311e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-306-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 57,
+      "length": 104.76955262170046,
+      "maximumHeightError": 0.00047903060913068174,
+      "maximumGrade": 0.12752132964859897,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-307",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 11,
+      "length": 30,
+      "maximumHeightError": 0.00043943786621269965,
+      "maximumGrade": 0.19771273230656916,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-308",
+      "category": "road",
+      "important": false,
+      "points": 61,
+      "samples": 120,
+      "length": 152.6274169979695,
+      "maximumHeightError": 0.0001658706665033094,
+      "maximumGrade": 3.2782554626464844e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-309",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 31,
+      "length": 103.31370849898474,
+      "maximumHeightError": 0.002813376532660783,
+      "maximumGrade": 0.0003952028129208734,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-310",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 19,
+      "length": 65.65685424949238,
+      "maximumHeightError": 0.00011420440673859389,
+      "maximumGrade": 0.000001717091041676989,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-311",
+      "category": "road",
+      "important": false,
+      "points": 18,
+      "samples": 52,
+      "length": 180.6274169979695,
+      "maximumHeightError": 0.0028739878336594415,
+      "maximumGrade": 0.004130552871641338,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-312",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 7,
+      "length": 34,
+      "maximumHeightError": 0.0014910405476893374,
+      "maximumGrade": 0.005721587070213974,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-313",
+      "category": "road",
+      "important": false,
+      "points": 27,
+      "samples": 52,
+      "length": 90.14213562373095,
+      "maximumHeightError": 0.00015126800537146323,
+      "maximumGrade": 0.01116339537823544,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-314",
+      "category": "road",
+      "important": false,
+      "points": 58,
+      "samples": 127,
+      "length": 240.22539674441606,
+      "maximumHeightError": 0.0322572525024416,
+      "maximumGrade": 0.040081116606892654,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-315",
+      "category": "road",
+      "important": false,
+      "points": 25,
+      "samples": 49,
+      "length": 61.65685424949238,
+      "maximumHeightError": 0.0001677780151361219,
+      "maximumGrade": 0.0000018715937812885386,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-316",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 30,
+      "length": 147.27922061357856,
+      "maximumHeightError": 0.00018017578124940314,
+      "maximumGrade": 3.8743164054722e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-317",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 27,
+      "length": 121.65685424949237,
+      "maximumHeightError": 0.0411155242919925,
+      "maximumGrade": 0.00007493077985687476,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-318",
+      "category": "road",
+      "important": false,
+      "points": 36,
+      "samples": 81,
+      "length": 184.76955262170043,
+      "maximumHeightError": 0.00011038970947296889,
+      "maximumGrade": 0.000001714175730427288,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-319",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 38,
+      "length": 90.48528137423857,
+      "maximumHeightError": 0.00836528778076051,
+      "maximumGrade": 0.006677638220365524,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-320",
+      "category": "road",
+      "important": false,
+      "points": 19,
+      "samples": 43,
+      "length": 88.62741699796953,
+      "maximumHeightError": 0.008902158101399493,
+      "maximumGrade": 0.0067114665921200155,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-321",
+      "category": "road",
+      "important": false,
+      "points": 133,
+      "samples": 266,
+      "length": 332.0243866176396,
+      "maximumHeightError": 0.0002288131713861219,
+      "maximumGrade": 0.0000017518821362047477,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-322-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 29,
+      "samples": 62,
+      "length": 113.25483399593905,
+      "maximumHeightError": 0.06137733917236332,
+      "maximumGrade": 0.02646645697942611,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-323",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 27,
+      "length": 77.31370849898475,
+      "maximumHeightError": 0.004159057617187045,
+      "maximumGrade": 0.005721587070213974,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-324",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 20,
+      "length": 75.65685424949238,
+      "maximumHeightError": 0.009256737448952279,
+      "maximumGrade": 0.005721587070213974,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-325",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 22,
+      "length": 30.97056274847714,
+      "maximumHeightError": 0.000498016357422415,
+      "maximumGrade": 0.0002547232410727027,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-326-safe-1",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 30,
+      "length": 42.97056274847714,
+      "maximumHeightError": 0.00046917724609407685,
+      "maximumGrade": 0.0002547232410727027,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-327",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 41,
+      "length": 81.4558441227157,
+      "maximumHeightError": 0.02446141052246098,
+      "maximumGrade": 0.018296914001366432,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-328",
+      "category": "road",
+      "important": false,
+      "points": 102,
+      "samples": 220,
+      "length": 424.50966799187825,
+      "maximumHeightError": 0.12386164093017626,
+      "maximumGrade": 0.04865091610572991,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-329",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 19,
+      "length": 52.485281374238575,
+      "maximumHeightError": 0.06854093678792417,
+      "maximumGrade": 0.07349109947019636,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-330",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 21,
+      "length": 34.14213562373095,
+      "maximumHeightError": 0.08187208557128933,
+      "maximumGrade": 0.11992922634620395,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-331",
+      "category": "road",
+      "important": false,
+      "points": 18,
+      "samples": 35,
+      "length": 55.65685424949238,
+      "maximumHeightError": 0.0004419708251948151,
+      "maximumGrade": 0.01048995473621427,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-332",
+      "category": "road",
+      "important": false,
+      "points": 51,
+      "samples": 105,
+      "length": 198.08326112068517,
+      "maximumHeightError": 0.0013553848266596447,
+      "maximumGrade": 0.005900050902695651,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-333",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 29,
+      "length": 164,
+      "maximumHeightError": 0.04202406855991825,
+      "maximumGrade": 0.002264945451904246,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-334",
+      "category": "road",
+      "important": false,
+      "points": 38,
+      "samples": 84,
+      "length": 187.94112549695424,
+      "maximumHeightError": 0.009831278483073191,
+      "maximumGrade": 0.005519299672495671,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-335",
+      "category": "road",
+      "important": false,
+      "points": 6,
+      "samples": 12,
+      "length": 33.65685424949238,
+      "maximumHeightError": 0.00018017578124940314,
+      "maximumGrade": 3.901450666905647e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-336",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 39,
+      "length": 57.798989873223334,
+      "maximumHeightError": 0.038241256713867244,
+      "maximumGrade": 0.055004635361842656,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-337",
+      "category": "road",
+      "important": false,
+      "points": 31,
+      "samples": 61,
+      "length": 94.62741699796952,
+      "maximumHeightError": 0.05820422363281352,
+      "maximumGrade": 0.03735017308091876,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-338",
+      "category": "road",
+      "important": false,
+      "points": 10,
+      "samples": 26,
+      "length": 74.14213562373095,
+      "maximumHeightError": 0.00008368682861359389,
+      "maximumGrade": 0.000001144416116953707,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-339",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 32,
+      "length": 78.14213562373095,
+      "maximumHeightError": 0.00008368682861359389,
+      "maximumGrade": 0.0000011307883958332415,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-340",
+      "category": "road",
+      "important": false,
+      "points": 4,
+      "samples": 35,
+      "length": 179.59797974644667,
+      "maximumHeightError": 0.0002059249877923719,
+      "maximumGrade": 6.446482832439562e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-341",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 34,
+      "length": 75.65685424949238,
+      "maximumHeightError": 0.0011551284790041194,
+      "maximumGrade": 0.026446285941160705,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-342",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 34,
+      "length": 86.97056274847714,
+      "maximumHeightError": 0.13968074035644662,
+      "maximumGrade": 0.06995999993895051,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-343",
+      "category": "road",
+      "important": false,
+      "points": 65,
+      "samples": 131,
+      "length": 215.0538238691623,
+      "maximumHeightError": 0.001210182189941733,
+      "maximumGrade": 0.004130552871641338,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-344",
+      "category": "road",
+      "important": false,
+      "points": 34,
+      "samples": 67,
+      "length": 105.11269837220807,
+      "maximumHeightError": 0.02448632812500051,
+      "maximumGrade": 0.033187468566975104,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-345",
+      "category": "road",
+      "important": false,
+      "points": 15,
+      "samples": 29,
+      "length": 50.485281374238575,
+      "maximumHeightError": 0.09875913238525413,
+      "maximumGrade": 0.06774516521093428,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-346",
+      "category": "road",
+      "important": false,
+      "points": 99,
+      "samples": 198,
+      "length": 305.4802307403552,
+      "maximumHeightError": 0.022001502990722344,
+      "maximumGrade": 0.04865091610572991,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-347",
+      "category": "road",
+      "important": false,
+      "points": 28,
+      "samples": 55,
+      "length": 94.62741699796952,
+      "maximumHeightError": 0.06810278320312513,
+      "maximumGrade": 0.06643503216697913,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-348",
+      "category": "road",
+      "important": false,
+      "points": 18,
+      "samples": 35,
+      "length": 58.14213562373096,
+      "maximumHeightError": 0.0063725357055659515,
+      "maximumGrade": 0.03665836225154232,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-349",
+      "category": "road",
+      "important": false,
+      "points": 26,
+      "samples": 77,
+      "length": 233.4558441227157,
+      "maximumHeightError": 0.0014092254638669033,
+      "maximumGrade": 0.005804139623320508,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-350",
+      "category": "road",
+      "important": false,
+      "points": 8,
+      "samples": 24,
+      "length": 78.48528137423857,
+      "maximumHeightError": 0.0001962203979495314,
+      "maximumGrade": 0.00007534567696835754,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-351",
+      "category": "road",
+      "important": false,
+      "points": 26,
+      "samples": 77,
+      "length": 232.28427124746187,
+      "maximumHeightError": 0.014474136352539801,
+      "maximumGrade": 0.004779754054248978,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-352",
+      "category": "road",
+      "important": false,
+      "points": 37,
+      "samples": 72,
+      "length": 107.11269837220807,
+      "maximumHeightError": 0.00048509216308545433,
+      "maximumGrade": 0.07109055881855747,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-353",
+      "category": "road",
+      "important": false,
+      "points": 48,
+      "samples": 96,
+      "length": 156.97056274847714,
+      "maximumHeightError": 0.00008368682861359389,
+      "maximumGrade": 0.0000019081305981532937,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-354",
+      "category": "road",
+      "important": false,
+      "points": 18,
+      "samples": 34,
+      "length": 52.14213562373096,
+      "maximumHeightError": 0.00019924926757752814,
+      "maximumGrade": 2.4989645157944637e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-355",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 38,
+      "length": 54.14213562373095,
+      "maximumHeightError": 0.0004780197143556819,
+      "maximumGrade": 0.008521289622045845,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-356",
+      "category": "road",
+      "important": false,
+      "points": 32,
+      "samples": 64,
+      "length": 108.6274169979695,
+      "maximumHeightError": 0.07371972656250136,
+      "maximumGrade": 0.06643386894265,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-357",
+      "category": "road",
+      "important": false,
+      "points": 52,
+      "samples": 105,
+      "length": 158.28427124746187,
+      "maximumHeightError": 0.00022023010253846564,
+      "maximumGrade": 0.0000016752178849832542,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-358",
+      "category": "road",
+      "important": false,
+      "points": 28,
+      "samples": 62,
+      "length": 127.79898987322335,
+      "maximumHeightError": 0.0002383499145501844,
+      "maximumGrade": 0.0000014703883462141558,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-359",
+      "category": "road",
+      "important": false,
+      "points": 7,
+      "samples": 15,
+      "length": 36.485281374238575,
+      "maximumHeightError": 0.0002135543823236219,
+      "maximumGrade": 6.446482832439562e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-360",
+      "category": "road",
+      "important": false,
+      "points": 52,
+      "samples": 105,
+      "length": 164.65180361560905,
+      "maximumHeightError": 0.0007060775756837501,
+      "maximumGrade": 0.005855486829048302,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-361",
+      "category": "road",
+      "important": false,
+      "points": 50,
+      "samples": 105,
+      "length": 178.99494936611666,
+      "maximumHeightError": 0.0056114501953139495,
+      "maximumGrade": 0.005855486829048302,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-362",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 38,
+      "length": 107.79898987322332,
+      "maximumHeightError": 0.001309364318847983,
+      "maximumGrade": 0.0016674744189034306,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-363",
+      "category": "road",
+      "important": false,
+      "points": 14,
+      "samples": 37,
+      "length": 108.14213562373095,
+      "maximumHeightError": 0.00009131622314484389,
+      "maximumGrade": 0.00006202502710416779,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-364",
+      "category": "road",
+      "important": false,
+      "points": 9,
+      "samples": 16,
+      "length": 31.313708498984763,
+      "maximumHeightError": 0.00021641540527284064,
+      "maximumGrade": 5.651010958955501e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-365",
+      "category": "road",
+      "important": false,
+      "points": 3,
+      "samples": 45,
+      "length": 253.65685424949237,
+      "maximumHeightError": 0.00028507995605409064,
+      "maximumGrade": 0.0000011387841141186072,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-366",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 46,
+      "length": 112.6274169979695,
+      "maximumHeightError": 0.0004276199340829123,
+      "maximumGrade": 0.00007316069736523695,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-367",
+      "category": "road",
+      "important": false,
+      "points": 2,
+      "samples": 6,
+      "length": 26,
+      "maximumHeightError": 0.0002383499145501844,
+      "maximumGrade": 7.942467732391378e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-368",
+      "category": "road",
+      "important": false,
+      "points": 16,
+      "samples": 30,
+      "length": 39.45584412271572,
+      "maximumHeightError": 0.0003014221191399713,
+      "maximumGrade": 2.3124850627934087e-7,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-369",
+      "category": "road",
+      "important": false,
+      "points": 5,
+      "samples": 12,
+      "length": 39.31370849898477,
+      "maximumHeightError": 0.0057940241495764155,
+      "maximumGrade": 0.004413674995456677,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-370",
+      "category": "road",
+      "important": false,
+      "points": 12,
+      "samples": 26,
+      "length": 48.14213562373095,
+      "maximumHeightError": 0.008347190856934361,
+      "maximumGrade": 0.005522267770636317,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-371",
+      "category": "road",
+      "important": false,
+      "points": 13,
+      "samples": 36,
+      "length": 105.79898987322333,
+      "maximumHeightError": 0.0017317810058603555,
+      "maximumGrade": 0.000764777619841038,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-372",
+      "category": "road",
+      "important": false,
+      "points": 20,
+      "samples": 47,
+      "length": 114.97056274847714,
+      "maximumHeightError": 0.0013194442749018265,
+      "maximumGrade": 0.0007059805399292352,
+      "issues": 0
+    },
+    {
+      "id": "vc-road-373",
+      "category": "road",
+      "important": false,
+      "points": 11,
+      "samples": 23,
+      "length": 56.97056274847714,
+      "maximumHeightError": 0.15414363861084013,
+      "maximumGrade": 0.03770242949026133,
+      "issues": 0
+    }
+  ],
+  "spawns": [
+    {
+      "id": "spawn-main",
+      "verificationSource": "player-spawn",
+      "expected": [
+        -700,
+        9.273,
+        1006
+      ],
+      "heading": 0,
+      "ground": {
+        "height": 9.27309799194336,
+        "normal": {
+          "x": -0.0000015032010196591727,
+          "y": 1,
+          "z": -2.4470907078466553e-7
+        },
+        "point": {
+          "x": 2100,
+          "y": 9.27309799194336,
+          "z": -1694
+        }
+      },
+      "footprint": [
+        {
+          "x": -700,
+          "z": 1006,
+          "height": 9.27309799194336
+        },
+        {
+          "x": -699.1,
+          "z": 1007.5,
+          "height": 9.273097038269043
+        },
+        {
+          "x": -700.9,
+          "z": 1007.5,
+          "height": 9.273097038269043
+        },
+        {
+          "x": -700.9,
+          "z": 1004.5,
+          "height": 9.273096084594727
+        },
+        {
+          "x": -699.1,
+          "z": 1004.5,
+          "height": 9.27309799194336
+        },
+        {
+          "x": -699.1,
+          "z": 1006,
+          "height": 9.27309799194336
+        },
+        {
+          "x": -700.9,
+          "z": 1006,
+          "height": 9.273096084594727
+        },
+        {
+          "x": -700,
+          "z": 1007.5,
+          "height": 9.27309799194336
+        },
+        {
+          "x": -700,
+          "z": 1004.5,
+          "height": 9.273097038269043
+        }
+      ],
+      "bodyOverlapCount": 0
+    },
+    {
+      "id": "spawn-washington",
+      "verificationSource": "player-spawn",
+      "expected": [
+        -348,
+        9.944,
+        -404
+      ],
+      "heading": 0,
+      "ground": {
+        "height": 9.94404125213623,
+        "normal": {
+          "x": -0.008082776330411434,
+          "y": 0.9999178051948547,
+          "z": -0.009952077642083168
+        },
+        "point": {
+          "x": 2452,
+          "y": 9.94404125213623,
+          "z": -3104
+        }
+      },
+      "footprint": [
+        {
+          "x": -348,
+          "z": -404,
+          "height": 9.94404125213623
+        },
+        {
+          "x": -347.1,
+          "z": -402.5,
+          "height": 9.966262817382812
+        },
+        {
+          "x": -348.9,
+          "z": -402.5,
+          "height": 9.951723098754883
+        },
+        {
+          "x": -348.9,
+          "z": -405.5,
+          "height": 9.921836853027344
+        },
+        {
+          "x": -347.1,
+          "z": -405.5,
+          "height": 9.93638801574707
+        },
+        {
+          "x": -347.1,
+          "z": -404,
+          "height": 9.951316833496094
+        },
+        {
+          "x": -348.9,
+          "z": -404,
+          "height": 9.936821937561035
+        },
+        {
+          "x": -348,
+          "z": -402.5,
+          "height": 9.958972930908203
+        },
+        {
+          "x": -348,
+          "z": -405.5,
+          "height": 9.929112434387207
+        }
+      ],
+      "bodyOverlapCount": 0
+    },
+    {
+      "id": "spawn-vice-point",
+      "verificationSource": "player-spawn",
+      "expected": [
+        -278,
+        9.862,
+        -944
+      ],
+      "heading": 270,
+      "ground": {
+        "height": 9.861676216125488,
+        "normal": {
+          "x": -8.730577372162429e-10,
+          "y": 1,
+          "z": 3.471841125701758e-7
+        },
+        "point": {
+          "x": 2522,
+          "y": 9.861676216125488,
+          "z": -3644
+        }
+      },
+      "footprint": [
+        {
+          "x": -278,
+          "z": -944,
+          "height": 9.861676216125488
+        },
+        {
+          "x": -276.5,
+          "z": -944.9,
+          "height": 9.861677169799805
+        },
+        {
+          "x": -276.5,
+          "z": -943.1,
+          "height": 9.861676216125488
+        },
+        {
+          "x": -279.5,
+          "z": -943.1,
+          "height": 9.861676216125488
+        },
+        {
+          "x": -279.5,
+          "z": -944.9,
+          "height": 9.861677169799805
+        },
+        {
+          "x": -278,
+          "z": -944.9,
+          "height": 9.861677169799805
+        },
+        {
+          "x": -278,
+          "z": -943.1,
+          "height": 9.861676216125488
+        },
+        {
+          "x": -276.5,
+          "z": -944,
+          "height": 9.861676216125488
+        },
+        {
+          "x": -279.5,
+          "z": -944,
+          "height": 9.861676216125488
+        }
+      ],
+      "bodyOverlapCount": 0
+    },
+    {
+      "id": "spawn-havana",
+      "verificationSource": "player-spawn",
+      "expected": [
+        -1596,
+        9.887,
+        446
+      ],
+      "heading": 0,
+      "ground": {
+        "height": 9.886651992797852,
+        "normal": {
+          "x": 0.0008028600132092834,
+          "y": 0.9999996423721313,
+          "z": -0.00006437351112253964
+        },
+        "point": {
+          "x": 1204,
+          "y": 9.886651992797852,
+          "z": -2254
+        }
+      },
+      "footprint": [
+        {
+          "x": -1596,
+          "z": 446,
+          "height": 9.886651992797852
+        },
+        {
+          "x": -1595.1,
+          "z": 447.5,
+          "height": 9.886026382446289
+        },
+        {
+          "x": -1596.9,
+          "z": 447.5,
+          "height": 9.887471199035645
+        },
+        {
+          "x": -1596.9,
+          "z": 444.5,
+          "height": 9.88727855682373
+        },
+        {
+          "x": -1595.1,
+          "z": 444.5,
+          "height": 9.885833740234375
+        },
+        {
+          "x": -1595.1,
+          "z": 446,
+          "height": 9.885930061340332
+        },
+        {
+          "x": -1596.9,
+          "z": 446,
+          "height": 9.887374877929688
+        },
+        {
+          "x": -1596,
+          "z": 447.5,
+          "height": 9.886749267578125
+        },
+        {
+          "x": -1596,
+          "z": 444.5,
+          "height": 9.886555671691895
+        }
+      ],
+      "bodyOverlapCount": 0
+    },
+    {
+      "id": "spawn-haiti",
+      "verificationSource": "player-spawn",
+      "expected": [
+        -1628,
+        9.866,
+        -120
+      ],
+      "heading": 0,
+      "ground": {
+        "height": 9.865618705749512,
+        "normal": {
+          "x": -3.0721196253580274e-7,
+          "y": 1,
+          "z": 1.709410639705311e-7
+        },
+        "point": {
+          "x": 1172,
+          "y": 9.865618705749512,
+          "z": -2820
+        }
+      },
+      "footprint": [
+        {
+          "x": -1628,
+          "z": -120,
+          "height": 9.865618705749512
+        },
+        {
+          "x": -1627.1,
+          "z": -118.5,
+          "height": 9.865618705749512
+        },
+        {
+          "x": -1628.9,
+          "z": -118.5,
+          "height": 9.865617752075195
+        },
+        {
+          "x": -1628.9,
+          "z": -121.5,
+          "height": 9.865618705749512
+        },
+        {
+          "x": -1627.1,
+          "z": -121.5,
+          "height": 9.865618705749512
+        },
+        {
+          "x": -1627.1,
+          "z": -120,
+          "height": 9.865618705749512
+        },
+        {
+          "x": -1628.9,
+          "z": -120,
+          "height": 9.865618705749512
+        },
+        {
+          "x": -1628,
+          "z": -118.5,
+          "height": 9.865617752075195
+        },
+        {
+          "x": -1628,
+          "z": -121.5,
+          "height": 9.865618705749512
+        }
+      ],
+      "bodyOverlapCount": 0
+    },
+    {
+      "id": "spawn-airport",
+      "verificationSource": "player-spawn",
+      "expected": [
+        -2506,
+        13.658,
+        406
+      ],
+      "heading": 90,
+      "ground": {
+        "height": 13.658225059509277,
+        "normal": {
+          "x": -0.000003804876087087905,
+          "y": 1,
+          "z": -0.00000591280650041881
+        },
+        "point": {
+          "x": 294,
+          "y": 13.658225059509277,
+          "z": -2294
+        }
+      },
+      "footprint": [
+        {
+          "x": -2506,
+          "z": 406,
+          "height": 13.658225059509277
+        },
+        {
+          "x": -2507.5,
+          "z": 406.9,
+          "height": 13.658225059509277
+        },
+        {
+          "x": -2507.5,
+          "z": 405.1,
+          "height": 13.658194541931152
+        },
+        {
+          "x": -2504.5,
+          "z": 405.1,
+          "height": 13.65820598602295
+        },
+        {
+          "x": -2504.5,
+          "z": 406.9,
+          "height": 13.658236503601074
+        },
+        {
+          "x": -2506,
+          "z": 406.9,
+          "height": 13.658230781555176
+        },
+        {
+          "x": -2506,
+          "z": 405.1,
+          "height": 13.65820026397705
+        },
+        {
+          "x": -2507.5,
+          "z": 406,
+          "height": 13.658219337463379
+        },
+        {
+          "x": -2504.5,
+          "z": 406,
+          "height": 13.658230781555176
+        }
+      ],
+      "bodyOverlapCount": 0
+    },
+    {
+      "id": "north-bridge-east",
+      "verificationSource": "audited-source-bridge-deck",
+      "expected": [
+        -1208,
+        25.147461891174316,
+        -320
+      ],
+      "heading": 90,
+      "ground": {
+        "height": 25.1474609375,
+        "normal": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "point": {
+          "x": 1592,
+          "y": 25.1474609375,
+          "z": -3020
+        }
+      },
+      "footprint": [
+        {
+          "x": -1208,
+          "z": -320,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1209.5,
+          "z": -319.1,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1209.5,
+          "z": -320.9,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1206.5,
+          "z": -320.9,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1206.5,
+          "z": -319.1,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1208,
+          "z": -319.1,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1208,
+          "z": -320.9,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1209.5,
+          "z": -320,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1206.5,
+          "z": -320,
+          "height": 25.1474609375
+        }
+      ],
+      "bodyOverlapCount": 0
+    },
+    {
+      "id": "north-bridge-west",
+      "verificationSource": "audited-source-bridge-deck",
+      "expected": [
+        -1208,
+        25.147461891174316,
+        -320
+      ],
+      "heading": 270,
+      "ground": {
+        "height": 25.1474609375,
+        "normal": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "point": {
+          "x": 1592,
+          "y": 25.1474609375,
+          "z": -3020
+        }
+      },
+      "footprint": [
+        {
+          "x": -1208,
+          "z": -320,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1206.5,
+          "z": -320.9,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1206.5,
+          "z": -319.1,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1209.5,
+          "z": -319.1,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1209.5,
+          "z": -320.9,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1208,
+          "z": -320.9,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1208,
+          "z": -319.1,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1206.5,
+          "z": -320,
+          "height": 25.1474609375
+        },
+        {
+          "x": -1209.5,
+          "z": -320,
+          "height": 25.1474609375
+        }
+      ],
+      "bodyOverlapCount": 0
+    }
+  ],
+  "drives": [
+    {
+      "spawn": "spawn-main",
+      "verificationSource": "player-spawn",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.86495208740234,
+      "groundedTicks": 85,
+      "progress": 20.0506591796875,
+      "lateralDeviation": 2.455497558519879e-15,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -700,
+          "y": 9.665969848632812,
+          "z": 1005.99658203125,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -700,
+          "y": 9.469886779785156,
+          "z": 1005.8916015625,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -700,
+          "y": 9.136003494262695,
+          "z": 1005.6412353515625,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -700,
+          "y": 8.982662200927734,
+          "z": 1005.2454833984375,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -700,
+          "y": 9.068285942077637,
+          "z": 1004.7056884765625,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -700,
+          "y": 9.14637279510498,
+          "z": 1004.02294921875,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -700,
+          "y": 9.198294639587402,
+          "z": 1003.198974609375,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -700,
+          "y": 9.229771614074707,
+          "z": 1002.2357177734375,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -700,
+          "y": 9.248193740844727,
+          "z": 1001.13525390625,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -700,
+          "y": 9.25882625579834,
+          "z": 999.8997802734375,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -700,
+          "y": 9.264925956726074,
+          "z": 998.5318603515625,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -700,
+          "y": 9.268420219421387,
+          "z": 997.0345458984375,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -700,
+          "y": 9.270418167114258,
+          "z": 995.410400390625,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -700,
+          "y": 9.271561622619629,
+          "z": 993.662353515625,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -700,
+          "y": 9.272215843200684,
+          "z": 991.7939453125,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -700,
+          "y": 9.272589683532715,
+          "z": 989.808349609375,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -700,
+          "y": 9.272804260253906,
+          "z": 987.708740234375,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -700,
+        "y": 9.272908210754395,
+        "z": 985.9493408203125
+      }
+    },
+    {
+      "spawn": "spawn-washington",
+      "verificationSource": "player-spawn",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.71458435058594,
+      "groundedTicks": 84,
+      "progress": 20.080322265625,
+      "lateralDeviation": 0.23266601562500247,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -348,
+          "y": 10.33687973022461,
+          "z": -404.00341796875,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -348,
+          "y": 10.13976764678955,
+          "z": -404.1083984375,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -348,
+          "y": 9.80339241027832,
+          "z": -404.362060546875,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -348,
+          "y": 9.667498588562012,
+          "z": -404.7705078125,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -348.00390625,
+          "y": 9.744349479675293,
+          "z": -405.332763671875,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -348.013671875,
+          "y": 9.808928489685059,
+          "z": -406.0439453125,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -348.0234375,
+          "y": 9.847447395324707,
+          "z": -406.901611328125,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -348.033203125,
+          "y": 9.86582088470459,
+          "z": -407.90283203125,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -348.04296875,
+          "y": 9.870938301086426,
+          "z": -409.045654296875,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -348.052734375,
+          "y": 9.867589950561523,
+          "z": -410.3271484375,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -348.0625,
+          "y": 9.868468284606934,
+          "z": -411.744384765625,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -348.072265625,
+          "y": 9.873682975769043,
+          "z": -413.29052734375,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -348.090576171875,
+          "y": 9.901141166687012,
+          "z": -414.956298828125,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -348.117919921875,
+          "y": 9.937028884887695,
+          "z": -416.736572265625,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -348.14990234375,
+          "y": 9.971715927124023,
+          "z": -418.630126953125,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -348.185791015625,
+          "y": 9.995705604553223,
+          "z": -420.63720703125,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -348.215087890625,
+          "y": 10.010531425476074,
+          "z": -422.756103515625,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -348.232666015625,
+        "y": 10.01634407043457,
+        "z": -424.080322265625
+      }
+    },
+    {
+      "spawn": "spawn-vice-point",
+      "verificationSource": "player-spawn",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.53065490722656,
+      "groundedTicks": 86,
+      "progress": 20.43408203125,
+      "lateralDeviation": 0.027343749999998748,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -278.00341796875,
+          "y": 10.254548072814941,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -278.1083984375,
+          "y": 10.058465003967285,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -278.35888671875,
+          "y": 9.724583625793457,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -278.754638671875,
+          "y": 9.571243286132812,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -279.29443359375,
+          "y": 9.656866073608398,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -279.977294921875,
+          "y": 9.734952926635742,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -280.80126953125,
+          "y": 9.786874771118164,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -281.7646484375,
+          "y": 9.818351745605469,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -282.864990234375,
+          "y": 9.836773872375488,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -284.100341796875,
+          "y": 9.847406387329102,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -285.46923828125,
+          "y": 9.853506088256836,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -286.967041015625,
+          "y": 9.857001304626465,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -288.59130859375,
+          "y": 9.859325408935547,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -290.33837890625,
+          "y": 9.871758460998535,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -292.20068359375,
+          "y": 9.895978927612305,
+          "z": -944,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -294.172119140625,
+          "y": 9.935590744018555,
+          "z": -943.995849609375,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -296.250732421875,
+          "y": 9.97635555267334,
+          "z": -943.986083984375,
+          "grounded": true
+        },
+        {
+          "ms": 1376,
+          "x": -298.43408203125,
+          "y": 10.015047073364258,
+          "z": -943.97265625,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -298.43408203125,
+        "y": 10.015047073364258,
+        "z": -943.97265625
+      }
+    },
+    {
+      "spawn": "spawn-havana",
+      "verificationSource": "player-spawn",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.92339324951172,
+      "groundedTicks": 85,
+      "progress": 20.0634765625,
+      "lateralDeviation": 2.4570672352033565e-15,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -1596,
+          "y": 10.279523849487305,
+          "z": 445.99658203125,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -1596,
+          "y": 10.08343505859375,
+          "z": 445.8916015625,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -1596,
+          "y": 9.749533653259277,
+          "z": 445.64111328125,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -1596,
+          "y": 9.596168518066406,
+          "z": 445.245361328125,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -1596,
+          "y": 9.681756019592285,
+          "z": 444.70556640625,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -1596,
+          "y": 9.759800910949707,
+          "z": 444.022216796875,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -1596,
+          "y": 9.81166934967041,
+          "z": 443.197998046875,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -1596,
+          "y": 9.8430814743042,
+          "z": 442.234130859375,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -1596,
+          "y": 9.861434936523438,
+          "z": 441.1328125,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -1596,
+          "y": 9.871991157531738,
+          "z": 439.896484375,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -1596,
+          "y": 9.878002166748047,
+          "z": 438.527587890625,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -1596,
+          "y": 9.881397247314453,
+          "z": 437.02880859375,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -1596,
+          "y": 9.883293151855469,
+          "z": 435.40380859375,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -1596,
+          "y": 9.884321212768555,
+          "z": 433.654541015625,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -1596,
+          "y": 9.884849548339844,
+          "z": 431.78515625,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -1596,
+          "y": 9.88508129119873,
+          "z": 429.798095703125,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -1596,
+          "y": 9.88514232635498,
+          "z": 427.697021484375,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -1596,
+        "y": 9.885119438171387,
+        "z": 425.9365234375
+      }
+    },
+    {
+      "spawn": "spawn-haiti",
+      "verificationSource": "player-spawn",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.86480712890625,
+      "groundedTicks": 85,
+      "progress": 20.05322265625,
+      "lateralDeviation": 2.4558114938565746e-15,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -1628,
+          "y": 10.258490562438965,
+          "z": -120.00341796875,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -1628,
+          "y": 10.062407493591309,
+          "z": -120.1083984375,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -1628,
+          "y": 9.72852611541748,
+          "z": -120.35888671875,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -1628,
+          "y": 9.57518482208252,
+          "z": -120.754638671875,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -1628,
+          "y": 9.660808563232422,
+          "z": -121.29443359375,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -1628,
+          "y": 9.738895416259766,
+          "z": -121.977294921875,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -1628,
+          "y": 9.790817260742188,
+          "z": -122.80126953125,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -1628,
+          "y": 9.822294235229492,
+          "z": -123.7646484375,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -1628,
+          "y": 9.840716361999512,
+          "z": -124.864990234375,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -1628,
+          "y": 9.851348876953125,
+          "z": -126.100341796875,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -1628,
+          "y": 9.857449531555176,
+          "z": -127.46923828125,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -1628,
+          "y": 9.860944747924805,
+          "z": -128.967041015625,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -1628,
+          "y": 9.862942695617676,
+          "z": -130.59130859375,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -1628,
+          "y": 9.864087104797363,
+          "z": -132.33935546875,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -1628,
+          "y": 9.864741325378418,
+          "z": -134.2080078125,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -1628,
+          "y": 9.865117073059082,
+          "z": -136.194091796875,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -1628,
+          "y": 9.865331649780273,
+          "z": -138.293701171875,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -1628,
+        "y": 9.865434646606445,
+        "z": -140.05322265625
+      }
+    },
+    {
+      "spawn": "spawn-airport",
+      "verificationSource": "player-spawn",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.86512756347656,
+      "groundedTicks": 85,
+      "progress": 20.051025390625,
+      "lateralDeviation": 1.2277712032125607e-15,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -2505.9967041015625,
+          "y": 14.05109691619873,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -2505.892333984375,
+          "y": 13.855010986328125,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -2505.6417236328125,
+          "y": 13.521119117736816,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -2505.24609375,
+          "y": 13.367777824401855,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -2504.7061462402344,
+          "y": 13.453405380249023,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -2504.0234375,
+          "y": 13.531497955322266,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -2503.199432373047,
+          "y": 13.583423614501953,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -2502.2361450195312,
+          "y": 13.61490249633789,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -2501.135528564453,
+          "y": 13.633332252502441,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -2499.9000244140625,
+          "y": 13.643967628479004,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -2498.532196044922,
+          "y": 13.650075912475586,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -2497.034698486328,
+          "y": 13.653576850891113,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -2495.4104614257812,
+          "y": 13.655577659606934,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -2493.6624450683594,
+          "y": 13.656720161437988,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -2491.7939453125,
+          "y": 13.657365798950195,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -2489.808135986328,
+          "y": 13.657730102539062,
+          "z": 406,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -2487.7084045410156,
+          "y": 13.657934188842773,
+          "z": 406,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -2485.948974609375,
+        "y": 13.658032417297363,
+        "z": 406
+      }
+    },
+    {
+      "spawn": "north-bridge-east",
+      "verificationSource": "audited-source-bridge-deck",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.7833480834961,
+      "groundedTicks": 85,
+      "progress": 20.0506591796875,
+      "lateralDeviation": 1.2277487792599395e-15,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -1207.99658203125,
+          "y": 25.540332794189453,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -1207.8916015625,
+          "y": 25.344249725341797,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -1207.6412353515625,
+          "y": 25.010360717773438,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -1207.2454833984375,
+          "y": 24.857027053833008,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -1206.7056884765625,
+          "y": 24.942646026611328,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -1206.02294921875,
+          "y": 25.020736694335938,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -1205.198974609375,
+          "y": 25.072662353515625,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -1204.2357177734375,
+          "y": 25.10413360595703,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -1203.13525390625,
+          "y": 25.12255859375,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -1201.8997802734375,
+          "y": 25.133190155029297,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -1200.5318603515625,
+          "y": 25.13928985595703,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -1199.0345458984375,
+          "y": 25.14278221130371,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -1197.410400390625,
+          "y": 25.144784927368164,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -1195.662353515625,
+          "y": 25.145925521850586,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -1193.7939453125,
+          "y": 25.146581649780273,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -1191.808349609375,
+          "y": 25.146955490112305,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -1189.708740234375,
+          "y": 25.147165298461914,
+          "z": -320,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -1187.9493408203125,
+        "y": 25.14689826965332,
+        "z": -320
+      }
+    },
+    {
+      "spawn": "north-bridge-west",
+      "verificationSource": "audited-source-bridge-deck",
+      "requestedDistance": 20,
+      "reached": true,
+      "automaticReset": false,
+      "maxSpeedKmh": 100.8648452758789,
+      "groundedTicks": 85,
+      "progress": 20.0506591796875,
+      "lateralDeviation": 1.2277487792599395e-15,
+      "trajectory": [
+        {
+          "ms": 16,
+          "x": -1208.00341796875,
+          "y": 25.540332794189453,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 96,
+          "x": -1208.1083984375,
+          "y": 25.344249725341797,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 176,
+          "x": -1208.3587646484375,
+          "y": 25.010360717773438,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 256,
+          "x": -1208.7545166015625,
+          "y": 24.857027053833008,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 336,
+          "x": -1209.2943115234375,
+          "y": 24.942646026611328,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 416,
+          "x": -1209.97705078125,
+          "y": 25.020736694335938,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 496,
+          "x": -1210.801025390625,
+          "y": 25.072662353515625,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 576,
+          "x": -1211.7642822265625,
+          "y": 25.10413360595703,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 656,
+          "x": -1212.86474609375,
+          "y": 25.12255859375,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 736,
+          "x": -1214.1002197265625,
+          "y": 25.133190155029297,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 816,
+          "x": -1215.4681396484375,
+          "y": 25.13928985595703,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 896,
+          "x": -1216.9654541015625,
+          "y": 25.14278221130371,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 976,
+          "x": -1218.589599609375,
+          "y": 25.144784927368164,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1056,
+          "x": -1220.337646484375,
+          "y": 25.145925521850586,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1136,
+          "x": -1222.2060546875,
+          "y": 25.146581649780273,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1216,
+          "x": -1224.191650390625,
+          "y": 25.146955490112305,
+          "z": -320,
+          "grounded": true
+        },
+        {
+          "ms": 1296,
+          "x": -1226.291259765625,
+          "y": 25.147165298461914,
+          "z": -320,
+          "grounded": true
+        }
+      ],
+      "finalPosition": {
+        "x": -1228.0506591796875,
+        "y": 25.14727210998535,
+        "z": -320
+      }
+    }
+  ],
+  "failures": [],
+  "navigationWarnings": [],
+  "designSha256": "c8201a56b1d1090f5e7aee38719d8a50ee29d248b6cee225f37e8fe229a2621d",
+  "trackSha256": "16a2df1c661b7e6f0f030aec924def65179fa531b8daa953b8dd999b5ac6f317",
+  "trackBytes": 90352975,
+  "designVersion": 6,
+  "coordinateOffsets": {
+    "x": 2800,
+    "z": -2700
+  },
+  "parseMs": 1865,
+  "collisionTriangles": 970644,
+  "routeSections": 6,
+  "worldBuildMs": 1491,
+  "gridCells": 372170,
+  "nativeRoute": [
+    {
+      "id": "native-section-0",
+      "category": "native-route",
+      "important": true,
+      "points": 53,
+      "samples": 104,
+      "length": 101.65685424949237,
+      "maximumHeightError": 0.00007343292236328125,
+      "maximumGrade": 0.000001393743617630863,
+      "issues": 0
+    },
+    {
+      "id": "native-section-1",
+      "category": "native-route",
+      "important": true,
+      "points": 54,
+      "samples": 106,
+      "length": 98.97056274847711,
+      "maximumHeightError": 0.0001964569091796875,
+      "maximumGrade": 0.00007534567696835754,
+      "issues": 0
+    },
+    {
+      "id": "native-section-2",
+      "category": "native-route",
+      "important": true,
+      "points": 54,
+      "samples": 106,
+      "length": 101.31370849898474,
+      "maximumHeightError": 0.013739585876464844,
+      "maximumGrade": 0.00519243989342311,
+      "issues": 0
+    },
+    {
+      "id": "native-section-3",
+      "category": "native-route",
+      "important": true,
+      "points": 53,
+      "samples": 104,
+      "length": 99.31370849898474,
+      "maximumHeightError": 0.0006504058837890625,
+      "maximumGrade": 0.0036096910506352763,
+      "issues": 0
+    },
+    {
+      "id": "native-section-4",
+      "category": "native-route",
+      "important": true,
+      "points": 53,
+      "samples": 104,
+      "length": 99.01069572043586,
+      "maximumHeightError": 0.006636619567871094,
+      "maximumGrade": 0.004697442471513625,
+      "issues": 0
+    },
+    {
+      "id": "native-section-5",
+      "category": "native-route",
+      "important": true,
+      "points": 64,
+      "samples": 126,
+      "length": 118.9304297765184,
+      "maximumHeightError": 0.009592056274414062,
+      "maximumGrade": 0.00002528854146214919,
+      "issues": 0
+    }
+  ],
+  "playerSpawnCount": 6,
+  "failureCount": 0,
+  "navigationWarningCount": 0,
+  "drivesPassed": 8,
+  "passed": true
+}

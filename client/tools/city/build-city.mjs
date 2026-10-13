@@ -242,9 +242,9 @@ function segmentIntersection(a, b, c, d) {
   return [a[0] + t * r[0], a[1] + t * r[1]];
 }
 
-export function validateModel(formats, model) {
+export function validateModel(formats, model, options = {}) {
   const parsed = { root: model, rootOccurrence: { encoding: "new", id: 0, value: model } };
-  const road = formats.YW(parsed, "speed-individual", { forceReverse: false });
+  const road = formats.YW(parsed, "speed-individual", { forceReverse: false, ...options });
   const issues = road.roadIssues ?? [];
   return {
     collisionTriangles: road.collisionTriangles.length,

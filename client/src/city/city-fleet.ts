@@ -15,6 +15,7 @@ import { VehicleMotionReceiver } from "../vehicle/remote-vehicle-motion";
 import { racePresenterInitializationDependencies } from "../generated/world.js";
 import type { CityMember, CityPose, CityRadarEntry } from "./city-protocol";
 import { designToWorld } from "./city-coordinates";
+import { cityVisualScale } from "./city-vehicle-scale";
 
 type Vector = [number, number, number];
 
@@ -54,7 +55,8 @@ export function poseFromDesign(pose: CityPose) {
   // North is −z in the world; east is +x.
   const forward = { x: Math.sin(radians), y: 0, z: -Math.cos(radians) };
   const right = { x: Math.cos(radians), y: 0, z: Math.sin(radians) };
-  return { position: world, right, forward, up: { x: 0, y: 1, z: 0 } };
+  return { position: world, right, forward, up: { x: 0, y: 1, z: 0 },
+    visualScale: cityVisualScale() };
 }
 
 export interface CityFleetHost {
@@ -173,8 +175,7 @@ export class CityFleet {
     if (vehicle.decoration) view.getAttachment(16)?.add(vehicle.decoration.scene.object);
     const pose = poseFromDesign(peer.member.pose ?? { x: 0, y: 0, z: 0, heading: 0 });
     presenter.initialPoses.set(peer.playerId, pose);
-    view.updatePose({ x: pose.position.x, y: pose.position.y, z: pose.position.z, ...pose,
-      visualScale: { x: 1, y: 1, z: 1 } });
+    view.updatePose({ x: pose.position.x, y: pose.position.y, z: pose.position.z, ...pose });
   }
 
   remove(playerId: string): void {
@@ -299,12 +300,12 @@ export class CityFleet {
       return {
         position: { x: pose.position[0], y: pose.position[2], z: Math.fround(-pose.position[1]) },
         ...webBasis(pose.rotation),
-        visualScale: { ...(peer.visualScale ?? { x: 1, y: 1, z: 1 }) },
+        visualScale: cityVisualScale(peer.visualScale),
       };
     }
     if (peer.radar) {
       const world = designToWorld(peer.radar.x, peer.member.pose?.y ?? 0, peer.radar.z);
-      return { position: world, ...identityBasis(), visualScale: { x: 1, y: 1, z: 1 } };
+      return { position: world, ...identityBasis(), visualScale: cityVisualScale() };
     }
     return undefined;
   }

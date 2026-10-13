@@ -2,6 +2,7 @@ package city
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -19,9 +20,12 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 		t.Fatalf("snapshot %v", snapshot)
 	}
 	you := snapshot["you"].(map[string]any)
-	if spawn := you["spawn"].(map[string]any); spawn["id"] != "spawn-main" || spawn["x"] != 75.0 || spawn["z"] != 129.9 {
-		t.Fatalf("first spawn %v", spawn)
+	firstSpawn := designMap.Spawns[0]
+	spawn := you["spawn"].(map[string]any)
+	if spawn["id"] != firstSpawn.ID {
+		t.Fatalf("first spawn %v, want %s", spawn, firstSpawn.ID)
 	}
+	assertPoseMatchesSpawn(t, spawn, firstSpawn)
 	if members := snapshot["members"].([]any); len(members) != 1 {
 		t.Fatalf("members %v", members)
 	}
@@ -37,18 +41,19 @@ func TestJoinAssignsIdsLinesAndSpawns(t *testing.T) {
 	// The second spawn of line 1 rotates past the main one; the roster is
 	// sorted by id and carries the hello equipment.
 	you = snapshot["you"].(map[string]any)
-	if spawn := you["spawn"].(map[string]any); spawn["id"] != "spawn-city" {
-		t.Fatalf("second spawn %v", spawn)
+	secondSpawn := designMap.Spawns[1]
+	spawn = you["spawn"].(map[string]any)
+	if spawn["id"] != secondSpawn.ID {
+		t.Fatalf("second spawn %v, want %s", spawn, secondSpawn.ID)
 	}
+	assertPoseMatchesSpawn(t, spawn, secondSpawn)
 	members := snapshot["members"].([]any)
 	first := members[0].(map[string]any)
 	if len(members) != 2 || first["id"] != 1.0 || first["name"] != "Alice" || first["state"] != "driving" ||
 		first["equipment"].(map[string]any)["itemIds"] == nil {
 		t.Fatalf("members %v", members)
 	}
-	if pose := first["pose"].(map[string]any); pose["z"] != 129.9 || pose["heading"] != 330.0 {
-		t.Fatalf("alice's pose %v", pose)
-	}
+	assertPoseMatchesSpawn(t, first["pose"].(map[string]any), firstSpawn)
 	// Line 1 is full, so Carol lands on line 2; Alice heard Bob come in, Carol hears nothing.
 	if snapshot := h.join(carol, `{"type":"city-join"}`); snapshot["line"] != 2.0 || carol.id != 1 {
 		t.Fatalf("carol %v %d", snapshot, carol.id)
@@ -211,7 +216,9 @@ func TestMotionPlausibilityKicksRepeatOffenders(t *testing.T) {
 	h.join(alice, `{"type":"city-join"}`)
 	h.join(bob, `{"type":"city-join"}`)
 	// The first frame after a join is not checked (the browser may load
-	// away from the spawn point).
+	// away from the spawn point). Keep Bob far away regardless of the map's
+	// second spawn, so the interest assertion below measures only distance.
+	h.at(bob, 500, 0, 1000, 0)
 	h.svc.RelayMotion(alice.c, motionFrame(1, 500, 0, 500, 0))
 	if frames := bob.sink.takeMotion(); len(frames) != 0 {
 		t.Fatal("bob is far away yet got a frame")
@@ -236,7 +243,7 @@ func TestMotionPlausibilityKicksRepeatOffenders(t *testing.T) {
 		t.Fatalf("a 7 m hop was refused: %d frames", len(frames))
 	}
 	// A declared respawn resets the reference.
-	h.must(alice, `{"type":"city-respawn","spawn":"spawn-forest"}`)
+	h.must(alice, fmt.Sprintf(`{"type":"city-respawn","spawn":%q}`, designMap.Spawns[1].ID))
 	h.svc.RelayMotion(alice.c, motionFrame(8, 820, 0, 480, 0))
 	h.at(bob, 820, 0, 480, 0)
 	bob.sink.takeMotion()
@@ -271,15 +278,24 @@ func TestMotionPlausibilityKicksRepeatOffenders(t *testing.T) {
 }
 
 func TestChatChannelsAndMute(t *testing.T) {
-	h := newHarness(t, Options{Lines: 1, ChatRadius: 60})
+	// Channel semantics should survive replacing the game's art map. These
+	// two independent areas give known 50 m / 120 m and cross-district cases.
+	chatMap, err := Load([]byte(`{"districts":[
+		{"id":"plaza","polygon":[[-200,-200],[200,-200],[200,200],[-200,200]]},
+		{"id":"harbor","polygon":[[400,-200],[800,-200],[800,200],[400,200]]}],
+		"pois":[{"id":"spawn-main","kind":"spawn","at":[0,0]}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := newHarness(t, Options{Lines: 1, ChatRadius: 60, Map: chatMap})
 	alice, near, plaza, harbor := h.player("Alice"), h.player("Near"), h.player("Plaza"), h.player("Harbor")
 	for _, p := range []*peer{alice, near, plaza, harbor} {
 		h.join(p, `{"type":"city-join"}`)
 	}
-	h.at(alice, 0, 0, 0, 0)      // the plaza (circle r=230)
-	h.at(near, 50, 0, 0, 0)      // within 60 m, same district
-	h.at(plaza, 0, 0, 120, 0)    // the plaza (its south slope), out of chat range
-	h.at(harbor, 820, 0, 480, 0) // the harbor district
+	h.at(alice, 0, 0, 0, 0)    // plaza center
+	h.at(near, 50, 0, 0, 0)    // within 60 m, same district
+	h.at(plaza, 0, 0, 120, 0)  // same district, out of chat range
+	h.at(harbor, 600, 0, 0, 0) // the other district
 	for _, p := range []*peer{alice, near, plaza, harbor} {
 		p.sink.events(t)
 	}
@@ -381,12 +397,12 @@ func TestEmoteStateAndRespawn(t *testing.T) {
 		t.Fatalf("members %v", members)
 	}
 
-	h.must(alice, `{"type":"city-respawn","spawn":"spawn-forest"}`)
+	h.must(alice, fmt.Sprintf(`{"type":"city-respawn","spawn":%q}`, designMap.Spawns[1].ID))
 	respawns := ofType(near.sink.events(t), "city-respawn")
-	if len(respawns) != 1 || respawns[0]["pose"].(map[string]any)["z"] != -306.7 ||
-		respawns[0]["pose"].(map[string]any)["heading"] != 236.0 {
+	if len(respawns) != 1 {
 		t.Fatalf("near's respawns %v", respawns)
 	}
+	assertPoseMatchesSpawn(t, respawns[0]["pose"].(map[string]any), designMap.Spawns[1])
 	h.refused(alice, `{"type":"city-respawn","spawn":"spawn-moon"}`, "INVALID_SPAWN")
 	h.refused(alice, `{"type":"city-respawn"}`, "INVALID_SPAWN")
 	h.refused(alice, `{"type":"city-respawn","pose":{"x":1,"y":2}}`, "INVALID_POSE")
@@ -633,12 +649,11 @@ func TestAdminKickAndCloseLine(t *testing.T) {
 	if err := h.svc.OpenLine(1); err != nil {
 		t.Fatal(err)
 	}
-	// Bob gets the freed id 1 and, fourth to spawn on the line, the 阳光海滩
-	// spawn (spawn-main, city, ice, beach, …).
+	// Bob gets the freed id 1 and the fourth district spawn in the map.
 	h.join(bob, `{"type":"city-join","line":1}`)
 	members, err := h.svc.Members(1)
 	if err != nil || len(members) != 1 || members[0].ID != 1 || members[0].Name != "Bob" ||
-		members[0].District != "beach" {
+		members[0].District != designMap.DistrictAt(designMap.Spawns[3%len(designMap.Spawns)].X, designMap.Spawns[3%len(designMap.Spawns)].Z) {
 		t.Fatalf("members %+v %v", members, err)
 	}
 }
@@ -675,13 +690,9 @@ func TestHeadingOf(t *testing.T) {
 	}
 }
 
-// The payload position is in the shifted physics frame of the city track
-// (client x = design x + 1200, client y = 1200 - design z, from
-// meta.extent); poses are design coordinates.
+// The payload position is in the shifted physics frame of the city track:
+// client x = design x + OffsetX, client y = OffsetZ - design z.
 func TestPayloadPoseAppliesTheMapOffset(t *testing.T) {
-	if designMap.OffsetX != 1200 || designMap.OffsetZ != 1200 {
-		t.Fatalf("offsets %v %v", designMap.OffsetX, designMap.OffsetZ)
-	}
 	payload := make([]byte, 80)
 	wire := func(p [3]float64) {
 		for i, v := range p {
@@ -689,22 +700,39 @@ func TestPayloadPoseAppliesTheMapOffset(t *testing.T) {
 		}
 		binary.LittleEndian.PutUint32(payload[kinematicQuaternionOffset+4:], math.Float32bits(1)) // north
 	}
-	wire([3]float64{1200, 1200, 0})
+	wire([3]float64{designMap.OffsetX, designMap.OffsetZ, 0})
 	if pose, ok := designMap.payloadPose(2, payload); !ok || pose != (Pose{}) {
-		t.Fatalf("the fountain: %+v %v", pose, ok)
+		t.Fatalf("design origin: %+v %v", pose, ok)
 	}
-	// The beach spawn (820, 480) sits at client (2020, 720).
-	wire([3]float64{2020, 720, 3})
-	if pose, ok := designMap.payloadPose(2, payload); !ok || pose != (Pose{X: 820, Y: 3, Z: 480}) {
-		t.Fatalf("the beach: %+v %v", pose, ok)
+	// This asymmetric fixture has explicit, independent expected wire values
+	// so a swapped axis or half-size offset cannot pass a round-trip test.
+	rectangular, err := Load([]byte(`{"meta":{"extent":[[-350,-800],[1100,2600]]},
+		"pois":[{"id":"spawn-main","kind":"spawn","at":[125,-240]}]}`))
+	if err != nil {
+		t.Fatal(err)
 	}
-	// And a relayed frame at the fountain lands the member in the plaza.
+	wire([3]float64{475, 2840, 9.5})
+	if pose, ok := rectangular.payloadPose(2, payload); !ok || pose != (Pose{X: 125, Y: 9.5, Z: -240}) {
+		t.Fatalf("rectangular wire position: %+v %v", pose, ok)
+	}
+	// Relaying a real embedded spawn restores its design pose and district.
 	h := newHarness(t, Options{Lines: 1})
 	alice := h.player("Alice")
 	h.join(alice, `{"type":"city-join"}`)
-	h.svc.RelayMotion(alice.c, motionFrame(1, 0, 0, 0, 0))
+	spawn := designMap.Spawns[0]
+	h.svc.RelayMotion(alice.c, motionFrame(1, spawn.X, spawn.Y, spawn.Z, spawn.Heading))
 	members, _ := h.svc.Members(1)
-	if members[0].Pose != (Pose{}) || members[0].District != "plaza" {
-		t.Fatalf("member %+v", members[0])
+	got := members[0].Pose
+	// Motion payloads store float32; source JSON positions retain float64.
+	if math.Abs(got.X-spawn.X) > 0.001 || math.Abs(got.Y-spawn.Y) > 0.001 || math.Abs(got.Z-spawn.Z) > 0.001 ||
+		math.Abs(math.Remainder(got.Heading-spawn.Heading, 360)) > 0.001 || members[0].District != designMap.DistrictAt(spawn.X, spawn.Z) {
+		t.Fatalf("member %+v, want spawn %+v", members[0], spawn)
+	}
+}
+
+func assertPoseMatchesSpawn(t *testing.T, got map[string]any, want Spawn) {
+	t.Helper()
+	if got["x"] != want.X || got["y"] != want.Y || got["z"] != want.Z || got["heading"] != want.Heading {
+		t.Fatalf("pose %v, want spawn %+v", got, want)
 	}
 }

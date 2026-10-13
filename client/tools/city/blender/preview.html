@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>卡丁城 · 地图预览</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,sans-serif;color:#eef6fa;background:#a8d7e5;overflow:hidden}canvas{display:block}header{position:absolute;top:24px;left:28px;pointer-events:none}header small{letter-spacing:4px;color:#264e5a;font-size:11px}h1{color:#143d4b;font-size:30px;margin:6px 0}header p{color:#345a64;margin:0;font-size:12px}.panel{position:absolute;background:#122f3be8;border:1px solid #ffffff30;border-radius:18px;backdrop-filter:blur(16px);box-shadow:0 15px 40px #143a4a20}nav{left:28px;bottom:28px;padding:16px;width:330px}nav small{color:#9ebac5;display:block;margin-bottom:12px}.regions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}button{font:inherit;color:#d7e8ed;background:#ffffff0d;border:1px solid #ffffff20;border-radius:9px;padding:10px 8px;cursor:pointer}button:hover{background:#ffffff25}button.active{background:#bce98c;color:#214235;border-color:#bce98c}.actions{display:flex;gap:8px;margin-top:12px}.actions button{flex:1}.metric{right:28px;bottom:28px;padding:19px 22px;min-width:215px}#speed{font-size:40px;font-weight:650;line-height:1.1}#status{font-size:12px;color:#acc3cf;margin-top:8px;line-height:1.7}#help{position:absolute;right:28px;top:28px;color:#2e5360;text-align:right;font-size:12px;line-height:1.9}#loading{position:absolute;inset:0;display:grid;place-content:center;background:#102e39ee;text-align:center;z-index:9}#loading b{font-size:24px}#loading p{color:#afc7d0;max-width:440px;line-height:1.7}#error{color:#ffbaa4;white-space:pre-wrap}a{color:#c3ebad}
+header,#help{background:#d8ecf1e8;border:1px solid #ffffff70;border-radius:14px;padding:13px 17px;backdrop-filter:blur(12px)}
+</style></head><body>
+<header><small>KARTCITY / OPEN WORLD</small><h1 id="map-title">卡丁城</h1><p id="map-summary">开放世界 · 自由驾驶与探索</p></header>
+<div id="help">俯瞰：拖拽旋转 · 滚轮缩放<br>试驾：WASD / 方向键 · Shift 漂移 · R 返回道路</div>
+<nav class="panel"><small>选择目的地</small><div class="regions" id="regions"></div><div class="actions"><button id="overview" class="active">俯瞰全境</button><button id="drive" disabled>进入试驾</button></div></nav>
+<div class="panel metric"><div><span id="speed">—</span> <span id="unit">全境视角</span></div><div id="status">正在读取场景…</div></div>
+<div id="loading"><b id="loading-title">准备卡丁城</b><p id="progress">正在加载地图…</p><div id="error"></div></div>
+<script type="module" src="./preview.mjs"></script></body></html>

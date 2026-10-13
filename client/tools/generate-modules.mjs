@@ -2749,6 +2749,13 @@ function II(version, speed) { return findSpeedTypeEntry(version, speed); }` });
     replacedKeyControllers.add(declarationName);
     continue;
   }
+  if (declarationName === "lB") {
+    assert(node.type === "FunctionDeclaration" && originalSection(node.start) === "formats",
+      "The camera culling planes function moved from formats.");
+    bodies.get("formats").push({ at: node.start,
+      text: "function lB(camera) { return cameraCullingPlanes(camera); }" });
+    continue;
+  }
   if (declarationName === "W1") {
     assert(node.type === "FunctionDeclaration" && originalSection(node.start) === "formats",
       "The track scene assembly function moved from formats.");
@@ -4550,6 +4557,7 @@ function renderModule(name) {
     lines.push('import { decodePngRgba } from "../resources/png-decoder.ts";');
     lines.push('import { normalizeLegacyTextureAlpha } from "../resources/texture-alpha.ts";');
     lines.push('import { buildTrackCourseGraph } from "../resources/track-course-graph.ts";');
+    lines.push('import { cameraCullingPlanes } from "../resources/camera-culling-planes.ts";');
     lines.push('const fontLayoutOps = { attribute: T, rectangle: lt, parseNumbers: j2 };');
   }
   if (name === "world") {

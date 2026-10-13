@@ -12,8 +12,23 @@ export function sampleRoad(design, road, terrain, step = 6) {
   const sea = design.water?.sea?.polygon ?? [];
   const elevation = new Array(points.length);
   const overSea = points.map(p => sea.length > 2 && pointInPolygon2(p, sea));
+  // Blender worlds store absolute deck elevations, including bridges. Preserve
+  // these when resampling the route: flattening them to zero breaks recovery.
+  const explicitHeight = road.points.every(p => Number.isFinite(p[2]));
+  const sourceS = [0];
+  for (let i = 1; i < road.points.length; i++)
+    sourceS.push(sourceS[i - 1] + Math.hypot(road.points[i][0] - road.points[i - 1][0], road.points[i][1] - road.points[i - 1][1]));
+  let source = 0;
   for (let i = 0; i < points.length; i++) {
     const [x, z] = points[i];
+    if (explicitHeight) {
+      while (source + 1 < sourceS.length && sourceS[source + 1] <= s[i]) source++;
+      const next = (source + 1) % road.points.length;
+      const end = next === 0 ? total : sourceS[next];
+      const t = end > sourceS[source] ? (s[i] - sourceS[source]) / (end - sourceS[source]) : 0;
+      elevation[i] = road.points[source][2] + (road.points[next][2] - road.points[source][2]) * t;
+      continue;
+    }
     if (road.id === "tunnel") { elevation[i] = LIFT.tunnel; continue; }
     if (road.id === "mountain") { elevation[i] = terrain.land(x, z) + 0.1; continue; }
     let y = Math.max(terrain.height(x, z), 0) + LIFT[road.type];
@@ -29,7 +44,7 @@ export function sampleRoad(design, road, terrain, step = 6) {
     }
     elevation[i] = y;
   }
-  return { road, type, points, s, total, tangents, normals, elevation, overSea, width: type.width };
+  return { road, type, points, s, total, tangents, normals, elevation, overSea, width: road.width ?? type.width };
 }
 
 const edge = (sample, i, side, extra = 0) => {

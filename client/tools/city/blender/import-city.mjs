@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // Blender city → track container: reads build/blender/out/kartcity.glb and
-// kartcity-design.json (written by kartcity.py), builds track.1s with the
+// kartcity-design.json (written by continent_scene.py), builds track.1s with the
 // browser's own model constructors, the ring route, the minimap, textures
 // (official ones by name from the mirror, Tripo ones from the glb images),
 // packs track_kartcity.rho and writes city-map.json for client and server.
 //
 //   cd client && node --import tsx tools/city/blender/import-city.mjs [--in DIR] [--out DIR] [--mirror CHECKOUT] [--register --register-into CHECKOUT] [--validate]
-import { readFileSync, writeFileSync } from "node:fs";
+//   --source-glbs DIR reads the audited Vice City source parts directly.
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,6 +20,8 @@ import { routeRecords, sampleRoad } from "../city-roads.mjs";
 import { validateModel } from "../build-city.mjs";
 import { CityModel, renderMinimap, writeContainer } from "./city-container.mjs";
 import { readGlb, transformDirection, transformPoint } from "./glb.mjs";
+import { SurfaceMinimap } from "./surface-minimap.mjs";
+import { coplanarRoadFilter } from "./road-collision-repair.mjs";
 
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const projectRoot = path.resolve(clientDir, "..");
@@ -39,13 +42,15 @@ export async function importCity({ library, formats, design, glb }) {
   const city = new CityModel(design, library, formats);
   const surfaces = new Map();
   const images = new Map();
-  let instances = 0, triangles = 0;
+  const surfaceMinimap = design.meta.minimapGeometry ? new SurfaceMinimap(design) : undefined;
+  const suppressRoadShell = design.meta.drivableMaterials ? coplanarRoadFilter(glb, design.meta.drivableMaterials) : undefined;
+  let instances = 0, triangles = 0, suppressedCoplanarFaces = 0;
 
-  const surfaceFor = (material, index) => {
-    const key = index ?? -1;
+  const surfaceFor = (material, index, renderOnly = false) => {
+    const key = `${index ?? -1}${renderOnly ? '_visual' : ''}`;
     if (surfaces.has(key)) return surfaces.get(key);
-    const extras = material?.extras ?? {};
-    const name = safe(material?.name ?? `material_${key}`);
+    const extras = renderOnly ? { ...material?.extras, kr_road: '', kr_collider: '' } : material?.extras ?? {};
+    const name = safe(material?.name ?? `material_${key}`) + (renderOnly ? '_visual' : '');
     let surface;
     if (extras.kr_collider) {
       surface = city.surface("collider", "", [], { road: {}, test: true, generated: { stem: "kr_collider", extension: "png", bytes: TRANSPARENT_PNG } });
@@ -95,19 +100,31 @@ export async function importCity({ library, formats, design, glb }) {
       cx /= positions.length || 1; cz /= positions.length || 1;
       const builder = city.mesh(node.name ?? "mesh", surface, cx, cz);
       const map = new Map();
-      const vertex = i => {
-        let v = map.get(i);
+      let visualBuilder;
+      const visualMap = new Map();
+      const vertex = (i, target = builder, vertices = map) => {
+        let v = vertices.get(i);
         if (v === undefined) {
           const p = positions[i];
           const n = normals?.[i] ?? [0, 1, 0];
           const c = colors?.[i];
-          v = builder.vertex(city.client(p[0], p[2], p[1]), uvs?.[i] ? [uvs[i][0], uvs[i][1]] : [0, 0], [n[0], -n[2], n[1]], c ? argb(c[0], c[1], c[2]) : undefined);
-          map.set(i, v);
+          v = target.vertex(city.client(p[0], p[2], p[1]), uvs?.[i] ? [uvs[i][0], uvs[i][1]] : [0, 0], [n[0], -n[2], n[1]], c ? argb(c[0], c[1], c[2]) : undefined);
+          vertices.set(i, v);
         }
         return v;
       };
-      for (let i = 0; i + 2 < indices.length; i += 3) { builder.triangle(vertex(indices[i]), vertex(indices[i + 1]), vertex(indices[i + 2])); triangles++; }
+      for (let i = 0; i + 2 < indices.length; i += 3) {
+        const points=[positions[indices[i]],positions[indices[i+1]],positions[indices[i+2]]];
+        if(material?.extras?.kr_road && suppressRoadShell?.(points)) {
+          visualBuilder ??= city.mesh(node.name ?? 'mesh', surfaceFor(material,primitive.material,true),cx,cz);
+          visualBuilder.triangle(...[indices[i],indices[i+1],indices[i+2]].map(j=>vertex(j,visualBuilder,visualMap)));
+          suppressedCoplanarFaces++;
+        } else builder.triangle(vertex(indices[i]), vertex(indices[i + 1]), vertex(indices[i + 2]));
+        triangles++;
+        surfaceMinimap?.triangle(positions[indices[i]],positions[indices[i+1]],positions[indices[i+2]],material?.name ?? '');
+      }
       if (colors && !surface.colors) { surface.colors = true; surface.slot.textureOp = 4; }
+      if (colors && visualBuilder && !visualBuilder.surface.colors) { visualBuilder.surface.colors=true; visualBuilder.surface.slot.textureOp=4; }
     }
   }
 
@@ -115,13 +132,13 @@ export async function importCity({ library, formats, design, glb }) {
   const terrain = createTerrain(design);
   const ringRoad = design.roads.find(r => r.route) ?? design.roads.find(r => r.id === "ring");
   if (!ringRoad) throw new Error("the design has no ring road for the route");
-  const sample = sampleRoad(design, ringRoad, terrain);
-  const records = routeRecords(city, sample);
+  const sample = sampleRoad(design, ringRoad, terrain, design.meta.routeSampleSpacing ?? 6);
+  const records = routeRecords(city, sample, { frameStride: design.meta.routeFrameStride ?? 3 });
   const route = toRoad("ring", records, true);
   const extent = design.meta.extent;
   const size = Math.max(extent[1][0] - extent[0][0], extent[1][1] - extent[0][1]);
-  const minimap = toMinimap({ centerX: size / 2, centerY: size / 2, scale: 236 / size });
-  const minimapPng = renderMinimap(city, minimap);
+  const minimap = toMinimap({ centerX: (extent[1][0] - extent[0][0]) / 2, centerY: (extent[1][1] - extent[0][1]) / 2, scale: 236 / size });
+  const minimapPng = surfaceMinimap?.png() ?? renderMinimap(city, minimap);
   const settings = trackObject("track", xml("property", {}, [
     xml("camera", { far: String(design.meta.cameraFar ?? 1000) }),
     xml("fog", { mode: "3", r: "188", g: "206", b: "228", start: "0.55", end: "1.0" }),
@@ -130,23 +147,33 @@ export async function importCity({ library, formats, design, glb }) {
   ]));
   const { root, meshCount, triangles: assembled, chunks } = city.assemble();
   const model = trackContainer("", root, [route, minimap, settings]);
-  return { city, model, minimapPng, stats: { instances, triangles, meshCount, assembled, chunks, textures: city.textures.files.size, records: records.length, surfaces: surfaces.size } };
+  return { city, model, minimapPng, stats: { instances, triangles, suppressedCoplanarFaces, meshCount, assembled, chunks, textures: city.textures.files.size, records: records.length, surfaces: surfaces.size } };
 }
 
 async function main() {
   const design = JSON.parse(readFileSync(path.join(inDir, "kartcity-design.json"), "utf8"));
-  const glb = readGlb(path.join(inDir, "kartcity.glb"));
+  const glb = option("--source-glbs")
+    ? await (await import("./vice-city-source.mjs")).loadViceCitySource({ sourceDir: path.resolve(option("--source-glbs")), classificationPath: path.join(inDir, "vice-city-surface-classes.json"), reportPath: path.join(outDir, "source-adapter-report.json") })
+    : readGlb(path.join(inDir, "kartcity.glb"));
   const { library, formats } = await loadResourceLibrary(projectRoot, "p3553", mirrorRoot);
   const built = await importCity({ library, formats, design, glb });
   console.log("model", JSON.stringify(built.stats));
-  const report = validateModel(formats, built.model);
+  const [[minX, minZ], [maxX, maxZ]] = design.meta.extent;
+  const report = validateModel(formats, built.model, { roadExtent: Math.max(maxX - minX, maxZ - minZ) + 1 });
   console.log("validate", JSON.stringify({ ...report, start: undefined, stats: undefined }));
-  if (report.issues.length) console.log("ISSUES", report.issues);
-  const mapJson = JSON.stringify(design, null, 2) + "\n";
-  for (const target of [path.join(projectRoot, "design", "open-world", "city-map.json"), path.join(clientDir, "src", "city", "city-map.json"), path.join(projectRoot, "server-go", "internal", "game", "city", "city-map.json")]) writeFileSync(target, mapJson);
-  console.log(`city-map.json written (${design.roads.length} roads, ${design.districts.length} districts, ${design.pois.length} pois)`);
+  if (!report.collisionTriangles) throw new Error("City has no solid collision surfaces; check kr_road material extras");
+  if (report.issues.length) throw new Error(`City validation failed: ${report.issues.join("; ")}`);
   if (args.includes("--validate")) return;
-  await writeContainer({ library, formats, city: built.city, model: built.model, minimapPng: built.minimapPng, outDir, register: args.includes("--register"), registerInto: option("--register-into") });
+  const sourceRecord = path.join(inDir, "source.json");
+  const extraFiles = existsSync(sourceRecord) ? [{ path: "source.json", bytes: readFileSync(sourceRecord) }] : [];
+  await writeContainer({ library, formats, city: built.city, model: built.model, minimapPng: built.minimapPng, outDir, extraFiles, register: args.includes("--register"), registerInto: option("--register-into") });
+  // An isolated conversion must not change the running city. Publish matching
+  // client/server metadata only after the complete native archive is written.
+  if (args.includes("--register") || args.includes("--publish-map")) {
+    const mapJson = JSON.stringify(design, null, 2) + "\n";
+    for (const target of [path.join(projectRoot, "design", "open-world", "city-map.json"), path.join(clientDir, "src", "city", "city-map.json"), path.join(projectRoot, "server-go", "internal", "game", "city", "city-map.json")]) writeFileSync(target, mapJson);
+    console.log(`city-map.json published (${design.roads.length} roads, ${design.districts.length} districts, ${design.pois.length} pois)`);
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(error => { console.error(error); process.exit(1); });

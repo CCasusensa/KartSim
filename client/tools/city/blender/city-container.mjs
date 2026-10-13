@@ -72,16 +72,30 @@ export class CityModel {
   }
 }
 
-/** 256×256 minimap (north up): district tints, the roads, the route loops. */
+/** High-resolution texture in the native HUD's 256×256 logical map space. */
 export function renderMinimap(city, minimap, loops = []) {
-  const canvas = new RgbaCanvas(256, 256, [18, 22, 28, 215]);
-  const px = (x, z) => { const c = city.client(x, z, 0); return [128 + (c[0] - minimap.centerX) * minimap.scale, 128 - (c[1] - minimap.centerY) * minimap.scale]; };
-  const tint = { village: [92, 84, 50, 255], forest: [60, 110, 70, 255], ice: [80, 110, 140, 255], desert: [150, 120, 70, 255], beach: [140, 130, 90, 255], city: [70, 70, 84, 255] };
+  // The following minimap camera sees only ~200 m. A continent squeezed into
+  // 256 raster pixels left only a handful of blurred texels under that camera.
+  // Keep ToMinimap's logical projection and use four texels per logical pixel.
+  const density = 4, size = 256 * density;
+  const canvas = new RgbaCanvas(size, size, [18, 22, 28, 215]);
+  const px = (x, z) => { const c = city.client(x, z, 0); return [density * (128 + (c[0] - minimap.centerX) * minimap.scale), density * (128 - (c[1] - minimap.centerY) * minimap.scale)]; };
+  const tint = { village: [92, 104, 60, 255], forest: [60, 110, 70, 255], ice: [125, 165, 195, 255], desert: [174, 139, 80, 255], beach: [140, 130, 90, 255], city: [75, 96, 122, 255], mine: [139, 91, 56, 255], factory: [136, 111, 83, 255] };
+  if (city.design.world?.coast) canvas.fillPolygon(city.design.world.coast.map(p => px(...p)), [80, 112, 69, 255]);
   for (const d of city.design.districts ?? []) if (d.polygon) canvas.fillPolygon(d.polygon.map(p => px(p[0], p[1])), tint[d.theme] ?? [52, 58, 70, 255]);
+  if (city.design.world?.coast) {
+    const land = new RgbaCanvas(size, size);
+    land.fillPolygon(city.design.world.coast.map(p => px(...p)), [255, 255, 255, 255]);
+    for (let y=0; y<size; y++) for (let x=0; x<size; x++)
+      if (!land.data[(y*size+x)*4+3]) canvas.set(x, y, [27, 70, 89, 255]);
+    const lake = city.design.world.lake;
+    if (lake) canvas.fillCircle(...px(...lake.center), lake.radius*minimap.scale*density, [61, 139, 174, 255]);
+  }
   const stroke = (points, closed, width, color) => {
     const count = closed ? points.length : points.length - 1;
-    for (let i = 0; i < count; i++) { const a = points[i], b = points[(i + 1) % points.length]; canvas.line(...px(a[0], a[1]), ...px(b[0], b[1]), width, color); }
+    for (let i = 0; i < count; i++) { const a = points[i], b = points[(i + 1) % points.length]; canvas.line(...px(a[0], a[1]), ...px(b[0], b[1]), width * density, color); }
   };
+  if (city.design.world?.river) stroke(city.design.world.river, false, 3, [61, 139, 174, 255]);
   for (const road of city.design.roads ?? []) {
     const type = city.design.roadTypes?.[road.type];
     const width = Math.max(1.5, (type?.width ?? 10) * minimap.scale * 1.4);
