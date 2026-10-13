@@ -17,7 +17,10 @@ import { FRAME_TEXTURE, ROOTS, TEXT, button, drawGreyPanel, drawLabel, drawRow, 
  */
 
 const ROWS = 12;
-const ROW = { width: 324, height: 26, gap: 3 };
+// 行比列表框窄 18（与资源下载窗口相同），选中行的青色边不会伸出框外
+const ROW = { width: 312, height: 26, gap: 3 };
+/** 详情里的按钮：自己的地图三个（开始、修改、下架/删除），别人的两个，都居中。 */
+const ACTIONS = { y: 376, height: 32, gap: 10, play: 128, edit: 150, remove: 128 };
 const ROW_IMAGE = { speed: "btn_진행중_", item: "btn_완료_" };
 const ACTIVE_TAB = "rgb(214,96,0)";
 
@@ -59,36 +62,45 @@ export function customGameDefinition(): Node {
     leftTopWH: `0 ${index * (ROW.height + ROW.gap)} ${ROW.width} ${ROW.height}` }, [
     node("ImageButton", { name: "mapBtn", leftTopWH: `0 0 ${ROW.width} ${ROW.height}`, alphaBlend: "true" }),
   ]));
+  const three = ACTIONS.play + ACTIONS.edit + ACTIONS.remove + ACTIONS.gap * 2;
+  const two = ACTIONS.play + ACTIONS.edit + ACTIONS.gap;
+  const action = (name: string, width: number, x: number) =>
+    node("TextButton", { name, windowSize: `${width} ${ACTIONS.height}`, adjust: `${x} ${ACTIONS.y}`, textRender: "bold14" });
+  const left3 = (502 - three) / 2, left2 = (502 - two) / 2;
+  // 左栏：标签 → 列表（底部翻页）→ 制作新地图 / 刷新；右栏：标题 → 卡片、信息、按钮、提示。
+  // 两栏顶边、底边对齐；最下面一行是状态文字和居中的“关闭”（与资源下载窗口相同）。
   return node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
     node("CaptionWindow", { name: "customDialog", windowRect: "0 0 880 616", frame: "CaptionDialog",
       caption: "自定义游戏", captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
       node("TextButton", { name: "tabAll", windowSize: "104 28", adjust: "0 6", textRender: "bold14" }),
       node("TextButton", { name: "tabMine", windowSize: "104 28", adjust: "108 6", textRender: "bold14" }),
-      node("CaptionWindow", { name: "listCaption", windowSize: "330 412", adjust: "0 64", frame: "CaptionWindowGrey" }, [
+      node("CaptionWindow", { name: "listCaption", windowSize: "330 438", adjust: "0 40", frame: "CaptionWindowGrey" }, [
         node("Label", { name: "listCaptionText", windowSize: "300 26", adjust: "8 -26", textRender: "bold15",
           textColor: "white", textAlign: "left|vcenter" }),
-        node("Container", { name: "mapRows", windowSize: `${ROW.width} 348`, adjust: "3 4" }, rows),
+        node("Container", { name: "mapRows", windowSize: `${ROW.width} ${ROWS * (ROW.height + ROW.gap)}`, adjust: "6 4" }, rows),
         node("Label", { name: "listEmpty", windowSize: "300 120", adjust: "15 100" }),
+        node("TextButton", { name: "listPrev", windowSize: "76 26", adjust: "40 362", textRender: "bold12" }),
+        node("Label", { name: "listPage", windowSize: "90 26", adjust: "120 362" }),
+        node("TextButton", { name: "listNext", windowSize: "76 26", adjust: "214 362", textRender: "bold12" }),
       ]),
-      node("TextButton", { name: "listPrev", windowSize: "76 26", adjust: "40 484", textRender: "bold12" }),
-      node("Label", { name: "listPage", windowSize: "90 26", adjust: "120 484" }),
-      node("TextButton", { name: "listNext", windowSize: "76 26", adjust: "214 484", textRender: "bold12" }),
+      node("TextButton", { name: "newMap", windowSize: "160 32", adjust: "0 484", textRender: "bold14" }),
+      node("TextButton", { name: "refresh", windowSize: "96 32", adjust: "234 484", textRender: "bold14" }),
       node("Container", { name: "detail", windowSize: "500 510", adjust: "340 6" }, [
         node("Label", { name: "detailTitle", windowSize: "500 30", adjust: "0 0", frame: "TitleCap",
           textRender: "bold", textColor: "white", textAlign: "center" }),
-        node("Label", { name: "detailBack", windowSize: "502 476", adjust: "-2 30" }),
-        node("Container", { windowSize: "502 476", adjust: "-2 30" }, [
-          node("Label", { name: "card", windowSize: "352 206", adjust: "0 12", align: "hcenter" }),
-          node("Label", { name: "info", windowSize: "452 128", adjust: "0 228", align: "hcenter" }),
-          node("TextButton", { name: "playButton", windowSize: "128 32", adjust: "40 370", textRender: "bold14" }),
-          node("TextButton", { name: "editButton", windowSize: "150 32", adjust: "176 370", textRender: "bold14" }),
-          node("TextButton", { name: "removeButton", windowSize: "128 32", adjust: "334 370", textRender: "bold14" }),
-          node("Label", { name: "detailTip", windowSize: "452 52", adjust: "0 412", align: "hcenter" }),
+        node("Label", { name: "detailBack", windowSize: "502 480", adjust: "-2 30" }),
+        node("Container", { windowSize: "502 480", adjust: "-2 30" }, [
+          node("Label", { name: "card", windowSize: "400 234", adjust: "0 14", align: "hcenter" }),
+          node("Label", { name: "info", windowSize: "452 100", adjust: "0 264", align: "hcenter" }),
+          action("playButton", ACTIONS.play, left3),
+          action("editButton", ACTIONS.edit, left3 + ACTIONS.play + ACTIONS.gap),
+          action("removeButton", ACTIONS.remove, left3 + ACTIONS.play + ACTIONS.edit + ACTIONS.gap * 2),
+          action("playButton2", ACTIONS.play, left2),
+          action("editButton2", ACTIONS.edit, left2 + ACTIONS.play + ACTIONS.gap),
+          node("Label", { name: "detailTip", windowSize: "452 52", adjust: "0 420", align: "hcenter" }),
         ]),
       ]),
-      node("Label", { name: "summary", windowSize: "560 24", adjust: "6 522" }),
-      node("TextButton", { name: "newMap", windowSize: "116 30", adjust: "604 520", textRender: "bold14" }),
-      node("TextButton", { name: "refresh", windowSize: "96 30", adjust: "726 520", textRender: "bold14" }),
+      node("Label", { name: "summary", windowRect: "0 0 330 32", align: "left|bottom", adjust: "6 0" }),
       node("TextButton", { name: "okButton", windowRect: "0 0 94 32", align: "hcenter|bottom", textRender: "bold14" }),
     ]),
   ]);
@@ -319,9 +331,11 @@ export class CustomGameWindow {
       } };
       case "info": return current ? paintText(this.info(current), { size: 14, color: TEXT, align: "center", lineGap: 10 })
         : { visible: false };
-      case "playButton": return current ? button("开始计时赛", () => void this.play(current)) : { visible: false };
-      case "editButton": return current ? button(current.mine ? "在地图工坊修改" : "用地图工坊打开", () => this.edit(current))
-        : { visible: false };
+      // 自己的地图三个按钮（playButton…removeButton），别人的地图两个（playButton2、editButton2），都居中
+      case "playButton": return current?.mine ? button("开始计时赛", () => void this.play(current)) : { visible: false };
+      case "editButton": return current?.mine ? button("在地图工坊修改", () => this.edit(current)) : { visible: false };
+      case "playButton2": return current && !current.mine ? button("开始计时赛", () => void this.play(current)) : { visible: false };
+      case "editButton2": return current && !current.mine ? button("用地图工坊打开", () => this.edit(current)) : { visible: false };
       case "removeButton": return current?.mine ? button(current.kind === "draft" ? "删除草稿" : "下架",
         () => void this.confirmRemove(current)) : { visible: false };
       case "detailTip": return paintText(this.tip(current), { size: 12, color: "rgb(70,80,100)", align: "center", lineGap: 6 });
