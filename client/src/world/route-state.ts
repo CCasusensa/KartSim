@@ -1,4 +1,5 @@
 import { routeGateCrossing } from "./gates";
+import { clearResetPose, type ResetClearanceVehicle, type ResetClearanceWorld } from "./reset-clearance";
 import {
   add, copy, projectSectionDistance, scale, subtract,
   type RouteFrame, type RouteSection, type RouteState, type Vec3,
@@ -58,15 +59,17 @@ export function currentRouteSurface(world: RouteWorldHost, vehicle: object): str
   return world.sections[requireRouteState(world, vehicle).section]!.surface;
 }
 
+/** The section's first frame, or the nearest clear spot when something solid stands on it. */
 export function prepareCurrentSectionReset(world: RouteWorldHost, vehicle: object):
   { position: Vec3; forward: Vec3; up: Vec3; surface: string } {
   const section = world.sections[requireRouteState(world, vehicle).section]!;
   const first = section.frames[0];
   if (!first) throw new Error("当前路线段缺少 reset frame 0。");
-  return {
-    position: add(first.position, scale(first.forward, Math.fround(0.10000000149011612))),
-    forward: copy(first.forward), up: copy(first.up), surface: section.surface,
-  };
+  return clearResetPose(world as RouteWorldHost & ResetClearanceWorld,
+    vehicle as ResetClearanceVehicle, section, {
+      position: add(first.position, scale(first.forward, Math.fround(0.10000000149011612))),
+      forward: copy(first.forward), up: copy(first.up), surface: section.surface,
+    });
 }
 
 export function commitCurrentSectionReset(world: RouteWorldHost, vehicle: object): void {

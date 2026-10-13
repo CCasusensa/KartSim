@@ -321,6 +321,36 @@ test("真实 p3553 路线重置、投影刷新和强制跳段与发行版一致"
   assert.deepEqual(run(TrackWorld.prototype), run(released));
 });
 
+test("真实 p3553 赛道复位点没被挡住时，避障检查保留发行版复位点", async () => {
+  installWorldOverrides(TrackWorld);
+  const vehicle = { collisionShape: { rawHalfWidth: 0.85, rawHalfLength: 1.35,
+    scaleX: 1, scaleY: 1, rawHeight: 0.6 } };
+  for (const archive of ["track_village_R01.rho", "track_village_R06.rho"]) {
+    const data = await realTrackData(archive);
+    const state = { section: 0 };
+    const plain = { sections: data.sections, routeStates: new WeakMap([[vehicle, state]]),
+      requireRouteState: released.requireRouteState };
+    let queries = 0;
+    const host = {
+      ...plain,
+      surface: new StaticTrackSurface(data.collisionTriangles, Oo, {
+        p3553ObbQuery: Oo, p3553ObbBounds: di0, roadDescriptorIssue: Vm,
+      }),
+      triangleObbQuery: Oo, data: { obstacleAnimators: [] },
+      queryObb(box) { queries += 1; return TrackWorld.prototype.queryObb.call(this, box); },
+      rayQuery: TrackWorld.prototype.rayQuery,
+    };
+    for (let index = 0; index < data.sections.length; index += 1) {
+      state.section = index;
+      assert.deepEqual(TrackWorld.prototype.prepareCurrentSectionReset.call(host, vehicle),
+        released.prepareCurrentSectionReset.call(plain, vehicle), `${archive} section ${index}`);
+    }
+    // Rail and warp checkpoints keep their exact frame unchecked.
+    const checked = data.sections.filter(section => !/rail|warp/i.test(section.surface));
+    assert.ok(checked.length > 0 && queries >= checked.length, `${archive} checked its checkpoints`);
+  }
+});
+
 test("真实 p3553 路线重新关联在车体离轨后与发行版一致", async () => {
   installWorldOverrides(TrackWorld);
   let comparisons = 0;
