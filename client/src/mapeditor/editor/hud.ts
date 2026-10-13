@@ -301,7 +301,7 @@ export class Hud {
         };
       } else {
         const sides = !!road.walls.left || !!road.walls.right;
-        this.actionBar.append(title(road.route ? `赛道 · ${road.width} 米宽` : `${road.name} · ${road.width} 米宽`), row);
+        this.actionBar.append(title(road.route ? `赛道 · ${road.width} 米宽 · 按住起跑线可以拖动` : `${road.name} · ${road.width} 米宽`), row);
         const buttons: Array<HTMLElement | undefined> = [
           iconButton("⇔", "变宽", () => commit(r => { r.width = Math.min(MAP_LIMITS.width[1], r.width + 4); })),
           iconButton("⇒⇐", "变窄", () => commit(r => { r.width = Math.max(8, r.width - 4); })),

@@ -4,12 +4,12 @@
  *         调离地高度，松开放下；按住拖动是把它拖到别处再放（一次只放一个）；
  *   推土机：点到哪个摆件删哪个，按住拖动连片删除；
  *   道具箱：在比赛路线上点一下，横着放一排；
- *   选择：点选摆件或道路，按住拖动直接挪位置（不用手柄）。
+ *   选择：点选摆件或道路，按住拖动直接挪位置（不用手柄）；按住起跑线沿着赛道拖。
  */
 import { BufferAttribute, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Vector3, type Intersection } from "three";
 import { MAP_LIMITS, type MapDesign, type PieceDesign, type Vec3 } from "../design";
 import type { CatalogPiece } from "../catalog";
-import { sampleRoad } from "../road-geometry";
+import { sampleRoad, type RoadSample } from "../road-geometry";
 import type { AssembledScene } from "./assets";
 import type { EditorApp } from "./app";
 import { boxLines } from "./map-views";
@@ -49,6 +49,8 @@ interface Drag {
   pointer: { x: number; y: number };
   pieces?: Map<string, Vec3>;
   point?: { roadId: string; index: number; origin: Vec3 };
+  /** 拖起跑线：比赛路线的采样（起点沿路距离就是采样的 s）。 */
+  startLine?: { sample: RoadSample };
 }
 
 export class ToolController {
@@ -232,7 +234,11 @@ export class ToolController {
       else this.hoverPiece(event, 0xff4040);
       return;
     }
-    if (this.drag && event.buttons & 1) this.continueDrag(event);
+    if (this.drag && event.buttons & 1) { this.continueDrag(event); return; }
+    // 鼠标移到起跑线上变成小手，提示可以拖
+    if (tool.kind === "select" && !event.buttons) {
+      this.app.viewport.renderer.domElement.style.cursor = this.overStartLine(event) ? "grab" : "";
+    }
   }
 
   pointerUp(event: PointerEvent): boolean {
@@ -260,11 +266,14 @@ export class ToolController {
       const drag = this.drag;
       this.drag = undefined;
       this.app.views.draggingPieces.clear();
+      if (drag.startLine) this.app.viewport.renderer.domElement.style.cursor = "";
       if (drag.moved) {
         // 拖完路点顺手修顺这条路（急弯、太近、太低）
         if (drag.point) this.app.commitRoad(drag.point.roadId); else this.app.state.commit();
+        if (drag.startLine) this.app.say("起跑线挪好了", 2000);
         return true;
       }
+      if (drag.startLine) { this.app.say("按住起跑线拖动，可以沿着赛道挪位置", 3000); return true; }
     }
     return false;
   }
@@ -386,11 +395,26 @@ export class ToolController {
 
   // ------------------------------------------------------------------ 拖动挪位置
 
+  /** 鼠标下是不是起跑线（摆件、路点手柄挡在前面时不算）。 */
+  overStartLine(event: MouseEvent): boolean {
+    const views = this.app.views;
+    if (this.app.viewport.pick(event, [views.handles, views.pieces])) return false;
+    return !!this.app.viewport.pick(event, [views.roads])?.object.userData.startLine;
+  }
+
   private beginDrag(event: PointerEvent): boolean {
     if ((this.app.viewport.gizmo as unknown as { axis: string | null }).axis) return false;
     const app = this.app;
     const hit = app.viewport.pick(event, [app.views.handles, app.views.pieces]);
-    if (!hit) return false;
+    if (!hit) {
+      const route = app.state.design.roads.find(road => road.route && road.closed);
+      if (!route || !this.overStartLine(event)) return false;
+      const at = app.viewport.pick(event, [app.views.roads]);
+      this.drag = { start: [0, 0, 0], height: at ? toClient(at.point)[2] : 0, moved: false,
+        pointer: { x: event.clientX, y: event.clientY }, startLine: { sample: sampleRoad(route, 2) } };
+      this.app.viewport.renderer.domElement.style.cursor = "grabbing";
+      return true;
+    }
     const handle = hit.object.userData.handle as { roadId: string; index: number } | undefined;
     if (handle) {
       const road = app.state.road(handle.roadId);
@@ -430,6 +454,7 @@ export class ToolController {
     let dx = now[0] - drag.start[0], dy = now[1] - drag.start[1];
     if (this.app.snap) { dx = Math.round(dx * 2) / 2; dy = Math.round(dy * 2) / 2; }
     drag.moved = true;
+    if (drag.startLine) { this.dragStartLine(drag.startLine.sample, now); return; }
     if (drag.point) {
       const { roadId, index, origin } = drag.point;
       this.app.state.preview(d => {
@@ -445,6 +470,18 @@ export class ToolController {
         if (origin) piece.position = [round2(origin[0] + dx), round2(origin[1] + dy), origin[2]];
       }
     });
+  }
+
+  /** 起跑线跟着鼠标沿赛道走：取赛道上离鼠标最近的采样点的沿路距离。 */
+  private dragStartLine(sample: RoadSample, cursor: Vec3): void {
+    let best = 0, bestDistance = Infinity;
+    sample.points.forEach((point, i) => {
+      const distance = Math.hypot(point[0] - cursor[0], point[1] - cursor[1]);
+      if (distance < bestDistance) { bestDistance = distance; best = i; }
+    });
+    const offset = Math.round(sample.s[best]!);
+    if (offset === this.app.state.design.start.offset) return;
+    this.app.state.preview(d => { d.start.offset = offset; });
   }
 
   get dragging(): boolean { return !!this.drag?.moved || !!this.press || !!this.bulldozing; }

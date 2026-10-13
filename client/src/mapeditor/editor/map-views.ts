@@ -278,6 +278,8 @@ export class MapViews {
           alpha ? alpha.blendEnable ? 2 : alpha.alphaTestEnable ? 1 : 0 : undefined, backface?.cull === 1,
           String(node.name ?? "").startsWith("startline_")));
         mesh.userData.roadId = road.id;
+        // 起跑线可以按住拖动挪位置（tools.ts）
+        if (String(node.name ?? "").startsWith("startline_")) mesh.userData.startLine = true;
         group.add(mesh);
       }
       if (road.route) this.routeMarkers(road, design.start.offset, group);

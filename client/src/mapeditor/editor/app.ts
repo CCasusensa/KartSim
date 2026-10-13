@@ -125,7 +125,7 @@ export class EditorApp {
     this.viewport.leftDrag = event => {
       if (this.mode === "source" || this.mode === "draw") return "pan";
       if (this.tool.kind !== "select" || (this.viewport.gizmo as unknown as { axis: string | null }).axis) return "none";
-      return this.viewport.pick(event, [this.views.handles, this.views.pieces]) ? "none" : "pan";
+      return this.viewport.pick(event, [this.views.handles, this.views.pieces]) || this.tools.overStartLine(event) ? "none" : "pan";
     };
     this.bindViewport();
     this.bindKeys();
