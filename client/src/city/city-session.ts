@@ -26,6 +26,7 @@ import type { RaceChatMessage } from "../multiplayer/race-chat-overlay";
 import type { GarageChoice, GarageView, GarageViewOptions } from "../multiplayer/lobby-garage";
 import { formatMultiplayerError } from "../multiplayer/errors";
 import { discardLocalKart, installLocalKart, loadLocalFlyingPet, loadLocalKart } from "./city-local-kart";
+import { CityNpcs, withTraffic } from "./city-npcs";
 export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
@@ -98,6 +99,8 @@ export class CitySession {
   fuel?: CityFuelController;
   /** 下车步行 (CITY.md 7). */
   onFoot?: CityOnFoot;
+  /** The node's traffic and the task-point NPCs. */
+  npcs?: CityNpcs;
   snapshot?: CitySnapshot;
   clockMapping?: { offsetMs: number };
   readonly abort = new AbortController();
@@ -165,6 +168,7 @@ export class CitySession {
         onEvent: event => this.onEvent(event),
         onMotion: (id, sequence, _kind, sample) => this.fleet?.receive(id, sequence, sample),
         onRadar: entries => this.fleet?.radar(entries),
+        onTraffic: packet => this.npcs?.receive(packet),
       });
       const connection = createCityRaceConnection(this.network, host.playerId, room.roomId, race.raceId, {
         leave: async () => { await this.leave(); },
@@ -217,7 +221,8 @@ export class CitySession {
     });
     this.fleet.bindClock(this.clockMapping ?? { offsetMs: 0 });
     runtime.remotes?.dispose?.();
-    runtime.remotes = this.fleet;
+    // The presenter asks the remotes about NPC karts too ("npc:" ids).
+    runtime.remotes = withTraffic(this.fleet, () => this.npcs?.traffic);
     // The race sender routes by the roster's distance cadence, which has no
     // peers here; without routing it sends every bucket to the node, which
     // fans out by its own interest radius (CITY.md §3).
@@ -241,6 +246,7 @@ export class CitySession {
           if (position) heads.push({ id: peer.playerId, name: peer.member.name, position });
         }
         if (onFoot) heads.push(...onFoot.parkedHeads());
+        if (this.npcs) heads.push(...this.npcs.heads());
         return heads;
       },
     });
@@ -254,6 +260,27 @@ export class CitySession {
       serverTick: now => now + (this.clockMapping?.offsetMs ?? 0),
     });
     this.atmosphere.setClock(snapshot.clock);
+
+    this.npcs = new CityNpcs({
+      stage, library: this.host.options.library,
+      serverNow: () => performance.now() + (this.clockMapping?.offsetMs ?? 0),
+      local: () => {
+        // On foot the walker, on a back seat nobody (no greetings); else the kart.
+        const foot = this.onFoot?.footWorld();
+        if (foot) return { position: foot, speed: 0 };
+        if (this.onFoot?.seat === "passenger") return undefined;
+        const body = runtime.local.physics.body;
+        const state = runtime.local.physics.state;
+        return { position: body.position, speed: Math.hypot(state.vx ?? 0, state.vz ?? 0) };
+      },
+      view: () => {
+        const e = presenter.camera.matrixWorld.elements;
+        return { x: e[12], y: e[13], z: e[14] };
+      },
+      say: (id, text, now) => this.labels?.say(id, text, now),
+      onError: error => console.warn("卡丁城 NPC 错误", error),
+    });
+    void this.npcs.start().catch(error => console.warn("卡丁城车流载入失败", error));
 
     // Chat stays open while driving (the city has no finish), but not under
     // a city window: its Enter belongs to the window's OK button.
@@ -489,6 +516,7 @@ export class CitySession {
   private frame(now: number): void {
     this.chatAllowed?.(!this.windowOpen());
     this.atmosphere?.update(now);
+    this.npcs?.update(now);
     this.labels?.draw(now);
     this.fuel?.frame(now);
     if (now - this.lastStatus > 1000) {
@@ -681,6 +709,7 @@ export class CitySession {
     this.fuel?.dispose();
     this.fuel = undefined;
     this.atmosphere?.dispose();
+    this.npcs?.dispose();
     this.statusLine?.remove();
     this.statusLine = undefined;
     const stage = this.stage;

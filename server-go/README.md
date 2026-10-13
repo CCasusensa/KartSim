@@ -379,6 +379,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `KART_CITY_DAY_MINUTES` | `48` | 城市一天的真实分钟数（1–1440） |
 | `KART_CITY_WEATHER` | `true` | 天气状态机开关；`false` 时恒为 `clear` |
 | `KART_CITY_RAIN_PERCENT` / `KART_CITY_SNOW_PERCENT` | `20` / `10` | 晴天段结束后进入雨、雪的概率（百分比，二者之和 ≤ 100）；每段 5–15 分钟 |
+| `KART_CITY_TRAFFIC` | `200` | 每条线路的 NPC 车数（0–2000，0 关闭），见 [`CITY-NPC.md`](CITY-NPC.md) |
 
 ### 启动脚本（`run-full-local.sh` / `run-lan.sh`）
 

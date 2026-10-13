@@ -68,6 +68,10 @@ type Options struct {
 	// Fuel is the data service's tank API (FUEL.md); nil drives without fuel.
 	Fuel   Fuel
 	Logger *slog.Logger
+	// Traffic is how many NPC cars each line drives (KART_CITY_TRAFFIC,
+	// CITY-NPC.md; 0 none) on TrafficNetwork (nil: the embedded one).
+	Traffic        int
+	TrafficNetwork *TrafficNetwork
 }
 
 // Profiles is the lobby as the city sees it.
@@ -198,6 +202,13 @@ func New(opts Options) (*Service, error) {
 		}
 		opts.Map = m
 	}
+	if opts.Traffic > 0 && opts.TrafficNetwork == nil {
+		network, err := DefaultTraffic()
+		if err != nil {
+			return nil, err
+		}
+		opts.TrafficNetwork = network
+	}
 	s := &Service{opts: opts, clock: opts.Clock, profiles: opts.Profiles, cityMap: opts.Map, log: opts.Logger,
 		mutes: map[string]int64{}, fuel: opts.Fuel}
 	now := s.clock.Now()
@@ -207,10 +218,13 @@ func New(opts Options) (*Service, error) {
 	return s, nil
 }
 
-// Start arms each line's housekeeping timer (1 Hz).
+// Start arms each line's housekeeping timer (1 Hz) and traffic (10 Hz).
 func (s *Service) Start() {
 	for _, inst := range s.lines {
 		s.clock.AfterFunc(time.Second, inst.tick)
+		if inst.traffic != nil {
+			s.clock.AfterFunc(trafficStepMs*time.Millisecond, inst.trafficTick)
+		}
 	}
 }
 
@@ -476,14 +490,20 @@ type instance struct {
 	lastTick int64 // the last clock broadcast
 	// closed: an admin closed the line; joins are refused.
 	closed bool
+	// traffic is the line's NPC cars (nil without traffic).
+	traffic *traffic
 }
 
 func newInstance(s *Service, line int, now int64) *instance {
-	return &instance{svc: s, line: line, id: "city-" + strconv.Itoa(line), name: "卡丁城 线路 " + strconv.Itoa(line),
+	inst := &instance{svc: s, line: line, id: "city-" + strconv.Itoa(line), name: "卡丁城 线路 " + strconv.Itoa(line),
 		members: map[*lobby.Client]*member{}, byID: map[uint16]*member{}, vehicles: map[uint16]*vehicle{}, grid: newGrid(),
 		clock: newCityClock(now, s.opts.DayLength.Milliseconds(), !s.opts.WeatherOff, s.opts.RainPercent,
 			s.opts.SnowPercent, s.opts.Random),
 		lastTick: now}
+	if s.opts.Traffic > 0 {
+		inst.traffic = newTraffic(s.opts.TrafficNetwork, s.opts.Traffic, uint64(line))
+	}
+	return inst
 }
 
 // occupancy reports the member count and whether the line is open.

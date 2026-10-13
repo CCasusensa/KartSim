@@ -107,8 +107,9 @@ type Config struct {
 	// KART_CITY_LINE_PLAYERS (60), KART_CITY_INTEREST_RADIUS (160 m),
 	// KART_CITY_CHAT_RADIUS (60 m), KART_CITY_AFK_MINUTES (10),
 	// KART_CITY_MAX_SPEED (150 m/s), KART_CITY_DAY_MINUTES (48),
-	// KART_CITY_WEATHER (true), KART_CITY_RAIN_PERCENT (20) and
-	// KART_CITY_SNOW_PERCENT (10).
+	// KART_CITY_WEATHER (true), KART_CITY_RAIN_PERCENT (20),
+	// KART_CITY_SNOW_PERCENT (10) and KART_CITY_TRAFFIC (200 NPC cars per
+	// line, 0 none; CITY-NPC.md).
 	City               bool
 	CityLines          int
 	CityLinePlayers    int
@@ -120,6 +121,7 @@ type Config struct {
 	CityWeather        bool
 	CityRainPercent    int
 	CitySnowPercent    int
+	CityTraffic        int
 }
 
 // ListenAddr is the host:port the HTTP server binds.
@@ -357,6 +359,7 @@ func FromEnv(getenv func(string) string) (Config, error) {
 	cfg.CityWeather = weather
 	cfg.CityRainPercent = within("KART_CITY_RAIN_PERCENT", "20", 0, 100)
 	cfg.CitySnowPercent = within("KART_CITY_SNOW_PERCENT", "10", 0, 100)
+	cfg.CityTraffic = within("KART_CITY_TRAFFIC", "200", 0, 2000)
 	if cfg.CityRainPercent+cfg.CitySnowPercent > 100 {
 		problems = append(problems, errors.New("KART_CITY_RAIN_PERCENT 与 KART_CITY_SNOW_PERCENT 之和不能超过 100"))
 	}

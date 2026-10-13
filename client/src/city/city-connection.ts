@@ -1,8 +1,8 @@
 /**
  * The city session's network layer over the lobby's live game connection:
  * JSON requests/events (city-* messages), 0xC1 motion frames out and in,
- * 0xC2 radar packets, and the "race connection" surface the multiplayer race
- * loader expects (chat, motion, leave).
+ * 0xC2 radar packets, 0xC3 NPC traffic packets, and the "race connection"
+ * surface the multiplayer race loader expects (chat, motion, leave).
  */
 import { GameMotionDecoder, GameMotionEncoder } from "../multiplayer/payload";
 import { MOTION_HEADER_BYTES, motionRaceTag } from "../multiplayer/motion";
@@ -12,6 +12,7 @@ import {
   decodeCityMotionFrame, decodeCityRadar, parseCityEvent, parseCityRefuelReply, parseCityRescueReply, parseCitySeatReply, parseCitySnapshot, parseCityVehicle,
   type CityEvent, type CityRadarEntry, type CityRefuelReply, type CityRescueReply, type CitySeatReply, type CitySnapshot, type CityVehicle,
 } from "./city-protocol";
+import { CITY_TRAFFIC_MARKER, decodeTrafficPacket, type TrafficPacket } from "./city-traffic-protocol";
 
 export interface CityClient {
   playerId?: string;
@@ -26,6 +27,8 @@ export interface CityNetworkHandlers {
   onEvent(event: CityEvent): void;
   onMotion(id: number, sequence: number, kind: number, sample: any): void;
   onRadar(entries: CityRadarEntry[]): void;
+  /** 0xC3: the NPC cars near us (CITY-NPC.md). */
+  onTraffic?(packet: TrafficPacket): void;
 }
 
 export class CityNetwork {
@@ -119,6 +122,11 @@ export class CityNetwork {
     if (bytes[0] === CITY_RADAR_MARKER) {
       const entries = decodeCityRadar(bytes);
       if (entries) this.handlers.onRadar(entries);
+      return true;
+    }
+    if (bytes[0] === CITY_TRAFFIC_MARKER) {
+      const packet = decodeTrafficPacket(bytes);
+      if (packet) this.handlers.onTraffic?.(packet);
       return true;
     }
     if (bytes[0] !== CITY_MOTION_MARKER) return false;

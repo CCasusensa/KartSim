@@ -195,6 +195,7 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		WeatherOff:     !cfg.CityWeather,
 		RainPercent:    cfg.CityRainPercent,
 		SnowPercent:    cfg.CitySnowPercent,
+		Traffic:        cfg.CityTraffic,
 		Clock:          opts.Clock,
 		Profiles:       rooms,
 		// Tanks and the 金币 they cost live on the data service (FUEL.md).
