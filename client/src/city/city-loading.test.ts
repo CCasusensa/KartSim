@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { beginCityLoading, firstCityFrame, type CityLoadingDependencies,
-  type CityLoadingHost } from "./city-loading";
+import { beginCityLoading, CITY_LOADING_ART, firstCityFrame, pickCityLoadingArt,
+  type CityLoadingDependencies, type CityLoadingHost } from "./city-loading";
 import { activeCitySession, CitySession, enterCity, type CityLobbyHost } from "./city-session";
 import { enterCityOnNode } from "../multiplayer/race-host";
 
@@ -229,4 +229,13 @@ test("cancelled or disposed city joins clear the current session and allow anoth
     assert.equal(f.counts().disposals, 1);
     assert.equal(f.listeners.size, 0);
   }
+});
+
+test("city loading art is one of the two city pictures, chosen at random", () => {
+  assert.equal(pickCityLoadingArt(() => 0), "/ui/loading/city-loading-1.webp");
+  assert.equal(pickCityLoadingArt(() => 0.49), "/ui/loading/city-loading-1.webp");
+  assert.equal(pickCityLoadingArt(() => 0.5), "/ui/loading/city-loading-2.webp");
+  assert.equal(pickCityLoadingArt(() => 0.999999), "/ui/loading/city-loading-2.webp");
+  assert.equal(pickCityLoadingArt(() => 1), "/ui/loading/city-loading-2.webp");
+  for (let i = 0; i < 20; i++) assert.ok(CITY_LOADING_ART.includes(pickCityLoadingArt() as never));
 });

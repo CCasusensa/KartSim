@@ -32,7 +32,7 @@ export interface CityLoadingDependencies {
   resources(): CityLoadingResources | undefined;
 }
 
-/** The multiplayer loading art and paint routine, with truthful city stage text. */
+/** The multiplayer loading paint routine over the city art, with truthful city stage text. */
 class CityLoadingScreen extends RaceLoadingScreen implements CityLoadingView {
   showStatus(message: string): void {
     if (this.disposed) return;
@@ -42,8 +42,33 @@ class CityLoadingScreen extends RaceLoadingScreen implements CityLoadingView {
     this.element.hidden = false;
   }
 }
+/** City-only loading art under mirror/ui/loading; each entry draws one at random. */
+export const CITY_LOADING_ART = [
+  "/ui/loading/city-loading-1.webp", "/ui/loading/city-loading-2.webp",
+] as const;
+
+export function pickCityLoadingArt(random: () => number = Math.random): string {
+  const index = Math.min(CITY_LOADING_ART.length - 1, Math.floor(random() * CITY_LOADING_ART.length));
+  return CITY_LOADING_ART[index] ?? CITY_LOADING_ART[0];
+}
+
+async function cityLoadingArt(): Promise<HTMLCanvasElement> {
+  const image = new Image();
+  image.src = pickCityLoadingArt();
+  await image.decode();
+  const background = document.createElement("canvas");
+  background.className = "multiplayer-loading-board";
+  background.width = image.naturalWidth;
+  background.height = image.naturalHeight;
+  background.getContext("2d")!.drawImage(image, 0, 0);
+  return background;
+}
+
 const defaults: CityLoadingDependencies = {
   async load(library, root) {
+    const art = await cityLoadingArt().catch(() => undefined);
+    if (art) return new CityLoadingScreen(root as HTMLElement, art);
+    // The release race loading art stays as the fallback when the city art is missing.
     const [{ U1 }, { p2 }] = await Promise.all([
       import("../generated/library.js"), import("../generated/formats.js"),
     ]);
