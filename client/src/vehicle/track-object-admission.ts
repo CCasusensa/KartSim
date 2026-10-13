@@ -244,6 +244,20 @@ export function admitTrackObject(
     return isRaceItemMode(mode) ? omittedTrackObject(base, "cube-loader-omission")
       : blockedTrackObject(base, mode === "item" ? "cube-grant-unclosed" : "cube-mode-unclosed");
   }
+  if (ITEM_GAME_HAZARD_TYPES.includes(type) && (mode === "time-attack" || mode === "speed-individual")) {
+    // Not in the release: a speed race keeps the hazard's nested scene (factory_I04's
+    // propeller robots) as scenery; the item itself and its trap stay item-race only.
+    return {
+      ...base,
+      producer: "TRACKDATA ToMovableObject item type + nested scene + live PRS matrices",
+      consumer: "track scene additional root; no item, trigger or collision",
+      owner: "nested render root under the track object manager",
+      lifecycle: "stage setup -> scene traversal -> stage teardown",
+      order: "scene traversal only",
+      decision: "admit",
+      reason: "item-hazard-scenery-admitted",
+    };
+  }
   if (["banana", "ltejump", "mine", "mineHidden", "waterMine"].includes(type)) {
     return isRaceItemMode(mode) ? omittedTrackObject(base, "excluded-nonboost-item-runtime")
       : blockedTrackObject(base, "excluded-nonboost-item-runtime");

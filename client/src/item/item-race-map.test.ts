@@ -86,14 +86,14 @@ test("factory_I03 loads with the item flag: cubes, moving cubes and hazards are 
     assert.deepEqual(reasons(item), {
       "item-cube-admitted": 38, "moving-item-cube-admitted": 21, "item-hazard-admitted": 4,
     });
-    assert.deepEqual(reasons(speed), { "cube-loader-omission": 59, "excluded-nonboost-item-runtime": 4 });
+    assert.deepEqual(reasons(speed), { "cube-loader-omission": 59, "item-hazard-scenery-admitted": 4 });
     // Every other decision is the speed-individual one, record for record.
     const changed = item.admission.ledger.records.flatMap((record, index) => {
       const other = speed.admission.ledger.records[index]!;
       return JSON.stringify(record) === JSON.stringify(other) ? [] : [other.reason];
     });
     assert.equal(changed.length, 63);
-    assert.ok(changed.every(reason => reason === "cube-loader-omission" || reason === "excluded-nonboost-item-runtime"));
+    assert.ok(changed.every(reason => reason === "cube-loader-omission" || reason === "item-hazard-scenery-admitted"));
     for (const key of ["itemCatalog", "itemCubeSource", "itemHazardSource"]) {
       assert.ok(item[key], key);
       assert.equal(key in speed, false, key);
@@ -237,12 +237,25 @@ test("factory_I04's door boxes (<ob><inv>) push karts but are not drawn over the
   }
 });
 
-test("time attack still omits every item object", async () => {
+test("speed races fly factory_I04's water-mine robots as scenery, without their water mines", async () => {
+  const map = await loadMap("factory_I04");
+  try {
+    const objects = new Map<string, { type: string }>();
+    (map.scene as Group).traverse(object => { objects.set(object.name, object); });
+    for (const robot of ["default04+_Geom", "default05+_Geom", "default06_Geom"])
+      assert.equal(objects.get(robot)?.type, "Mesh", robot);
+    assert.equal("itemHazardSource" in map, false, "no trap and no item model");
+  } finally {
+    release(map);
+  }
+});
+
+test("time attack keeps the hazards' carriers as scenery and omits every item object", async () => {
   const { vehicle, host } = await pipeline();
   const map: LoadedMap = await new vehicle.ul(host).loadAssetMap("track_/factory_I03/track.1s", "factory_I03");
   try {
     assert.equal(map.admission.ledger.mode, "time-attack");
-    assert.deepEqual(reasons(map), { "cube-loader-omission": 59, "excluded-nonboost-item-runtime": 4 });
+    assert.deepEqual(reasons(map), { "cube-loader-omission": 59, "item-hazard-scenery-admitted": 4 });
     assert.equal("itemCubeSource" in map, false);
   } finally { release(map); }
 });

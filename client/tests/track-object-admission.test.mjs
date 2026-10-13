@@ -100,7 +100,8 @@ test("track object admission decisions match release across object kinds and mod
     [occurrence("ToMovableObject", "obj", { type: "dummy" }), "speed-individual"],
     [occurrence("ToMovableObject", "obj", { type: "itemCube" }), "time-attack"],
     [occurrence("ToMovableObject", "obj", { type: "itemCube" }), "item"],
-    [occurrence("ToMovableObject", "obj", { type: "banana" }), "time-attack"],
+    [occurrence("ToMovableObject", "obj", { type: "ltejump" }), "time-attack"],
+    [occurrence("ToMovableObject", "obj", { type: "banana" }), "speed-team"],
     [occurrence("ToMovableObject", "obj", { type: "banana" }), "item"],
     [occurrence("ToMovableObject", "obj", { type: "obstacle" }), "time-attack"],
     [occurrence("ToMovableObject", "obj", { type: "obstacle" }), "item"],
@@ -118,6 +119,19 @@ test("track object admission decisions match release across object kinds and mod
     assert.deepEqual(evaluate("rewritten", entry, mode, options),
       evaluate("original", entry, mode, options),
       `${entry.value.kind}/${entry.value.property?.children?.[0]?.attributes?.[0]?.value ?? ""} ${mode}`);
+});
+
+test("not in the release: speed races and time attack keep item hazards as scenery", () => {
+  for (const type of ["banana", "mine", "mineHidden", "waterMine"]) {
+    for (const mode of ["time-attack", "speed-individual"]) {
+      const { record } = evaluate("rewritten", occurrence("ToMovableObject", "obj", { type }), mode);
+      assert.equal(record.decision, "admit", `${type} ${mode}`);
+      assert.equal(record.reason, "item-hazard-scenery-admitted", `${type} ${mode}`);
+    }
+    // onlyItemGame hazards stay out of speed races.
+    const only = evaluate("rewritten", occurrence("ToMovableObject", "obj", { type, itemOnly: true }), "time-attack");
+    assert.equal(only.record.reason, "only-item-game-loader-omission");
+  }
 });
 
 test("track admission utility readers and decision records match release", () => {

@@ -72,7 +72,9 @@ test("the item flag admits cubes and hazards and keeps every other speed-individ
     if (expected[name]) {
       assert.equal(item.decision, "admit", name);
       assert.equal(item.reason, expected[name], name);
-      assert.notEqual(speed.decision, "admit", name);
+      // A speed race keeps a hazard's carrier as scenery (not the item-game-only ones).
+      if (name === "onlyBanana" || !expected[name].startsWith("item-hazard")) assert.notEqual(speed.decision, "admit", name);
+      else assert.equal(speed.reason, "item-hazard-scenery-admitted", name);
     } else if (name === "onlyDummy" || name === "onlyObstacle") {
       // onlyItemGame movables fall through to their own type instead of being omitted.
       assert.equal(speed.reason, "only-item-game-loader-omission");

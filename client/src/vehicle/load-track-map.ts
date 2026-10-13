@@ -74,6 +74,23 @@ export function itemGameRoots(movingObjects: any[]): { roots: any[]; matrixOnly:
   return { roots, matrixOnly };
 }
 
+/**
+ * Speed races and time attack keep the item hazards' nested scenes as scenery
+ * (`item-hazard-scenery-admitted`): factory_I04's propeller robots fly their
+ * route, without the item they carry or its trap.
+ */
+export function hazardSceneryRoots(model: any, course: { records: any[] }): any[] {
+  if (model.root.kind !== "track") return [];
+  return course.records.flatMap((record: any) => {
+    if (record.occurrence.kind !== "track-object" || record.reason !== "item-hazard-scenery-admitted")
+      return [];
+    const object = model.root.trackObjects[record.occurrence.index];
+    if (object?.kind !== "ToMovableObject" || !object.object || object.object.kind !== "node")
+      throw new Error(`ToMovableObject ${record.occurrence.name} 缺少道具陷阱嵌套场景。`);
+    return [object.object];
+  });
+}
+
 /** Builds all physical, animated and visual ownership for a track asset. */
 export async function loadTrackMap(
   owner: TrackMapOwner,
@@ -149,6 +166,7 @@ export async function loadTrackMap(
     (entry: any) => [entry.object, entry.transform]));
   const itemRoots = itemGame ? itemGameRoots(movingObjects)
     : { roots: [], matrixOnly: [] };
+  const sceneryRoots = hazardSceneryRoots(model, course);
   const admittedObjects = movingObjects.flatMap((entry: any) => {
     const result = ops.admitMovingObject(entry);
     return result.status === "admit" ? [result] : [];
@@ -237,6 +255,7 @@ export async function loadTrackMap(
       ...eventProjections.map((entry: any) => entry.renderRoot),
       ...matrixRoots,
       ...itemRoots.roots,
+      ...sceneryRoots,
     ];
     renderScene = await ops.loadScene(model, owner.assetHost.getLibrary(),
       path, metadata, {
