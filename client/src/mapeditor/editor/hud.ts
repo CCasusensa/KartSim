@@ -170,7 +170,10 @@ export class Hud {
       iconButton("✎", "画赛道", () => app.mode === "draw" ? app.finishDraw() : app.startDraw(),
         { class: on(app.mode === "draw"), title: "在地上一个点一个点地画出赛道" }),
       iconButton("✖", "拆除", () => app.setTool({ kind: app.tool.kind === "bulldoze" ? "select" : "bulldoze" }),
-        { class: on(app.tool.kind === "bulldoze"), title: "点一下拆掉东西，按住拖可以拆一片" }));
+        { class: on(app.tool.kind === "bulldoze"), title: "点一下拆掉东西，按住拖可以拆一片" }),
+      // 自动吸附开关：显眼地放在工具条上，默认开
+      iconButton("⌖", app.snap ? "吸附 开" : "吸附 关", () => app.setSnap(!app.snap),
+        { class: `ed-snap ${on(app.snap)}`, title: "自动吸附：靠近赛道时贴到路边、顺着路摆正，加速板对准路中间，拖动的东西落到表面上，位置角度取整" }));
   }
 
   private renderMission(): void {
@@ -313,6 +316,7 @@ export class Hud {
             }
           })),
           iconButton("▦", "换路面", () => app.dock.open("surface", true)),
+          road.route ? iconButton("∩", "换拱门", () => app.dock.open("arch", true), { title: "换起跑线上方的起点拱门" }) : undefined,
           iconButton("⇄", "掉头", () => commit(r => { r.points.reverse(); }), { title: "比赛方向反过来" }),
           !road.closed ? iconButton("✎", "接着画", () => app.startDraw()) : undefined,
           road.route ? iconButton("?", "道具箱", () => app.autoItems(), { title: "沿赛道自动放道具箱" }) : undefined,

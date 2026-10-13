@@ -139,6 +139,16 @@ const tracks: SourceTrack[] = await listSourceTracks(library);
 const groups = new Map<string, Candidate[]>();
 const surfaces = new Map<string, SurfaceCandidate>();
 const skies: Array<{ theme: string; track: string; title: string; size: number; uses: number }> = [];
+/** 起点拱门：横跨起跑线的原版物件（start 牌楼、ad_start 横幅门…），按贴图组合去重。 */
+const arches = new Map<string, Candidate[]>();
+const START_OBJECT = /start|strt|출발|스타트/i;
+const START_ROAD = /road_?start|roadstart|cement\w*_start|_road\w*_start|start_j_001/i;
+/** 名字像起点、其实不是拱门的（单根柱子、灯、圆环、旗子、零件…），看过缩略图后排除。 */
+const NOT_ARCHES = new Set([
+  "village_B04:0.53", "pirate_I01:0.283", "china_R09:0.301", "beach_R01:0.353", "northeu_R03:0.450", "northeu_I08:0.174",
+  "northeu_I01:0.127", "moonhill_I03:0.3", "olympos_S04:0.153", "abyss_I02:0.431", "world_R04:0.40", "world_R06:0.52",
+  "transFormer_R02:0.20", "tomb_R04:0.1362",
+]);
 const skySeen = new Map<string, (typeof skies)[number]>();
 
 const round = (v: number) => Math.round(v * 100) / 100;
@@ -167,6 +177,20 @@ for (const track of tracks) {
   }
   for (const piece of listPieces(model)) {
     if (piece.reset || piece.triangles < 6) continue;
+    // 起点拱门：名字或贴图带 start，横向 18–120 米、高 6–70 米，不是路面（不可行驶）
+    {
+      const span = Math.max(piece.max[0]! - piece.min[0]!, piece.max[1]! - piece.min[1]!);
+      const height = piece.max[2]! - piece.min[2]!;
+      const names = piece.textures.filter(name => !IGNORED_TEXTURE.test(name));
+      if (!piece.drivable && START_OBJECT.test(`${piece.name} ${names.join(" ")}`) && !names.every(name => START_ROAD.test(name)) &&
+        span >= 18 && span <= 120 && height >= 6 && height <= 70 && names.length && names.length <= 8) {
+        const key = [...names].sort().join("|");
+        const entry: Candidate = { category: "decor", theme: track.theme, track: track.folder, path: piece.path, label: "起点拱门",
+          min: piece.min.map(round), max: piece.max.map(round), origin: piece.origin.map(round), triangles: piece.triangles, uses: 1, key };
+        const list = arches.get(key);
+        if (list) list.push(entry); else arches.set(key, [entry]);
+      }
+    }
     const textures = piece.textures.filter(name => !IGNORED_TEXTURE.test(name));
     if (!textures.length || textures.length > 6) continue;
     const text = `${piece.name} ${textures.join(" ")}`;
@@ -271,8 +295,28 @@ for (const candidate of picked) counts[candidate.category] = (counts[candidate.c
 for (const surface of pickedSurfaces) counts[surface.kind] = (counts[surface.kind] ?? 0) + 1;
 console.error("挑出", picked.length, "个物件，", pickedSurfaces.length, "张贴图，", skyPicks.length, "个天空", counts);
 
+// 拱门：每种（一套贴图）取最常见的那个变体，按出现次数排，每个主题最多 3 种，一共最多 40 种
+const archPicks: Candidate[] = [];
+const archPerTheme = new Map<string, number>();
+for (const list of [...arches.values()].sort((a, b) => b.length - a.length)) {
+  const shapes = new Map<string, Candidate[]>();
+  for (const entry of list) {
+    const shape = `${entry.triangles}|${entry.max.map((v, i) => Math.round(v - entry.min[i]!)).join(",")}`;
+    const bucket = shapes.get(shape);
+    if (bucket) bucket.push(entry); else shapes.set(shape, [entry]);
+  }
+  const best = [...shapes.values()].sort((a, b) => b.length - a.length)[0]![0]!;
+  if (NOT_ARCHES.has(`${best.track}:${best.path.join(".")}`)) continue;
+  const count = archPerTheme.get(best.theme) ?? 0;
+  if (count >= 3 || archPicks.length >= 40) continue;
+  archPerTheme.set(best.theme, count + 1);
+  archPicks.push({ ...best, uses: list.length });
+}
+console.error("起点拱门", archPicks.length, "种");
+
 writeFileSync(output, JSON.stringify({
   pieces: picked.map(({ key: _key, ...rest }) => rest),
   surfaces: pickedSurfaces,
   skies: skyPicks,
+  arches: archPicks.map(({ key: _key, ...rest }) => rest),
 }));

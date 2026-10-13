@@ -7,7 +7,7 @@ import {
   DEFAULT_ROAD_SURFACE, DEFAULT_WALL, MAP_LIMITS, defaultGround, newDesign, randomId,
   type MapDesign, type PieceDesign, type Vec3,
 } from "./design";
-import { pieceSize, surfaceRef, textureRef, type CatalogData, type CatalogPiece, type PieceCategory, type ThemePreset } from "./catalog";
+import { archRef, defaultArch, pieceSize, surfaceRef, textureRef, type CatalogData, type CatalogPiece, type PieceCategory, type ThemePreset } from "./catalog";
 import { pointAtDistance, roadEdge, sampleRoad } from "./road-geometry";
 import { templateRoad, type TrackTemplate } from "./templates";
 
@@ -94,6 +94,9 @@ export function wizardDesign(data: CatalogData, choice: {
   }
   design.ground = defaultGround();
   if (ground) design.ground.texture = textureRef(ground);
+  // 起跑线上方的原版起点拱门（主题套装里的那种）
+  const arch = defaultArch(data, design.theme);
+  design.start.arch = arch ? archRef(arch) : null;
   if (choice.template) {
     const road = templateRoad(choice.template, `r${randomId(8)}`, surface ? surfaceRef(surface) : DEFAULT_ROAD_SURFACE,
       wall ? textureRef(wall) : DEFAULT_WALL.texture);

@@ -6,6 +6,9 @@
  * 原版贴图是 256×128 的路面块，有的整张是格子，有的只有中间一条格子带，
  * 所以每张记下格子所在的 v 范围；横向铺满路宽。
  */
+import type { MapDesign, PieceDesign, Vec3 } from "./design";
+import { pointAtDistance, sampleRoad } from "./road-geometry";
+
 export interface StartLineTexture {
   /** 能解析到这张贴图的官方赛道。 */
   track: string;
@@ -54,4 +57,36 @@ export function startLineDepth(width: number, texture: StartLineTexture): number
 /** 用到的全部起跑线贴图（测试核对每张都找得到）。 */
 export function allStartLines(): StartLineTexture[] {
   return [DEFAULT_LINE, ...Object.values(THEME_LINES)];
+}
+
+// ---------------------------------------------------------------------------
+// 起点拱门
+
+/** 起点拱门在视口和赛道包里当作一个摆件，用这个固定 id（不在 design.pieces 里）。 */
+export const START_ARCH_ID = "__start_arch";
+
+/**
+ * 起点拱门的摆放：立在起跑线中间，长边横跨路面（跟着路的方向转），整体缩放到
+ * 比路宽两边各多出 5 米（0.3–3 倍）。没有拱门或还没有闭合的比赛路线时返回 undefined。
+ */
+export function startArchPiece(design: Pick<MapDesign, "roads" | "start">): PieceDesign | undefined {
+  const arch = design.start.arch;
+  const route = design.roads.find(road => road.route && road.closed && road.points.length >= 3);
+  if (!arch || !route) return undefined;
+  const sample = sampleRoad(route, 2);
+  if (sample.points.length < 3) return undefined;
+  const at = pointAtDistance(sample, design.start.offset);
+  const width = sample.widths[at.index]!;
+  const tangent = sample.tangents[at.index]!;
+  const heading = (Math.atan2(tangent[1], tangent[0]) * 180) / Math.PI;
+  const sizeX = arch.max[0] - arch.min[0], sizeY = arch.max[1] - arch.min[1];
+  const span = Math.max(sizeX, sizeY, 1);
+  const scale = Math.round(Math.min(3, Math.max(0.3, (width + 10) / span)) * 1000) / 1000;
+  // 长边沿 x 时转 90° 横到路上；沿 y 时本来就横着
+  const yaw = Math.round((((heading + (sizeX >= sizeY ? 90 : 0)) % 360) + 360) % 360 * 100) / 100;
+  const position: Vec3 = [at.position[0], at.position[1], at.position[2]].map(v => Math.round(v * 100) / 100) as Vec3;
+  return {
+    id: START_ARCH_ID, track: arch.track, path: [...arch.path], label: arch.label,
+    origin: [...arch.origin] as Vec3, position, rotation: [yaw, 0, 0], scale: [scale, scale, scale],
+  };
 }

@@ -39,7 +39,7 @@ export class AssetPreview {
    * 显示一个物件；同一个物件不重复载入。fallback 是载入前顶替的缩略图，
    * 模型画出来后隐藏。
    */
-  show(piece: CatalogPiece | undefined, fallback?: HTMLElement): void {
+  show(piece: Pick<CatalogPiece, "id" | "track" | "path" | "min" | "max"> | undefined, fallback?: HTMLElement): void {
     if (piece && this.current?.id === piece.id) {
       this.current.fallback = fallback;
       if (fallback && this.current.scene) fallback.style.visibility = "hidden";

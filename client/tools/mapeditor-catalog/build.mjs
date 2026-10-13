@@ -43,6 +43,7 @@ const jobs = [
   ...candidates.pieces.map(piece => ({ kind: "piece", track: piece.track, path: piece.path, min: piece.min, max: piece.max, source: piece })),
   ...candidates.surfaces.map(surface => ({ kind: surface.kind, track: surface.track, name: surface.name, source: surface })),
   ...candidates.skies.map(sky => ({ kind: "sky", track: sky.track, source: sky })),
+  ...(candidates.arches ?? []).map(arch => ({ kind: "piece", track: arch.track, path: arch.path, min: arch.min, max: arch.max, source: { ...arch, arch: true } })),
 ].sort((a, b) => a.track.localeCompare(b.track)).slice(0, Number(args.get("limit") ?? Infinity));
 
 // ---------------------------------------------------------------- 2. 渲染
@@ -83,16 +84,26 @@ const evaluate = async expression => {
 };
 
 console.log(`渲染 ${jobs.length} 张缩略图…`);
-for (let i = 0; i < 600; i++) {
-  if (await evaluate("typeof window.__catalog === 'object'").catch(() => false)) break;
-  await new Promise(resolve => setTimeout(resolve, 500));
-}
-await evaluate("window.__catalog.ready");
-await evaluate(`window.__result = undefined; window.__catalog.render(${JSON.stringify(jobs.map(({ source: _source, ...job }) => job))})
-  .then(result => { window.__result = result; }, error => { window.__result = { error: String(error) }; }); 0`);
+const jobList = JSON.stringify(jobs.map(({ source: _source, ...job }) => job));
+const start = async () => {
+  for (let i = 0; i < 600; i++) {
+    if (await evaluate("typeof window.__catalog === 'object'").catch(() => false)) break;
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  await evaluate("window.__catalog.ready");
+  await evaluate(`window.__result = undefined; window.__renderStarted = true; window.__catalog.render(${jobList})
+    .then(result => { window.__result = result; }, error => { window.__result = { error: String(error) }; }); 0`);
+};
+await start();
 let output;
 for (;;) {
   await new Promise(resolve => setTimeout(resolve, 3000));
+  // 开发服务器重新打包依赖时会刷新页面，渲染就没了：等页面好了重新开始
+  if (!(await evaluate("window.__renderStarted === true").catch(() => false))) {
+    process.stdout.write("\n页面刷新了，重新开始渲染…\n");
+    await start();
+    continue;
+  }
   output = await evaluate("window.__result");
   if (output) break;
   process.stdout.write(`\r${(await evaluate("window.__catalog.status()")).slice(0, 100).padEnd(100)}`);
@@ -110,13 +121,16 @@ const THEME_ORDER = ["village", "forest", "desert", "ice", "tomb", "mine", "pira
   "sword", "korea", "mabi", "maple", "fengshen", "steam", "park", "brodi", "wkc", "world", "xyy", "transFormer"];
 const themeRank = theme => { const index = THEME_ORDER.indexOf(theme); return index < 0 ? THEME_ORDER.length : index; };
 
-const pieces = [], textures = [], skies = [];
+const pieces = [], textures = [], skies = [], arches = [];
 const failures = [];
 jobs.forEach((job, index) => {
   const cell = output.cells[index];
   if (cell.slot < 0) { failures.push(`${job.kind} ${job.track} ${job.name ?? job.path.join(".")}: ${cell.error ?? `空白 ${cell.coverage}`}`); return; }
   const source = job.source;
-  if (job.kind === "piece") {
+  if (job.kind === "piece" && source.arch) {
+    arches.push({ id: `arch:${source.track}:${source.path.join(".")}`, theme: source.theme, label: source.label, slot: cell.slot,
+      track: source.track, path: source.path, origin: source.origin, min: source.min, max: source.max, uses: source.uses });
+  } else if (job.kind === "piece") {
     pieces.push({ id: `${source.track}:${source.path.join(".")}`, category: source.category, theme: source.theme, label: source.label,
       slot: cell.slot, track: source.track, path: source.path, origin: source.origin, min: source.min, max: source.max, uses: source.uses });
   } else if (job.kind === "sky") {
@@ -150,6 +164,14 @@ for (const piece of pieces) {
 textures.sort((a, b) => themeRank(a.theme) - themeRank(b.theme) || a.kind.localeCompare(b.kind));
 // 同主题里用得最多的天空排第一（主题套装取它）
 skies.sort((a, b) => themeRank(a.theme) - themeRank(b.theme) || b.uses - a.uses);
+// 拱门：同主题按出现次数，名字编号
+arches.sort((a, b) => themeRank(a.theme) - themeRank(b.theme) || b.uses - a.uses);
+const archNumbers = new Map();
+for (const arch of arches) {
+  const n = (archNumbers.get(arch.theme) ?? 0) + 1;
+  archNumbers.set(arch.theme, n);
+  arch.label = n > 1 ? `起点拱门 ${n}` : "起点拱门";
+}
 
 // 主题套装：每个主题的天空、路面、护栏、地面各取第一名
 const presets = [];
@@ -158,10 +180,13 @@ for (const theme of [...new Set([...pieces, ...skies].map(item => item.theme))].
     .sort((a, b) => kind === "surface" ? b.triangles - a.triangles : b.uses - a.uses)[0]?.id;
   const sky = skies.find(item => item.theme === theme)?.id;
   const surface = pick("surface"), wall = pick("wall"), ground = pick("ground");
-  if (sky && surface) presets.push({ theme, sky, surface, wall, ground });
+  // 起点拱门：本主题用得最多的一种，没有就用城镇的
+  const arch = (arches.find(item => item.theme === theme) ?? arches.find(item => item.theme === "village") ?? arches[0])?.id;
+  if (sky && surface) presets.push({ theme, sky, surface, wall, ground, ...(arch ? { arch } : {}) });
 }
 for (const texture of textures) { delete texture.uses; delete texture.triangles; }
 for (const sky of skies) delete sky.uses;
+for (const arch of arches) delete arch.uses;
 
 for (const name of readdirSync(outDir, { withFileTypes: true }).map(entry => entry.name)) {
   if (/^sheet-\d+\.webp$/.test(name)) unlinkSync(path.join(outDir, name));
@@ -176,6 +201,6 @@ writeFileSync(path.join(outDir, "sheets.ts"), [
   "];",
   "",
 ].join("\n"));
-writeFileSync(path.join(outDir, "catalog.json"), JSON.stringify({ version: 1, cell: 96, columns: 16, rows: 16, pieces, textures, skies, presets }));
-console.log(`物件 ${pieces.length}，贴图 ${textures.length}，天空 ${skies.length}，主题套装 ${presets.length}，雪碧图 ${output.sheets.length} 张`);
+writeFileSync(path.join(outDir, "catalog.json"), JSON.stringify({ version: 1, cell: 96, columns: 16, rows: 16, pieces, textures, skies, arches, presets }));
+console.log(`物件 ${pieces.length}，贴图 ${textures.length}，天空 ${skies.length}，拱门 ${arches.length}，主题套装 ${presets.length}，雪碧图 ${output.sheets.length} 张`);
 if (failures.length) console.log(`没画出来的 ${failures.length} 个（已跳过）：\n  ${failures.slice(0, 40).join("\n  ")}`);

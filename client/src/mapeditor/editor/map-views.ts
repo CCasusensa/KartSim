@@ -10,7 +10,7 @@ import {
 import type { MapDesign, PieceDesign, RoadDesign, Vec3 } from "../design";
 import { pointAtDistance, roadEdge, sampleRoad } from "../road-geometry";
 import { buildRoad, itemRowPositions, type TextureResolver } from "../track-builder";
-import { startLineFor } from "../start-line";
+import { startArchPiece, startLineFor } from "../start-line";
 import type { PieceInfo } from "../source-tracks";
 import type { AssembledScene, EditorAssets } from "./assets";
 import type { Viewport } from "./viewport";
@@ -130,7 +130,9 @@ export class MapViews {
 
   private syncPieces(design: MapDesign): void {
     const alive = new Set<string>();
-    for (const piece of design.pieces) {
+    // 起点拱门跟着起跑线自动摆，和摆件一样显示（id 是 START_ARCH_ID）
+    const arch = startArchPiece(design);
+    for (const piece of arch ? [...design.pieces, arch] : design.pieces) {
       alive.add(piece.id);
       const key = `${piece.track}/${piece.path.join(".")}`;
       let view = this.pieceViews.get(piece.id);

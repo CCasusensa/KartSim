@@ -21,10 +21,10 @@ import {
 import { MeshBuilder, type Corner } from "./mesh-builder";
 import { RgbaCanvas, encodePng, type Rgba } from "./png";
 import { pointAtDistance, rotateClosedSample, roadEdge, sampleRoad, type RoadSample } from "./road-geometry";
-import { startLineDepth, startLineFor, type StartLineTexture } from "./start-line";
+import { startArchPiece, startLineDepth, startLineFor, type StartLineTexture } from "./start-line";
 import {
-  applyAffine, loadSourceModel, measureSubtree, nodeAtPath, parentMatrix, placementMatrix,
-  rotationRows, sourceTrackPath, type SourceEntry, type SourceFormats, type SourceLibrary,
+  advertisementSources, applyAffine, loadSourceModel, measureSubtree, nodeAtPath, parentMatrix, placementMatrix,
+  rotationRows, sourceTrackPath, themeOf, type SourceEntry, type SourceFormats, type SourceLibrary,
 } from "./source-tracks";
 
 export interface BuildOptions {
@@ -84,7 +84,9 @@ class TextureCollector implements TextureResolver {
     const metadata = await this.library.trackMetadata(track);
     let stem: string | undefined;
     try {
-      const found = this.formats.sn(this.library, path, metadata ?? { id: track }, { name });
+      // 广告横幅（起点拱门的 ad_start…）在广告目录里，与比赛载入相同
+      const ads = advertisementSources(this.library, metadata?.theme ?? themeOf(track, metadata));
+      const found = this.formats.sn(this.library, path, metadata ?? { id: track }, { name }, ads);
       if (found.status === "found" && found.entry) stem = this.adopt(found.entry, found.extension ?? "dds", name);
     } catch { /* 当作缺失 */ }
     if (!stem) this.missing.add(`${track}/${name}`);
@@ -476,7 +478,9 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   const bounds = { min: [Infinity, Infinity, Infinity] as Vec3, max: [-Infinity, -Infinity, -Infinity] as Vec3 };
   const grow = (p: Vec3) => { for (let i = 0; i < 3; i++) { bounds.min[i] = Math.min(bounds.min[i]!, p[i]!); bounds.max[i] = Math.max(bounds.max[i]!, p[i]!); } };
   const byTrack = new Map<string, typeof design.pieces>();
-  for (const piece of design.pieces) byTrack.set(piece.track, [...(byTrack.get(piece.track) ?? []), piece]);
+  // 起点拱门（按起跑线自动摆）和普通摆件一样复制
+  const arch = startArchPiece(design);
+  for (const piece of arch ? [...design.pieces, arch] : design.pieces) byTrack.set(piece.track, [...(byTrack.get(piece.track) ?? []), piece]);
   let placed = 0;
   for (const [track, pieces] of byTrack) {
     let model: any;

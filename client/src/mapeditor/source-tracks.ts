@@ -28,6 +28,43 @@ export interface SourceLibrary {
   findSibling(path: string, names: string[]): SourceEntry | undefined;
   trackMetadata(id: string): Promise<TrackMetadata | undefined>;
   trackMetadataCatalog(): Promise<TrackMetadata[]>;
+  /** 某个规范路径前缀下的全部条目（广告图查找用）。 */
+  entriesUnderCanonicalPrefix?(prefix: string): Array<{ canonicalPath?: string; virtualPath?: string }>;
+}
+
+/** 赛道广告（ad_start 横幅、ad_board 广告牌…）的来源，形状与发行版比赛载入时的相同。 */
+export interface AdvertisementSource {
+  kind: "advertisement";
+  id: string;
+  canonicalPrefix: string;
+  mountPath: string;
+}
+
+const ADS_ROOT = "zeta_/cn/ppl/ingame/";
+
+/**
+ * 广告图来源：发行版按 pplGeneral 的 ingame 活动目录（2025KCL…）和赛道主题选一个
+ * 子目录（desert/mine/northeu/tomb/village）。这里取年份最新的活动目录，主题没有
+ * 自己的广告时用城镇的。复制带横幅的官方物件（起点拱门）时，横幅图从这里找。
+ */
+export function advertisementSources(library: SourceLibrary, theme: string): AdvertisementSource[] {
+  const entries = library.entriesUnderCanonicalPrefix?.(ADS_ROOT) ?? [];
+  const folders = new Map<string, Set<string>>();
+  for (const entry of entries) {
+    const path = entry.canonicalPath ?? entry.virtualPath ?? "";
+    const [folder, dir] = path.slice(ADS_ROOT.length).split("/");
+    if (!folder || !dir) continue;
+    let dirs = folders.get(folder);
+    if (!dirs) folders.set(folder, dirs = new Set());
+    dirs.add(dir);
+  }
+  const year = (folder: string) => Number(/^(\d{4})/.exec(folder)?.[1] ?? 0);
+  const folder = [...folders.keys()].sort((a, b) => year(b) - year(a) || a.localeCompare(b))[0];
+  if (!folder) return [];
+  const dirs = folders.get(folder)!;
+  return [...new Set([theme, "village"])].filter(dir => dirs.has(dir)).map(dir => ({
+    kind: "advertisement", id: `advertisement:${folder}/${dir}`, canonicalPrefix: `${ADS_ROOT}${folder}/${dir}`, mountPath: "zeta_/cn/ppl",
+  }));
 }
 
 /** formats.js 里用到的函数：y9 解码 .1s，sn 按游戏规则查贴图。 */

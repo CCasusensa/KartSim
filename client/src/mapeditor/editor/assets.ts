@@ -9,7 +9,7 @@ import { invisibleTrackGeometry } from "../../resources/moving-obstacle";
 import { makeNode } from "../../resources/track-binary-writer";
 import type { TrackMetadata } from "../../resources/track-catalog";
 import {
-  listPieces, listSurfaceTextures, listSourceTracks, nodeAtPath, sourceTrackPath,
+  advertisementSources, listPieces, listSurfaceTextures, listSourceTracks, nodeAtPath, sourceTrackPath,
   type PieceInfo, type SourceFormats, type SourceLibrary, type SourceTrack, type SurfaceTexture,
 } from "../source-tracks";
 
@@ -117,9 +117,12 @@ export class EditorAssets {
   async assemble(folder: string, scene: any, options: { hiddenFrom?: any; cameraCentered?: boolean; scale?: number } = {}): Promise<AssembledScene> {
     const metadata = await this.metadata(folder);
     const hidden = options.hiddenFrom ? invisibleTrackGeometry([options.hiddenFrom]) : undefined;
+    const theme = (await this.track(folder))?.theme ?? "village";
     return await c5({ root: { kind: "track", name: "", scene, trackObjects: [] } }, this.library,
       sourceTrackPath(folder), metadata ?? { id: folder }, {
         environment: await this.env(), stageBinding: this.stageBinding, textureCache: this.textureCache,
+        // 起点拱门、广告牌上的广告横幅（ad_start…）和比赛载入一样从广告目录找
+        advertisementSources: advertisementSources(this.library, theme),
         convertClientCoordinates: options.cameraCentered ? undefined : false,
         advanceEnvironment: false, hiddenNodes: hidden, cameraCentered: options.cameraCentered,
         scale: options.scale,

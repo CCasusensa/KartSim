@@ -5,7 +5,7 @@
  */
 import {
   PIECE_CATEGORIES, catalogThemes, categoryInfo, filterPieces, pieceSize, spriteStyle, textureLabel, themeTitle,
-  type CatalogData, type CatalogPiece, type CatalogSky, type CatalogTexture, type PieceCategory, type ThemePreset,
+  archIdOf, type CatalogArch, type CatalogData, type CatalogPiece, type CatalogSky, type CatalogTexture, type PieceCategory, type ThemePreset,
 } from "../catalog";
 import { sampleRoad } from "../road-geometry";
 import { TRACK_TEMPLATES, templateRoad, type TrackTemplate } from "../templates";
@@ -13,7 +13,7 @@ import type { EditorApp } from "./app";
 import { button, clear, h } from "./dom";
 import { AssetPreview } from "./preview";
 
-type Sub = PieceCategory | "shape" | "surface" | "wall" | "ground" | "items" | "preset" | "sky";
+type Sub = PieceCategory | "shape" | "surface" | "wall" | "arch" | "ground" | "items" | "preset" | "sky";
 
 interface DockTab {
   id: string;
@@ -22,7 +22,7 @@ interface DockTab {
 }
 
 const TABS: DockTab[] = [
-  { id: "track", title: "赛道", subs: [["shape", "形状"], ["surface", "路面"], ["wall", "护栏"]] },
+  { id: "track", title: "赛道", subs: [["shape", "形状"], ["surface", "路面"], ["wall", "护栏"], ["arch", "起点拱门"]] },
   { id: "building", title: "建筑", subs: [["building", "建筑"]] },
   { id: "nature", title: "自然", subs: [["tree", "树木"], ["flower", "花草"], ["rock", "山石"]] },
   { id: "roadside", title: "路边", subs: [["fence", "围栏"], ["light", "路灯"], ["sign", "路标旗帜"], ["ad", "广告牌"]] },
@@ -40,6 +40,7 @@ export type DockItem =
   | { kind: "sky"; id: string; sky: CatalogSky }
   | { kind: "preset"; id: string; preset: ThemePreset }
   | { kind: "template"; id: string; template: TrackTemplate }
+  | { kind: "arch"; id: string; arch: CatalogArch }
   | { kind: "tool"; id: string; title: string; glyph: string; description: string; run(): void };
 
 /** 画一条赛道模板的形状（高的地方颜色浅）。 */
@@ -192,6 +193,8 @@ export class Dock {
       if (wall) marks.set(`wall:${wall.track}:${wall.name}`, "使用中");
     }
     if (design.ground) marks.set(`ground:${design.ground.texture.track}:${design.ground.texture.name}`, "使用中");
+    if (design.start.arch) marks.set(archIdOf(design.start.arch), "使用中");
+    else if (design.start.arch === null) marks.set("tool:arch-none", "使用中");
     const preset = this.data?.presets.find(item => item.theme === design.theme && this.data!.skies.find(sky => sky.id === item.sky)?.track === design.sky);
     if (preset) marks.set(`preset:${preset.theme}`, "使用中");
     if (this.active) marks.set(this.active.id, this.active.kind === "piece" ? "放置中" : this.active.kind === "tool" ? "使用中" : marks.get(this.active.id) ?? "已选");
@@ -256,7 +259,7 @@ export class Dock {
       }
     }
     const data = this.data;
-    const themed = PIECE_SUBS.has(this.sub) || ["surface", "wall", "ground", "sky"].includes(this.sub);
+    const themed = PIECE_SUBS.has(this.sub) || ["surface", "wall", "arch", "ground", "sky"].includes(this.sub);
     if (data && themed) {
       const select = h("select", { class: "k-combo", title: "只看某个主题的素材" }, h("option", { value: "" }, "全部主题"));
       for (const theme of catalogThemes(data)) select.append(h("option", { value: theme }, themeTitle(theme)));
@@ -283,6 +286,7 @@ export class Dock {
       surface: "点一下换上选中道路的路面", wall: "点一下换上道路两侧的护栏",
       ground: "点一下换上地面", sky: "点一下换上天空和雾", preset: "一键换上整套主题",
       items: "道具箱让这张图也能开道具赛",
+      arch: "点一种拱门立在起跑线上方，或者不要拱门",
     };
     count.textContent = PIECE_SUBS.has(this.sub)
       ? `${this.shelf.querySelectorAll(".ed-card").length} 种 · 点卡片后在地图上点击放置`
@@ -307,6 +311,11 @@ export class Dock {
         return byTheme(data.skies.filter(sky => !theme || sky.theme === theme)).map(sky => ({ kind: "sky", id: sky.id, sky }));
       case "preset":
         return byTheme(data.presets).map(preset => ({ kind: "preset", id: `preset:${preset.theme}`, preset }));
+      case "arch":
+        return [
+          { kind: "tool", id: "tool:arch-none", title: "不要拱门", glyph: "✕", description: "起跑线上方不放拱门。", run: () => this.app.setArch(null) },
+          ...byTheme((data.arches ?? []).filter(arch => !theme || arch.theme === theme)).map(arch => ({ kind: "arch" as const, id: arch.id, arch })),
+        ];
       case "shape":
         return [
           { kind: "tool", id: "tool:draw", title: "自己画", glyph: "✎", description: "在地上一个点一个点地点出赛道，点回绿色起点就连成一圈。", run: () => this.app.startRoad() },
@@ -338,6 +347,7 @@ export class Dock {
         break;
       }
       case "template": image = drawTemplate(item.template, 96); image.classList.add("ed-sprite"); label = item.template.title; break;
+      case "arch": image = this.sprite(item.arch.slot, 96); label = item.arch.label; badge = themeTitle(item.arch.theme); break;
       case "tool": image = h("div", { class: "ed-sprite" }, item.glyph); label = item.title; break;
     }
     const card = h("button", { class: `k-row ed-card ${item.kind === "tool" ? "ed-tool" : ""}`,
@@ -374,6 +384,7 @@ export class Dock {
       case "sky": this.app.applySky(item.sky); break;
       case "preset": this.app.applyPreset(item.preset); break;
       case "template": this.app.applyTemplate(item.template); break;
+      case "arch": this.app.setArch(item.arch); break;
       case "tool": item.run(); break;
     }
     // 贴图、天空、套装换上后由“使用中”标出来；只有放道具箱这种持续的工具保持选中
@@ -440,6 +451,17 @@ export class Dock {
         if (sky) stage.append(this.sprite(sky.slot, 160));
         box.append(h("div", { class: "ed-title" }, `${themeTitle(item.preset.theme)}主题`),
           meta("一键换上这个主题的天空、路面、护栏、地面和背景音乐。"),
+          h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
+        return;
+      }
+      case "arch": {
+        const arch = item.arch;
+        const fallback = this.sprite(arch.slot, 160);
+        stage.append(fallback, this.preview.canvas);
+        this.preview.show(arch, fallback);
+        const size = pieceSize(arch);
+        box.append(h("div", { class: "ed-title" }, `${themeTitle(arch.theme)} ${arch.label}`),
+          meta(`约 ${size[0].toFixed(0)}×${size[1].toFixed(0)}×${size[2].toFixed(0)} 米，会按路宽自动缩放`, "立在起跑线正上方，拖动起跑线时跟着走"),
           h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       }

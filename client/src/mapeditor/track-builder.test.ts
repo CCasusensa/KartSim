@@ -138,3 +138,17 @@ test("真实 p3553：每个主题的起跑线贴图都找得到", { skip: !mirro
     assert.ok(line.v0 >= 0 && line.v1 <= 1 && line.v1 > line.v0);
   }
 });
+
+test("真实 p3553：起跑线上方的原版起点拱门连同广告横幅一起进赛道包", { skip: !mirrorReady }, async () => {
+  const { loadResourceLibrary } = await import("../../tools/economy-export/resource-library.mjs");
+  const { library, formats } = await loadResourceLibrary(root, "p3553", root);
+  const design = await sampleDesign(library, formats);
+  const pieces = listPieces(await loadSourceModel(library, formats, "village_I12"));
+  const gate = pieces.find(piece => piece.path.join(".") === "0.66")!;
+  assert.ok(gate, "城镇 start_obj");
+  design.start.arch = { track: "village_I12", path: gate.path, label: "起点拱门", origin: gate.origin, min: gate.min, max: gate.max };
+  const built = await buildCustomTrack(design, { library, formats });
+  assert.deepEqual(built.warnings, []);
+  assert.equal(built.stats.pieces, 3, "两个摆件加一个拱门");
+  assert.ok(built.files.some(file => /^ad_start\.(png|dds)$/i.test(file.path)), built.files.map(file => file.path).join(","));
+});

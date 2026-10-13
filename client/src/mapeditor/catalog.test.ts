@@ -24,7 +24,7 @@ test("素材目录：分类、主题套装、雪碧图格子都对得上", () =>
   const slots = new Set<number>();
   const ids = new Set<string>();
   const perSheet = data.columns * data.rows;
-  for (const item of [...data.pieces, ...data.textures, ...data.skies]) {
+  for (const item of [...data.pieces, ...data.textures, ...data.skies, ...data.arches]) {
     assert.ok(!slots.has(item.slot), `格子 ${item.slot} 重复`);
     slots.add(item.slot);
     assert.ok(item.slot >= 0 && item.slot < sheetFiles.length * perSheet, `格子 ${item.slot} 超出雪碧图`);
@@ -38,8 +38,15 @@ test("素材目录：分类、主题套装、雪碧图格子都对得上", () =>
     assert.ok(piece.label.length > 0);
   }
   assert.ok(data.presets.length >= 10);
+  // 起点拱门：横跨路面的大物件
+  assert.ok(data.arches.length >= 10, `拱门 ${data.arches.length}`);
+  for (const arch of data.arches) {
+    const span = Math.max(arch.max[0] - arch.min[0], arch.max[1] - arch.min[1]);
+    assert.ok(span >= 18 && arch.max[2] - arch.min[2] >= 6, arch.id);
+  }
   for (const preset of data.presets) {
     assert.ok(ids.has(preset.sky) && ids.has(preset.surface), preset.theme);
+    assert.ok(preset.arch && ids.has(preset.arch), `${preset.theme} 的拱门`);
     if (preset.wall) assert.ok(ids.has(preset.wall));
     if (preset.ground) assert.ok(ids.has(preset.ground));
     assert.equal(data.textures.find(texture => texture.id === preset.surface)?.kind, "surface");
@@ -69,6 +76,7 @@ test("新建向导：每种主题 × 形状生成的地图都能直接生成赛�
     const design = wizardDesign(data, { name: template.title, preset, template, decorate: true, items: true });
     assert.deepEqual(validateDesign(design), [], `${preset.theme}/${template.id}`);
     assert.equal(design.theme, preset.theme);
+    assert.equal(design.start.arch && `arch:${design.start.arch.track}:${design.start.arch.path.join(".")}`, preset.arch, "向导带上主题的拱门");
     assert.ok(design.items.rows.length >= 3, "道具箱");
     assert.ok(design.pieces.length > 10, `${template.id} 只装饰了 ${design.pieces.length} 个`);
     const road = design.roads[0]!;

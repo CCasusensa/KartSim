@@ -101,9 +101,22 @@ export interface ItemsDesign {
   rows: ItemBoxRow[];
 }
 
+/** 起跑线上方的原版起点拱门：取自哪条官方赛道的哪个物件（摆放位置按起跑线自动算）。 */
+export interface StartArch {
+  track: string;
+  path: number[];
+  label: string;
+  /** 来源赛道坐标里的包围盒和底面中心（与摆件的 origin 相同）。 */
+  origin: Vec3;
+  min: Vec3;
+  max: Vec3;
+}
+
 export interface StartDesign {
   /** 起点线到比赛路线第一个控制点的距离（米，沿路线）。 */
   offset: number;
+  /** 起点拱门：null 表示不要；缺省（旧地图）时编辑器按主题补上。 */
+  arch?: StartArch | null;
 }
 
 export interface MapDesign {
@@ -263,6 +276,11 @@ export function validateDesign(design: MapDesign): string[] {
       break;
     }
   }
+  const arch = design.start.arch;
+  if (!finite(design.start.offset) || design.start.offset < 0) issues.push("起跑线位置无效。");
+  if (arch && (!/^[A-Za-z0-9_\-]{1,64}$/.test(arch.track) || !Array.isArray(arch.path) || !arch.path.length ||
+    !arch.path.every(index => Number.isInteger(index) && index >= 0) || !vec3(arch.origin) || !vec3(arch.min) || !vec3(arch.max)))
+    issues.push("起点拱门设置无效。");
   if (design.ground && (!textureRef(design.ground.texture) || !finite(design.ground.size) ||
     design.ground.size < 20 || design.ground.size > MAP_LIMITS.extent * 2 || !finite(design.ground.tile) ||
     design.ground.tile <= 0)) issues.push("地面设置无效。");

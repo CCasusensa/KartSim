@@ -12,7 +12,11 @@ import {
   DEFAULT_ROAD_SURFACE, DEFAULT_WALL, MAP_LIMITS, defaultGround, newDesign, type MapDesign, type PieceDesign, type RoadDesign,
   type TextureRef, type Vec3,
 } from "../design";
-import { surfaceRef, textureLabel, textureRef, themeTitle, type CatalogSky, type CatalogTexture, type ThemePreset } from "../catalog";
+import {
+  archRef, defaultArch, surfaceRef, textureLabel, textureRef, themeTitle, type CatalogArch, type CatalogSky, type CatalogTexture,
+  type ThemePreset,
+} from "../catalog";
+import { START_ARCH_ID } from "../start-line";
 import { sampleRoad } from "../road-geometry";
 import { ROAD_CLEARANCE, settleRoad, type SettleResult } from "../road-settle";
 import type { PieceInfo, SourceTrack } from "../source-tracks";
@@ -44,6 +48,10 @@ const SNAP_MOVE = 1;
 const SNAP_ANGLE = 15;
 const ADVANCED_KEY = "kartsim-mapeditor-advanced";
 
+function storedSnap(): boolean {
+  try { return localStorage.getItem("kartsim-mapeditor-snap") !== "0"; } catch { return true; }
+}
+
 function storedAdvanced(): boolean {
   try { return localStorage.getItem(ADVANCED_KEY) === "1"; } catch { return false; }
 }
@@ -61,7 +69,8 @@ export class EditorApp {
   /** 高级模式：左侧官方赛道浏览、变换手柄、完整属性面板。 */
   advanced = storedAdvanced();
   gizmoMode: "translate" | "rotate" | "scale" = "translate";
-  snap = true;
+  /** 自动吸附（默认开，记在本机）：贴路边、顺着路摆正、落到表面、位置角度取整。 */
+  snap = storedSnap();
   /** 素材库里当前打开的官方赛道。 */
   browsing?: SourceTrack;
   source?: SourceSession;
@@ -203,8 +212,8 @@ export class EditorApp {
         h("span", { class: "ed-sep" }),
         mode("移动", "translate", "W"), mode("旋转", "rotate", "E"), mode("缩放", "scale", "R"),
       ] : []),
-      button(this.snap ? "吸附：开" : "吸附：关", () => { this.snap = !this.snap; this.attachGizmo(); this.renderBar(); },
-        { class: this.snap ? "k-on" : "", title: "位置按 0.5 米、旋转按 15° 对齐" }),
+      button(this.snap ? "吸附：开" : "吸附：关", () => this.setSnap(!this.snap),
+        { class: this.snap ? "k-on" : "", title: "贴路边、顺着路摆正、落到表面，位置按 0.5 米、旋转按 15° 对齐" }),
       h("span", { class: "ed-spacer" }),
       button("试跑", () => void this.actions.testDrive(), { class: "ed-primary", title: "生成赛道，在游戏的计时赛里跑一圈" }),
       button("发布", () => void this.actions.publish(), { class: "ed-primary", title: "上传到服务器，大家都能玩" }),
@@ -251,6 +260,15 @@ export class EditorApp {
     menu.style.top = `${rect.bottom + 4}px`;
     document.body.append(menu);
     this.menu = menu;
+  }
+
+  /** 打开或关上自动吸附（记在本机）。 */
+  setSnap(on: boolean): void {
+    this.snap = on;
+    try { localStorage.setItem("kartsim-mapeditor-snap", on ? "1" : "0"); } catch { /* 隐私模式 */ }
+    this.attachGizmo();
+    this.say(on ? "自动吸附打开了：靠近赛道会贴到路边、顺着路摆正" : "自动吸附关掉了：东西放在哪就是哪", 3000);
+    this.queueRender();
   }
 
   setAdvanced(on: boolean): void {
@@ -466,6 +484,13 @@ export class EditorApp {
     const handle = hit.object.userData.handle as { roadId: string; index: number } | undefined;
     if (handle) { this.state.select({ kind: "road", id: handle.roadId, point: handle.index }); return; }
     const pieceId = this.views.pieceIdOf(hit.object);
+    if (pieceId === START_ARCH_ID) {
+      // 点起点拱门：打开素材栏的拱门那一栏换样式
+      this.state.select(undefined);
+      this.dock.open("arch", true);
+      this.say("这是起点拱门：在下面挑一种换上，或者用“拆除”拆掉", 4000);
+      return;
+    }
     if (pieceId) {
       const piece = this.state.piece(pieceId);
       const groupIds = piece?.group && !event.ctrlKey && !event.metaKey
@@ -807,6 +832,13 @@ export class EditorApp {
     }
   }
 
+  /** 换起点拱门；null 是不要拱门。 */
+  setArch(arch: CatalogArch | null): void {
+    this.state.commit(design => { design.start.arch = arch ? archRef(arch) : null; });
+    if (!this.state.design.roads.some(road => road.route && road.closed)) this.say("铺好一圈赛道后，拱门会立在起跑线上", 3500);
+    else this.say(arch ? `起点拱门换成了「${themeTitle(arch.theme)} ${arch.label}」` : "拆掉了起点拱门", 2500);
+  }
+
   applySky(sky: CatalogSky): void {
     this.state.commit(design => { design.sky = sky.track; });
     this.say(`天空换成「${sky.label}」。`);
@@ -819,9 +851,11 @@ export class EditorApp {
     const find = (id: string | undefined) => id ? data.textures.find(texture => texture.id === id) : undefined;
     const surface = find(preset.surface), wall = find(preset.wall), ground = find(preset.ground);
     const sky = data.skies.find(entry => entry.id === preset.sky);
+    const arch = data.arches?.find(item => item.id === preset.arch);
     this.state.commit(design => {
       design.theme = preset.theme;
       if (sky) design.sky = sky.track;
+      if (arch) design.start.arch = archRef(arch);
       for (const road of design.roads) {
         if (surface) road.surface = surfaceRef(surface);
         if (wall) for (const side of [road.walls.left, road.walls.right]) if (side) side.texture = textureRef(wall);
@@ -915,6 +949,12 @@ export class EditorApp {
       let lifted = 0;
       for (const road of design.roads) for (const point of road.points) if (point.z < floor) { point.z = Math.round(floor * 100) / 100; lifted++; }
       if (lifted) setTimeout(() => this.say("已经把贴着地面的路抬高了一点，不会再露出草地", 4000), 0);
+    }
+    // 旧地图没有记拱门：按主题补一个原版起点拱门
+    const data = this.dock.catalog();
+    if (design.start.arch === undefined && data) {
+      const arch = defaultArch(data, design.theme);
+      design.start.arch = arch ? archRef(arch) : null;
     }
     this.closeSource();
     if (this.tool.kind !== "select") this.setTool({ kind: "select" });

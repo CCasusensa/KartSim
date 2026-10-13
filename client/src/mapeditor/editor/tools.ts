@@ -5,10 +5,15 @@
  *   推土机：点到哪个摆件删哪个，按住拖动连片删除；
  *   道具箱：在比赛路线上点一下，横着放一排；
  *   选择：点选摆件或道路，按住拖动直接挪位置（不用手柄）；按住起跑线沿着赛道拖。
+ * 自动吸附（app.snap，默认开）：放东西、拖东西靠近赛道边时贴到路边并顺着路摆正，
+ * 加速板放在路上对准路中间；拖动的东西落到下面的地面、路面或别的东西上；位置按
+ * 0.5 米、角度按 15° 对齐。
  */
 import { BufferAttribute, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Vector3, type Intersection } from "three";
 import { MAP_LIMITS, type MapDesign, type PieceDesign, type Vec3 } from "../design";
-import type { CatalogPiece } from "../catalog";
+import type { CatalogPiece, PieceCategory } from "../catalog";
+import type { RoadDesign } from "../design";
+import { START_ARCH_ID } from "../start-line";
 import { sampleRoad, type RoadSample } from "../road-geometry";
 import type { AssembledScene } from "./assets";
 import type { EditorApp } from "./app";
@@ -61,6 +66,9 @@ export class ToolController {
   private press?: Press;
   private wheelRest = 0;
   private guide?: Line;
+  /** 自动吸附算出的朝向基准（贴路边时顺着路）；没吸附时 undefined，滚轮转的 yaw 加在它上面。 */
+  private snapYaw?: number;
+  private roadSamples?: { key: string; list: RoadSample[] };
   private ghost?: { piece: CatalogPiece; root: Group; offset: Group; box: LineSegments; scene?: AssembledScene };
   private ghostPoint?: Vec3;
   private drag?: Drag;
@@ -112,13 +120,73 @@ export class ToolController {
   private applyGhostTransform(): void {
     const ghost = this.ghost;
     if (!ghost) return;
-    ghost.root.rotation.set(0, 0, (this.yaw * Math.PI) / 180);
+    ghost.root.rotation.set(0, 0, (this.effectiveYaw() * Math.PI) / 180);
     ghost.root.scale.setScalar(this.scale);
     if (this.ghostPoint) {
       ghost.root.position.set(this.ghostPoint[0], this.ghostPoint[1], this.ghostPoint[2] + this.lift);
       ghost.root.visible = true;
     }
     this.updateGuide();
+  }
+
+  private effectiveYaw(): number {
+    return ((((this.snapYaw ?? 0) + this.yaw) % 360) + 360) % 360;
+  }
+
+  /** 鬼影对准一个落点：开着自动吸附时贴到路边 / 路中间（框变成青色）。返回实际落点。 */
+  private aimGhost(point: Vec3): Vec3 {
+    const ghost = this.ghost;
+    const snap = this.app.snap && ghost ? this.roadSnap(point, ghost.piece, this.scale) : undefined;
+    this.snapYaw = snap?.yaw;
+    this.ghostPoint = snap ? snap.position : point;
+    if (ghost) (ghost.box.material as LineBasicMaterial).color.setHex(snap ? 0x22c8ff : 0x3ddc84);
+    this.applyGhostTransform();
+    return this.ghostPoint;
+  }
+
+  /** 全部道路的采样（道路没变就复用）。 */
+  private samples(): RoadSample[] {
+    const roads: RoadDesign[] = this.app.state.design.roads;
+    const key = JSON.stringify(roads.map(road => [road.points, road.width, road.closed]));
+    if (this.roadSamples?.key !== key) {
+      this.roadSamples = { key, list: roads.filter(road => road.points.length >= 2).map(road => sampleRoad(road, 2)) };
+    }
+    return this.roadSamples.list;
+  }
+
+  /**
+   * 自动吸附到路：离路边 12 米以内贴到路边外侧，长边顺着路（两边都朝着路面）；
+   * 加速板（booster）在路面上时对准路中间、顺着路。不靠近路时返回 undefined。
+   */
+  roadSnap(point: Vec3, piece: { min: ArrayLike<number>; max: ArrayLike<number>; category?: PieceCategory }, scale: number):
+    { position: Vec3; yaw: number } | undefined {
+    let best: { sample: RoadSample; index: number; distance: number; edge: number } | undefined;
+    for (const sample of this.samples()) {
+      sample.points.forEach((center, index) => {
+        const distance = Math.hypot(point[0] - center[0], point[1] - center[1]);
+        const edge = distance - sample.widths[index]! / 2;
+        if (!best || edge < best.edge) best = { sample, index, distance, edge };
+      });
+    }
+    if (!best) return undefined;
+    const { sample, index, distance } = best;
+    const half = sample.widths[index]! / 2;
+    const center = sample.points[index]!, left = sample.lefts[index]!, tangent = sample.tangents[index]!;
+    const heading = (Math.atan2(tangent[1], tangent[0]) * 180) / Math.PI;
+    const sizeX = (piece.max[0]! - piece.min[0]!) * scale, sizeY = (piece.max[1]! - piece.min[1]!) * scale;
+    const alongX = sizeX >= sizeY;
+    const depth = alongX ? sizeY : sizeX;
+    const normalize = (yaw: number) => Math.round(((yaw % 360) + 360) % 360 * 100) / 100;
+    if (piece.category === "booster") {
+      if (distance > half) return undefined;
+      return { position: [round2(center[0]), round2(center[1]), round2(center[2])], yaw: normalize(heading + (alongX ? 0 : 90)) };
+    }
+    if (distance < half - 2 || distance > half + 12 + depth) return undefined;
+    const side = (point[0] - center[0]) * left[0] + (point[1] - center[1]) * left[1] >= 0 ? 1 : -1;
+    const out = half + 0.8 + depth / 2;
+    const x = center[0] + left[0] * side * out, y = center[1] + left[1] * side * out;
+    const z = this.app.viewport.castDown([x, y, center[2] + 50], [this.app.views.ground]) ?? center[2];
+    return { position: [round2(x), round2(y), round2(z)], yaw: normalize(heading + (alongX ? 0 : 90) + (side < 0 ? 180 : 0)) };
   }
 
   /** 离地时从落点到物件底部画一条竖线，看得出悬空多高。 */
@@ -194,9 +262,8 @@ export class ToolController {
       const point = this.surfacePoint(event);
       if (!point) return true;
       this.cancelPress();
-      this.ghostPoint = point;
-      this.applyGhostTransform();
-      const press: Press = { x: event.clientX, y: event.clientY, point, stage: "pending", lastY: event.clientY };
+      const aimed = this.aimGhost(point);
+      const press: Press = { x: event.clientX, y: event.clientY, point: aimed, stage: "pending", lastY: event.clientY };
       // 按住不动一会儿：进入调高度
       press.timer = setTimeout(() => {
         if (this.press !== press || press.stage !== "pending") return;
@@ -225,8 +292,7 @@ export class ToolController {
       if (press && event.buttons & 1) { this.movePress(press, event); return; }
       const point = this.surfacePoint(event);
       if (!point) return;
-      this.ghostPoint = point;
-      this.applyGhostTransform();
+      this.aimGhost(point);
       return;
     }
     if (tool.kind === "bulldoze") {
@@ -299,8 +365,7 @@ export class ToolController {
     if (press.stage === "pending") return;
     const point = this.surfacePoint(event);
     if (!point) return;
-    this.ghostPoint = point;
-    this.applyGhostTransform();
+    this.aimGhost(point);
   }
 
   private cancelPress(): void {
@@ -329,7 +394,7 @@ export class ToolController {
       this.app.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`);
       return false;
     }
-    const placed = this.makePiece(point, this.yaw, this.scale);
+    const placed = this.makePiece(point, this.effectiveYaw(), this.scale);
     this.app.views.popPieces.add(placed.id);
     this.app.state.commit(design => { design.pieces.push(placed); });
     return true;
@@ -347,7 +412,9 @@ export class ToolController {
     const under = this.pieceUnder(event);
     if (!under || !this.bulldozing) return;
     this.bulldozing.add(under.id);
-    this.app.state.preview(d => { d.pieces = d.pieces.filter(piece => piece.id !== under.id); });
+    // 拆起点拱门 = 不要拱门
+    if (under.id === START_ARCH_ID) this.app.state.preview(d => { d.start.arch = null; });
+    else this.app.state.preview(d => { d.pieces = d.pieces.filter(piece => piece.id !== under.id); });
     this.clearHover();
   }
 
@@ -428,7 +495,8 @@ export class ToolController {
       return true;
     }
     const pieceId = app.views.pieceIdOf(hit.object);
-    if (!pieceId) return false;
+    // 起点拱门跟着起跑线走，不能单独拖；点它打开拱门栏（app.click）
+    if (!pieceId || pieceId === START_ARCH_ID) return false;
     const piece = app.state.piece(pieceId);
     if (!piece || event.shiftKey) return false;
     // 按住没选中的东西：先选中它（一组的整组选中），再跟着鼠标走
@@ -464,10 +532,24 @@ export class ToolController {
       return;
     }
     const pieces = drag.pieces!;
+    const snap = this.app.snap;
+    const views = this.app.views;
+    // 自动吸附：落到下面的路面、地面或别的东西上；只拖一个时靠近路边贴过去并顺着路
+    const below = snap ? [views.roads, views.ground, ...views.pieces.children.filter(child => !pieces.has(child.userData.pieceId))] : [];
     this.app.state.preview(d => {
       for (const piece of d.pieces) {
         const origin = pieces.get(piece.id);
-        if (origin) piece.position = [round2(origin[0] + dx), round2(origin[1] + dy), origin[2]];
+        if (!origin) continue;
+        const target: Vec3 = [round2(origin[0] + dx), round2(origin[1] + dy), origin[2]];
+        if (snap) {
+          const info = views.pieceInfo(piece.id);
+          const catalog = this.app.dock.pieceFor(piece.track, piece.path);
+          const road = pieces.size === 1 && info ? this.roadSnap(target, { min: info.min, max: info.max, category: catalog?.category }, piece.scale[0]) : undefined;
+          if (road) { piece.position = road.position; piece.rotation[0] = road.yaw; continue; }
+          const z = this.app.viewport.castDown([target[0], target[1], origin[2] + 200], below);
+          if (z !== undefined) target[2] = round2(z);
+        }
+        piece.position = target;
       }
     });
   }

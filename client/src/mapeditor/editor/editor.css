@@ -284,3 +284,5 @@ details.ed-more > summary { cursor: pointer; color: #0d3d8c; font-size: 12px; }
 /* 简单模式不要底部状态栏：消息走提示气泡，保存状态在顶栏 */
 .ed-root:not(.ed-advanced) { grid-template-rows: auto 1fr auto 0; }
 .ed-root:not(.ed-advanced) .ed-status { display: none; }
+/* 自动吸附开关：开着时字是绿色 */
+.ed-toolstrip .k-button.ed-icon.ed-snap.k-on { color: #1d8a3c; }

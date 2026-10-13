@@ -6,7 +6,7 @@
  * （catalog/catalog.json、catalog/sheet-N.webp），编辑器打开时不用现场下载
  * 赛道就能看到每一样东西的样子。
  */
-import type { RoadTextureRef, TextureRef, Vec3 } from "./design";
+import type { RoadTextureRef, StartArch, TextureRef, Vec3 } from "./design";
 import { THEME_TITLES } from "./source-tracks";
 
 export type PieceCategory =
@@ -47,13 +47,17 @@ export interface CatalogSky {
   track: string;
 }
 
-/** 主题套装：一键换上某个主题的天空、路面、护栏和地面。 */
+/** 原版起点拱门（横跨起跑线的牌楼、横幅门）。 */
+export type CatalogArch = Omit<CatalogPiece, "category">;
+
+/** 主题套装：一键换上某个主题的天空、路面、护栏、地面和起点拱门。 */
 export interface ThemePreset {
   theme: string;
   sky: string;
   surface: string;
   wall?: string;
   ground?: string;
+  arch?: string;
 }
 
 export interface CatalogData {
@@ -64,6 +68,7 @@ export interface CatalogData {
   pieces: CatalogPiece[];
   textures: CatalogTexture[];
   skies: CatalogSky[];
+  arches: CatalogArch[];
   presets: ThemePreset[];
 }
 
@@ -121,6 +126,23 @@ export function textureLabel(texture: Pick<CatalogTexture, "kind" | "name" | "ro
   if (sound && ROAD_VALUES[sound]) return ROAD_VALUES[sound]!;
   for (const [pattern, word] of TEXTURE_WORDS) if (pattern.test(texture.name)) return word;
   return texture.kind === "surface" ? "路面" : texture.kind === "wall" ? "护栏" : "地面";
+}
+
+export function archRef(arch: CatalogArch): StartArch {
+  return { track: arch.track, path: [...arch.path], label: arch.label, origin: [...arch.origin] as Vec3,
+    min: [...arch.min] as Vec3, max: [...arch.max] as Vec3 };
+}
+
+/** 设计里的拱门对应的目录拱门。 */
+export function archIdOf(arch: Pick<StartArch, "track" | "path">): string {
+  return `arch:${arch.track}:${arch.path.join(".")}`;
+}
+
+/** 某个主题的默认拱门（主题套装里的那个，没有就用第一个）。 */
+export function defaultArch(data: CatalogData, theme: string): CatalogArch | undefined {
+  const id = data.presets.find(preset => preset.theme === theme)?.arch ?? data.presets.find(preset => preset.theme === "village")?.arch;
+  const arches = data.arches ?? [];
+  return arches.find(arch => arch.id === id) ?? arches[0];
 }
 
 export function surfaceRef(texture: CatalogTexture): RoadTextureRef {
