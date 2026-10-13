@@ -68,6 +68,10 @@ type Options struct {
 	// Fuel is the data service's tank API (FUEL.md); nil drives without fuel.
 	Fuel   Fuel
 	Logger *slog.Logger
+	// QuestRewards credits the deliveries (CITY-QUESTS.md; nil: no quests),
+	// from QuestBook (nil: the embedded city-quests.json).
+	QuestRewards QuestRewards
+	QuestBook    *QuestBook
 	// Traffic is how many NPC cars each line drives (KART_CITY_TRAFFIC,
 	// CITY-NPC.md; 0 none) on TrafficNetwork (nil: the embedded one).
 	Traffic        int
@@ -136,7 +140,8 @@ const (
 // commands are the requests this package handles (ws routes them here).
 var commands = map[string]bool{"city-join": true, "city-leave": true, "city-chat": true, "city-emote": true,
 	"city-state": true, "city-respawn": true, "city-equipment": true, "city-refuel": true, "city-rescue": true,
-	"city-exit": true, "city-enter": true, "city-lock": true}
+	"city-exit": true, "city-enter": true, "city-lock": true,
+	"city-quest-accept": true, "city-quest-abandon": true, "city-quest-deliver": true}
 
 // Handles reports whether a request type is a city command.
 func Handles(typ string) bool { return commands[typ] }
@@ -151,6 +156,9 @@ type Service struct {
 	lines    []*instance
 	closed   atomic.Bool
 	fuel     Fuel
+	// quests and questRewards run the deliveries (nil: off).
+	quests       *QuestBook
+	questRewards QuestRewards
 	// saves counts the fuel saves in flight (Close waits for them).
 	saves sync.WaitGroup
 
@@ -209,8 +217,15 @@ func New(opts Options) (*Service, error) {
 		}
 		opts.TrafficNetwork = network
 	}
+	if opts.QuestRewards != nil && opts.QuestBook == nil {
+		book, err := DefaultQuests()
+		if err != nil {
+			return nil, err
+		}
+		opts.QuestBook = book
+	}
 	s := &Service{opts: opts, clock: opts.Clock, profiles: opts.Profiles, cityMap: opts.Map, log: opts.Logger,
-		mutes: map[string]int64{}, fuel: opts.Fuel}
+		mutes: map[string]int64{}, fuel: opts.Fuel, quests: opts.QuestBook, questRewards: opts.QuestRewards}
 	now := s.clock.Now()
 	for line := 1; line <= opts.Lines; line++ {
 		s.lines = append(s.lines, newInstance(s, line, now))
@@ -265,6 +280,8 @@ func (s *Service) Handle(ctx context.Context, c *lobby.Client, in lobby.Request)
 		return inst.refuel(c, in)
 	case "city-rescue":
 		return inst.rescue(c, in)
+	case "city-quest-deliver":
+		return inst.deliverQuest(c)
 	}
 	return inst.handle(c, typ, in)
 }
@@ -458,6 +475,8 @@ type member struct {
 	violationStart int64
 
 	chat, emotes, respawns, equips limiter
+	// quest is the member's delivery (CITY-QUESTS.md).
+	quest questState
 }
 
 func (m *member) object() lobby.Object {
@@ -695,6 +714,10 @@ func (inst *instance) handle(c *lobby.Client, typ string, in lobby.Request) (lob
 		return okReply(), nil
 	case "city-respawn":
 		return inst.respawn(m, in, now)
+	case "city-quest-accept":
+		return inst.acceptQuest(m, in, now)
+	case "city-quest-abandon":
+		return inst.abandonQuest(m, now)
 	case "city-exit":
 		return inst.exit(m, in, now)
 	case "city-enter":
@@ -898,8 +921,10 @@ func (inst *instance) moveLocked(m *member, pose Pose, now int64) {
 	for _, other := range inst.grid.within(m.pose, inst.svc.opts.InterestRadius) {
 		recipients[other] = struct{}{}
 	}
+	from := m.pose
 	inst.place(m, pose, now)
 	m.skipCheck = true
+	inst.questMoved(m, from)
 	for _, other := range inst.grid.within(m.pose, inst.svc.opts.InterestRadius) {
 		recipients[other] = struct{}{}
 	}
@@ -955,6 +980,7 @@ func (inst *instance) tick() {
 		inst.broadcastClockLocked(now)
 	}
 	inst.saveDue(now)
+	inst.questTick(now)
 	if len(inst.members) > 0 {
 		packet := inst.radarPacket()
 		for _, m := range inst.members {

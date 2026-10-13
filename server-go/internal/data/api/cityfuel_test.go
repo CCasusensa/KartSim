@@ -38,7 +38,7 @@ func TestCityFuelInternalAPI(t *testing.T) {
 	fuel := state(`{"itemIds":{"1":2,"3":0},"systemKart":"practiceKart"}`)
 	capacity := int64(practice.Capacity) * 1000
 	if !fuel.Enabled || fuel.KartKey != "system:practiceKart" || fuel.CapacityML != capacity || fuel.FuelML != capacity ||
-		fuel.Rev != 0 || fuel.SizeClass != practice.SizeClass || fuel.UseMLPerKm != 1600+30*int64(practice.Capacity) ||
+		fuel.Rev != 0 || fuel.SizeClass != practice.SizeClass || fuel.UseMLPerKm != 800+15*int64(practice.Capacity) ||
 		fuel.PricePerLiter != 5 || fuel.RescueFee != 300 || fuel.Lucci != harnessStartingLucci || fuel.KartName == "" {
 		t.Fatalf("practice kart tank %+v", fuel)
 	}

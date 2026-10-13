@@ -23,7 +23,8 @@ const FAR_FROM_TRAFFIC = 40;
 /**
  * Who stands where: an anchor (a spawn point id or design x/z), the
  * character item (catalog.json: 1 宝宝, 2 皮蛋, 3 黑妞, 4 葱头, 5 胖墩, 6 蓝蓝,
- * 7 小强, 8 小乖, 12 R博士, 14 妮妮, 15 吉米), the rider dye (slot 70: 1 红 2 黄
+ * 7 小强, 8 小乖, 14 妮妮, 15 吉米; those with a story-mode sprite, for the
+ * quest dialogues), the rider dye (slot 70: 1 红 2 黄
  * 3 朱黄 4 绿 5 青绿 6 蓝 7 紫 8 黑 9 粉 10 白 11 海蓝), the name tag and what
  * they say when someone stops by.
  */
@@ -58,15 +59,15 @@ const NPCS = [
     "市中心路口多，注意红绿灯！",
     "今天的交通很顺畅，大家都很守规矩。",
   ] },
-  { id: "doctor-starfish", dye: 10, anchor: [-1150, 120], character: 12, name: "R博士", lines: [
-    "这些车可都是我调教出来的好司机。",
-    "它们会停车让你先过，可别欺负它们。",
+  { id: "postman-starfish", dye: 5, anchor: [-1150, 120], character: 7, name: "邮差 · 小强", lines: [
+    "海星岛的信件和包裹都要经过我的手。",
+    "最近包裹多得堆成了山，正缺人手帮忙送货呢！",
   ] },
 ];
 
 const round = v => Math.round(v * 100) / 100;
 
-function lanes(network) {
+export function lanes(network) {
   const out = [];
   for (const path of network.paths) {
     if (path.kind !== "lane") continue;
@@ -78,7 +79,7 @@ function lanes(network) {
 }
 
 /** The nearest lane point (with its direction) to (x, z). */
-function nearestLanePoint(list, x, z) {
+export function nearestLanePoint(list, x, z) {
   let best;
   for (const { path, points } of list) {
     for (let i = 1; i < points.length; i++) {
@@ -89,7 +90,9 @@ function nearestLanePoint(list, x, z) {
       const d = Math.hypot(x - px, z - pz);
       if (!best || d < best.d) {
         const l = Math.sqrt(l2) || 1;
-        best = { d, x: px, z: pz, y: a[2] + (b[2] - a[2]) * t, dx: dx / l, dz: dz / l, path };
+        let s = 0;
+        for (let k = 1; k < i; k++) s += Math.hypot(points[k][0] - points[k - 1][0], points[k][1] - points[k - 1][1]);
+        best = { d, x: px, z: pz, y: a[2] + (b[2] - a[2]) * t, dx: dx / l, dz: dz / l, path, s: s + l * t };
       }
     }
   }

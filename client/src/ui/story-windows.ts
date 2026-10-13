@@ -305,6 +305,29 @@ export async function openStoryMessage(options: {
   return dialog.view as WindowView;
 }
 
+/**
+ * The same message box with two buttons (yes / no); cancelling (Esc, X)
+ * counts as no.
+ */
+export async function openStoryConfirm(options: {
+  library: StoryWindowLibrary; root: HTMLElement; title: string; message: string;
+  yes: string; no: string; onYes(): void; onNo(): void;
+}): Promise<WindowView> {
+  const dialog = await showLobbyMessageBox(
+    () => ({ busy: false, view: undefined as unknown as WindowView }),
+    { library: options.library, root: options.root, cancel: options.onNo },
+    options.title, options.message, options.onYes, { yes: options.yes, no: options.no }, false, {
+      loadMessageTemplate: library => _w(library),
+      loadDefinition: (library, folder, file) => F9(library, folder, file),
+      decorateDefinition: (library, definition, folder) => C8(library, definition, folder),
+      clone: (node, attributes, children) => children === undefined
+        ? h2(node, attributes) : h2(node, attributes, children),
+      nodeName: node => T(node, "name") as string | undefined,
+      loadView: loaded => te.load(loaded as never),
+    });
+  return dialog.view as WindowView;
+}
+
 // ---------------------------------------------------------------------------
 // Chapter map (stage_scenarioSelect + <chapter>/scenarioSelect.bml)
 
@@ -578,9 +601,55 @@ export interface StoryReadyOptions {
   cleared: boolean;
   /** Why the step cannot start here, if it cannot. */
   unavailable?: string;
+  /**
+   * 卡丁城送货任务 reuse the window for a step that is no race: the badge
+   * text (instead of 第 N 关), the start and close button labels, and
+   * whether it can start (instead of PLAYABLE_STORY_MISSIONS).
+   */
+  badgeText?: string;
+  startLabel?: string;
+  closeLabel?: string;
+  playable?: boolean;
+  /** Painted in the track card's place (卡丁城: the NPC the delivery goes to). */
+  portrait?: StoryPortrait;
   onStart(): void;
   onClose(): void;
   onActivate?(): void;
+}
+
+/** A scene picture: a stage_scene background (its first half) with one sprite standing in it. */
+export interface StoryPortrait { background?: Texture; sprite?: Texture; title: string }
+
+/** Loads a portrait; a missing background or sprite is left out. */
+export async function loadStoryPortrait(library: StoryWindowLibrary, emotions: Map<string, Map<string, string[]>>,
+  background: string, sprite: string, title: string): Promise<StoryPortrait> {
+  const file = storySpriteFile(emotions, sprite, "normal");
+  const [picture, figure] = await Promise.all([
+    loadSceneTexture(library, `${background}_1`, true).catch(() => undefined),
+    file ? loadSceneTexture(library, file).catch(() => undefined) : undefined,
+  ]);
+  return { background: picture, sprite: figure, title };
+}
+
+/** The background covers the box; the sprite stands centred on its bottom edge. */
+function paintStoryPortrait(context: CanvasRenderingContext2D, portrait: StoryPortrait, rect: Rect): void {
+  context.save();
+  context.beginPath();
+  context.rect(rect.x, rect.y, rect.width, rect.height);
+  context.clip();
+  const { background, sprite } = portrait;
+  if (background) {
+    const scale = Math.max(rect.width / background.width, rect.height / background.height);
+    const width = background.width * scale, height = background.height * scale;
+    context.drawImage(background.image, rect.x + (rect.width - width) / 2, rect.y + (rect.height - height) / 2,
+      width, height);
+  }
+  if (sprite) {
+    const scale = rect.height * 0.92 / sprite.height;
+    const width = sprite.width * scale, height = sprite.height * scale;
+    context.drawImage(sprite.image, rect.x + (rect.width - width) / 2, rect.y + rect.height - height, width, height);
+  }
+  context.restore();
 }
 
 /** "赛道完成 %d回/%d回" with this step's count. */
@@ -624,7 +693,7 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
     return undefined;
   }), roots);
   const badge = !!T(findNode(definition, "step") ?? definition, "texture");
-  const playable = PLAYABLE_STORY_MISSIONS.has(mission.kind) && !options.unavailable;
+  const playable = (options.playable ?? PLAYABLE_STORY_MISSIONS.has(mission.kind)) && !options.unavailable;
   const start = (): void => {
     if (!playable) return;
     options.onActivate?.();
@@ -643,7 +712,7 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
           context.roundRect(rect.x, rect.y, rect.width, rect.height, 8);
           context.fill();
           context.restore();
-          paintText(context, `第 ${step.id} 关`, rect, { size: 20, color: "white",
+          paintText(context, options.badgeText ?? `第 ${step.id} 关`, rect, { size: 20, color: "white",
             align: "center", middle: true });
         } };
         case "scenarioTitle": return { text: step.title };
@@ -659,8 +728,10 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
             context.drawImage(card.image, rect.x, rect.y, rect.width, rect.height);
             if (card.reverseStamp)
               context.drawImage(card.reverseStamp.image, rect.x, rect.y, rect.width, rect.height);
-          } } : {};
-        case "out_trackName": return { text: options.trackCard?.title ?? options.trackTitle };
+          } } : options.portrait ? {
+          paint: (context: CanvasRenderingContext2D, rect: Rect) => paintStoryPortrait(context, options.portrait!, rect),
+        } : {};
+        case "out_trackName": return { text: options.trackCard?.title ?? options.portrait?.title ?? options.trackTitle };
         case "trackTheme": return options.trackCard?.themeIcon ? {
           paint: (context: CanvasRenderingContext2D, rect: Rect) =>
             context.drawImage(options.trackCard!.themeIcon!.image, rect.x, rect.y,
@@ -670,10 +741,10 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
         case "clearStep": return { visible: options.cleared };
         case "itemPanel":
         case "emblem": return { visible: false };
-        case "시작": return { label: "开始", disabled: !playable,
+        case "시작": return { label: options.startLabel ?? "开始", disabled: !playable,
           action: playable ? start : undefined };
         case "아이템배틀": return { visible: false };
-        case "goBackButton": return { label: "关闭", action: () => {
+        case "goBackButton": return { label: options.closeLabel ?? "关闭", action: () => {
           options.onActivate?.(); options.onClose(); } };
       }
       return {};
@@ -690,8 +761,28 @@ export interface StorySceneOptions {
   chapter: StoryChapter;
   pages: readonly StoryScenePage[];
   emotions: Map<string, Map<string, string[]>>;
-  onDone(): void;
+  /** The last page's button (开始比赛 before a race) and the skip button (跳过剧情). */
+  lastLabel?: string;
+  skipLabel?: string;
+  /** completed: the last page was read (false: skipped or cancelled). */
+  onDone(completed?: boolean): void;
   onActivate?(): void;
+}
+
+/** Scene backgrounds are .jpg or .png in stage_scene/bg; sprites are .png. */
+function loadSceneTexture(library: StoryWindowLibrary, file: string, background = false): Promise<Texture> {
+  return Promise.resolve().then(() => {
+    const roots = [SCENE_ROOT, `${SCENE_ROOT}/bg`];
+    if (background && exists(library, roots, file, ".jpg"))
+      return decodeStoryTexture(U1(library, roots, file, ".jpg") as ResourceFile, true);
+    return decodeStoryTexture(U1(library, roots, file, ".png") as ResourceFile);
+  });
+}
+
+/** emotion.bml: a sprite's picture for an emotion (normal, then stop1, when it has no such one). */
+function storySpriteFile(emotions: Map<string, Map<string, string[]>>, id: string, emotion: string): string | undefined {
+  const sprite = emotions.get(id);
+  return (sprite?.get(emotion) ?? sprite?.get("normal") ?? sprite?.get("stop1"))?.[0];
 }
 
 /** Scene x positions run 0…15 across the 750 px stage. */
@@ -703,25 +794,17 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
   const raw = await F9(library, SCENE_ROOT, "stage_window@zz") as StoryNode;
   const definition = pruneMissingTextures(library, raw, roots);
   const textures = new Map<string, Promise<Texture | undefined>>();
-  // Scene backgrounds are .jpg or .png in stage_scene/bg; sprites are .png.
   const texture = (file: string, background = false): Promise<Texture | undefined> => {
     let pending = textures.get(file);
     if (!pending) {
-      const roots = [SCENE_ROOT, `${SCENE_ROOT}/bg`];
-      pending = Promise.resolve().then(() => {
-        if (background && exists(library, roots, file, ".jpg"))
-          return decodeStoryTexture(U1(library, roots, file, ".jpg") as ResourceFile, true);
-        return decodeStoryTexture(U1(library, roots, file, ".png") as ResourceFile);
-      }).catch(() => undefined);
+      pending = loadSceneTexture(library, file, background).catch(() => undefined);
       textures.set(file, pending);
     }
     return pending;
   };
   const loaded = new Map<string, Texture>();
-  const spriteName = (id: string, emotion: string): string | undefined => {
-    const emotions = options.emotions.get(id);
-    return (emotions?.get(emotion) ?? emotions?.get("normal") ?? emotions?.get("stop1"))?.[0];
-  };
+  const spriteName = (id: string, emotion: string): string | undefined =>
+    storySpriteFile(options.emotions, id, emotion);
   const prepare = async (index: number): Promise<void> => {
     const page = pages[index];
     if (!page) return;
@@ -739,15 +822,15 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
   let index = 0;
   let view: WindowView | undefined;
   let finished = false;
-  const finish = (): void => {
+  const finish = (completed = false): void => {
     if (finished) return;
     finished = true;
-    options.onDone();
+    options.onDone(completed);
   };
   const advance = (): void => {
     options.onActivate?.();
     if (index >= pages.length - 1) {
-      finish();
+      finish(true);
       return;
     }
     index++;
@@ -799,10 +882,10 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
         case "msg": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
           paintLabel(context, node, page?.text ?? "", rect) };
         // The release 확인버튼 (确认), drawn with its own four states.
-        case "next": return { label: index >= pages.length - 1 ? "开始比赛" : "下一句",
+        case "next": return { label: index >= pages.length - 1 ? options.lastLabel ?? "开始比赛" : "下一句",
           action: advance };
         case "script": return { visible: false };
-        case "goBackButton": return { label: "跳过剧情", action: () => {
+        case "goBackButton": return { label: options.skipLabel ?? "跳过剧情", action: () => {
           options.onActivate?.(); finish(); } };
       }
       return {};

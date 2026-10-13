@@ -22,7 +22,7 @@ export { withTraffic };
 const LOAD_RADIUS = 160;
 const DRAW_RADIUS = 130;
 /** A rider this close (m) and this slow (m/s) is greeted. */
-const GREET_RADIUS = 9;
+const GREET_RADIUS = 12;
 const GREET_SPEED = 6;
 const GREET_INTERVAL_MS = 12_000;
 /** How long a honking car's driver shows a name tag and balloon (ms), and what it says. */
@@ -157,6 +157,12 @@ export class CityNpcs {
   }
 
   private labelId(npc: TaskNpc): string { return `npc-task:${npc.definition.id}`; }
+
+  /** A task-point NPC's feet (world), once its figure stands on the ground. */
+  feetOf(id: string): { x: number; y: number; z: number } | undefined {
+    const npc = this.tasks.find(task => task.definition.id === id);
+    return npc?.figure?.avatar && npc.grounded ? npc.world : undefined;
+  }
 
   /** Name tags over the task-point NPCs that are drawn, and over honking cars' drivers. */
   heads(): Array<{ id: string; name: string; position: { x: number; y: number; z: number } }> {

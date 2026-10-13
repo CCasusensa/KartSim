@@ -242,20 +242,20 @@ func TestCityDefaultsAndOverrides(t *testing.T) {
 	}
 	if !cfg.City || cfg.CityLines != 2 || cfg.CityLinePlayers != 60 || cfg.CityInterestRadius != 160 ||
 		cfg.CityChatRadius != 60 || cfg.CityAFKMinutes != 10 || cfg.CityMaxSpeed != 150 || cfg.CityDayMinutes != 48 ||
-		!cfg.CityWeather || cfg.CityRainPercent != 20 || cfg.CitySnowPercent != 10 || cfg.CityTraffic != 200 {
+		!cfg.CityWeather || cfg.CityRainPercent != 20 || cfg.CitySnowPercent != 10 || cfg.CityTraffic != 0 {
 		t.Fatalf("city defaults %+v", cfg)
 	}
 	cfg, err = FromEnv(env(map[string]string{"KART_CLUSTER_SECRET": secret, "KART_CITY": "false",
 		"KART_CITY_LINES": "4", "KART_CITY_LINE_PLAYERS": "30", "KART_CITY_INTEREST_RADIUS": "200.5",
 		"KART_CITY_CHAT_RADIUS": "40", "KART_CITY_AFK_MINUTES": "5", "KART_CITY_MAX_SPEED": "120",
 		"KART_CITY_DAY_MINUTES": "24", "KART_CITY_WEATHER": "off", "KART_CITY_RAIN_PERCENT": "50",
-		"KART_CITY_SNOW_PERCENT": "50", "KART_CITY_TRAFFIC": "0"}))
+		"KART_CITY_SNOW_PERCENT": "50", "KART_CITY_TRAFFIC": "150"}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if cfg.City || cfg.CityLines != 4 || cfg.CityLinePlayers != 30 || cfg.CityInterestRadius != 200.5 ||
 		cfg.CityChatRadius != 40 || cfg.CityAFKMinutes != 5 || cfg.CityMaxSpeed != 120 || cfg.CityDayMinutes != 24 ||
-		cfg.CityWeather || cfg.CityRainPercent != 50 || cfg.CitySnowPercent != 50 || cfg.CityTraffic != 0 {
+		cfg.CityWeather || cfg.CityRainPercent != 50 || cfg.CitySnowPercent != 50 || cfg.CityTraffic != 150 {
 		t.Fatalf("city overrides %+v", cfg)
 	}
 	for name, values := range map[string]map[string]string{

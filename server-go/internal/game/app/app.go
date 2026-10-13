@@ -199,8 +199,10 @@ func New(cfg config.Config, log *slog.Logger, opts Options) (*App, error) {
 		Clock:          opts.Clock,
 		Profiles:       rooms,
 		// Tanks and the 金币 they cost live on the data service (FUEL.md).
-		Fuel:   cluster.NewCityFuel(data),
-		Logger: log,
+		Fuel: cluster.NewCityFuel(data),
+		// 送货任务 (CITY-QUESTS.md).
+		QuestRewards: cluster.NewCityQuests(data),
+		Logger:       log,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("city zone: %w", err)

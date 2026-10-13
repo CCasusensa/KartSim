@@ -12,6 +12,7 @@ import { FONT, node, nodeName, type BmlLibrary, type Node, type Rect, type Windo
 import { paintKeyBadge } from "../ui/kick-vote-window";
 import { CITY_MAP } from "./city-track";
 import { paintPump } from "./city-fuel-hud";
+import { paintMark } from "./city-quest-markers";
 import { FUEL_STATIONS, nearestStation } from "./city-fuel";
 import type { CityNav } from "./city-nav";
 import { distanceLabel, type CityNavigator } from "./city-navigator";
@@ -42,6 +43,8 @@ export interface CityMapMarkers {
   /** The own kart (parked or driven by someone). */
   kart?: { x: number; z: number; locked: boolean; driven: boolean };
   others: Array<{ x: number; z: number }>;
+  /** Where the delivery under way goes (CITY-QUESTS.md): a gold "?" like the one over the NPC. */
+  quest?: { x: number; z: number; label: string };
 }
 
 /** Design x/z → pixel of the 1024² minimap image. */
@@ -81,6 +84,16 @@ export function toScreen(view: MapView, rect: Rect, x: number, z: number): { x: 
 export function toDesign(view: MapView, rect: Rect, x: number, y: number): { x: number; z: number } {
   const scale = viewScale(view, rect);
   return { x: view.cx + (x - rect.x - rect.width / 2) / scale, z: view.cz + (y - rect.y - rect.height / 2) / scale };
+}
+
+/** The view showing all of points (design x/z) with room around them, zoomed in at most to maxZoom. */
+export function fitView(points: ReadonlyArray<{ x: number; z: number }>, rect: Rect, maxZoom: number): MapView {
+  const xs = points.map(p => p.x), zs = points.map(p => p.z);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
+  // 120 m around them: the labels over the marks and the panel's edges.
+  const width = x1 - x0 + 240, height = z1 - z0 + 240;
+  const zoom = Math.min(rect.width / width, rect.height / height) / viewScale({ cx: 0, cz: 0, zoom: 1 }, rect);
+  return clampView({ cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, zoom: Math.min(maxZoom, zoom) }, rect);
 }
 
 /** Keeps the content on screen: the centre stays where the view does not leave it. */
@@ -216,6 +229,7 @@ export function paintCityMap(context: CanvasRenderingContext2D, rect: Rect, stat
     context.stroke();
     label(context, markers.kart.driven ? "我的车（有人在开）" : markers.kart.locked ? "我的车 · 已上锁" : "我的车", p.x, p.y - 16, 13, "#ffb0b0");
   }
+  if (markers.quest) paintQuestTarget(context, rect, at(markers.quest.x, markers.quest.z), markers.quest.label);
   const destination = navigator?.destination;
   if (destination) {
     const p = at(destination.x, destination.z);
@@ -241,6 +255,45 @@ export function paintCityMap(context: CanvasRenderingContext2D, rect: Rect, stat
     context.restore();
   }
   paintScaleBar(context, rect, viewScale(view, rect));
+  context.restore();
+}
+
+/**
+ * The delivery's "?" at p (panel px); off the view it sits on the panel's
+ * edge towards the target (clear of the scale bar), with a little arrow
+ * pointing out.
+ */
+function paintQuestTarget(context: CanvasRenderingContext2D, rect: Rect, p: { x: number; y: number }, text: string): void {
+  const left = rect.x + 26, right = rect.x + rect.width - 26, top = rect.y + 30, bottom = rect.y + rect.height - 46;
+  context.save();
+  context.fillStyle = "#ffd21f";
+  context.strokeStyle = "#5a2a00";
+  context.lineWidth = 2;
+  if (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom + 30) {
+    context.beginPath();
+    context.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    paintMark(context, "?", p.x, p.y - 5, 30);
+    label(context, text, p.x, p.y - 38, 13, "#ffe9a8");
+  } else {
+    const cx = (left + right) / 2, cy = (top + bottom) / 2;
+    const dx = p.x - cx, dy = p.y - cy;
+    const k = Math.min((right - cx) / Math.max(Math.abs(dx), 1e-6), (bottom - cy) / Math.max(Math.abs(dy), 1e-6));
+    const x = cx + dx * k, y = cy + dy * k;
+    context.save();
+    context.translate(x, y);
+    context.rotate(Math.atan2(dy, dx));
+    context.beginPath();
+    context.moveTo(24, 0);
+    context.lineTo(13, -8);
+    context.lineTo(13, 8);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    context.restore();
+    paintMark(context, "?", x, y + 10, 28);
+  }
   context.restore();
 }
 
@@ -313,6 +366,7 @@ function paintHelp(context: CanvasRenderingContext2D, rect: Rect): void {
   row((x, cy) => paintPump(context, x - 6, cy - 8, 14, "#ff9a3c"), "加油站（可点击）");
   row((x, cy) => { context.fillStyle = "#ffd23f"; context.beginPath(); context.arc(x, cy, 4, 0, Math.PI * 2); context.fill(); }, "其他玩家");
   row((x, cy) => paintPin(context, x, cy - 3, 8), "目的地");
+  row((x, cy) => paintMark(context, "?", x, cy + 8, 22), "送货目标");
   row((x, cy) => {
     context.lineCap = "round";
     context.strokeStyle = `#${ROUTE_RIM.toString(16).padStart(6, "0")}`; context.lineWidth = 7;
@@ -347,7 +401,7 @@ export function cityMapWindowDefinition(): Node {
       button("kartButton", 162, "去我的车"),
       button("stationButton", 214, "去最近的加油站"),
       button("clearButton", 266, "清除导航"),
-      node("Panel", { name: "mapHelp", leftTopWH: "636 326 236 260" }),
+      node("Panel", { name: "mapHelp", leftTopWH: "636 326 236 290" }),
       button("okButton", 728, "关闭", true),
       node("Panel", { name: "closeKey", leftTopWH: "800 739 44 20" }),
     ]),
@@ -386,13 +440,16 @@ export async function showCityMapWindow(options: CityMapWindowOptions): Promise<
   let disposed = false;
   const render = () => { if (!disposed) windowView?.render(); };
   void navigator?.ready().then(nav => { if (nav && !disposed) { roads = roadLayer(nav); render(); } });
-  // Centre on the rider, a little zoomed in, the first time the map's size is known.
+  // Centre on the rider, a little zoomed in, the first time the map's size is
+  // known; with a delivery under way, show the rider and where it goes.
   let centred = false;
   const centre = (rect: Rect) => {
     if (centred) return;
     centred = true;
-    const me = options.markers().me;
-    if (me) view = clampView({ cx: me.x, cz: me.z, zoom: 2 }, rect);
+    const { me, quest } = options.markers();
+    if (me && quest) view = fitView([me, quest], rect, 2);
+    else if (me) view = clampView({ cx: me.x, cz: me.z, zoom: 2 }, rect);
+    else if (quest) view = clampView({ cx: quest.x, cz: quest.z, zoom: 2 }, rect);
   };
   /** The ＋/－ buttons zoom about the map's centre. */
   const zoomBy = (factor: number) => {

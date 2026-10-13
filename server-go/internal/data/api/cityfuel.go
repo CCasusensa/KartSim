@@ -21,11 +21,12 @@ var (
 	errInvalidFuel    = apierr.New(http.StatusBadRequest, "INVALID_FUEL")
 )
 
-// Fuel burn (FUEL.md 2): a kilometre burns 1.6 L plus 0.03 L per litre of
+// Fuel burn (FUEL.md 2): a kilometre burns 0.8 L plus 0.015 L per litre of
 // tank, so bigger karts go further on a full tank but cost more per km.
+// (Halved on 2026-10-13: a full tank goes twice as far.)
 const (
-	fuelBaseMLPerKm     = 1600
-	fuelPerLiterMLPerKm = 30
+	fuelBaseMLPerKm     = 800
+	fuelPerLiterMLPerKm = 15
 )
 
 // fuelUse is the ml one kilometre burns for a tank of capacityL litres at

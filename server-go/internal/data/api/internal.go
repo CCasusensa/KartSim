@@ -100,6 +100,7 @@ func (a *API) nodeAPI(clusterKey bool) http.Handler {
 	route(contract.PathCityFuelSave, a.cityFuelSave)
 	route(contract.PathCityFuelRefuel, a.cityFuelRefuel)
 	route(contract.PathCityFuelRescue, a.cityFuelRescue)
+	route(contract.PathCityQuestReward, a.cityQuestReward)
 
 	routes := jsonFallback(mux)
 	expected := sha256.Sum256(a.secret)

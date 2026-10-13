@@ -164,6 +164,7 @@ func (inst *instance) relay(c *lobby.Client, frame []byte) {
 	}
 	m.lastFrame = now
 	inst.place(m, pose, now)
+	inst.questFrame(m, kind, payload, now)
 	if m.seat == SeatDriver && m.vehicle != nil {
 		inst.carryLocked(m.vehicle, pose, now)
 	}

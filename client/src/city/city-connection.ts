@@ -11,6 +11,7 @@ import {
   CITY_MOTION_HEADER_BYTES, CITY_MOTION_MARKER, CITY_RADAR_MARKER,
   decodeCityMotionFrame, decodeCityRadar, parseCityEvent, parseCityRefuelReply, parseCityRescueReply, parseCitySeatReply, parseCitySnapshot, parseCityVehicle,
   type CityEvent, type CityRadarEntry, type CityRefuelReply, type CityRescueReply, type CitySeatReply, type CitySnapshot, type CityVehicle,
+  parseCityQuestDone, parseCityQuestRun, type CityQuestDone, type CityQuestRun,
 } from "./city-protocol";
 import { CITY_TRAFFIC_MARKER, decodeTrafficPacket, type TrafficPacket } from "./city-traffic-protocol";
 
@@ -92,6 +93,15 @@ export class CityNetwork {
     return parseCityRefuelReply(await this.client.request({ type: "city-refuel", requestId, addMl }));
   }
   /** Pays the tow of a stalled kart to the nearest gas station. */
+  /** 送货任务：接、放弃、交付（server-go/CITY-QUESTS.md）。 */
+  async acceptQuest(quest: string): Promise<CityQuestRun> {
+    return parseCityQuestRun(await this.client.request({ type: "city-quest-accept", quest }));
+  }
+  abandonQuest(): Promise<unknown> { return this.client.request({ type: "city-quest-abandon" }); }
+  async deliverQuest(): Promise<CityQuestDone> {
+    return parseCityQuestDone(await this.client.request({ type: "city-quest-deliver" }));
+  }
+
   async rescue(requestId: string): Promise<CityRescueReply> {
     return parseCityRescueReply(await this.client.request({ type: "city-rescue", requestId }));
   }

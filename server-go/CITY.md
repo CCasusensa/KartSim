@@ -25,6 +25,7 @@
 | `city-equipment` | `equipment`（与房间 `equipment` 命令相同的装备文档） | 在城里打开车库换车、换角色、换装扮后发送。大厅按房间换装同样的规则核对（`INVALID_EQUIPMENT`、`ITEM_NOT_OWNED`、`DATA_SERVICE_UNAVAILABLE`，核对次数受连接的校验令牌桶约束），通过后成为该连接的当前装备（之后建房/进房从它开始）。答复 `{"type":"city-equipment","requestId":…,"instanceId":…,"id":…,"playerId":…,"equipment":…}`（装备已压缩）；同样内容作为事件广播给线路上除本人外的所有成员（不限兴趣范围：远处的成员走近时才需要加载，但要先知道）。限流每 2 秒 1 次、突发 3（被拒的也计数）。在房间里时 `IN_ROOM` |
 | `city-refuel` | `requestId`、`addMl?` | 在加油站加油，详见 `FUEL.md` §4.2；答复 `{"type":"city-refuel", station, addedMl, cost, stale, fuel}` |
 | `city-rescue` | `requestId` | 油箱空了叫道路救援，详见 `FUEL.md` §4.3；答复 `{"type":"city-rescue", station, stationName, pose, cost, free, fuel}` |
+| `city-quest-accept` / `city-quest-abandon` / `city-quest-deliver` | `quest` / — / — | 送货任务：接任务、放弃、交货，详见 [`CITY-QUESTS.md`](CITY-QUESTS.md) §2；答复 `city-quest`（接受）与 `city-quest-done`（结算） |
 | `city-exit` | `pose?` | 下车，详见 §7；答复 `{"type":"city-seat","seat":"foot","pose":…,"vehicle":<车辆>}` |
 | `city-enter` | `vehicle`（车辆 id） | 上车，详见 §7；答复 `{"type":"city-seat","seat":"driver"|"passenger","pose":…,"vehicle":<车辆>,"fuel"?}` |
 | `city-lock` | `locked`（布尔） | 给自己的车上锁或解锁，详见 §7；答复 `{"type":"city-vehicle","vehicle":<车辆>}` |
@@ -47,6 +48,7 @@
 | `city-vehicle` | `{"type":"city-vehicle","instanceId":…,"vehicle":<车辆>}`：某辆车有人上下、停到了新位置或改了锁，发给全线路 |
 | `city-vehicle-gone` | `{"type":"city-vehicle-gone","instanceId":…,"id":…}`：车主离开城市，车随他收回 |
 | `city-seat` | `{"type":"city-seat","instanceId":…,"id":…,"playerId":…,"seat":…,"vehicle":…,"pose":…,"reason"?}`：某成员换了座位，发给全线路。`reason` 只出现在本人没有要求的变化上：`"dropped"`（司机下车，乘客跟着下）、`"recalled"`（车主离开城市，车上的人被放下） |
+| `city-quest-progress` / `city-quest-failed` | 送货途中的碰撞计数与任务失败（`SPEED`、`COLLISION`、`TIMEOUT`、`TELEPORT`），只发给本人，见 [`CITY-QUESTS.md`](CITY-QUESTS.md) §2–3 |
 | `city-kicked` | `{"type":"city-kicked","instanceId":…,"reason":"ADMIN"|"CHEAT"|"SHUTDOWN"}`，之后该连接视为已离开城市 |
 
 ### 快照
@@ -147,4 +149,4 @@
 - **坐后座**：乘客不能复位（`PASSENGER`），不能加油、叫救援（`NOT_DRIVING`），也不能开车库。
 - **车库**只能坐在自己车的驾驶座上打开，否则 `city-equipment` 返回 `NOT_IN_OWN_KART`。换车后车辆的 `equipment` 与油箱一起换成新车的（广播 `city-vehicle`）。
 - **离开城市**（`city-leave`、断线、换线路）：他开着的别人的车停在原地；他自己的车随他收回，广播 `city-vehicle-gone`，车上的人被放到车旁（`reason:"recalled"`）；他用过的油箱都保存一次。
-- 浏览器：E 上下车，L 锁车，M 打开卡丁城地图（标出自己、自己的车、加油站和其他成员；可以缩放平移，点击地图自动导航，HUD 小地图上画出绿色路线，路网与寻路全在浏览器里，见 `design/open-world/PLAN.md` “导航”），步行时 WASD/方向键走、按住 Shift 跑（原版角色只有走路动作 f11，跑步用同一套动作加快 1.9 倍播放，2.4 m/s），R 回到最近的路上。步行和坐后座时用跟随镜头，隐藏速度表与油表。代码在 `client/src/city/`：`city-onfoot.ts`、`city-foot-motion.ts`、`city-walker.ts`、`city-map-window.ts`。
+- 浏览器：E 上下车，L 锁车，M 打开卡丁城地图（标出自己、自己的车、加油站、其他成员和送货目标的“?”；可以缩放平移，点击地图自动导航，HUD 小地图上画出绿色路线，路网与寻路全在浏览器里，见 `design/open-world/PLAN.md` “导航”），步行时 WASD/方向键走、按住 Shift 跑（原版角色只有走路动作 f11，跑步用同一套动作加快 1.9 倍播放，2.4 m/s），R 回到最近的路上。步行和坐后座时用跟随镜头，隐藏速度表与油表。代码在 `client/src/city/`：`city-onfoot.ts`、`city-foot-motion.ts`、`city-walker.ts`、`city-map-window.ts`。

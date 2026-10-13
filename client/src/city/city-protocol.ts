@@ -105,15 +105,18 @@ export type CityEvent =
   | { type: "city-vehicle-gone"; instanceId: string; id: number }
   | { type: "city-seat"; instanceId: string; id: number; playerId: string; seat: CitySeat; vehicle: number;
       pose?: CityPose; reason?: string }
+  | { type: "city-quest-failed"; instanceId: string; quest: string; reason: string; collisions: number }
+  | { type: "city-quest-progress"; instanceId: string; quest: string; collisions: number }
   | { type: "city-kicked"; instanceId: string; reason: string };
 
 export const CITY_EVENT_TYPES = new Set([
   "city-joined", "city-left", "city-chat", "city-emote", "city-state", "city-respawn", "city-equipment",
   "city-clock", "city-fuel", "city-vehicle", "city-vehicle-gone", "city-seat", "city-kicked",
+  "city-quest-failed", "city-quest-progress",
 ]);
 
 /** Reply-only types (they always carry the requestId; CityNetwork parses them). */
-export const CITY_REPLY_TYPES = new Set(["city-refuel", "city-rescue"]);
+export const CITY_REPLY_TYPES = new Set(["city-refuel", "city-rescue", "city-quest", "city-quest-done"]);
 
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const text = (value: unknown): value is string => typeof value === "string";
@@ -292,6 +295,13 @@ export function parseCityEvent(message: Record<string, unknown>): CityEvent | un
       if (!fuel) throw new Error("city-fuel 数据无效。");
       return { type, instanceId, reason: text(message.reason) ? message.reason : "", fuel };
     }
+    case "city-quest-failed":
+      if (!text(message.quest) || !text(message.reason)) throw new Error("city-quest-failed 数据无效。");
+      return { type, instanceId, quest: message.quest, reason: message.reason,
+        collisions: finite(message.collisions) ? message.collisions : 0 };
+    case "city-quest-progress":
+      if (!text(message.quest) || !finite(message.collisions)) throw new Error("city-quest-progress 数据无效。");
+      return { type, instanceId, quest: message.quest, collisions: message.collisions };
     case "city-kicked": return { type, instanceId, reason: text(message.reason) ? message.reason : "UNKNOWN" };
     default: return undefined;
   }
@@ -355,4 +365,53 @@ export function encodeCityRadar(entries: readonly CityRadarEntry[]): Uint8Array 
     frame[offset + 6] = Math.round((((entry.heading % 360) + 360) % 360) / 360 * 256) & 255;
   });
   return frame;
+}
+
+// ---- 送货任务 (server-go/CITY-QUESTS.md) ----
+
+/** city-quest: an accepted delivery (ticks are node ms). */
+export interface CityQuestRun {
+  quest: string;
+  runId: string;
+  startedAt: number;
+  /** 0 without a time limit. */
+  deadline: number;
+  collisions: number;
+}
+
+/** city-quest-done: what the delivery credited and the account afterwards. */
+export interface CityQuestDone {
+  quest: string;
+  elapsedMs: number;
+  collisions: number;
+  exp: number;
+  lucci: number;
+  capped: boolean;
+  levelUps: Array<{ level: number; lucci: number; koin: number; coupon: number }>;
+  walletLucci: number;
+  totalExp: number;
+  level: number;
+}
+
+export function parseCityQuestRun(value: unknown): CityQuestRun {
+  const reply = value as Record<string, unknown>;
+  if (!reply || !text(reply.quest) || !text(reply.runId) || !finite(reply.startedAt) || !finite(reply.deadline))
+    throw new Error("送货任务数据无效。");
+  return { quest: reply.quest, runId: reply.runId, startedAt: reply.startedAt, deadline: reply.deadline,
+    collisions: finite(reply.collisions) ? reply.collisions : 0 };
+}
+
+export function parseCityQuestDone(value: unknown): CityQuestDone {
+  const reply = value as Record<string, unknown>;
+  const numbers = ["elapsedMs", "collisions", "exp", "lucci", "walletLucci", "totalExp", "level"] as const;
+  if (!reply || !text(reply.quest) || numbers.some(key => !finite(reply[key])))
+    throw new Error("送货结算数据无效。");
+  const levelUps = Array.isArray(reply.levelUps) ? reply.levelUps.flatMap(entry => {
+    const up = entry as Record<string, unknown>;
+    return up && finite(up.level) ? [{ level: up.level, lucci: finite(up.lucci) ? up.lucci : 0,
+      koin: finite(up.koin) ? up.koin : 0, coupon: finite(up.coupon) ? up.coupon : 0 }] : [];
+  }) : [];
+  return { quest: reply.quest, elapsedMs: reply.elapsedMs as number, collisions: reply.collisions as number,
+    exp: reply.exp as number, lucci: reply.lucci as number, capped: reply.capped === true, levelUps,
+    walletLucci: reply.walletLucci as number, totalExp: reply.totalExp as number, level: reply.level as number };
 }

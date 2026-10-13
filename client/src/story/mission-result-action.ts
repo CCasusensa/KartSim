@@ -1,4 +1,4 @@
-import { OrthographicCamera, PerspectiveCamera, Scene, Vector2, Vector4, type Camera, type Object3D,
+import { OrthographicCamera, PerspectiveCamera, Scene, Vector2, Vector3, Vector4, type Camera, type Object3D,
   type WebGLRenderer } from "three";
 import { we } from "../generated/formats.js";
 import { aI, Q9, S9 } from "../generated/library.js";
@@ -96,6 +96,18 @@ async function loadClip(library: unknown, context: AudioContext, outcome: Outcom
   }
 }
 
+/**
+ * Where an action scene is drawn: centred on its banner, larger, and moved
+ * by nudge (stage units, y down) when the banner's picture is off its mesh centre.
+ */
+export interface ActionFraming { centre?: boolean; scale?: number; nudge?: { x: number; y: number } }
+
+function firstMesh(root: Object3D): Object3D | undefined {
+  let found: Object3D | undefined;
+  root.traverse(node => { if (!found && (node as Object3D & { isMesh?: boolean }).isMesh) found = node; });
+  return found;
+}
+
 /** Reusable three.js objects for drawing action scenes over the race. */
 export class ActionSceneView {
   private readonly camera = new PerspectiveCamera();
@@ -105,14 +117,20 @@ export class ActionSceneView {
   private readonly size = new Vector2();
   private readonly viewport = new Vector4();
 
-  /** Draws `clip` at `now` (scene time already set) on the 800×600 action stage, centred. */
-  draw(renderer: WebGLRenderer, clip: ActionSceneClip, now: number): void {
+  private readonly focus = new Vector3();
+
+  /**
+   * Draws `clip` at `now` (scene time already set) on the 800×600 action
+   * stage, centred. framing.centre keeps the scene's first mesh (the mission
+   * banner) at the screen centre; framing.scale enlarges the stage.
+   */
+  draw(renderer: WebGLRenderer, clip: ActionSceneClip, now: number, framing: ActionFraming = {}): void {
     const { model, cameraNode } = clip;
     model.scene.update(now);
     const elements = model.scene.clientWorldElements(cameraNode);
     if (!elements) throw new Error("mission ReCamera 缺少 world matrix。");
     renderer.getSize(this.size);
-    const scale = Math.min(this.size.x / STAGE.width, this.size.y / STAGE.height);
+    const scale = Math.min(this.size.x / STAGE.width, this.size.y / STAGE.height) * (framing.scale ?? 1);
     const width = STAGE.width * scale;
     const height = STAGE.height * scale;
     let camera: Camera = this.camera;
@@ -135,13 +153,23 @@ export class ActionSceneView {
       flat.updateMatrixWorld(true);
       camera = flat;
     }
+    let left = (this.size.x - width) / 2, bottom = (this.size.y - height) / 2;
+    const banner = framing.centre ? firstMesh(model.scene.object) : undefined;
+    if (banner) {
+      model.scene.object.updateMatrixWorld(true);
+      const point = banner.getWorldPosition(this.focus).project(camera);
+      if (Number.isFinite(point.x) && Number.isFinite(point.y) && point.z < 1) {
+        left = this.size.x / 2 - (point.x + 1) / 2 * width + (framing.nudge?.x ?? 0) * scale;
+        bottom = this.size.y / 2 - (point.y + 1) / 2 * height - (framing.nudge?.y ?? 0) * scale;
+      }
+    }
     renderer.getViewport(this.viewport);
     const autoClear = renderer.autoClear;
     renderer.autoClear = false;
     this.world.add(model.scene.object);
     try {
       renderer.clearDepth();
-      renderer.setViewport((this.size.x - width) / 2, (this.size.y - height) / 2, width, height);
+      renderer.setViewport(left, bottom, width, height);
       renderer.render(this.world, camera);
       renderer.clearDepth();
     } finally {
@@ -152,8 +180,22 @@ export class ActionSceneView {
   }
 }
 
+/**
+ * The release clips wait about 2 s (silent, fully transparent) for the FINISH
+ * banner a race shows with them; shown on their own (卡丁城送货), the wait is
+ * skipped and the last frame held a while instead.
+ */
+export interface MissionResultTiming {
+  /** Scene and sound time to start at (ms). */
+  skipMs?: number;
+  /** How long the clip's last frame stays up after it ends (ms). */
+  holdMs?: number;
+  /** Where to draw it (default: the release's place on the 800×600 stage). */
+  framing?: ActionFraming;
+}
+
 export class MissionResultAction {
-  private active?: { clip: MissionClip; startMs: number };
+  private active?: { clip: MissionClip; startMs: number; endMs: number; framing?: ActionFraming };
   private source?: AudioBufferSourceNode;
   private readonly view = new ActionSceneView();
   private disposed = false;
@@ -177,12 +219,13 @@ export class MissionResultAction {
     }
   }
 
-  show(success: boolean, nowMs: number): void {
+  show(success: boolean, nowMs: number, timing: MissionResultTiming = {}): void {
     if (this.disposed) return;
     const clip = this.clips[success ? "success" : "fail"];
-    const startMs = Math.trunc(nowMs) >>> 0;
+    const skipMs = Math.max(0, Math.min(clip.durationMs, timing.skipMs ?? 0));
+    const startMs = (Math.trunc(nowMs) - skipMs) >>> 0;
     clip.model.scene.reset(startMs);
-    this.active = { clip, startMs };
+    this.active = { clip, startMs, endMs: clip.durationMs + Math.max(0, timing.holdMs ?? 0), framing: timing.framing };
     this.stopSound();
     const source = this.context.createBufferSource();
     source.buffer = clip.sound;
@@ -193,18 +236,21 @@ export class MissionResultAction {
       if (this.source === source) this.source = undefined;
     };
     this.source = source;
-    source.start();
+    source.start(0, Math.min(skipMs / 1000, clip.sound.duration));
   }
 
   render(renderer: WebGLRenderer, nowMs: number): void {
     const active = this.active;
     if (this.disposed || !active) return;
     const now = Math.trunc(nowMs) >>> 0;
-    if (((now - active.startMs) >>> 0) > active.clip.durationMs) {
+    const elapsed = (now - active.startMs) >>> 0;
+    if (elapsed > active.endMs) {
       this.active = undefined;
       return;
     }
-    this.view.draw(renderer, active.clip, now);
+    // Held past its end, the clip stays on its last frame.
+    this.view.draw(renderer, active.clip, elapsed > active.clip.durationMs
+      ? (active.startMs + active.clip.durationMs) >>> 0 : now, active.framing);
   }
 
   reset(): void {

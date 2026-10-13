@@ -29,6 +29,7 @@ import type { GarageChoice, GarageView, GarageViewOptions } from "../multiplayer
 import { formatMultiplayerError } from "../multiplayer/errors";
 import { discardLocalKart, installLocalKart, loadLocalFlyingPet, loadLocalKart } from "./city-local-kart";
 import { CityNpcs, withTraffic } from "./city-npcs";
+import { CityQuests } from "./city-quests";
 export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
@@ -103,6 +104,8 @@ export class CitySession {
   onFoot?: CityOnFoot;
   /** The node's traffic and the task-point NPCs. */
   npcs?: CityNpcs;
+  /** 送货任务 (CITY-QUESTS.md). */
+  quests?: CityQuests;
   snapshot?: CitySnapshot;
   clockMapping?: { offsetMs: number };
   readonly abort = new AbortController();
@@ -284,6 +287,29 @@ export class CitySession {
     });
     void this.npcs.start().catch(error => console.warn("卡丁城车流载入失败", error));
 
+    this.quests = new CityQuests({
+      root, library: this.host.options.library,
+      camera: () => presenter.camera,
+      renderer: () => stage.host.renderer,
+      network: () => this.network,
+      serverNow: () => performance.now() + (this.clockMapping?.offsetMs ?? 0),
+      local: () => {
+        const foot = this.onFoot?.footWorld();
+        if (foot) return { position: foot, speed: 0 };
+        if (this.onFoot?.seat === "passenger") return undefined;
+        const state = runtime.local.physics.state;
+        return { position: runtime.local.physics.body.position, speed: Math.abs(state.forwardSpeed ?? Math.hypot(state.vx ?? 0, state.vz ?? 0)) };
+      },
+      npcFeet: id => this.npcs?.feetOf(id),
+      say: (npcId, text) => this.labels?.say(`npc-task:${npcId}`, text, performance.now()),
+      notice: text => stage.chat?.notice?.(text),
+      playerName: () => this.host.accountNickname ?? "我",
+      playerCharacter: () => Number((this.host.options.currentEquipment?.() as { itemIds?: Record<string, number> } | undefined)
+        ?.itemIds?.[1]) || undefined,
+      pauseDriving: paused => this.pauseDriving(paused),
+      audioContext: () => cityAudioContext(stage),
+    });
+
     // Chat stays open while driving (the city has no finish), but not under
     // a city window: its Enter belongs to the window's OK button.
     const chat = stage.chat;
@@ -320,6 +346,13 @@ export class CitySession {
       update(frame);
       if (!this.disposed && stage.active) this.frame(performance.now());
     };
+    // The mission timer and result draw over the frame just rendered.
+    const render = stage.render.bind(stage);
+    stage.render = (...args: unknown[]) => {
+      const result = render(...args);
+      if (!this.disposed && stage.active) this.quests?.render(performance.now());
+      return result;
+    };
 
     if (snapshot.you.fuel) {
       this.fuel = new CityFuelController({
@@ -345,6 +378,7 @@ export class CitySession {
       setDriving: driving => this.setDriving(driving),
       viewport: () => ({ width: root.clientWidth, height: root.clientHeight }),
       navigator: () => this.navigator,
+      questTarget: () => this.quests?.target(),
       root,
     });
     this.onFoot.install(snapshot.you.id, snapshot.members, snapshot.vehicles);
@@ -369,6 +403,8 @@ export class CitySession {
       if (this.disposed || this.garageView || this.garageOpening) return;
       const target = event.target as HTMLElement | null;
       if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+      if (this.quests?.windowOpen) return;
+      if (!this.fuel?.windowOpen && this.quests?.keydown(event)) return;
       if (!this.fuel?.windowOpen && this.onFoot?.keydown(event)) return;
       if (event.repeat) return;
       if (event.code === "KeyG" && !event.ctrlKey && !event.metaKey && !event.altKey) {
@@ -524,7 +560,8 @@ export class CitySession {
 
   /** A city window (refuel, rescue, map, garage) is up or opening. */
   private windowOpen(): boolean {
-    return !!(this.fuel?.windowOpen || this.onFoot?.mapOpen || this.garageView || this.garageOpening);
+    return !!(this.fuel?.windowOpen || this.onFoot?.mapOpen || this.garageView || this.garageOpening ||
+      this.quests?.windowOpen);
   }
 
   private frame(now: number): void {
@@ -532,6 +569,7 @@ export class CitySession {
     // The M map covers most of the view: the HUD overlays above it step aside.
     const covered = !!this.onFoot?.mapOpen;
     this.fuel?.cover(covered);
+    this.quests?.cover(covered);
     if (this.statusLine) this.statusLine.style.visibility = covered ? "hidden" : "";
     if (this.navigator) {
       this.navigator.frame(now);
@@ -539,6 +577,7 @@ export class CitySession {
     }
     this.atmosphere?.update(now);
     this.npcs?.update(now);
+    this.quests?.update(now);
     this.labels?.draw(now);
     this.fuel?.frame(now);
     if (now - this.lastStatus > 1000) {
@@ -686,6 +725,10 @@ export class CitySession {
         this.atmosphere?.setClock(event.clock);
         if (this.snapshot) this.snapshot = { ...this.snapshot, clock: event.clock };
         break;
+      case "city-quest-failed":
+      case "city-quest-progress":
+        this.quests?.onEvent(event);
+        break;
       case "city-kicked":
         this.host.options.status(`已离开卡丁城：${event.reason}`, true);
         void this.cleanup();
@@ -735,6 +778,7 @@ export class CitySession {
     this.fuel = undefined;
     this.atmosphere?.dispose();
     this.npcs?.dispose();
+    this.quests?.dispose();
     this.statusLine?.remove();
     this.statusLine = undefined;
     const stage = this.stage;
@@ -780,3 +824,12 @@ export function activeCitySession(): CitySession | undefined {
 }
 
 export { skyStateAt };
+
+/** The race's audio context (for the mission success / fail sounds). */
+function cityAudioContext(stage: any): AudioContext | undefined {
+  let hosted: unknown;
+  try { hosted = typeof stage?.host?.audio === "function" ? stage.host.audio() : undefined; } catch { hosted = undefined; }
+  for (const candidate of [hosted, stage?.runtime?.assets?.draftAudio?.context, stage?.scene?.bgm?.context])
+    if (candidate && typeof candidate.createBufferSource === "function") return candidate as AudioContext;
+  return undefined;
+}

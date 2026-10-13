@@ -71,6 +71,8 @@ export interface CityOnFootHost {
   viewport(): { width: number; height: number };
   /** The M map's navigation (destinations and the route). */
   navigator?(): CityNavigator | undefined;
+  /** The delivery under way's receiver (design x/z), for the big map's "?". */
+  questTarget?(): { x: number; z: number; label: string } | undefined;
   /** Where windows open. */
   root: HTMLElement;
 }
@@ -406,7 +408,8 @@ export class CityOnFoot {
       const at = design(fleet.copyWebPose(member.playerId)?.position);
       if (at) others.push({ x: at.x, z: at.z });
     }
-    return { me: me && { x: me.x, z: me.z, heading: me.heading, y: me.y }, kart, others };
+    const quest = this.host.questTarget?.();
+    return { me: me && { x: me.x, z: me.z, heading: me.heading, y: me.y }, kart, others, ...(quest ? { quest } : {}) };
   }
 
   private stepToRoad(): void {
