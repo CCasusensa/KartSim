@@ -1,6 +1,7 @@
 package lobby
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -73,4 +74,41 @@ func (l *Lobby) Profile(c *Client) (Profile, bool) {
 	}
 	return Profile{PlayerID: c.playerID, Name: c.name, AccountID: c.accountID,
 		Equipment: append(json.RawMessage(nil), c.equipment...), InRoom: c.roomID != "", Kicked: c.kicked}, true
+}
+
+// CityEquipment is the lobby's half of city-equipment (CITY.md 2): a city
+// member changed karts, character or accessories in the garage. The
+// equipment must be valid and owned, exactly as a room's equipment
+// command; it then becomes the session's equipment (a room the player
+// creates or joins later starts from it) and is returned compacted. The
+// city service calls it without holding a line lock.
+func (l *Lobby) CityEquipment(ctx context.Context, c *Client, in Request) (json.RawMessage, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	var applied json.RawMessage
+	_, err := l.runVerified(ctx, c, func(check *ownershipCheck) (obj, error) {
+		switch {
+		case c.playerID == "":
+			return nil, fail(http.StatusBadRequest, "HELLO_REQUIRED")
+		case c.kicked:
+			return nil, errCheatDetected()
+		case c.roomID != "":
+			return nil, fail(http.StatusBadRequest, "IN_ROOM")
+		}
+		raw, present := in.get("equipment")
+		if !validEquipment(raw, present) {
+			return nil, fail(http.StatusBadRequest, "INVALID_EQUIPMENT")
+		}
+		equipment := compactJSON(raw)
+		if err := l.owns(check, c, c.accountID, equipment); err != nil {
+			return nil, err
+		}
+		c.equipment = equipment
+		applied = equipment
+		return nil, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return append(json.RawMessage(nil), applied...), nil
 }

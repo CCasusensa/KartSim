@@ -42,6 +42,11 @@ test("snapshots and events are validated", () => {
   assert.equal(event?.type, "city-chat");
   assert.equal(parseCityEvent({ type: "room" }), undefined);
   assert.throws(() => parseCityEvent({ type: "city-emote", id: 2 }), /city-emote/);
+  const equip = parseCityEvent({ type: "city-equipment", instanceId: "city-1", id: 2, playerId: "p2",
+    equipment: { itemIds: { 3: 1637 } } });
+  assert.deepEqual(equip, { type: "city-equipment", instanceId: "city-1", id: 2, playerId: "p2",
+    equipment: { itemIds: { 3: 1637 } } });
+  assert.throws(() => parseCityEvent({ type: "city-equipment", id: 2 }), /city-equipment/);
 });
 
 test("the clock extrapolates and the sky curve is dark at night", () => {

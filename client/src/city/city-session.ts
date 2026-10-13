@@ -3,7 +3,8 @@
  * drives the multiplayer race pipeline with a fabricated one-racer "race"
  * on the city track (no countdown wait, no finish), and layers the city on
  * top: members' karts (CityFleet), talk balloons and name tags, the day/night
- * and weather clock, city/near chat channels, resets to the nearest road.
+ * and weather clock, city/near chat channels, resets to the nearest road and
+ * the garage (G) for changing karts, character and accessories on the spot.
  */
 import { beginRaceLoad, downloadTrack } from "../resources/resource-manager";
 import { CityAtmosphere } from "./city-atmosphere";
@@ -20,6 +21,9 @@ import { applyCityVehicleScale, CITY_VEHICLE_SCALE } from "./city-vehicle-scale"
 import { setTetherUnit } from "../vehicle/tether-motion";
 import { beginCityLoading, firstCityFrame, type CityLoadingHandle } from "./city-loading";
 import type { RaceChatMessage } from "../multiplayer/race-chat-overlay";
+import type { GarageChoice, GarageView, GarageViewOptions } from "../multiplayer/lobby-garage";
+import { formatMultiplayerError } from "../multiplayer/errors";
+import { discardLocalKart, installLocalKart, loadLocalFlyingPet, loadLocalKart } from "./city-local-kart";
 export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
@@ -32,6 +36,9 @@ export interface CityLobbyHost {
   lobby?: { show(): void; hide?(): void };
   disposed: boolean;
   render(): void;
+  /** The room's 选择赛车 garage, opened over the city (lobby-controller.ts). */
+  cityGarageView?(options: GarageViewOptions): Promise<GarageView>;
+  normalizeCityEquipment?(profile: { equipment: unknown }, choice: GarageChoice): unknown;
   options: {
     library: unknown;
     root: unknown;
@@ -39,6 +46,8 @@ export interface CityLobbyHost {
     cityLoading?: CityLoadingHandle;
     currentEquipment?(): unknown;
     initialEquipment?: unknown;
+    /** The garage session and where a confirmed choice is saved (ready-multiplayer.ts). */
+    garage?: { options(): Promise<GarageViewOptions>; apply(choice: GarageChoice): void };
     onRaceVisibility?(visible: boolean): void;
     onPageAudio?(page: string): void;
     status(message: string, error?: boolean): void;
@@ -177,7 +186,8 @@ export class CitySession {
       stage.scheduleStart(performance.now() - 7000);
       await rendered;
       if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
-      host.options.status(`欢迎来到${snapshot.name}。Enter 聊天，Esc 离开。`);
+      host.options.status(`欢迎来到${snapshot.name}。Enter 聊天，G 车库，Esc 离开。`);
+      stage.chat?.notice?.("按 G 打开车库，随时换车、换角色、换装扮");
     } finally {
       loading.dispose();
     }
@@ -264,11 +274,18 @@ export class CitySession {
       if (!this.disposed && stage.active) this.frame(performance.now());
     };
 
-    // Esc twice within two seconds leaves the city (the race's Esc only cancels input).
+    // Esc twice within two seconds leaves the city (the race's Esc only
+    // cancels input); G opens the garage.
     this.escapeListener = (event: KeyboardEvent) => {
-      if (event.code !== "Escape" || event.repeat || this.disposed) return;
+      if (event.repeat || this.disposed || this.garageView || this.garageOpening) return;
       const target = event.target as HTMLElement | null;
       if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+      if (event.code === "KeyG" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        void this.openGarage();
+        return;
+      }
+      if (event.code !== "Escape") return;
       const now = performance.now();
       if (now - this.lastEscape < 2000) {
         this.lastEscape = -Infinity;
@@ -286,6 +303,105 @@ export class CitySession {
   private escapeListener?: (event: KeyboardEvent) => void;
   private lastEscape = -Infinity;
 
+  // ---- 车库: change karts, character and accessories in the city ----
+  garageView?: GarageView;
+  garageOpening = false;
+  private garageBusy = false;
+
+  /** Opens the room's garage window over the city; driving pauses meanwhile. */
+  async openGarage(): Promise<void> {
+    const { host } = this;
+    const garage = host.options.garage;
+    const stage = this.stage;
+    if (this.disposed || !stage || this.garageView || this.garageOpening) return;
+    if (!garage || !host.cityGarageView || !host.normalizeCityEquipment) {
+      stage.chat?.notice?.("这里暂时不能打开车库");
+      return;
+    }
+    this.garageOpening = true;
+    this.pauseDriving(true);
+    // The window's caption sits where the status line is.
+    if (this.statusLine) this.statusLine.style.visibility = "hidden";
+    try {
+      const options = await garage.options();
+      if (this.disposed || this.stage !== stage) { this.pauseDriving(false); return; }
+      const view = await host.cityGarageView({
+        ...options,
+        onCancel: () => { if (this.garageView === view) this.closeGarage(); },
+        onConfirm: choice => { if (this.garageView === view) void this.confirmGarage(view, options.profile, choice); },
+      });
+      if (this.disposed || this.stage !== stage) {
+        view.dispose();
+        this.pauseDriving(false);
+        return;
+      }
+      this.garageView = view;
+      view.show();
+    } catch (error) {
+      console.warn("卡丁城车库打开失败", error);
+      stage.chat?.notice?.(`车库打开失败：${formatMultiplayerError(error)}`);
+      this.pauseDriving(false);
+    } finally {
+      this.garageOpening = false;
+    }
+  }
+
+  closeGarage(): void {
+    const view = this.garageView;
+    this.garageView = undefined;
+    this.garageBusy = false;
+    if (!view) return;
+    try { view.dispose(); } catch (error) { console.warn("卡丁城车库关闭失败", error); }
+    if (!this.disposed) this.pauseDriving(false);
+  }
+
+  /**
+   * The new kart loads first; the node then checks the gear and tells the
+   * line; only then does the kart change here, where it stood.
+   */
+  private async confirmGarage(view: GarageView, profile: { equipment: unknown }, choice: GarageChoice): Promise<void> {
+    const { host } = this;
+    const stage = this.stage;
+    if (this.garageBusy || !stage || !this.network || !host.normalizeCityEquipment) return;
+    this.garageBusy = true;
+    view.freeze();
+    let loaded: any;
+    try {
+      const equipment = host.normalizeCityEquipment(profile, choice);
+      loaded = await loadLocalKart(stage, host.playerId, host.accountNickname ?? "车手", equipment);
+      if (this.disposed || this.stage !== stage || this.garageView !== view) return;
+      await this.network.equip(equipment);
+      if (this.disposed || this.stage !== stage || this.garageView !== view) return;
+      const pose = this.localDesignPose();
+      installLocalKart(stage, host.playerId, loaded);
+      loaded = undefined;
+      if (pose) this.teleportLocal(pose);
+      host.options.garage?.apply({ ...choice, equipment });
+      this.closeGarage();
+      void loadLocalFlyingPet(stage, host.options.library).catch(error => console.warn("飞宠载入失败", error));
+      stage.chat?.notice?.("已换上新的装备");
+    } catch (error) {
+      console.warn("卡丁城换装失败", error);
+      if (!this.disposed) stage.chat?.notice?.(`换装失败：${formatMultiplayerError(error)}`);
+      if (this.garageView === view) view.unfreeze();
+    } finally {
+      if (loaded) discardLocalKart(loaded);
+      if (this.garageView === view) this.garageBusy = false;
+    }
+  }
+
+  /** While the garage is open the kart stands parked and ignores the keys. */
+  private pauseDriving(paused: boolean): void {
+    const stage = this.stage;
+    if (!paused && this.statusLine) this.statusLine.style.visibility = "";
+    stage?.host?.input?.setEnabled?.(!paused);
+    if (paused) {
+      stage?.runtime?.local?.cancelModeDrivingInput?.();
+      stage?.runtime?.local?.physics?.hardCancelControls?.();
+    }
+    void this.network?.state(paused ? "parked" : "driving").catch(() => undefined);
+  }
+
   private statusLine?: HTMLDivElement;
 
   private frame(now: number): void {
@@ -298,7 +414,7 @@ export class CitySession {
       const district = design ? districtAt(design.x, design.z) : undefined;
       if (state) {
         const weather = state.weather === "rain" ? " · 雨" : state.weather === "snow" ? " · 雪" : "";
-        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1}`);
+        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1} · G 车库`);
       }
     }
   }
@@ -405,6 +521,9 @@ export class CitySession {
       case "city-respawn":
         this.fleet?.respawn(event.id, event.pose);
         break;
+      case "city-equipment":
+        this.fleet?.reequip(event.id, event.equipment);
+        break;
       case "city-clock":
         this.atmosphere?.setClock(event.clock);
         if (this.snapshot) this.snapshot = { ...this.snapshot, clock: event.clock };
@@ -442,6 +561,10 @@ export class CitySession {
     this.abort.abort();
     if (this.escapeListener) window.removeEventListener("keydown", this.escapeListener);
     this.escapeListener = undefined;
+    const garage = this.garageView;
+    this.garageView = undefined;
+    try { garage?.dispose(); } catch (error) { console.warn("卡丁城车库关闭失败", error); }
+    this.stage?.host?.input?.setEnabled?.(true);
     this.labels?.dispose();
     this.atmosphere?.dispose();
     this.statusLine?.remove();

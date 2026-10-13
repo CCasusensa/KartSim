@@ -66,6 +66,11 @@ export class CityNetwork {
   respawn(pose: { x: number; y: number; z: number; heading: number }): Promise<unknown> {
     return this.client.request({ type: "city-respawn", pose });
   }
+  /** A garage change: the node checks ownership, then tells the line. */
+  async equip(equipment: unknown): Promise<unknown> {
+    const reply = await this.client.request({ type: "city-equipment", equipment }) as Record<string, unknown>;
+    return reply?.equipment ?? equipment;
+  }
 
   /** Encodes a race motion sample as a city frame and sends it. */
   sendMotion(sample: unknown): boolean {

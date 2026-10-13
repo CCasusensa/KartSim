@@ -49,11 +49,13 @@ export type CityEvent =
   | { type: "city-emote"; instanceId: string; id: number; emote: number }
   | { type: "city-state"; instanceId: string; id: number; state: CityMemberState }
   | { type: "city-respawn"; instanceId: string; id: number; pose: CityPose }
+  | { type: "city-equipment"; instanceId: string; id: number; playerId: string; equipment: unknown }
   | { type: "city-clock"; instanceId: string; clock: CityClock }
   | { type: "city-kicked"; instanceId: string; reason: string };
 
 export const CITY_EVENT_TYPES = new Set([
-  "city-joined", "city-left", "city-chat", "city-emote", "city-state", "city-respawn", "city-clock", "city-kicked",
+  "city-joined", "city-left", "city-chat", "city-emote", "city-state", "city-respawn", "city-equipment",
+  "city-clock", "city-kicked",
 ]);
 
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
@@ -138,6 +140,11 @@ export function parseCityEvent(message: Record<string, unknown>): CityEvent | un
       if (!Number.isInteger(message.id) || !pose) throw new Error("city-respawn 数据无效。");
       return { type, instanceId, id: message.id as number, pose };
     }
+    case "city-equipment":
+      if (!Number.isInteger(message.id) || !message.equipment || typeof message.equipment !== "object")
+        throw new Error("city-equipment 数据无效。");
+      return { type, instanceId, id: message.id as number,
+        playerId: text(message.playerId) ? message.playerId : "", equipment: message.equipment };
     case "city-clock": return { type, instanceId, clock: parseCityClock(message.clock) };
     case "city-kicked": return { type, instanceId, reason: text(message.reason) ? message.reason : "UNKNOWN" };
     default: return undefined;

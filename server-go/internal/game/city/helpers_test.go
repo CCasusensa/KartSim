@@ -1,6 +1,8 @@
 package city
 
 import (
+	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"io"
@@ -156,6 +158,27 @@ func (p *profiles) Profile(c *lobby.Client) (lobby.Profile, bool) {
 	return profile, ok
 }
 
+// CityEquipment stands in for the lobby's check: an equipment object is
+// owned unless it mentions item 900, and becomes the client's equipment.
+func (p *profiles) CityEquipment(_ context.Context, c *lobby.Client, in lobby.Request) (json.RawMessage, error) {
+	raw, ok := in.Raw("equipment")
+	var value map[string]any
+	if !ok || json.Unmarshal(raw, &value) != nil || value == nil {
+		return nil, apierr.New(400, "INVALID_EQUIPMENT")
+	}
+	if bytes.Contains(raw, []byte("900")) {
+		return nil, apierr.New(403, "ITEM_NOT_OWNED")
+	}
+	var compact bytes.Buffer
+	_ = json.Compact(&compact, raw)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	profile := p.by[c]
+	profile.Equipment = compact.Bytes()
+	p.by[c] = profile
+	return profile.Equipment, nil
+}
+
 func (p *profiles) set(c *lobby.Client, profile lobby.Profile) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -216,7 +239,7 @@ func request(fields string) lobby.Request {
 // call runs a command and returns its decoded reply or error.
 func (h *harness) call(p *peer, fields string) (map[string]any, error) {
 	h.t.Helper()
-	reply, err := h.svc.Handle(p.c, request(fields))
+	reply, err := h.svc.Handle(context.Background(), p.c, request(fields))
 	if err != nil {
 		return nil, err
 	}

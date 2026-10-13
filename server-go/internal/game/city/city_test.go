@@ -415,6 +415,57 @@ func TestEmoteStateAndRespawn(t *testing.T) {
 	}
 }
 
+// city-equipment: the garage change goes to the whole line (members far
+// away load the kart when they come near), the reply carries the same
+// fields, and members who join later see the new equipment.
+func TestEquipmentChangeReachesTheWholeLine(t *testing.T) {
+	h := newHarness(t, Options{Lines: 1, InterestRadius: 160})
+	outsider := h.player("Outsider")
+	h.refused(outsider, `{"type":"city-equipment","equipment":{"itemIds":{"1":3}}}`, "NOT_IN_CITY")
+	alice, far := h.player("Alice"), h.player("Far")
+	h.join(alice, `{"type":"city-join"}`)
+	h.join(far, `{"type":"city-join"}`)
+	h.at(alice, 0, 0, 0, 0)
+	h.at(far, 1000, 0, 0, 0)
+	alice.sink.events(t)
+	far.sink.events(t)
+
+	reply := h.must(alice, `{"type":"city-equipment","equipment":{ "itemIds": {"1":3, "3":1637} }}`)
+	if reply["type"] != "city-equipment" || reply["id"] != float64(alice.id) || reply["playerId"] != "player-2" {
+		t.Fatalf("reply %v", reply)
+	}
+	changes := ofType(far.sink.events(t), "city-equipment")
+	if len(changes) != 1 || changes[0]["id"] != float64(alice.id) || changes[0]["instanceId"] != "city-1" {
+		t.Fatalf("far's changes %v", changes)
+	}
+	if ids := changes[0]["equipment"].(map[string]any)["itemIds"].(map[string]any); ids["3"] != 1637.0 {
+		t.Fatalf("equipment %v", changes[0]["equipment"])
+	}
+	if events := alice.sink.events(t); len(events) != 0 {
+		t.Fatalf("alice's own change came back: %v", events)
+	}
+
+	// Refused gear changes nothing and tells nobody.
+	h.refused(alice, `{"type":"city-equipment","equipment":{"itemIds":{"1":3,"3":900}}}`, "ITEM_NOT_OWNED")
+	if events := far.sink.events(t); len(events) != 0 {
+		t.Fatalf("far heard a refused change: %v", events)
+	}
+	late := h.player("Late")
+	snapshot := h.join(late, `{"type":"city-join"}`)
+	for _, member := range snapshot["members"].([]any) {
+		m := member.(map[string]any)
+		if m["id"] == float64(alice.id) && m["equipment"].(map[string]any)["itemIds"].(map[string]any)["3"] != 1637.0 {
+			t.Fatalf("late joiner sees %v", m["equipment"])
+		}
+	}
+
+	// One change per two seconds, burst 3 (the refused one counted).
+	h.must(alice, `{"type":"city-equipment","equipment":{"itemIds":{"1":4}}}`)
+	h.refused(alice, `{"type":"city-equipment","equipment":{"itemIds":{"1":5}}}`, "RATE_LIMITED")
+	h.clock.Advance(2 * time.Second)
+	h.must(alice, `{"type":"city-equipment","equipment":{"itemIds":{"1":5}}}`)
+}
+
 func TestAFKMarksThenKicks(t *testing.T) {
 	h := newHarness(t, Options{Lines: 1, AFKTimeout: 10 * time.Second})
 	alice, bob, parked := h.player("Alice"), h.player("Bob"), h.player("Parked")

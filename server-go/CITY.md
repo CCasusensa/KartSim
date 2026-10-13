@@ -22,6 +22,7 @@
 | `city-emote` | `emote`（整数 1–16） | `{"type":"ok"}`；广播 `city-emote` 给 `KART_CITY_INTEREST_RADIUS` 内的成员。限流每秒 2 条 |
 | `city-state` | `state`（`"driving"`、`"parked"`） | `{"type":"ok"}`；广播 `city-state`。`parked` 的成员不发运动帧也不会被判 AFK |
 | `city-respawn` | `spawn`（出生点 ID 字符串，来自地图数据）或 `pose {x,y,z,heading}` | `{"type":"ok"}`；服务器把该成员的"上次位置"重置为出生点，随后第一帧不做瞬移检查；广播 `city-respawn` 给兴趣范围内成员，让他们立刻重置预测 |
+| `city-equipment` | `equipment`（与房间 `equipment` 命令相同的装备文档） | 在城里打开车库换车、换角色、换装扮后发送。大厅按房间换装同样的规则核对（`INVALID_EQUIPMENT`、`ITEM_NOT_OWNED`、`DATA_SERVICE_UNAVAILABLE`，核对次数受连接的校验令牌桶约束），通过后成为该连接的当前装备（之后建房/进房从它开始）。答复 `{"type":"city-equipment","requestId":…,"instanceId":…,"id":…,"playerId":…,"equipment":…}`（装备已压缩）；同样内容作为事件广播给线路上除本人外的所有成员（不限兴趣范围：远处的成员走近时才需要加载，但要先知道）。限流每 2 秒 1 次、突发 3（被拒的也计数）。在房间里时 `IN_ROOM` |
 
 客户端聊天界面只提供「全城」（`city`，当前线路的全部成员）和「附近」（`near`，当前线路内水平距离不超过聊天半径的成员，默认含 60 m 边界），两个频道都向发送者回传消息，不跨线路广播。`district` 保留协议兼容，界面不提供发送选项。
 
@@ -35,6 +36,7 @@
 | `city-emote` | `{"type":"city-emote","instanceId":…,"id":…,"emote":n}` |
 | `city-state` | `{"type":"city-state","instanceId":…,"id":…,"state":…}` |
 | `city-respawn` | `{"type":"city-respawn","instanceId":…,"id":…,"pose":{x,y,z,heading}}` |
+| `city-equipment` | `{"type":"city-equipment","instanceId":…,"id":…,"playerId":…,"equipment":{…}}`：该成员换了装备，浏览器用新装备重新加载他的车与角色 |
 | `city-clock` | `{"type":"city-clock","instanceId":…,"clock":<时钟>}`，进入时在快照里，之后每 30 秒一次，天气变化时立即发 |
 | `city-kicked` | `{"type":"city-kicked","instanceId":…,"reason":"ADMIN"|"CHEAT"|"SHUTDOWN"}`，之后该连接视为已离开城市 |
 
@@ -50,7 +52,7 @@
 }
 ```
 
-成员：`{"id":7,"playerId":"…","name":"Alice","equipment":{…},"state":"driving","pose":{"x":0,"y":0,"z":95,"heading":0}}`。`equipment` 与 `hello` 中核对过的装备相同（浏览器据此加载车与角色）；`pose` 是服务器从运动帧记录的最近位置（世界坐标：x 东、y 上、z 南，`heading` 为绕 y 轴的角度，0 = 北，顺时针，度）。出生点由服务器从 5 个出生点里轮流分配（主出生点优先）。
+成员：`{"id":7,"playerId":"…","name":"Alice","equipment":{…},"state":"driving","pose":{"x":0,"y":0,"z":95,"heading":0}}`。`equipment` 是 `hello` 中核对过的装备，或之后 `city-equipment` 换上的装备（浏览器据此加载车与角色）；`pose` 是服务器从运动帧记录的最近位置（世界坐标：x 东、y 上、z 南，`heading` 为绕 y 轴的角度，0 = 北，顺时针，度）。出生点由服务器从 5 个出生点里轮流分配（主出生点优先）。
 
 ### 时钟与天气
 
@@ -117,4 +119,4 @@
 | `KART_CITY_DAY_MINUTES` | `48` | 一天的真实分钟数 |
 | `KART_CITY_WEATHER` / `KART_CITY_RAIN_PERCENT` / `KART_CITY_SNOW_PERCENT` | `true` / `20` / `10` | |
 
-错误码：`CITY_DISABLED`、`CITY_FULL`、`CITY_LINE_FULL`、`IN_ROOM`、`IN_CITY`、`NOT_IN_CITY`、`CHAT_MUTED`、`INVALID_REQUEST`、`RATE_LIMITED`。
+错误码：`CITY_DISABLED`、`CITY_FULL`、`CITY_LINE_FULL`、`IN_ROOM`、`IN_CITY`、`NOT_IN_CITY`、`CHAT_MUTED`、`INVALID_REQUEST`、`RATE_LIMITED`，`city-equipment` 另有 `INVALID_EQUIPMENT`、`ITEM_NOT_OWNED`、`DATA_SERVICE_UNAVAILABLE`。

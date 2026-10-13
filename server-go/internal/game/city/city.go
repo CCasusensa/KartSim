@@ -13,6 +13,7 @@
 package city
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -72,6 +73,10 @@ type Profiles interface {
 	// Profile returns a connection's identity, false before hello. It is
 	// called without any city lock held.
 	Profile(c *lobby.Client) (lobby.Profile, bool)
+	// CityEquipment checks the equipment of a city-equipment request like a
+	// room's equipment command (valid, owned) and makes it the session's;
+	// it returns it compacted. It is called without any city lock held.
+	CityEquipment(ctx context.Context, c *lobby.Client, in lobby.Request) (json.RawMessage, error)
 }
 
 // Member states (city-state).
@@ -112,6 +117,9 @@ const (
 	respawnRate, respawnBurst = 2.0, 4
 	maxChatRunes              = 60
 	maxEmote                  = 16
+	// Garage changes (city-equipment): one per two seconds, burst 3; the
+	// lobby also bounds the data service checks they cause.
+	equipRate, equipBurst = 0.5, 3
 	// clockBroadcastMs is how often city-clock goes out unprompted.
 	clockBroadcastMs = 30_000
 	// maxCoordinate bounds a plausible pose coordinate (m).
@@ -120,7 +128,7 @@ const (
 
 // commands are the requests this package handles (ws routes them here).
 var commands = map[string]bool{"city-join": true, "city-leave": true, "city-chat": true, "city-emote": true,
-	"city-state": true, "city-respawn": true}
+	"city-state": true, "city-respawn": true, "city-equipment": true}
 
 // Handles reports whether a request type is a city command.
 func Handles(typ string) bool { return commands[typ] }
@@ -208,7 +216,7 @@ func (s *Service) Lines() int { return len(s.lines) }
 
 // Handle runs one city command for c (ws routes the types Handles
 // accepts). Rejections are *apierr.Error.
-func (s *Service) Handle(c *lobby.Client, in lobby.Request) (lobby.Reply, error) {
+func (s *Service) Handle(ctx context.Context, c *lobby.Client, in lobby.Request) (lobby.Reply, error) {
 	typ := in.Type()
 	profile, ok := s.profiles.Profile(c)
 	if !ok {
@@ -224,7 +232,25 @@ func (s *Service) Handle(c *lobby.Client, in lobby.Request) (lobby.Reply, error)
 	if inst == nil {
 		return lobby.Reply{}, errNotInCity()
 	}
+	if typ == "city-equipment" {
+		return s.equip(ctx, c, inst, in)
+	}
 	return inst.handle(c, typ, in)
+}
+
+// equip is city-equipment: the member changed karts, character or
+// accessories in the garage. The lobby checks the equipment without the
+// line's lock; then everyone else on the line gets city-equipment and
+// reloads the member's kart. The reply carries the same fields.
+func (s *Service) equip(ctx context.Context, c *lobby.Client, inst *instance, in lobby.Request) (lobby.Reply, error) {
+	if err := inst.allowEquip(c); err != nil {
+		return lobby.Reply{}, err
+	}
+	equipment, err := s.profiles.CityEquipment(ctx, c, in)
+	if err != nil {
+		return lobby.Reply{}, err
+	}
+	return inst.applyEquipment(c, equipment)
 }
 
 // lineOf is the line c is in, nil outside the city.
@@ -368,7 +394,7 @@ type member struct {
 	violations     int
 	violationStart int64
 
-	chat, emotes, respawns limiter
+	chat, emotes, respawns, equips limiter
 }
 
 func (m *member) object() lobby.Object {
@@ -448,7 +474,7 @@ func (inst *instance) join(c *lobby.Client, profile lobby.Profile) (lobby.Reply,
 		state: StateDriving, pose: Pose{X: spawn.X, Y: spawn.Y, Z: spawn.Z, Heading: spawn.Heading},
 		lastMotion: now, skipCheck: true,
 		chat: newLimiter(chatRate, chatBurst), emotes: newLimiter(emoteRate, emoteBurst),
-		respawns: newLimiter(respawnRate, respawnBurst)}
+		respawns: newLimiter(respawnRate, respawnBurst), equips: newLimiter(equipRate, equipBurst)}
 	m.cell = inst.grid.insert(m)
 	inst.members[c] = m
 	inst.byID[id] = m
@@ -566,6 +592,36 @@ func (inst *instance) handle(c *lobby.Client, typ string, in lobby.Request) (lob
 		return inst.respawn(m, in, now)
 	}
 	return lobby.Reply{}, fail(http.StatusBadRequest, "UNSUPPORTED_COMMAND")
+}
+
+// allowEquip spends a member's garage token (NOT_IN_CITY outside the line).
+func (inst *instance) allowEquip(c *lobby.Client) error {
+	inst.mu.Lock()
+	defer inst.mu.Unlock()
+	m := inst.members[c]
+	if m == nil {
+		return errNotInCity()
+	}
+	if !m.equips.allow(inst.svc.clock.Now()) {
+		return errRateLimited()
+	}
+	return nil
+}
+
+// applyEquipment stores a checked equipment and tells the rest of the line.
+func (inst *instance) applyEquipment(c *lobby.Client, equipment json.RawMessage) (lobby.Reply, error) {
+	inst.mu.Lock()
+	defer inst.mu.Unlock()
+	m := inst.members[c]
+	if m == nil {
+		// Left the line while the lobby was checking.
+		return lobby.Reply{}, errNotInCity()
+	}
+	m.equipment = equipment
+	fields := lobby.Object{lobby.F("type", "city-equipment"), lobby.F("instanceId", inst.id),
+		lobby.F("id", int(m.id)), lobby.F("playerId", m.playerID), lobby.F("equipment", equipment)}
+	inst.broadcast(lobby.Encode(fields), m)
+	return lobby.NewReply(fields), nil
 }
 
 // setState changes a member's state and tells everyone (the member too,

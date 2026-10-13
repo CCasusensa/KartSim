@@ -13,7 +13,8 @@ interface CityVehicle {
   syncPresentationFields(): void;
 }
 
-const scaledVehicles = new WeakSet<CityVehicle>();
+/** The city-scaled shapes (a garage change gives the vehicle a fresh one). */
+const scaledShapes = new WeakSet<CityVehicle["collisionShape"]>();
 
 /**
  * Keep the release's dynamic event-scale getters: AL replaces its runtime
@@ -22,7 +23,7 @@ const scaledVehicles = new WeakSet<CityVehicle>();
  * AL publishes this effective scale to both the local view and network.
  */
 export function applyCityVehicleScale(vehicle: CityVehicle): void {
-  if (scaledVehicles.has(vehicle)) return;
+  if (scaledShapes.has(vehicle.collisionShape)) return;
   const shape = vehicle.collisionShape;
   vehicle.collisionShape = {
     rawHalfWidth: shape.rawHalfWidth,
@@ -31,7 +32,7 @@ export function applyCityVehicleScale(vehicle: CityVehicle): void {
     get scaleY() { return Math.fround(shape.scaleY * CITY_VEHICLE_SCALE); },
     get rawHeight() { return Math.fround(shape.rawHeight * CITY_VEHICLE_SCALE); },
   };
-  scaledVehicles.add(vehicle);
+  scaledShapes.add(vehicle.collisionShape);
   vehicle.syncPresentationFields();
 }
 

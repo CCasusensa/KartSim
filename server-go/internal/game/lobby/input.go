@@ -296,6 +296,9 @@ func (r Request) Number(key string) (float64, bool) { return r.number(key) }
 // HasNonNull is hasNonNull: the key is present and not null.
 func (r Request) HasNonNull(key string) bool { return r.hasNonNull(key) }
 
+// Raw returns a field's raw JSON value and whether it is present.
+func (r Request) Raw(key string) (json.RawMessage, bool) { return r.get(key) }
+
 // Object returns the key's value as a nested Request when it is a JSON
 // object (false otherwise), for nested fields validated the same way.
 func (r Request) Object(key string) (Request, bool) {

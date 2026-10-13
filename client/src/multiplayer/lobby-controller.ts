@@ -145,6 +145,11 @@ export class MultiplayerLobbyController {
     roomId: string, modal: Parameters<typeof confirmLobbyGarage>[3]) {
     return confirmLobbyGarage(own<LobbyGarageHost>(this), choice, roomId, modal);
   }
+  /** 卡丁城 opens the same garage window over the city (city-session.ts). */
+  cityGarageView(options: Parameters<MultiplayerLobbyServices["garageView"]>[0]) {
+    return services(this).garageView(options); }
+  normalizeCityEquipment(...args: Parameters<MultiplayerLobbyServices["normalizeEquipment"]>) {
+    return services(this).normalizeEquipment(...args); }
   async chooseTrack() { return chooseLobbyTrack(own<LobbyTrackHost>(this),
     services(this).track); }
   async confirmTrack(modal: Parameters<typeof confirmLobbyTrack>[1],

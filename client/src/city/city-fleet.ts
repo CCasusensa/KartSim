@@ -14,6 +14,7 @@ import type { RailMatrix } from "../driving/rail-frame";
 import { VehicleMotionReceiver } from "../vehicle/remote-vehicle-motion";
 import { racePresenterInitializationDependencies } from "../generated/world.js";
 import type { CityMember, CityPose, CityRadarEntry } from "./city-protocol";
+import { mountRacer } from "./city-racer-mount";
 import { designToWorld } from "./city-coordinates";
 import { cityVisualScale } from "./city-vehicle-scale";
 
@@ -34,6 +35,8 @@ interface Peer {
   radar?: CityRadarEntry;
   removed: boolean;
   loading?: Promise<void>;
+  /** Bumped by every load: a garage change supersedes a kart still loading. */
+  generation: number;
 }
 
 function webBasis(matrix: RailMatrix) {
@@ -89,6 +92,7 @@ export class CityFleet {
     const peer: Peer = {
       member, playerId: member.playerId, slot: member.id % 8,
       presentation: new VehicleMotionReceiver(), smoother: new RemotePoseSmoother(), removed: false,
+      generation: 0,
     };
     this.peers.set(member.playerId, peer);
     this.byId.set(member.id, peer);
@@ -104,7 +108,22 @@ export class CityFleet {
     this.byId.set(member.id, peer);
   }
 
+  /**
+   * A member changed karts, character or accessories in the garage
+   * (city-equipment): the new kart loads in the background and replaces the
+   * old one once ready, so the member never disappears meanwhile.
+   */
+  reequip(id: number, equipment: unknown): void {
+    const peer = this.byId.get(id);
+    if (!peer || peer.removed || this.disposed) return;
+    peer.member = { ...peer.member, equipment };
+    peer.loading = this.load(peer).catch(error => {
+      console.warn("卡丁城成员换装后的赛车加载失败", peer.member.name, error);
+    });
+  }
+
   private async load(peer: Peer): Promise<void> {
+    const generation = ++peer.generation;
     const { assets } = this.host;
     if (typeof assets.loadRosterEntry !== "function")
       throw new Error("多人资源装配缺少 loadRosterEntry（请重新生成模块）。");
@@ -113,14 +132,40 @@ export class CityFleet {
     const entry = { equipment: structuredClone(equipment), initial: "", favoriteTracks: [], favoriteItems: [] };
     const roster = { playerId: peer.playerId, name: peer.member.name, slot: peer.slot, team: null };
     const participant = await assets.loadRosterEntry(roster, entry);
-    if (this.disposed || peer.removed) { participant.dispose?.(); this.detachFromAssets(participant); return; }
+    if (this.disposed || peer.removed || generation !== peer.generation) {
+      this.detachFromAssets(participant);
+      participant.dispose?.();
+      return;
+    }
+    if (peer.participant) this.detachView(peer);
     peer.participant = participant;
-    const mass = Math.fround(participant.remoteParameters.mass);
-    const diagonal = Math.fround(12 / mass);
-    peer.motion = new RemoteMotionPredictor(mass, [
-      { x: diagonal, y: 0, z: 0 }, { x: 0, y: diagonal, z: 0 }, { x: 0, y: 0, z: diagonal },
-    ]);
+    // A garage change keeps the predictor (and its last frame): the member
+    // stays where it was instead of jumping to its radar point.
+    if (!peer.motion) {
+      const mass = Math.fround(participant.remoteParameters.mass);
+      const diagonal = Math.fround(12 / mass);
+      peer.motion = new RemoteMotionPredictor(mass, [
+        { x: diagonal, y: 0, z: 0 }, { x: 0, y: diagonal, z: 0 }, { x: 0, y: 0, z: diagonal },
+      ]);
+    }
     this.attachView(peer, participant);
+  }
+
+  /** Takes a member's kart out of the scene and releases it (the peer stays). */
+  private detachView(peer: Peer): void {
+    const presenter = this.host.presenter;
+    const view = presenter.views.get(peer.playerId);
+    if (view) {
+      presenter.views.delete(peer.playerId);
+      presenter.scene.remove(view.root);
+    }
+    presenter.linkedPresentations.delete(peer.playerId);
+    const participant = peer.participant;
+    peer.participant = undefined;
+    if (!participant) return;
+    presenter.scene.remove(participant.vehicle.trails.object);
+    this.detachFromAssets(participant);
+    try { participant.dispose?.(); } catch (error) { console.warn("成员赛车释放失败", error); }
   }
 
   private detachFromAssets(participant: any): void {
@@ -139,40 +184,7 @@ export class CityFleet {
     presenter.scene.add(vehicle.trails.object);
     view.setModel(vehicle.imported.object, vehicle.visual, vehicle.imported.animation,
       vehicle.imported.model, vehicle.imported.scene);
-    const sourceRoot = deps.serializedRoot(vehicle.imported.model);
-    const riderSource = sourceRoot.children[6]?.value;
-    const riderMount = riderSource && "children" in (riderSource as object)
-      ? vehicle.imported.renderScene?.bySource.get(riderSource) : undefined;
-    const character = participant.characters.linked ?? participant.characters.ordinary;
-    if (character && riderMount) {
-      riderMount.clear();
-      riderMount.add(character.scene.object);
-      character.scene.object.scale.setScalar(vehicle.visual.onCharacterSize);
-      if (participant.characters.linked) {
-        const vehicleRoot = vehicle.imported.renderScene?.bySource.get(sourceRoot);
-        if (vehicleRoot && character.award) {
-          const linked = deps.createLinkedPresentation(vehicleRoot, riderMount,
-            character.scene.object, vehicle.kartItem.alwaysLinkCharacter);
-          linked.resetForRacePresentation();
-          presenter.linkedPresentations.set(peer.playerId, linked);
-        }
-      }
-    }
-    if (character) {
-      for (const accessory of vehicle.accessories) {
-        const socketName = accessory.kind === "aura" ? undefined : deps.accessorySockets[accessory.kind];
-        const socket = socketName
-          ? character.scene.getDecorationSocket(socketName[0], socketName[1])
-          : character.scene.getDecorationOwner();
-        if (!socket) continue;
-        socket.add(accessory.render.scene.object);
-        if (accessory.kind === "aura" && riderMount) {
-          const vehicleRoot = vehicle.imported.renderScene?.bySource.get(sourceRoot);
-          if (vehicleRoot) deps.attachAura(socket, vehicleRoot, accessory.render.scene.object);
-        }
-      }
-    }
-    if (vehicle.decoration) view.getAttachment(16)?.add(vehicle.decoration.scene.object);
+    mountRacer(presenter, peer.playerId, participant, view);
     const pose = poseFromDesign(peer.member.pose ?? { x: 0, y: 0, z: 0, heading: 0 });
     presenter.initialPoses.set(peer.playerId, pose);
     view.updatePose({ x: pose.position.x, y: pose.position.y, z: pose.position.z, ...pose });
@@ -184,19 +196,8 @@ export class CityFleet {
     peer.removed = true;
     this.peers.delete(playerId);
     this.byId.delete(peer.member.id);
-    const presenter = this.host.presenter;
-    const view = presenter.views.get(playerId);
-    if (view) {
-      presenter.views.delete(playerId);
-      presenter.scene.remove(view.root);
-    }
-    presenter.linkedPresentations.delete(playerId);
-    presenter.initialPoses.delete(playerId);
-    if (peer.participant) {
-      presenter.scene.remove(peer.participant.vehicle.trails.object);
-      this.detachFromAssets(peer.participant);
-      try { peer.participant.dispose?.(); } catch (error) { console.warn("成员赛车释放失败", error); }
-    }
+    this.detachView(peer);
+    this.host.presenter.initialPoses.delete(playerId);
   }
 
   /** A 0xC1 frame payload decoded to the race kinematic sample. */

@@ -429,7 +429,7 @@ func (s *Server) handle(c *conn, req lobby.Request) (reply lobby.Reply, err erro
 		}
 	}()
 	if s.opts.City != nil && city.Handles(req.Type()) {
-		return s.opts.City.Handle(c.client, req)
+		return s.opts.City.Handle(s.ctx, c.client, req)
 	}
 	return s.lobby.Handle(s.ctx, c.client, req)
 }
