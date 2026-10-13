@@ -19,6 +19,9 @@ export interface ContainerProgress {
 }
 
 // Small structural interfaces let tests substitute in-memory OPFS handles.
+/** Suffix of the OPFS marker holding the SHA-256 a container copy was downloaded for. */
+const VERSION_SUFFIX = ".sha256";
+
 export interface WritableHandle {
   write(chunk: Uint8Array): Promise<void>;
   /** Moves the write position (OPFS); without it paused downloads start over. */
@@ -290,8 +293,7 @@ export class ContainerStore {
     const directory = await this.directory();
     const cached = new Set<string>();
     const check = async (file: ContainerSpec) => {
-      const blob = await this.existing(directory, file.name);
-      if (blob?.size === file.size) cached.add(file.name);
+      if (await this.cachedCopy(directory, file)) cached.add(file.name);
     };
     if (directory.keys) {
       const present = new Set<string>();
@@ -313,6 +315,7 @@ export class ContainerStore {
     this.forget(file.name.toLowerCase());
     if (!(await this.existing(directory, file.name))) return false;
     await directory.removeEntry?.(file.name);
+    await directory.removeEntry?.(file.name + VERSION_SUFFIX).catch(() => {});
     return true;
   }
 
@@ -374,8 +377,8 @@ export class ContainerStore {
     let check = this.presence.get(key);
     if (!check) {
       check = this.directory()
-        .then(directory => this.existing(directory, file.name))
-        .then(blob => blob?.size === file.size, () => false);
+        .then(directory => this.cachedCopy(directory, file))
+        .then(blob => blob !== undefined, () => false);
       this.presence.set(key, check);
     }
     return check;
@@ -567,8 +570,8 @@ export class ContainerStore {
 
   private async load(file: ContainerSpec, signal?: AbortSignal): Promise<Blob> {
     const directory = await this.directory();
-    const cached = await this.existing(directory, file.name);
-    if (cached?.size === file.size) return cached;
+    const cached = await this.cachedCopy(directory, file);
+    if (cached) return cached;
     const local = await this.validLocalFile(file);
     if (local) return local;
 
@@ -578,6 +581,7 @@ export class ContainerStore {
       const handle = await directory.getFileHandle(file.name, { create: true });
       if (!handle.createWritable) {
         await this.fallbackWriter(file, url, bytes => this.progress("downloading", file, bytes));
+        await this.writeVersion(directory, file);
       } else {
         await this.download(directory, file, url, signal);
       }
@@ -597,6 +601,33 @@ export class ContainerStore {
       if (error instanceof DOMException && error.name === "NotFoundError") return undefined;
       throw error;
     }
+  }
+
+  /**
+   * The OPFS copy of a container when it is whole and of this manifest's
+   * version. Its `<name>.sha256` marker names the hash it was downloaded for:
+   * a container replaced in the mirror under the same revision (a generated
+   * track rebuilt) is downloaded again instead of being trusted by length.
+   * A copy without a marker (cached before markers existed) goes by length.
+   */
+  private async cachedCopy(directory: DirectoryHandle, file: ContainerSpec): Promise<Blob | undefined> {
+    const blob = await this.existing(directory, file.name);
+    if (blob?.size !== file.size) return undefined;
+    const version = await this.version(directory, file.name);
+    return version === undefined || version === file.sha256 ? blob : undefined;
+  }
+
+  private async version(directory: DirectoryHandle, name: string): Promise<string | undefined> {
+    const marker = await this.existing(directory, name + VERSION_SUFFIX).catch(() => undefined);
+    return marker ? (await marker.text()).trim() : undefined;
+  }
+
+  private async writeVersion(directory: DirectoryHandle, file: ContainerSpec): Promise<void> {
+    const handle = await directory.getFileHandle(file.name + VERSION_SUFFIX, { create: true });
+    if (!handle.createWritable) return;
+    const writable = await handle.createWritable();
+    await writable.write(new TextEncoder().encode(file.sha256));
+    await writable.close();
   }
 
   private async validLocalFile(file: ContainerSpec): Promise<Blob | undefined> {
@@ -627,9 +658,10 @@ export class ContainerStore {
     signal?: AbortSignal): Promise<void> {
     const handle = await directory.getFileHandle(file.name, { create: true });
     if (!handle.createWritable) throw new Error("当前 OPFS 不支持异步写入，请提供 fallbackWriter。");
-    // A paused download (a shorter copy) resumes after the bytes it kept.
+    // A paused download (a shorter copy) resumes after the bytes it kept,
+    // when it was paused on this very version of the container.
     const kept = this.rangeReads ? (await handle.getFile()).size : 0;
-    const resume = kept > 0 && kept < file.size;
+    const resume = kept > 0 && kept < file.size && await this.version(directory, file.name) === file.sha256;
     let response: Response;
     try {
       response = await this.fetcher(url, {
@@ -649,6 +681,7 @@ export class ContainerStore {
       await response.body?.cancel().catch(() => undefined);
       throw new Error(`${file.name} 完整读取失败：HTTP ${response.status}。`);
     }
+    if (!appending) await this.writeVersion(directory, file);
     const writable = await handle.createWritable(appending ? { keepExistingData: true } : undefined);
     if (appending && !writable.seek) {
       // This OPFS cannot append: drop the partial copy and download it whole.

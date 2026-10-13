@@ -220,8 +220,35 @@ test("a foreground download is not paused; a server without Range restarts a pau
   const big = content(2 * MiB, 13);
   const { store: containers, requests, directory } = store({ "big.rho": big }, { ranges: false });
   directory.files.set("big.rho", big.slice(0, 1000)); // a copy a pause left
+  directory.files.set("big.rho.sha256", new Uint8Array()); // of this version (the test manifest's empty hash)
   const foreground = containers.ensure("big.rho");
   containers.pauseBackground();
   assert.deepEqual(new Uint8Array(await (await foreground).arrayBuffer()), big);
   assert.deepEqual(requests, ["big.rho bytes=1000-"], "asked to resume, got the whole file");
+});
+
+test("a container replaced under the same revision downloads again instead of resuming or trusting its length", async () => {
+  const fresh = content(2 * MiB, 21);
+  const { store: containers, requests, directory } = store({ "big.rho": fresh });
+  const marker = (text: string) => new TextEncoder().encode(text);
+  // An older build, shorter: not a paused download of this one.
+  directory.files.set("big.rho", content(MiB, 5));
+  directory.files.set("big.rho.sha256", marker("old"));
+  assert.deepEqual([...await containers.cachedNames()], []);
+  const blob = await containers.ensure("big.rho");
+  assert.deepEqual(requests, ["big.rho"], "downloaded whole, not resumed after the old bytes");
+  assert.deepEqual(new Uint8Array(await blob.arrayBuffer()), fresh);
+  assert.equal(new TextDecoder().decode(directory.files.get("big.rho.sha256")), "", "marked with the manifest hash");
+  // The same length as the manifest but another version: not trusted.
+  const other = store({ "big.rho": fresh });
+  other.directory.files.set("big.rho", content(2 * MiB, 9));
+  other.directory.files.set("big.rho.sha256", marker("old"));
+  assert.deepEqual([...await other.store.cachedNames()], []);
+  assert.deepEqual(new Uint8Array(await (await other.store.ensure("big.rho")).arrayBuffer()), fresh);
+  // A copy cached before markers existed still counts by its length.
+  const legacy = store({ "big.rho": fresh });
+  legacy.directory.files.set("big.rho", fresh.slice());
+  assert.deepEqual([...await legacy.store.cachedNames()], ["big.rho"]);
+  assert.equal(await legacy.store.remove("big.rho"), true);
+  assert.equal(legacy.directory.files.size, 0);
 });
