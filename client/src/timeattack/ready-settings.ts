@@ -1,3 +1,4 @@
+import { settingsResourceEntry } from "../ui/resource-panel";
 import type { ReadyOptions } from "./ready-flow";
 
 interface GameOptions {
@@ -107,6 +108,10 @@ export async function openReadySettings(controller: ReadySettingsController,
         controller.host.confirmSettings(options, speed, version),
       onCancel: () => controller.host.closeSettings(),
       onActivate: () => controller.host.getInterfaceAudio()?.playClick(),
+      // 变更设置 → 资源下载: the window stays reachable after its top-bar button hides.
+      onResources: settingsResourceEntry(controller.host.root, {
+        onActivate: () => controller.host.getInterfaceAudio()?.playClick(),
+      }),
     });
     if (controller.disposed || lobby !== controller.multiplayer) {
       view.dispose();

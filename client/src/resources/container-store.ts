@@ -5,9 +5,10 @@ import { sha256Blob } from "./sha256";
  * "partial" reports range requests for reads from containers that are not
  * cached (they stay uncached): `file` is the container of the latest
  * bytes, the byte counts cover all range requests in flight together (they
- * start from zero again once none is).
+ * start from zero again once none is). "failed" ends a whole download that
+ * threw (or was paused), so progress displays drop it.
  */
-export type DownloadPhase = "checking" | "downloading" | "ready" | "partial";
+export type DownloadPhase = "checking" | "downloading" | "ready" | "partial" | "failed";
 
 export interface ContainerProgress {
   readonly phase: DownloadPhase;
@@ -350,6 +351,8 @@ export class ContainerStore {
       this.progress("ready", file, file.size);
       return blob;
     } catch (error) {
+      // One "failed" per load, from the first caller to see it (still marked background or not).
+      if (this.inFlight.get(key) === pending) this.progress("failed", file, 0);
       this.backgroundLoads.delete(key);
       this.inFlight.delete(key);
       throw error;

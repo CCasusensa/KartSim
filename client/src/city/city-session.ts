@@ -57,6 +57,11 @@ export interface CityLobbyHost {
     onRaceVisibility?(visible: boolean): void;
     onPageAudio?(page: string): void;
     status(message: string, error?: boolean): void;
+    /**
+     * Entering failed (shown in a window by ready-multiplayer.ts); `resources`:
+     * while the city loaded its resources, which may be a broken download.
+     */
+    onCityFailed?(reason: string, resources: boolean): void;
     /** Set when the lobby was opened only for the city: leaving closes it. */
     onCityExit?(): void;
     lobbyGameplay?: string;
@@ -110,6 +115,8 @@ export class CitySession {
   clockMapping?: { offsetMs: number };
   readonly abort = new AbortController();
   disposed = false;
+  /** Set while the race pipeline loads the city: a failure then may be its resources. */
+  loadingResources = false;
   private chatListeners = new Set<(message: RaceChatMessage) => void>();
   private chatSequence = 0;
   private lastStatus = -Infinity;
@@ -181,7 +188,9 @@ export class CitySession {
         allowMotion: () => this.onFoot?.allowRaceMotion() ?? true,
       });
       loading.stage("正在准备城市、车辆和界面…");
+      this.loadingResources = true;
       const stage = await loader.prepare(room, race, this.abort.signal, connection);
+      this.loadingResources = false;
       if (host.disposed || this.disposed || this.abort.signal.aborted) {
         // Cancellation may already have cleaned the session while prepare was
         // pending. Its late result was never owned by this.stage.
@@ -813,7 +822,9 @@ export async function enterCity(host: CityLobbyHost): Promise<void> {
   } catch (error) {
     if (!host.disposed && !session.disposed && !session.abort.signal.aborted) {
       console.error("进入卡丁城失败", error);
-      host.options.status(`进入卡丁城失败：${error instanceof Error ? error.message : String(error)}`, true);
+      const reason = error instanceof Error ? error.message : String(error);
+      host.options.status(`进入卡丁城失败：${reason}`, true);
+      host.options.onCityFailed?.(reason, session.loadingResources);
     }
     await session.cleanup();
   }

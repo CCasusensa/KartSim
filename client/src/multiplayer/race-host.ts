@@ -330,8 +330,10 @@ export async function enterCityOnNode(host: RaceHostLobby & Omit<CityLobbyHost, 
     await enterCity(city);
   } catch (error) {
     if (host.cityClient === client) leaveCityClient(host);
-    if (!host.disposed && !host.accountAbort?.signal.aborted)
+    if (!host.disposed && !host.accountAbort?.signal.aborted) {
       host.options.status(`进入卡丁城失败：${formatMultiplayerError(error)}`, true);
+      city.options.onCityFailed?.(formatMultiplayerError(error), false);
+    }
   } finally {
     if ((host.disposed || host.accountAbort?.signal.aborted) && client && host.cityClient === client)
       leaveCityClient(host);

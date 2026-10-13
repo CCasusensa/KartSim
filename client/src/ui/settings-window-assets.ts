@@ -107,6 +107,9 @@ const versionChoiceCount = 3;
 const speedVersionRect = "36 217 868 26";
 const speedChannelRect = "36 247 868 26";
 const speedHintRect = "36 324 904 344";
+/** The 资源下载 row under the custom settings (settings-window.ts hides it without a resource manager). */
+export const resourceSettingName = "webResourceSetting";
+export const resourceButtonName = "openResources";
 
 /** Parse the official BGM table and its Chinese labels. */
 export function parseOfficialBgmChoices(
@@ -132,7 +135,7 @@ export function parseOfficialBgmChoices(
   });
 }
 
-/** Extend the native game tab with the four browser settings. */
+/** Extend the native game tab with the four browser settings and the 资源下载 row. */
 function addWebSettings(root: SettingsWindowNode,
   attribute: SettingsWindowAssetDependencies["attribute"]): SettingsWindowNode {
   const autoReady = root.children.find(child =>
@@ -166,6 +169,40 @@ function addWebSettings(root: SettingsWindowNode,
   const replaced = new Set([
     "onIgnoreRequestFriendMsgCont", "onIgnoreInviteMsgCont", "recOption",
   ]);
+  // A label and a button in the 显示/音量 恢复默认值 style, one row below the
+  // check boxes: reopens the 资源下载 window when its top-bar button is gone.
+  const resourceRow: SettingsWindowNode = {
+    name: "Container", text: "",
+    attributes: [{ name: "name", value: resourceSettingName },
+      // As wide as the speed rows: the button lines up with their combo boxes.
+      { name: "leftTopWH", value: `${left} ${top! + settings.length * (height! + 10) + 14} 868 ${height}` }],
+    children: [
+      {
+        name: "Label", text: "", attributes: [
+          { name: "windowRect", value: "0 0 40 12" },
+          { name: "align", value: "vcenter" },
+          { name: "text", value: "资源下载出错或进不去卡丁城时，可在这里删除并重新下载资源" },
+          { name: "textAlign", value: "left" },
+          { name: "autoSizing", value: "true" },
+          { name: "textRender", value: "bold16" },
+          { name: "textColor", value: "255 42 55 80" },
+        ], children: [],
+      },
+      {
+        name: "TextButton", text: "", attributes: [
+          { name: "name", value: resourceButtonName },
+          { name: "windowSize", value: "95 38" },
+          { name: "align", value: "right;vcenter" },
+          { name: "text", value: "资源下载" },
+          { name: "textRender", value: "bold16" },
+          { name: "textColor", value: "255 64 75 95" },
+          { name: "overTextColor", value: "255 106 120 147" },
+          { name: "clickedTextColor", value: "255 35 41 52" },
+          { name: "disabledTextColor", value: "255 131 131 131" },
+        ], children: [],
+      },
+    ],
+  };
   return {
     ...root,
     children: [
@@ -193,6 +230,7 @@ function addWebSettings(root: SettingsWindowNode,
             : changed(child, { text: label! })),
         };
       }),
+      resourceRow,
     ],
   };
 }

@@ -1,14 +1,14 @@
 import { currentResourceManager, FEATURES, onResourceManager,
   type ResourceManager } from "../resources/resource-manager";
 import type { BmlLibrary } from "./bml-kit";
-import { isResourceWindowOpen, ResourceWindow, waitForResources } from "./resource-window";
+import { isResourceWindowOpen, ResourceWindow, showResourceFailure, waitForResources } from "./resource-window";
 
 export { formatBytes, rowStatus, statusText } from "./resource-window";
 
 /**
- * 资源下载 entry points: the top-bar button and the corner badge that open
- * the release-style window (resource-window.ts), and the passive download
- * when a page opens (ensureFeatureResources).
+ * 资源下载 entry points: the top-bar button, the corner badge and the 设置
+ * row that open the release-style window (resource-window.ts), and the
+ * passive download when a page opens (ensureFeatureResources).
  */
 
 const STYLES = `
@@ -54,6 +54,49 @@ export async function openResourcePanel(root: HTMLElement, manager: ResourceMana
     await ResourceWindow.open(manager, library, root, options);
   } catch (error) {
     console.error("资源下载窗口打开失败", error);
+  }
+}
+
+/**
+ * The 资源下载 entry of 设置 (变更设置): undefined while no manager can show
+ * the window. Opening resolves when the window closes (at once when it
+ * cannot open or another one is already open).
+ */
+export function settingsResourceEntry(root: HTMLElement, options: ResourcePanelOptions = {}):
+  (() => Promise<void>) | undefined {
+  const installed = currentResourceManager();
+  if (!installed || !windowLibrary(installed)) return undefined;
+  return () => {
+    const manager = currentResourceManager();
+    if (!manager || isResourceWindowOpen()) return Promise.resolve();
+    return new Promise(resolve => {
+      void openResourcePanel(root, manager, { ...options, onClose: () => {
+        options.onClose?.();
+        resolve();
+      } }).then(() => { if (!isResourceWindowOpen()) resolve(); });
+    });
+  };
+}
+
+/**
+ * Why a page did not open, in a game-style window: with `group`, the reason
+ * may be its resources and 资源下载 opens the window on that group. Resolves
+ * false when no window can be drawn (the caller shows the text instead).
+ */
+export async function showResourceFailureNotice(root: HTMLElement, title: string, message: string,
+  options: ResourcePanelOptions & { group?: string } = {}): Promise<boolean> {
+  const manager = currentResourceManager();
+  const library = manager && windowLibrary(manager);
+  if (!manager || !library) return false;
+  try {
+    await showResourceFailure(library, root, {
+      title, message, onActivate: options.onActivate,
+      onResources: options.group ? () => { void openResourcePanel(root, manager, options); } : undefined,
+    });
+    return true;
+  } catch (error) {
+    console.warn("失败提示窗口打开失败", error);
+    return false;
   }
 }
 

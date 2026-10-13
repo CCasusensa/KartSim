@@ -355,3 +355,31 @@ test("settings window lifecycle, drawing, combo, key capture and actions match r
   const original = await exercise(false);
   assert.deepEqual(readable, original);
 });
+
+test("变更设置 资源下载 row: hidden without a window to open, opens once, focus comes back", async () => {
+  const proto = SettingsWindow.prototype as unknown as Record<string, (...args: any[]) => any>;
+  const row = node("Container", { name: "webResourceSetting" });
+  const visible = (onResources?: () => void) =>
+    proto.visible!.call({ options: { onResources }, dependencies: { tabs: [] } }, row);
+  assert.equal(visible(), false);
+  assert.equal(visible(() => {}), true);
+
+  const events: string[] = [];
+  let close!: () => void;
+  const host = {
+    options: { onResources: () => { events.push("open"); return new Promise<void>(resolve => { close = resolve; }); } },
+    resourcesOpen: false,
+    element: { isConnected: true },
+    controls: new Map([["openResources", { focus: () => events.push("focus") }]]),
+    render: () => events.push(`render:${host.resourcesOpen}`),
+    openResources: proto.openResources,
+  };
+  proto.activate!.call(host, "openResources");
+  proto.activate!.call(host, "openResources");
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(events, ["render:true", "open"]);
+  close();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(events, ["render:true", "open", "render:false", "focus"]);
+  assert.equal(host.resourcesOpen, false);
+});

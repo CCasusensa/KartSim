@@ -392,6 +392,16 @@ export class HudOverlay {
       loaded: Math.min(safeTotal, Math.max(0, loaded)),
       total: safeTotal,
     });
+    this.refreshLoadingBadge(label);
+  }
+
+  /** A failed download leaves the badge, which otherwise stayed up at its last percent. */
+  dropLoadingProgress(key: unknown): void {
+    if (this.startupLoading || !this.loadingProgress.delete(key)) return;
+    this.refreshLoadingBadge(this.loadingFabCopy.textContent ?? "正在加载资源");
+  }
+
+  private refreshLoadingBadge(label: string): void {
     const sum = sumProgress(this.loadingProgress.values());
     const fraction = sum.total <= 0 ? 1 : sum.loaded / sum.total;
     const percent = Math.round(fraction * 10_000) / 100;

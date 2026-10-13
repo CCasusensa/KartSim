@@ -6,6 +6,7 @@ import type {
   SettingsWindowImage, SettingsWindowNode, SettingsWindowResource,
   SettingsWindowResourceLibrary,
 } from "./settings-window-assets";
+import { resourceButtonName, resourceSettingName } from "./settings-window-assets";
 import { withItemHudOptions } from "./item-hud-options";
 import {
   activateSettingsControl, applySettingsGraphicsPreset, applySettingsPreset,
@@ -56,6 +57,8 @@ export interface SettingsWindowOptions {
   onPreview(draft: SettingsWindowDraft): void;
   onConfirm(draft: SettingsWindowDraft, speed: number, version: string): void;
   onCancel(): void;
+  /** Opens the 资源下载 window over the settings; resolves when it closes. Absent: the row is hidden. */
+  onResources?(): Promise<void> | void;
 }
 
 export interface SettingsWindowDependencies {
@@ -209,6 +212,7 @@ export class SettingsWindow {
   bgmChoices: SettingsBgmChoice[] = [];
   gamepadPoll?: ReturnType<typeof setInterval>;
   gamepadHeld = new Set<string>();
+  resourcesOpen = false;
   readonly onWindowResize = () => this.render();
   readonly onKeyDown = (event: KeyboardEvent) => {
     event.stopPropagation();
@@ -405,6 +409,7 @@ export class SettingsWindow {
     const name = attribute(node, "name") ?? "";
     if (name.startsWith("view_")) return this.dependencies.tabs.includes(name);
     if (omitNode(node)) return false;
+    if (name === resourceSettingName) return Boolean(this.options.onResources);
     const overrides: Record<string, boolean> = {
       imgBoostBlurOn: this.draft.boostBlur,
       imgBoostBlurOff: !this.draft.boostBlur,
@@ -472,7 +477,8 @@ export class SettingsWindow {
   drawButton(node: SettingsNode, rectangle: UiRectangle): void {
     const id = attribute(node, "name") ?? "";
     const enabled = [...this.dependencies.tabs, "ok", "okButton", "cancel",
-      "defaultSound", "defaultGraphic", "defaultKeyMap", "poorM", "normM"].includes(id);
+      "defaultSound", "defaultGraphic", "defaultKeyMap", "poorM", "normM"].includes(id) ||
+      (id === resourceButtonName && !this.resourcesOpen);
     const selected = id === this.tab;
     const state = selected ? 3 : this.state(id, enabled || this.dependencies.tabs.includes(id));
     const style = this.assets.styles.get(node)!.states[state]!;
@@ -1092,8 +1098,28 @@ export class SettingsWindow {
   }
 
   activate(name: string): void {
+    if (name === resourceButtonName) {
+      this.openResources();
+      return;
+    }
     activateSettingsControl(this as unknown as SettingsInteractionHost,
       name, this.interactionDependencies());
+  }
+
+  /** 资源下载 opens over the settings, which wait (unchanged) until it closes. */
+  openResources(): void {
+    const open = this.options.onResources;
+    if (!open || this.resourcesOpen) return;
+    this.resourcesOpen = true;
+    this.render();
+    void Promise.resolve().then(() => open()).catch(error => {
+      console.warn("资源下载窗口打开失败", error);
+    }).finally(() => {
+      this.resourcesOpen = false;
+      if (!this.element.isConnected) return;
+      this.render();
+      this.controls.get(resourceButtonName)?.focus();
+    });
   }
 
   applyPreset(name: string): void {

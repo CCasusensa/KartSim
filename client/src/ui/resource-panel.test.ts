@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { formatBytes, resourceButtonState, rowStatus, statusText } from "./resource-panel";
+import { formatBytes, resourceButtonState, rowStatus, settingsResourceEntry, showResourceFailureNotice,
+  statusText } from "./resource-panel";
 import { resourceWindowDefinition } from "./resource-window";
 import type { Node } from "./bml-kit";
 
@@ -49,4 +50,10 @@ test("the top-bar button: progress while downloading, gone once everything is he
   assert.deepEqual(resourceButtonState(manager([], 1000)), { hidden: true, text: "资源下载" });
   // A job still running keeps it, even when the totals already add up.
   assert.equal(resourceButtonState(manager([job(200)], 1000)).hidden, false);
+});
+
+test("设置 and the failure notice offer the window only when a resource manager can draw it", async () => {
+  // No manager installed (local Data folders, tests): the 设置 row hides, the caller shows text instead.
+  assert.equal(settingsResourceEntry({} as HTMLElement), undefined);
+  assert.equal(await showResourceFailureNotice({} as HTMLElement, "进入卡丁城失败", "x", { group: "city" }), false);
 });

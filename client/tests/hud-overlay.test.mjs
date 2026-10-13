@@ -204,6 +204,27 @@ test("lazy downloads cannot complete or move the startup bar; finish and retry o
   });
 });
 
+test("a failed download leaves the loading badge, which hides once the rest finished", () => {
+  withHudEnvironment(({ root }) => {
+    const hud = new HudOverlay(root, { returnToReady() {} }, "39.11");
+    hud.finishLoading();
+    hud.setLoadingProgress("resource:track_kartcity.rho", 10, 1_000, "正在加载 track_kartcity.rho");
+    hud.setLoadingProgress("resource:other.rho", 50, 100, "正在加载 other.rho");
+    assert.equal(hud.loadingFab.hidden, false);
+    hud.dropLoadingProgress("resource:track_kartcity.rho");
+    assert.equal(hud.loadingFab.hidden, false, "other.rho still loads");
+    assert.equal(hud.loadingFabRing.attributes["aria-valuenow"], "50");
+    hud.setLoadingProgress("resource:other.rho", 100, 100, "正在加载 other.rho");
+    assert.equal(hud.loadingFab.hidden, true);
+    hud.setLoadingProgress("resource:track_kartcity.rho", 10, 1_000, "正在加载 track_kartcity.rho");
+    hud.dropLoadingProgress("resource:track_kartcity.rho");
+    assert.equal(hud.loadingFab.hidden, true, "nothing else loads: the badge goes, not stuck at 1%");
+    hud.dropLoadingProgress("resource:unknown.rho");
+    assert.equal(hud.loadingFab.hidden, true);
+    hud.dispose();
+  });
+});
+
 test("F10 toggles the yellow game-server latency and FPS readout and its probe timer", async () => {
   await withHudEnvironment(async ({ root, events, win }) => {
     const hud = new HudOverlay(root, { returnToReady() {} }, "39.11");

@@ -178,6 +178,23 @@ test("background downloads say so until a foreground caller wants the container"
   assert.equal(progress.filter(event => event.file === "b.rho").at(-1)!.background, undefined);
 });
 
+test("a failed whole download ends with one failed progress, marked background when only background waited", async () => {
+  const directory = memoryDirectory();
+  const progress: ContainerProgress[] = [];
+  const containers = new ContainerStore({
+    manifest: { version: "p3553", revision: "r1", files: ["a.rho", "b.rho"].map(name =>
+      ({ name, size: 2 * MiB, mtimeMs: 0, sha256: "" })) } as never,
+    storage: { getDirectory: async () => directory, estimate: async () => ({ quota: 1e12, usage: 0 }) },
+    fetcher: (async () => new Response(null, { status: 503 })) as never,
+    onProgress: event => progress.push(event),
+  });
+  const results = await Promise.allSettled([containers.ensure("a.rho"), containers.ensure("a.rho")]);
+  assert.ok(results.every(result => result.status === "rejected"));
+  await assert.rejects(containers.ensure("b.rho", { background: true }), /HTTP 503/);
+  assert.deepEqual(progress.filter(event => event.phase === "failed").map(event => [event.file, event.background]),
+    [["a.rho", undefined], ["b.rho", true]]);
+});
+
 test("a container that finished downloading is read from OPFS, not by range", async () => {
   const big = content(4 * MiB, 11);
   const { store: containers, requests } = store({ "big.rho": big });

@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { parse } from "@babel/parser";
 import { addGraphicsPresentationOptions } from "./graphics-presentation-options";
-import { loadSettingsWindowAssets, parseOfficialBgmChoices,
-  type SettingsWindowAssetDependencies, type SettingsWindowNode,
+import { loadSettingsWindowAssets, parseOfficialBgmChoices, resourceButtonName,
+  resourceSettingName, type SettingsWindowAssetDependencies, type SettingsWindowNode,
   type SettingsWindowResourceLibrary } from "./settings-window-assets";
 
 const release = readFileSync(new URL(
@@ -197,15 +197,18 @@ function originalLoader(dependencies: SettingsWindowAssetDependencies):
 }
 
 function snapshot(assets: any, released = false) {
+  // The 资源下载 row is ours (its own test below); the release has none.
+  const ours = (entry: SettingsWindowNode) =>
+    [resourceSettingName, resourceButtonName].includes(attribute(entry, "name") ?? "");
   return {
     definition: assets.definition,
     // The browser-only graphics checkbox is layered onto the native definition.
     graphics: released ? addGraphicsPresentationOptions(assets.graphics) : assets.graphics,
-    game: assets.game,
+    game: { ...assets.game, children: assets.game.children.filter((child: SettingsWindowNode) => !ours(child)) },
     keyboard: assets.keyboard, keymapScrollbar: assets.keymapScrollbar,
     keyMessageBox: assets.keyMessageBox, config: assets.config,
     frames: [...assets.frames],
-    styles: [...assets.styles].map(([key, value]) => [key, value]),
+    styles: [...assets.styles].filter(([key]) => !ours(key)).map(([key, value]) => [key, value]),
     images: [...assets.images].map(([key, value]) =>
       [key, { width: value.width, height: value.height,
         canvasWidth: value.image.width, canvasHeight: value.image.height }]),
@@ -260,6 +263,41 @@ test("settings resource blueprint, images, strings and failures match release qc
       await compare(fault);
     canvasAvailable = false;
     await compare("no-canvas");
+  } finally {
+    for (const [name, descriptor] of Object.entries(previous)) {
+      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+      else Reflect.deleteProperty(globalThis, name);
+    }
+  }
+});
+
+test("变更设置 gains a 资源下载 row with a release-styled button under the custom settings", async () => {
+  const previous = Object.fromEntries(["document", "ImageData", "DOMParser"].map(name =>
+    [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
+  Object.defineProperties(globalThis, {
+    document: { configurable: true, value: { createElement: () => ({
+      width: 0, height: 0, getContext: () => ({ putImageData() {} }) }) } },
+    ImageData: { configurable: true, value: class {} },
+    DOMParser: { configurable: true, value: class {
+      parseFromString() {
+        return { querySelector: () => null, documentElement: { children: [] }, querySelectorAll: () => [] };
+      }
+    } },
+  });
+  try {
+    const { library, dependencies } = fixture("none");
+    const assets = await loadSettingsWindowAssets(library, dependencies);
+    const names = assets.game.children.map(child => attribute(child, "name"));
+    const row = assets.game.children.find(child => attribute(child, "name") === resourceSettingName)!;
+    // The last child: below the four check boxes (420 + 4 × 36), 14 further down.
+    assert.equal(names.at(-1), resourceSettingName);
+    assert.equal(attribute(row, "leftTopWH"), "36 578 868 26");
+    const button = row.children.find(child => child.name === "TextButton")!;
+    assert.equal(attribute(button, "name"), resourceButtonName);
+    assert.equal(attribute(button, "text"), "资源下载");
+    assert.equal(attribute(button, "align"), "right;vcenter");
+    assert.ok(assets.styles.has(button), "the button gets the release button style");
+    assert.match(attribute(row.children.find(child => child.name === "Label")!, "text") ?? "", /卡丁城/);
   } finally {
     for (const [name, descriptor] of Object.entries(previous)) {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);

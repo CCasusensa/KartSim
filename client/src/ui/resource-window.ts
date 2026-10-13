@@ -230,6 +230,8 @@ export function resourceWindowDefinition(groupCount: number): Node {
 export interface ResourceWindowOptions {
   onActivate?(): void;
   onClose?(): void;
+  /** The group shown first (the first group otherwise). */
+  group?: string;
 }
 
 const TIP = "首页资源启动时优先下载；进入小屋、商城等页面时自动下载该页面的资源，赛道在比赛加载时下载。" +
@@ -258,7 +260,7 @@ export class ResourceWindow {
   private constructor(readonly manager: ResourceManager, readonly library: BmlLibrary, readonly root: HTMLElement,
     readonly options: ResourceWindowOptions) {
     this.images = new ImageCache(library, () => this.view?.render());
-    this.selected = manager.groups[0]?.id ?? "home";
+    this.selected = (options.group && manager.group(options.group) ? options.group : manager.groups[0]?.id) ?? "home";
   }
 
   /** Opens the window (or keeps the open one); resolves once it shows. */
@@ -304,6 +306,8 @@ export class ResourceWindow {
     this.updateSpace();
     this.spaceTimer = setInterval(() => this.updateSpace(), 5_000);
     view.show();
+    // Keys (Esc) go to this window, not to one it opened over (设置).
+    view.focus();
     void this.manager.refresh().catch(() => undefined);
   }
 
@@ -634,4 +638,50 @@ export async function waitForResources(library: BmlLibrary, root: HTMLElement, m
     release?.();
     view?.dispose();
   }
+}
+
+/**
+ * A failure that may come from broken resources (进入卡丁城失败): the reason
+ * in the 删除资源 window's look, with 资源下载 (onResources) when given and
+ * 确定. Resolves when it closes; throws when the window cannot load.
+ */
+export async function showResourceFailure(library: BmlLibrary, root: HTMLElement, options: {
+  title: string; message: string; onActivate?(): void; onResources?(): void;
+}): Promise<void> {
+  let view: WindowView | undefined;
+  let closed!: () => void;
+  const done = new Promise<void>(resolve => { closed = resolve; });
+  const close = () => {
+    options.onActivate?.();
+    view?.dispose();
+    closed();
+  };
+  const resources = options.onResources && (() => {
+    close();
+    options.onResources!();
+  });
+  const definition = node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
+    node("CaptionWindow", { name: "failureDialog", windowRect: "0 0 480 240", frame: "CaptionDialog",
+      caption: options.title, captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
+      node("Label", { name: "failureText", windowSize: "440 112", adjust: "0 16", align: "hcenter" }),
+      ...(resources ? [node("TextButton", { name: "failureResources", leftTopWH: "0 0 100 30", align: "hcenter;bottom",
+        adjust: "-56 10", textRender: "bold14" })] : []),
+      node("TextButton", { name: "failureOk", leftTopWH: "0 0 100 30", align: "hcenter;bottom",
+        adjust: resources ? "56 10" : "0 10", textRender: "bold14" }),
+    ]),
+  ]);
+  view = await loadWindow(library, root, definition, options.title, close, entry => {
+    switch (nodeName(entry)) {
+      case "failureDialog": return { text: options.title };
+      case "failureText": return paintText(options.message, { size: 14, color: TEXT, align: "center", middle: true,
+        lineGap: 8 });
+      case "failureResources": return button("资源下载", resources);
+      case "closeButton": return { label: "确定", action: close };
+      case "failureOk": return button("确定", close);
+    }
+    return {};
+  });
+  view.show();
+  view.focus(resources ? "failureResources" : "failureOk");
+  await done;
 }

@@ -69,6 +69,8 @@ export interface StartupHost {
     setStartupProgress?(percent: number, message: string): void;
     chooseResourceSource(defaultName: string): Promise<StartupSource | undefined>;
     setLoadingProgress(key: string, loadedBytes: number, totalBytes: number, message: string): void;
+    /** A download that failed leaves the loading badge. */
+    dropLoadingProgress?(key: string): void;
     showDebugText(message: string, level?: string): void;
     finishLoading(): void;
     showLoadingError(message: string): void;
@@ -213,8 +215,13 @@ export async function loadStartupResources(
         if (progress.background || (!active && !finished) ||
             (host.hud.setStartupProgress && !host.assets.isCurrent(generation))) return;
         // Range reads share one entry: their bytes are counted together.
+        const key = progress.phase === "partial" ? "resource:分段读取" : `resource:${progress.file.toLowerCase()}`;
+        if (progress.phase === "failed") {
+          host.hud.dropLoadingProgress?.(key);
+          return;
+        }
         host.hud.setLoadingProgress(
-          progress.phase === "partial" ? "resource:分段读取" : `resource:${progress.file.toLowerCase()}`,
+          key,
           progress.loadedBytes,
           progress.totalBytes,
           `正在加载 ${progress.file}`,

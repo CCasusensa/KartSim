@@ -1,4 +1,4 @@
-import { ensureFeatureResources } from "../ui/resource-panel";
+import { ensureFeatureResources, showResourceFailureNotice } from "../ui/resource-panel";
 import { showAccountMessage, showAccountToast, type OverlayDocument } from "../account/account-dialogs";
 import { activeBrowserSession } from "../account/account-runtime";
 import { accountOwnedEquipment, garageViewCatalog } from "../account/garage-ownership";
@@ -203,6 +203,17 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
       },
       status: (message: string, error: boolean) => {
         if (error) host.hud.showDebugText(message, "error");
+      },
+      // The status line is easy to miss: a failed city entry gets a window, with
+      // 资源下载 on the 卡丁城 group when its resources may be the cause.
+      onCityFailed: (reason: string, resources: boolean) => {
+        void showResourceFailureNotice(host.root, "进入卡丁城失败", resources
+          ? `${reason}\n\n可能是卡丁城资源下载出错。\n点“资源下载”删除卡丁城资源后重新下载，\n` +
+            "以后也可以在 设置 → 变更设置 里打开资源下载。"
+          : reason, {
+          ...(resources ? { group: "city" } : {}),
+          onActivate: () => host.getInterfaceAudio()?.playClick(),
+        });
       },
       // The lobby's status bar stays above the room, as in the original; its
       // "+" opens the shop like the home's.
