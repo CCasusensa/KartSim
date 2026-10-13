@@ -1097,6 +1097,9 @@
     "iL",
     "rL"
   ],
+  "handwrittenVehicleHeadBandOverrides": [
+    "ae0"
+  ],
   "handwrittenVehicleNormalCoordinatorOverrides": [
     "vL",
     "U40",
@@ -1873,8 +1876,8 @@
     },
     {
       "file": "vehicle.js",
-      "bytes": 186622,
-      "sha256": "471f84ad4c1fdd7fec82cd201f953fe191bcfdf48a5159f3bc2ee4d0e217c8bc",
+      "bytes": 186573,
+      "sha256": "dd9c9ed8b6e7a1839e1bb322a22a4b70a132c22c53d1b96148ea2d103c3d6a35",
       "imports": 183,
       "exports": 104
     },

@@ -39,6 +39,7 @@ import { KartAudioRuntime, loadKartAudio, decodeMotorAudio, parseRoadSoundConfig
 import { loadCharacterAsset } from "../vehicle/load-character-asset.ts";
 import { SlipstreamVisual, loadSlipstreamVisual, SlipstreamAudio, loadSlipstreamAudio } from "../vehicle/slipstream-effects.ts";
 import { validateRaceStartGrid as iL, raceStartPosition as rL } from "../vehicle/race-start-slots.ts";
+import { headBandModelForBoosterState as ae0 } from "../vehicle/head-band-state.ts";
 import { LapTiming as vL, NormalObjectCoordinator as U40 } from "../vehicle/normal-coordinator.ts";
 import { NormalRaceCoordinator } from "../vehicle/normal-race-coordinator.ts";
 import { VehicleFrameClock as $40, normalizeVehicleTime as DC } from "../vehicle/frame-clock.ts";
@@ -1126,13 +1127,6 @@ function oe0(n, e) {
       },
     }
   );
-}
-
-function ae0(n) {
-  const e = Math.trunc(n);
-  if (e === 0) return 1;
-  if (e === 1 || e === 2) return 2;
-  if (e === 3) return 3;
 }
 
 function ce0(n) {

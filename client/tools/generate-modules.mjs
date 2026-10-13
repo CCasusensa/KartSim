@@ -521,6 +521,7 @@ itemWorldRaceAssetPatches.push(
 );
 const vehicleSlipstreamOverrides = new Set(["mv", "wv"]);
 const vehicleStartGridOverrides = new Set(["iL", "rL"]);
+const vehicleHeadBandOverrides = new Set(["ae0"]);
 const vehicleNormalCoordinatorOverrides = new Set(["vL", "U40", "yL", "as", "J8"]);
 const vehicleFrameClockOverrides = new Set(["$40", "DC"]);
 const vehicleResidualOverrides = new Map([
@@ -1711,6 +1712,7 @@ const replacedVehicleKartAudio = new Set();
 const replacedVehicleAssetLoaderMethods = new Set();
 const replacedVehicleSlipstream = new Set();
 const replacedVehicleStartGrid = new Set();
+const replacedVehicleHeadBand = new Set();
 const replacedVehicleNormalCoordinators = new Set();
 const replacedVehicleFrameClocks = new Set();
 const replacedVehicleResidual = new Set();
@@ -4015,6 +4017,12 @@ ${[...garageSelectionMethodOverrides.values()].join("\n")}
     replacedVehicleStartGrid.add(declarationName);
     continue;
   }
+  if (vehicleHeadBandOverrides.has(declarationName)) {
+    assert(node.type === "FunctionDeclaration" && originalSection(node.start) === "vehicle",
+      `Vehicle headBand state ${declarationName} moved.`);
+    replacedVehicleHeadBand.add(declarationName);
+    continue;
+  }
   if (vehicleNormalCoordinatorOverrides.has(declarationName)) {
     assert(originalSection(node.start) === "vehicle" &&
       node.type === (["as", "J8"].includes(declarationName) ? "FunctionDeclaration" : "ClassDeclaration"),
@@ -4358,6 +4366,8 @@ assert(replacedVehicleSlipstream.size === vehicleSlipstreamOverrides.size,
   "The vehicle slipstream classes were not all replaced.");
 assert(replacedVehicleStartGrid.size === vehicleStartGridOverrides.size,
   "The vehicle start grid functions were not all replaced.");
+assert(replacedVehicleHeadBand.size === vehicleHeadBandOverrides.size,
+  "The vehicle headBand state function was not replaced.");
 assert(replacedVehicleNormalCoordinators.size === vehicleNormalCoordinatorOverrides.size,
   "The vehicle normal coordinator symbols were not all replaced.");
 assert(replacedVehicleFrameClocks.size === vehicleFrameClockOverrides.size,
@@ -4741,6 +4751,7 @@ function renderModule(name) {
     lines.push('import { loadCharacterAsset } from "../vehicle/load-character-asset.ts";');
     lines.push('import { SlipstreamVisual, loadSlipstreamVisual, SlipstreamAudio, loadSlipstreamAudio } from "../vehicle/slipstream-effects.ts";');
     lines.push('import { validateRaceStartGrid as iL, raceStartPosition as rL } from "../vehicle/race-start-slots.ts";');
+    lines.push('import { headBandModelForBoosterState as ae0 } from "../vehicle/head-band-state.ts";');
     lines.push('import { LapTiming as vL, NormalObjectCoordinator as U40 } from "../vehicle/normal-coordinator.ts";');
     lines.push('import { NormalRaceCoordinator } from "../vehicle/normal-race-coordinator.ts";');
     lines.push('import { VehicleFrameClock as $40, normalizeVehicleTime as DC } from "../vehicle/frame-clock.ts";');
@@ -7174,6 +7185,7 @@ const manifest = {
   handwrittenVehicleAssetLoaderMethodOverrides: [...vehicleAssetLoaderMethodOverrides.keys()],
   handwrittenVehicleSlipstreamOverrides: [...vehicleSlipstreamOverrides],
   handwrittenVehicleStartGridOverrides: [...vehicleStartGridOverrides],
+  handwrittenVehicleHeadBandOverrides: [...vehicleHeadBandOverrides],
   handwrittenVehicleNormalCoordinatorOverrides: [...vehicleNormalCoordinatorOverrides],
   handwrittenVehicleFrameClockOverrides: [...vehicleFrameClockOverrides],
   handwrittenVehicleResidualOverrides: [...vehicleResidualOverrides.keys()],
