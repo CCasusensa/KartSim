@@ -46,6 +46,8 @@ export interface MyRoomProfile {
   displayKarts?: FavoriteItem[];
   /** roomAdmin "我的小屋聊天设置"; chat is allowed unless explicitly turned off. */
   chatAllowed?: boolean;
+  /** roomAdmin "设置音乐": a bgmList.xml id; 0 or absent is 默认 (myroom/my-room-bgm.ts). */
+  bgmId?: number;
   /** roomAdmin access passwords; empty means open. Visitors are not yet networked. */
   roomPassword?: string;
   etcPassword?: string;
@@ -78,6 +80,7 @@ export function validateMyRoomProfile(value: unknown): asserts value is MyRoomPr
   }
   if (room.chatAllowed !== undefined && typeof room.chatAllowed !== "boolean")
     throw new Error("本地用户资料的小屋聊天设置无效。");
+  if (room.bgmId !== undefined) validateInteger(room.bgmId, 65535, "小屋音乐 ID");
   for (const password of [room.roomPassword, room.etcPassword]) {
     if (password !== undefined &&
         (typeof password !== "string" || password.length > MY_ROOM_PASSWORD_LENGTH))

@@ -20,6 +20,7 @@ export interface MultiplayerWindowActionHost {
   };
   openCombo?: WindowNode;
   comboIndex: number;
+  comboOffset?: number;
   hoveredRegion?: string;
   hoverRegions: Array<{ id: string; rect: WindowRect; sound: boolean }>;
   controls: Map<WindowNode, { focus(): void }>;
@@ -48,6 +49,7 @@ export function multiplayerCanvasButton(host: MultiplayerWindowActionHost,
         host.options.onActivate?.();
         host.openCombo = node;
         host.comboIndex = Math.max(0, state.select.values.indexOf(state.select.value));
+        host.comboOffset = undefined;
         host.render();
       } else if (state.action) {
         (state.onActivate ?? host.options.onActivate)?.();
@@ -62,6 +64,7 @@ export function multiplayerCanvasButton(host: MultiplayerWindowActionHost,
       event.stopPropagation();
       host.openCombo = node;
       host.comboIndex = Math.max(0, state.select.values.indexOf(state.select.value));
+      host.comboOffset = undefined;
       host.render();
     },
   };
@@ -85,6 +88,7 @@ export function updateMultiplayerHoverRegion(host: MultiplayerWindowActionHost,
 export function closeMultiplayerCombo(host: MultiplayerWindowActionHost): void {
   const combo = host.openCombo;
   host.openCombo = undefined;
+  host.comboOffset = undefined;
   host.render();
   if (combo) host.controls.get(combo)?.focus();
 }

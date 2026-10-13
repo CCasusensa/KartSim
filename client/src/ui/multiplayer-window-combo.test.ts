@@ -85,3 +85,59 @@ test("多人窗口组合弹层布局、列表帧和操作与发行版一致", as
       `active=${active} disabled=${disabled} withRect=${withRect}`);
   }
 });
+
+test("组合列表超过 comboListLength 时只画可见行并可滚动", () => {
+  const attrs = (node: WindowNode) => (node as WindowNode & { attrs: Record<string, string> }).attrs;
+  const attribute = (entry: WindowNode, name: string) => attrs(entry)[name];
+  const frame: ComboFrame = { texture: "list", left: { width: 5 },
+    right: { width: 6 }, caption: { height: 7 }, bottom: { height: 8 } };
+  const plain: ComboFrame = { texture: "item", left: { width: 0 },
+    right: { width: 0 }, caption: { height: 0 }, bottom: { height: 0 } };
+  const thumb: ComboFrame = { texture: "bar", left: { width: 5 },
+    right: { width: 5 }, caption: { height: 11 }, bottom: { height: 12 } };
+  const values = Array.from({ length: 20 }, (_, index) => `v${index}`);
+  const nodes = values.map(value => ({ name: "Option", children: [], attrs: { text: value } })) as WindowNode[];
+  const combo = { name: "Combo", children: nodes, attrs: { listFrame: "DefaultEdit",
+    comboListLength: "145", scrollBarVisible: "true" } } as WindowNode;
+  const painted: unknown[] = [];
+  let renders = 0;
+  const host = {
+    options: { state: () => ({ select: { values, value: "v15" } }) },
+    openCombo: combo, comboIndex: 15,
+    comboRects: new Map([[combo, { x: 100, y: 200, width: 145, height: 22 }]]),
+    buttons: [] as MultiplayerComboHost["buttons"],
+    frames: new Map([["DefaultEdit", [frame]], ["DefaultVerticalScrollArea", [plain]],
+      ["DefaultVerticalScrollButton", [thumb]]]),
+    styles: new Map(nodes.map(node => [node, { states: [{ frame: plain }, { frame: plain }] }])),
+    images: new Map([["list", { image: "list" }], ["item", { image: "item" }], ["bar", { image: "bar" }]]),
+    context: {} as CanvasRenderingContext2D,
+    render: () => { renders++; },
+    closeCombo: () => {}, chooseCombo: () => {},
+    drawComboText: () => {}, text: (value: string) => value,
+  } as unknown as MultiplayerComboHost;
+  const dependencies = {
+    entries: (entry: WindowNode) => entry.children, attribute,
+    rectangle: (_entry: WindowNode, parent: { x: number; y: number; width: number }) =>
+      ({ x: parent.x, y: parent.y, width: parent.width, height: 20 }),
+    paintFrame: (_context: CanvasRenderingContext2D, paint: ComboFrame, _image: CanvasImageSource,
+      rect: unknown) => painted.push([paint.texture, rect]),
+  };
+  drawMultiplayerComboPopup(host, dependencies);
+  // 145 px fit 7 rows of 20; the selected option sits in the middle.
+  const rows = host.buttons.filter(button => typeof button.key === "number");
+  assert.deepEqual(rows.map(button => button.key), [12, 13, 14, 15, 16, 17, 18]);
+  assert.deepEqual(rows[0]!.rect, { x: 100, y: 200, width: 133, height: 20 });
+  assert.equal(host.comboOffset, 12);
+  assert.equal(host.comboVisible, 7);
+  assert.deepEqual(painted[0], ["list", { x: 95, y: 193, width: 156, height: 155 }]);
+  assert.ok(painted.some(entry => (entry as unknown[])[0] === "bar"));
+  // The track below the thumb pages down, clamped to the last full page.
+  host.buttons.find(button => button.key === "comboPageDown")!.activate();
+  assert.equal(host.comboOffset, 13);
+  assert.equal(renders, 1);
+  host.buttons = [];
+  host.comboOffset = 0;
+  drawMultiplayerComboPopup(host, dependencies);
+  assert.deepEqual(host.buttons.filter(button => typeof button.key === "number")
+    .map(button => button.key), [0, 1, 2, 3, 4, 5, 6]);
+});

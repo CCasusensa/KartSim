@@ -19,10 +19,11 @@ test("representative kart choices start with 不选择 and keep labels unique", 
 });
 
 test("the room shows saved representative karts, else the first two starred", () => {
-  const starred = [kart(1, "a"), kart(2, "b"), kart(3, "c")];
+  const starred = (itemId: number) => ({ ...kart(itemId, String(itemId)), starred: true });
+  const karts = [kart(9, "owned"), starred(1), starred(2), starred(3)];
   const room = defaultMyRoomProfile();
-  assert.deepEqual(myRoomDisplayKarts(room, starred).map(item => item.itemId), [1, 2]);
-  assert.deepEqual(myRoomDisplayKarts({ ...room, displayKarts: [] }, starred), []);
+  assert.deepEqual(myRoomDisplayKarts(room, karts).map(item => item.itemId), [1, 2]);
+  assert.deepEqual(myRoomDisplayKarts({ ...room, displayKarts: [] }, karts), []);
 });
 
 test("room admin settings are validated", () => {
@@ -32,6 +33,8 @@ test("room admin settings are validated", () => {
   assert.throws(() => validateMyRoomProfile({ ...room,
     displayKarts: [kart(1, "a").item, kart(2, "b").item, kart(3, "c").item] }));
   assert.throws(() => validateMyRoomProfile({ ...room, roomPassword: "x".repeat(13) }));
+  validateMyRoomProfile({ ...room, bgmId: 150 });
+  assert.throws(() => validateMyRoomProfile({ ...room, bgmId: -1 }));
   assert.throws(() => validateMyRoomProfile({ ...room,
     displayKarts: [{ category: 1, itemId: 2, serial: 0 }] }));
 });

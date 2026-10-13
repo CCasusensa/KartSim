@@ -32,6 +32,9 @@ type Settings struct {
 	Message       string            `json:"message"`
 	DisplayKarts  []json.RawMessage `json:"displayKarts"`
 	ChatAllowed   bool              `json:"chatAllowed"`
+	// BgmID is the roomAdmin 设置音乐 track (a bgmList.xml id); 0 is 默认,
+	// the environment's own music.
+	BgmID int `json:"bgmId"`
 	// Locked: a room password is set; visitors must give it to enter.
 	Locked bool `json:"locked"`
 	// EtcLocked: 车库/徽章/图鉴/成就是否公开 has a password; visitors must
@@ -61,10 +64,20 @@ type Profile struct {
 	Appearance json.RawMessage
 }
 
+// favoriteKart is a representative kart: the client's FavoriteItem
+// (category 3, itemId, serial); older documents used kind "kart".
 type favoriteKart struct {
-	Kind   string `json:"kind"`
-	ItemID int    `json:"itemId"`
+	Category int    `json:"category"`
+	Kind     string `json:"kind"`
+	ItemID   int    `json:"itemId"`
+	Serial   int    `json:"serial"`
 }
+
+// kartCategory is ItemTable's kart category.
+const kartCategory = 3
+
+// maxBgmID bounds a bgmList.xml id.
+const maxBgmID = 65535
 
 // maxText bounds the room texts copied from a profile (the client allows
 // 32 and 120 code points).
@@ -98,6 +111,7 @@ func ParseProfile(document string) Profile {
 			Message       string            `json:"message"`
 			DisplayKarts  []json.RawMessage `json:"displayKarts"`
 			ChatAllowed   *bool             `json:"chatAllowed"`
+			BgmID         int               `json:"bgmId"`
 			RoomPassword  string            `json:"roomPassword"`
 			EtcPassword   string            `json:"etcPassword"`
 		} `json:"myRoom"`
@@ -119,6 +133,9 @@ func ParseProfile(document string) Profile {
 	if room.ChatAllowed != nil {
 		settings.ChatAllowed = *room.ChatAllowed
 	}
+	if room.BgmID > 0 && room.BgmID <= maxBgmID {
+		settings.BgmID = room.BgmID
+	}
 	settings.roomPassword = clip(room.RoomPassword, maxPassword)
 	settings.etcPassword = clip(room.EtcPassword, maxPassword)
 	settings.Locked = settings.roomPassword != ""
@@ -129,12 +146,14 @@ func ParseProfile(document string) Profile {
 	}
 	for _, raw := range room.DisplayKarts {
 		var kart favoriteKart
-		if json.Unmarshal(raw, &kart) != nil || kart.Kind != "kart" || kart.ItemID < 0 {
+		if json.Unmarshal(raw, &kart) != nil || kart.ItemID < 0 || kart.Serial < 0 ||
+			(kart.Category != kartCategory && kart.Kind != "kart") {
 			continue
 		}
 		settings.DisplayKarts = append(settings.DisplayKarts, raw)
-		if build, ok := doc.Garage.Builds[fmt.Sprintf("%d:0", kart.ItemID)]; ok {
-			builds[fmt.Sprintf("%d:0", kart.ItemID)] = build
+		key := fmt.Sprintf("%d:%d", kart.ItemID, kart.Serial)
+		if build, ok := doc.Garage.Builds[key]; ok {
+			builds[key] = build
 		}
 	}
 	if len(doc.Equipment) == 0 || doc.Equipment[0] != '{' {

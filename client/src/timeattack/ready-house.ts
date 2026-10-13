@@ -25,6 +25,8 @@ import { loadStuffInfo, stuffKey, type StuffLibrary } from "../account/stuff-ite
 import { ImageCache, type MyRoomDataLibrary } from "../myroom/myroom-data";
 import { loadTrackCard } from "../ui/track-picker-window-assets";
 import { p2 } from "../generated/formats.js";
+import { createMyRoomMusic, type MyRoomBgmOwner, type MyRoomMusic,
+  type MyRoomMusicLibrary } from "../myroom/my-room-music";
 
 /** The release GarageDialog ("我的物品") opened from the room menu. */
 interface HouseGarageView { show(): void; dispose(): void }
@@ -271,13 +273,27 @@ async function equipFromHouseGarage(controller: ReadyHouseController,
   }
 }
 
-/** Starred karts (favoriteItems category 3) that resolve to a local kart model. */
-function starredRoomKarts(profile: LocalProfile,
-  catalog: ItemInventoryCatalog): MyRoomAdminKart[] {
-  return profile.favoriteItems.filter(item => item.category === 3).flatMap(item => {
-    const kart = roomKart(item, catalog);
-    return kart ? [{ item, title: kart.title }] : [];
+/**
+ * 设置代表卡丁车's karts: the starred ones (favoriteItems category 3) first,
+ * then the rest the account owns; without an account only the starred ones.
+ */
+export function roomKarts(profile: LocalProfile, owned: ItemInventoryCatalog,
+  signedIn = !!activeBrowserSession()): MyRoomAdminKart[] {
+  const starred = profile.favoriteItems.filter(item => item.category === 3).flatMap(item => {
+    const kart = roomKart(item, owned);
+    return kart ? [{ item, title: kart.title, starred: true }] : [];
   });
+  if (!signedIn) return starred;
+  const key = (itemId: number, systemKart?: string) => `${itemId}:${itemId === 0 ? systemKart ?? "" : ""}`;
+  const listed = new Set(starred.map(kart => key(kart.item.itemId, kart.item.systemKart)));
+  return [...starred, ...owned.karts.flatMap(kart => {
+    const id = key(kart.itemId, kart.systemKey);
+    if (listed.has(id)) return [];
+    listed.add(id);
+    return [{ item: { category: 3, itemId: kart.itemId, serial: 0,
+      ...(kart.itemId === 0 && kart.systemKey ? { systemKart: kart.systemKey } : {}) },
+    title: kart.title }];
+  })];
 }
 
 function roomKart(item: FavoriteItem, catalog: ItemInventoryCatalog) {
@@ -291,6 +307,20 @@ export function localRiderName(): string {
   } catch {
     return "车手";
   }
+}
+
+/** The room's music through the global BGM owner; the player's 主页面音乐 backs 默认. */
+function houseMusic(controller: ReadyHouseController, library: ReadyHouseLibrary): MyRoomMusic {
+  const host = controller.host as ReadyHouseController["host"] & {
+    getGameOptions?(): { mainMenuBgmPath?: string };
+  };
+  return createMyRoomMusic({
+    library: library as unknown as MyRoomMusicLibrary,
+    owner: () => host.getBgm() as unknown as MyRoomBgmOwner | undefined,
+    mainMenuPath: () => host.getGameOptions?.().mainMenuBgmPath ?? "",
+    onError: error => host.hud.showDebugText(
+      `小屋音乐：${error instanceof Error ? error.message : String(error)}`, "error"),
+  });
 }
 
 /** Open the saved My Room from Ready, holding a distinct shell modal state. */
@@ -324,8 +354,9 @@ export async function openReadyHouse(controller: ReadyHouseController, visit?: s
       profile: controller.host.getProfile() as LocalProfile,
       ownerName: localRiderName(),
       // Representative karts are chosen from owned karts; parked ones still render.
-      starredKarts: starredRoomKarts(controller.host.getProfile() as LocalProfile,
+      roomKarts: roomKarts(controller.host.getProfile() as LocalProfile,
         garageViewCatalog(catalog, selectionKeep(controller.host.getSelection()))),
+      music: houseMusic(controller, library),
       resolveKart: item => roomKart(item, catalog),
       onProfileChange: profile => saveReadyHouseProfile(controller, profile),
       onOpenInventory: () => openHouseInventory(controller, library),

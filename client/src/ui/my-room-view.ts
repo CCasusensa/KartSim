@@ -19,6 +19,7 @@ import { MY_ROOM_FONT_FAMILY, MyRoomHud, loadMyRoomHudAssets, type MyRoomHudLibr
   type MyRoomHudRider } from "./my-room-hud";
 import { MY_ROOM_BALLOON_MS, MyRoomRiderLabels, type MyRoomLabel } from "./my-room-labels";
 import type { MyRoomDataLibrary } from "../myroom/myroom-data";
+import type { MyRoomMusic } from "../myroom/my-room-music";
 import { MyRoomSceneView, type MyRoomRemoteRider, type MyRoomSceneLibrary,
   type MyRoomSceneSubject, type MyRoomVisitorKart } from "./my-room-scene";
 
@@ -54,8 +55,10 @@ export interface MyRoomViewOptions {
   profile: LocalProfile;
   /** Rider shown as the room owner in the release rider list. */
   ownerName: string;
-  /** Starred karts offered as representative karts in the room admin dialog. */
-  starredKarts: readonly MyRoomAdminKart[];
+  /** The account's karts offered as representative karts in the room admin dialog. */
+  roomKarts: readonly MyRoomAdminKart[];
+  /** Room music (roomAdmin 设置音乐); the room stays silent about music without it. */
+  music?: MyRoomMusic;
   /** Kart models for representative karts parked beside the owner's. */
   resolveKart(item: FavoriteItem): GarageCatalogEntry | undefined;
   onProfileChange(profile: LocalProfile): void;
@@ -125,9 +128,9 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string,
 
 /** Representative karts saved in the room, else the first starred karts. */
 export function myRoomDisplayKarts(room: MyRoomProfile,
-  starred: readonly MyRoomAdminKart[]): FavoriteItem[] {
+  karts: readonly MyRoomAdminKart[]): FavoriteItem[] {
   if (room.displayKarts) return room.displayKarts;
-  return starred.slice(0, 2).map(kart => kart.item);
+  return karts.filter(kart => kart.starred).slice(0, 2).map(kart => kart.item);
 }
 
 /** The My Room screen: the original scene and menus, live with the riders in it. */
@@ -194,6 +197,7 @@ export class MyRoomView {
       MY_ROOM_FONT_FAMILY);
     this.sceneView.onFrame = heads => this.labels?.draw(heads, id => this.riderLabel(id));
     void this.sceneView.setEnvironment(this.environment());
+    this.playMusic();
     if (this.options.subject) void this.sceneView.setSubject({ ...this.options.subject,
       displayKarts: this.displayKartEntries() });
     window.addEventListener("keydown", this.onKeyDown, true);
@@ -212,7 +216,10 @@ export class MyRoomView {
 
   refresh(profile: LocalProfile): void {
     this.profile = profile;
-    if (this.sceneView && !this.visiting) void this.sceneView.setEnvironment(this.environment());
+    if (this.sceneView && !this.visiting) {
+      void this.sceneView.setEnvironment(this.environment());
+      this.playMusic();
+    }
   }
 
   /** Back to the player's own room (the taskbar 小屋 button while visiting). */
@@ -236,6 +243,7 @@ export class MyRoomView {
     this.disposed = true;
     window.removeEventListener("keydown", this.onKeyDown, true);
     this.releaseEvents?.();
+    this.options.music?.stop();
     const connection = this.options.social?.connection;
     if (connection) void connection.leave().finally(() => connection.stop());
     this.admin?.dispose();
@@ -257,9 +265,15 @@ export class MyRoomView {
       ?? environments.find(item => item.isDefault)!;
   }
 
+  /** The room's music: the owner's 设置音乐 choice, 默认 following the environment. */
+  private playMusic(): void {
+    const bgmId = this.visiting ? this.room!.room.settings.bgmId : this.profile.myRoom.bgmId;
+    this.options.music?.play(bgmId, this.environment());
+  }
+
   private displayKartItems(): FavoriteItem[] {
     return this.visiting ? this.room!.room.settings.displayKarts
-      : myRoomDisplayKarts(this.profile.myRoom, this.options.starredKarts);
+      : myRoomDisplayKarts(this.profile.myRoom, this.options.roomKarts);
   }
 
   private displayKartEntries(): GarageCatalogEntry[] {
@@ -384,6 +398,7 @@ export class MyRoomView {
     const scene = this.sceneView;
     if (!scene) return;
     void scene.setEnvironment(this.environment());
+    this.playMusic();
     if (this.options.subject) void scene.setSubject({ ...this.options.subject,
       displayKarts: this.displayKartEntries() }, this.ownerSubject());
     void scene.setDisplayKarts(this.displayKartEntries());
@@ -696,11 +711,13 @@ export class MyRoomView {
     this.adminOpening = true;
     try {
       const room = { ...this.profile.myRoom,
-        displayKarts: myRoomDisplayKarts(this.profile.myRoom, this.options.starredKarts) };
+        displayKarts: myRoomDisplayKarts(this.profile.myRoom, this.options.roomKarts) };
+      const bgmChoices = await this.options.music?.choices().catch(() => undefined) ?? [];
+      if (this.disposed) return;
       const dialog = await openMyRoomAdmin({
         library: this.options.library, root: this.options.root, room,
         environments: this.options.environments,
-        starredKarts: this.options.starredKarts,
+        karts: this.options.roomKarts, bgmChoices,
         onSave: next => this.save(next),
         onClose: () => this.closeAdmin(),
       });
@@ -733,6 +750,7 @@ export class MyRoomView {
       const next = { ...this.profile, myRoom };
       this.options.onProfileChange(next);
       this.profile = next;
+      this.playMusic();
       if (JSON.stringify(previous) !== JSON.stringify(myRoom.displayKarts))
         void this.sceneView?.setDisplayKarts(this.displayKartEntries());
       this.hud?.render();

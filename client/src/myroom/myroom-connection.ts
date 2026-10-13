@@ -45,6 +45,8 @@ export interface RoomSettings {
   message: string;
   displayKarts: FavoriteItem[];
   chatAllowed: boolean;
+  /** roomAdmin 设置音乐 (0 for 默认). */
+  bgmId: number;
   locked: boolean;
   etcLocked: boolean;
 }
@@ -160,6 +162,7 @@ export function parseRoomView(value: unknown): RoomView | undefined {
       displayKarts: (Array.isArray(settings.displayKarts) ? settings.displayKarts : [])
         .filter(record) as unknown as FavoriteItem[],
       chatAllowed: settings.chatAllowed !== false,
+      bgmId: finite(settings.bgmId) ?? 0,
       locked: settings.locked === true,
       etcLocked: settings.etcLocked === true,
     },

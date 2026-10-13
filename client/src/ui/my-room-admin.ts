@@ -2,6 +2,7 @@ import { T } from "../generated/formats.js";
 import { C8, F9, h2, te } from "../generated/library.js";
 import type { FavoriteItem, MyRoomProfile } from "./local-profile";
 import type { MyRoomEnvironment } from "./my-room-catalog";
+import type { MyRoomBgmChoice } from "../myroom/my-room-bgm";
 
 /**
  * The release room management dialog, dialog.rho/roomAdmin/mq_dialog@zz.bml,
@@ -17,6 +18,8 @@ export interface MyRoomAdminNode {
 export interface MyRoomAdminKart {
   item: FavoriteItem;
   title: string;
+  /** Starred in 我的物品; a room without saved choices shows the first two. */
+  starred?: boolean;
 }
 
 export interface MyRoomAdminOptions {
@@ -24,8 +27,10 @@ export interface MyRoomAdminOptions {
   root: HTMLElement;
   room: MyRoomProfile;
   environments: readonly MyRoomEnvironment[];
-  /** Starred karts offered as the two representative karts. */
-  starredKarts: readonly MyRoomAdminKart[];
+  /** The account's karts offered as the two representative karts (starred first). */
+  karts: readonly MyRoomAdminKart[];
+  /** 设置音乐's tracks after 默认. */
+  bgmChoices: readonly MyRoomBgmChoice[];
   onSave(room: MyRoomProfile): Promise<boolean> | boolean;
   onClose(): void;
 }
@@ -54,10 +59,24 @@ export function sameFavorite(a: FavoriteItem | undefined, b: FavoriteItem | unde
     a.serial === b.serial && (a.systemKart ?? "") === (b.systemKart ?? "");
 }
 
-/** The release combos hold one option template; repeat it once per value. */
+/** gui_/monocoque config.bml `<ScrollBar defaultSize="12"/>`. */
+const SCROLLBAR_WIDTH = 12;
+
+/**
+ * The release combos hold one option template (250 wide); repeat it once
+ * per value, as wide as the combo less a scrollbar the list needs.
+ */
 function withOptions(combo: MyRoomAdminNode, template: MyRoomAdminNode,
   values: readonly string[]): MyRoomAdminNode {
-  const options = values.map(value => h2(template, { text: value }) as MyRoomAdminNode);
+  const [left = 0, , right = 0] = (T(combo, "windowRect") as string | undefined ?? "")
+    .split(/\s+/).map(Number);
+  const height = Number((T(template, "windowSize") as string | undefined ?? "")
+    .split(/\s+/)[1]) || 20;
+  const scrolls = T(combo, "scrollBarVisible") === "true" &&
+    values.length * height > Number(T(combo, "comboListLength") ?? Infinity);
+  const width = right - left - (scrolls ? SCROLLBAR_WIDTH : 0);
+  const options = values.map(value => h2(template, { text: value,
+    ...(width > 0 ? { windowSize: `${width} ${height}` } : {}) }) as MyRoomAdminNode);
   return { ...combo, children: [
     ...combo.children.filter(child => child.name !== "Skip"),
     { name: "Skip", attributes: [], children: options },
@@ -81,7 +100,8 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
   let etcPassword = room.etcPassword ?? "";
   let chatAllowed = room.chatAllowed !== false;
   let environmentId = room.environmentId;
-  const choices = myRoomAdminKartChoices(options.starredKarts);
+  let bgmId = options.bgmChoices.some(choice => choice.id === room.bgmId) ? room.bgmId! : 0;
+  const choices = myRoomAdminKartChoices(options.karts);
   const chosen = [0, 1].map(index => {
     const saved = room.displayKarts?.[index];
     return choices.find(choice => sameFavorite(choice.kart?.item, saved))?.label ?? NONE;
@@ -92,8 +112,9 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
   const template = findTemplate(raw);
   if (!template) throw new Error("缺少原版管理下拉模板");
   const environmentTitles = options.environments.map(item => item.title);
+  const bgmTitles = [BGM_DEFAULT, ...options.bgmChoices.map(choice => choice.label)];
   const values: Record<string, string[]> = {
-    myRoomBgm: [BGM_DEFAULT], chatTrack: environmentTitles,
+    myRoomBgm: bgmTitles, chatTrack: environmentTitles,
     reserveKart_1: choices.map(choice => choice.label),
     reserveKart_2: choices.map(choice => choice.label),
   };
@@ -117,7 +138,7 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
       .filter((kart, index, all) => all.findIndex(other =>
         sameFavorite(other.item, kart.item)) === index);
     const next: MyRoomProfile = {
-      ...room, environmentId, chatAllowed,
+      ...room, environmentId, chatAllowed, bgmId,
       displayKarts: karts.map(kart => kart.item),
       roomPassword: passwordOn ? password : "",
       etcPassword: etcOn ? etcPassword : "",
@@ -153,9 +174,16 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
             change: (value: string) => { etcPassword = value; } } };
         case "btnMyRoomChat": return { label: "允许聊天", checked: chatAllowed,
           disabled: busy, action: () => { chatAllowed = !chatAllowed; render(); } };
-        case "myRoomBgm": return { label: "设置音乐", disabled: busy,
-          select: { value: BGM_DEFAULT, valueText: BGM_DEFAULT, values: values.myRoomBgm!,
-            change: () => {} } };
+        case "myRoomBgm": {
+          // 默认 plays the room environment's own music (myroom/my-room-bgm.ts).
+          const current = options.bgmChoices.find(choice => choice.id === bgmId)?.label ?? BGM_DEFAULT;
+          return { label: "设置音乐", disabled: busy, select: {
+            value: current, valueText: current, values: bgmTitles,
+            change: (value: string) => {
+              bgmId = options.bgmChoices.find(choice => choice.label === value)?.id ?? 0;
+              render();
+            } } };
+        }
         case "chatTrack": {
           const current = options.environments.find(item => item.id === environmentId);
           return { label: "小屋环境设定", disabled: busy, select: {
@@ -180,7 +208,7 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
             } } };
         }
         // Kart search needs a text field the release opens on demand; the
-        // starred-kart list is short, so the combos alone cover the choice.
+        // combos scroll through the karts (comboListLength) instead.
         case "searchBtn_1":
         case "searchBtn_2": return { visible: false };
         case "OK": return { label: "确定", disabled: busy, action: () => { void save(); } };

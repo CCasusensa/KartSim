@@ -124,8 +124,12 @@ export async function loadMultiplayerWindowAssets(
     const frameName = attribute(node, "frame") ??
       (node.name === "Edit" ? "DefaultEdit" :
         node.name === "PlaneCheckButton" ? "DefaultCheckButton" : "");
-    const frames = host.styles.get(node)?.states.map(state => state.frame) ??
-      host.frames.get(frameName) ?? [];
+    const frames = [...host.styles.get(node)?.states.map(state => state.frame) ??
+      host.frames.get(frameName) ?? []];
+    // A scrolling combo list draws the default vertical scrollbar.
+    if (node.name === "ComboBox" && attribute(node, "scrollBarVisible") === "true")
+      frames.push(...["DefaultVerticalScrollArea", "DefaultVerticalScrollButton"]
+        .flatMap(name => host.frames.get(name)?.slice(0, 1) ?? []));
     for (const frame of frames) {
       if (frame.texture && !host.images.has(frame.texture))
         host.images.set(frame.texture, await loadTexture(frame.texture, true));

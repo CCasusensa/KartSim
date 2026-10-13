@@ -484,3 +484,30 @@ func TestParseProfileDefaults(t *testing.T) {
 		t.Fatalf("parsed %+v", s)
 	}
 }
+
+func TestParseProfileClientRoomSettings(t *testing.T) {
+	// The client saves representative karts as FavoriteItem (category 3,
+	// itemId, serial) and 设置音乐 as a bgmList.xml id.
+	profile := ParseProfile(`{"equipment":{"itemIds":{"3":5},"kartSerial":0},
+		"garage":{"version":1,"builds":{"5:0":{"a":1},"9:2":{"b":2},"7:0":{"c":3}}},
+		"myRoom":{"bgmId":149,"displayKarts":[{"category":3,"itemId":9,"serial":2},
+		{"category":1,"itemId":7,"serial":0}]}}`)
+	s := profile.Settings
+	if s.BgmID != 149 || len(s.DisplayKarts) != 1 {
+		t.Fatalf("parsed %+v", s)
+	}
+	var appearance struct {
+		Garage struct {
+			Builds map[string]json.RawMessage `json:"builds"`
+		} `json:"garage"`
+	}
+	if err := json.Unmarshal(profile.Appearance, &appearance); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := appearance.Garage.Builds["9:2"]; !ok || len(appearance.Garage.Builds) != 2 {
+		t.Fatalf("builds %s", profile.Appearance)
+	}
+	if s := ParseProfile(`{"myRoom":{"bgmId":-3}}`).Settings; s.BgmID != 0 {
+		t.Fatalf("negative bgm %+v", s)
+	}
+}

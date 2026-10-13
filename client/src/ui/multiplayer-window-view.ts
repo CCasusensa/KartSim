@@ -69,6 +69,9 @@ export class MultiplayerWindowView {
   hoverRegions: unknown[] = [];
   openCombo?: WindowNode;
   comboIndex = 0;
+  /** The first option shown in a scrolling combo list (multiplayer-window-combo). */
+  comboOffset?: number;
+  comboVisible = 0;
   hovered?: WindowNode;
   hoveredRegion?: string;
   pressed?: WindowNode;
@@ -113,6 +116,10 @@ export class MultiplayerWindowView {
       if (this.hoveredRegion) { this.hoveredRegion = undefined; this.render(); }
     });
     this.element.addEventListener("keydown", event => this.handleKeyDown(event));
+    // On the canvas and the option list, not the shell (its listeners match the release).
+    for (const target of [this.canvas, this.popup])
+      target.addEventListener("wheel", event => this.scrollCombo(event as WheelEvent),
+        { passive: false });
     this.observer = new ResizeObserver(() => this.render());
     this.observer.observe(options.root);
   }
@@ -136,6 +143,12 @@ export class MultiplayerWindowView {
         ? select.values.length - 1
         : Math.max(0, Math.min(select.values.length - 1,
           this.comboIndex + (event.key === "ArrowUp" ? -1 : 1)));
+      // Keep the highlighted option inside a scrolling list.
+      if (this.comboVisible > 0 && this.comboOffset !== undefined) {
+        if (this.comboIndex < this.comboOffset) this.comboOffset = this.comboIndex;
+        else if (this.comboIndex >= this.comboOffset + this.comboVisible)
+          this.comboOffset = this.comboIndex - this.comboVisible + 1;
+      }
       this.render();
       return;
     }
@@ -157,6 +170,16 @@ export class MultiplayerWindowView {
     }
   }
 
+  /** The wheel scrolls an open list longer than its comboListLength by one option. */
+  private scrollCombo(event: WheelEvent): void {
+    if (!this.openCombo || this.comboVisible <= 0 || this.comboOffset === undefined) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.deltaY === 0) return;
+    this.comboOffset = Math.max(0, this.comboOffset + (event.deltaY > 0 ? 1 : -1));
+    this.render();
+  }
+
   static async load<View extends MultiplayerWindowView>(this: new (
     options: MultiplayerWindowViewOptions) => View,
   options: MultiplayerWindowViewOptions): Promise<View> {
@@ -174,6 +197,7 @@ export class MultiplayerWindowView {
   hide(): void {
     this.element.hidden = true;
     this.openCombo = undefined;
+    this.comboOffset = undefined;
     this.buttonLayer.reset();
     this.hoveredRegion = undefined;
   }

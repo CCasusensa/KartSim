@@ -498,7 +498,7 @@ smoke 类脚本会在所连集群的 MySQL 中留下测试账号、档案、赛�
 | `POST /api/expedition/claim` | `{"slot"}` → `{"expedition","exp","lucci","items","inventory","levelUps"}`；409 `MISSION_NOT_COMPLETE` |
 | `POST /api/inventory/open` | 开一个箱子：`{"itemId","requestId"}` → `{"box","stockId","rewards":[{"category","itemId","count","days","name"}],"left","items"}`（`items` 为变动后的库存行）；404 `NOT_A_BOX`，409 `ITEM_NOT_ENOUGH`/`LOTTERY_NOT_IN_PERIOD`/`NEED_OTHER_ITEM`/`REQUEST_ID_CONFLICT`，403 `LOTTERY_UNDER_RP_LIMIT` |
 
-小屋设置（环境、名称、代表车、聊天开关、两组密码）仍保存在账号档案 `myRoom` 中；数据服务读取它来判断访客能否进入，响应里只带 `locked`/`etcLocked`，不返回密码。
+小屋设置（环境、名称、代表车、聊天开关、音乐 `bgmId`、两组密码）仍保存在账号档案 `myRoom` 中；数据服务读取它来判断访客能否进入，并把环境、代表车（客户端的 `{category:3,itemId,serial}`，旧档案的 `kind:"kart"` 也认）与音乐发给房间里的车手，代表车的改装数据按 `itemId:serial` 一起带上；响应里只带 `locked`/`etcLocked`，不返回密码。
 
 账号、档案与历史接口的校验规则、错误码与 Java 版一致；密码哈希格式（PBKDF2-SHA256，120000 次）与会话摘要格式也相同，因此旧数据可以直接迁移。
 
