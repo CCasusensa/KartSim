@@ -118,6 +118,8 @@ export class EditorApp {
     this.root.append(this.dock.element);
     this.root.classList.toggle("ed-advanced", this.advanced);
     this.hud = new Hud(this, view);
+    // 素材栏的大类按钮浮在地图底部正中
+    view.append(this.dock.tabsRow);
     this.viewport.wasd = !this.advanced;
     // 左键按在空地上拖动＝移动视角；按在东西上交给工具（拖着挪、放置、拆除）
     this.viewport.leftDrag = event => {

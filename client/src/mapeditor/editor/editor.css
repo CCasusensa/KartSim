@@ -153,38 +153,39 @@ input[type="number"].k-edit { width: 76px; }
 .ed-menu .k-button { text-align: left; }
 
 /* ---------- 底部素材栏 ---------- */
-.ed-dock { grid-area: dock; position: relative; display: grid; height: clamp(250px, 34vh, 330px); min-height: 0;
-  grid-template-columns: 1fr 250px; grid-template-rows: 42px 32px 1fr; grid-template-areas: "tabs preview" "filter preview" "shelf preview"; gap: 2px 6px; }
-.ed-dock.ed-collapsed { height: 84px; grid-template-columns: 1fr; grid-template-rows: 42px; grid-template-areas: "tabs"; }
-.ed-dock.ed-collapsed > :not(.ed-dock-tabs):not(.k-caption) { display: none; }
-.ed-dock-tabs { grid-area: tabs; display: flex; gap: 3px; align-items: stretch; overflow-x: auto; overflow-y: hidden; padding: 0 2px; }
-.ed-dock-tabs .k-tab { display: flex; align-items: center; gap: 6px; padding: 0 12px 0 6px; height: 40px; cursor: pointer; white-space: nowrap; font-size: 14px; }
-.ed-dock-tabs .k-tab.k-on { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
-.ed-dock-tabs .ed-tab-icon { width: 30px; height: 30px; flex: none; border-radius: 4px; background-color: rgba(30, 50, 90, .15); }
-.ed-dock-tabs .ed-spacer { flex: 1; }
-.ed-dock-filter { grid-area: filter; display: flex; gap: 4px; align-items: center; overflow: hidden; padding: 0 2px; }
+.ed-dock { grid-area: dock; position: relative; display: grid; height: clamp(290px, 38vh, 370px); min-height: 0;
+  grid-template-columns: 1fr 280px; grid-template-rows: 32px 1fr; grid-template-areas: "filter preview" "shelf preview"; gap: 2px 6px; }
+.ed-dock.ed-collapsed { display: none; }
+/* 大类按钮：浮在地图底部正中（原版 GameReadyTitle 底） */
+.ed-catbar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 5; display: flex; gap: 3px; align-items: center;
+  padding: 5px 8px; max-width: calc(100% - 330px); overflow-x: auto; overflow-y: hidden; }
+.ed-catbar .k-tab { display: flex; align-items: center; gap: 6px; padding: 0 14px 0 6px; height: 46px; cursor: pointer; white-space: nowrap; font-size: 15px; color: var(--ed-text); }
+.ed-catbar .k-tab.k-on { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
+.ed-catbar .ed-tab-icon { width: 34px; height: 34px; flex: none; border-radius: 4px; background-color: rgba(30, 50, 90, .15); }
+.ed-catbar .ed-catbar-fold { height: 46px; margin-left: 6px; }
+.ed-dock-filter { grid-area: filter; display: flex; gap: 4px; align-items: center; overflow: hidden; padding: 0 4px; }
 .ed-dock-filter .ed-chip { height: 26px; padding: 0 10px; cursor: pointer; white-space: nowrap; font-size: 12px; }
 .ed-dock-filter .ed-chip.k-on { color: #b44b00; }
 .ed-dock-filter .k-combo { width: 128px; height: 26px; font-size: 12px; }
 .ed-dock-filter .k-edit { width: 130px; height: 26px; font-size: 12px; }
 .ed-dock-filter .ed-count { color: var(--ed-dim); font-size: 12px; margin-left: auto; white-space: nowrap; }
 .ed-shelf { grid-area: shelf; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 5px; }
-.ed-card { position: relative; width: 88px; height: 112px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0; padding: 0; cursor: pointer; margin: 0; overflow: hidden; }
-.ed-card .ed-sprite { width: 76px; height: 76px; flex: none; background-repeat: no-repeat; border-radius: 3px; margin-top: 2px; }
-.ed-card .ed-label { width: 100%; text-align: center; font-size: 12px; line-height: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: none; }
-.ed-card .ed-badge { position: absolute; right: 4px; top: 4px; font-size: 10px; padding: 0 4px; border-radius: 3px; color: #fff; background: rgba(42, 95, 176, .85); }
+.ed-card { position: relative; width: 112px; height: 136px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0; padding: 0; cursor: pointer; margin: 0; overflow: hidden; }
+.ed-card .ed-sprite { width: 96px; height: 96px; flex: none; background-repeat: no-repeat; border-radius: 3px; margin-top: 5px; }
+.ed-card .ed-label { width: 100%; text-align: center; font-size: 13px; line-height: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: none; }
+.ed-card .ed-badge { position: absolute; right: 5px; top: 5px; font-size: 11px; padding: 0 4px; border-radius: 3px; color: #fff; background: rgba(42, 95, 176, .85); }
 /* 选中、放置中、使用中的素材：原版选中底 + 青色选中圈 + 蓝色角标 */
 .ed-card.k-selected .ed-label { color: #0d3d8c; }
 .ed-card .ed-mark { position: absolute; left: 3px; top: 3px; font-size: 11px; line-height: 16px; padding: 0 5px; color: #fff; }
-.ed-card.ed-tool .ed-sprite { display: flex; align-items: center; justify-content: center; font-size: 34px; color: #2a5fb0; background: rgba(42, 95, 176, .1); }
+.ed-card.ed-tool .ed-sprite { display: flex; align-items: center; justify-content: center; font-size: 42px; color: #2a5fb0; background: rgba(42, 95, 176, .1); }
 .ed-card canvas.ed-sprite { background: rgba(42, 95, 176, .08); }
 .ed-shelf .ed-group { width: 100%; font-size: 12px; color: #0d3d8c; margin: 4px 2px 0; border-bottom: 1px solid #b9c8e0; }
 .ed-shelf .ed-empty { width: 100%; }
 .ed-preview { grid-area: preview; position: relative; display: flex; flex-direction: column; gap: 4px; min-height: 0; padding: 2px 4px 4px; }
-.ed-preview .ed-stage { position: relative; height: 132px; flex: none; border-radius: 4px; overflow: hidden;
+.ed-preview .ed-stage { position: relative; height: 168px; flex: none; border-radius: 4px; overflow: hidden;
   background: radial-gradient(ellipse at 50% 35%, #e9f2ff, #b6cbe8); }
 .ed-preview .ed-stage > * { position: absolute; inset: 0; width: 100%; height: 100%; }
-.ed-preview .ed-stage .ed-sprite { background-repeat: no-repeat; inset: 2px auto auto 50%; transform: translateX(-50%); width: 128px; height: 128px; }
+.ed-preview .ed-stage .ed-sprite { background-repeat: no-repeat; inset: 4px auto auto 50%; transform: translateX(-50%); width: 160px; height: 160px; }
 .ed-preview .ed-title { font-size: 14px; color: #0d3d8c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ed-preview .ed-meta { color: var(--ed-dim); font-size: 12px; line-height: 1.5; }
 .ed-preview .ed-actions { margin: 0; }
@@ -254,16 +255,17 @@ details.ed-more > summary { cursor: pointer; color: #0d3d8c; font-size: 12px; }
 .ed-actbar-title { color: #ffd36b; font-size: 13px; margin: 0 2px 4px; white-space: nowrap; }
 .ed-actbar-row { display: flex; gap: 3px; }
 /* 底部动作条（GameReadyTitle） */
-.ed-modebar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px;
+.ed-modebar { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px;
   padding: 4px 8px; max-width: calc(100% - 300px); }
-.ed-modebar .ed-say { color: #fff; font-size: 14px; margin: 0 8px; }
+.ed-modebar .ed-say { color: #fff; font-size: 14px; margin: 0 8px; white-space: nowrap; display: flex; flex-direction: column; line-height: 1.35; }
+.ed-modebar .ed-say small { color: #ffd36b; font-size: 12px; }
 .ed-modebar .ed-say.ed-height { color: #ffd36b; margin: 0 4px; white-space: nowrap; }
 .ed-modebar .ed-modebar-sprite { width: 40px; height: 40px; flex: none; background-repeat: no-repeat; background-color: rgba(255, 255, 255, .85); }
 /* 提示条（OneLineToolTip） */
 .ed-toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); max-width: 60%; padding: 6px 22px;
   color: #fff; font-size: 15px; text-align: center; opacity: 0; transition: opacity .25s; pointer-events: none; }
 .ed-toast.ed-show { opacity: 1; }
-.ed-tip { position: absolute; left: 10px; bottom: 10px; padding: 4px 6px 4px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+.ed-tip { position: absolute; left: 10px; top: 10px; padding: 4px 6px 4px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
 /* 引导去哪里点：原版发光边框闪几下 */
 @keyframes ed-pulse { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 .ed-pulse::after { animation: ed-pulse .6s ease-in-out 3; opacity: 0; }

@@ -88,7 +88,8 @@ function markCard(card: HTMLElement, mark: string | undefined): void {
 
 export class Dock {
   readonly element: HTMLElement;
-  private readonly tabsRow: HTMLElement;
+  /** 大类按钮：浮在地图底部正中（app 把它挂到视口上），不占素材栏的高度。 */
+  readonly tabsRow: HTMLElement;
   private readonly filterRow: HTMLElement;
   private readonly shelf: HTMLElement;
   private readonly previewBox: HTMLElement;
@@ -107,12 +108,12 @@ export class Dock {
   private readonly cards = new Map<string, HTMLElement>();
 
   constructor(private readonly app: EditorApp) {
-    this.tabsRow = h("div", { class: "ed-dock-tabs" });
+    this.tabsRow = h("div", { class: "ed-catbar k-bar" });
     this.filterRow = h("div", { class: "ed-dock-filter" });
     this.shelf = h("div", { class: "ed-shelf" });
     this.previewBox = h("div", { class: "ed-preview" });
     this.element = h("section", { class: "ed-dock k-dialog" },
-      h("div", { class: "k-caption" }, "素材栏"), this.tabsRow, this.filterRow, this.shelf, this.previewBox);
+      h("div", { class: "k-caption" }, "素材栏"), this.filterRow, this.shelf, this.previewBox);
     this.preview = new AssetPreview(app.assets, app.viewport);
     this.shelf.addEventListener("mouseleave", () => this.hover(undefined));
   }
@@ -224,7 +225,7 @@ export class Dock {
       ?? data.pieces.find(piece => piece.category === first)?.slot;
     else if (first === "shape" || first === "surface") slot = data.textures.find(texture => texture.kind === "surface")?.slot;
     else if (first === "preset") slot = data.skies[0]?.slot;
-    return slot === undefined ? undefined : this.sprite(slot, 30, "ed-tab-icon");
+    return slot === undefined ? undefined : this.sprite(slot, 34, "ed-tab-icon");
   }
 
   private renderTabs(): void {
@@ -233,7 +234,8 @@ export class Dock {
       this.tabsRow.append(h("button", {
         class: `k-tab ${tab === this.tab ? "k-on" : ""}`, type: "button",
         onclick: () => {
-          if (tab === this.tab && !this.collapsed) return;
+          // 再点一下当前大类：收起或展开素材栏
+          if (tab === this.tab) { this.collapsed = !this.collapsed; this.render(); return; }
           this.tab = tab;
           this.sub = tab.subs[0]![0];
           this.collapsed = false;
@@ -241,8 +243,8 @@ export class Dock {
         },
       }, this.tabIcon(tab), tab.title));
     }
-    this.tabsRow.append(h("span", { class: "ed-spacer" }),
-      button(this.collapsed ? "展开 ▲" : "收起 ▼", () => { this.collapsed = !this.collapsed; this.render(); }, { class: "ed-small" }));
+    this.tabsRow.append(button(this.collapsed ? "展开 ▲" : "收起 ▼", () => { this.collapsed = !this.collapsed; this.render(); },
+      { class: "ed-catbar-fold", title: "收起素材栏，地图看得更大" }));
   }
 
   private renderFilter(): void {
@@ -326,16 +328,16 @@ export class Dock {
     let label: string;
     let badge: string | undefined;
     switch (item.kind) {
-      case "piece": image = this.sprite(item.piece.slot, 76); label = item.piece.label; badge = this.theme ? undefined : themeTitle(item.piece.theme); break;
-      case "texture": image = this.sprite(item.texture.slot, 76); label = textureLabel(item.texture); badge = themeTitle(item.texture.theme); break;
-      case "sky": image = this.sprite(item.sky.slot, 76); label = item.sky.label; break;
+      case "piece": image = this.sprite(item.piece.slot, 96); label = item.piece.label; badge = this.theme ? undefined : themeTitle(item.piece.theme); break;
+      case "texture": image = this.sprite(item.texture.slot, 96); label = textureLabel(item.texture); badge = themeTitle(item.texture.theme); break;
+      case "sky": image = this.sprite(item.sky.slot, 96); label = item.sky.label; break;
       case "preset": {
         const sky = this.data!.skies.find(entry => entry.id === item.preset.sky);
-        image = sky ? this.sprite(sky.slot, 76) : h("div", { class: "ed-sprite" });
+        image = sky ? this.sprite(sky.slot, 96) : h("div", { class: "ed-sprite" });
         label = themeTitle(item.preset.theme);
         break;
       }
-      case "template": image = drawTemplate(item.template, 76); image.classList.add("ed-sprite"); label = item.template.title; break;
+      case "template": image = drawTemplate(item.template, 96); image.classList.add("ed-sprite"); label = item.template.title; break;
       case "tool": image = h("div", { class: "ed-sprite" }, item.glyph); label = item.title; break;
     }
     const card = h("button", { class: `k-row ed-card ${item.kind === "tool" ? "ed-tool" : ""}`,
@@ -401,7 +403,7 @@ export class Dock {
     switch (item.kind) {
       case "piece": {
         const piece = item.piece;
-        const fallback = this.sprite(piece.slot, 128);
+        const fallback = this.sprite(piece.slot, 160);
         stage.append(fallback, this.preview.canvas);
         this.preview.show(piece, fallback);
         const size = pieceSize(piece);
@@ -418,7 +420,7 @@ export class Dock {
       case "texture": {
         const texture = item.texture;
         this.preview.show(undefined);
-        stage.append(this.sprite(texture.slot, 128));
+        stage.append(this.sprite(texture.slot, 160));
         const what = texture.kind === "surface" ? "路面" : texture.kind === "wall" ? "护栏" : "地面";
         box.append(h("div", { class: "ed-title" }, `${textureLabel(texture)}${what === "路面" ? "" : ` · ${what}`}`),
           meta(`${themeTitle(texture.theme)} · ${texture.name}`, texture.kind === "surface"
@@ -428,14 +430,14 @@ export class Dock {
       }
       case "sky":
         this.preview.show(undefined);
-        stage.append(this.sprite(item.sky.slot, 128));
+        stage.append(this.sprite(item.sky.slot, 160));
         box.append(h("div", { class: "ed-title" }, item.sky.label), meta(`${themeTitle(item.sky.theme)} · 天空和雾`),
           h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       case "preset": {
         this.preview.show(undefined);
         const sky = this.data!.skies.find(entry => entry.id === item.preset.sky);
-        if (sky) stage.append(this.sprite(sky.slot, 128));
+        if (sky) stage.append(this.sprite(sky.slot, 160));
         box.append(h("div", { class: "ed-title" }, `${themeTitle(item.preset.theme)}主题`),
           meta("一键换上这个主题的天空、路面、护栏、地面和背景音乐。"),
           h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
@@ -443,7 +445,7 @@ export class Dock {
       }
       case "template": {
         this.preview.show(undefined);
-        const canvas = drawTemplate(item.template, 128);
+        const canvas = drawTemplate(item.template, 160);
         canvas.setAttribute("style", `${canvas.getAttribute("style") ?? ""};inset:2px auto auto 50%;transform:translateX(-50%)`);
         stage.append(canvas);
         box.append(h("div", { class: "ed-title" }, item.template.title), meta(item.template.description, "橙点是起点。铺好后可以拖白色圆点改形状。"),

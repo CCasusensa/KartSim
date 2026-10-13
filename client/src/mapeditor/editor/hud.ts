@@ -226,10 +226,13 @@ export class Hud {
     } else if (tool.kind === "place") {
       const paint = categoryInfo(tool.piece.category).paint !== "single";
       const lift = app.tools.lift;
-      const say = app.tools.lifting ? `上下拖动调高度：离地 ${lift.toFixed(1)} 米，松开就放下`
-        : `正在放「${tool.piece.label}」：点地面放下${paint ? "，按住拖动连着放" : ""}；滚轮转方向，长按后上下拖调高度`;
+      // 两行：上面是在做什么，下面一行小字是怎么操作
+      const say = app.tools.lifting
+        ? h("span", { class: "ed-say" }, `离地 ${lift.toFixed(1)} 米`, h("small", {}, "上下拖动调高度，松开就放下"))
+        : h("span", { class: "ed-say" }, `正在放「${tool.piece.label}」`,
+          h("small", {}, `点地面放下${paint ? " · 按住拖动连着放" : ""} · 滚轮转方向 · 长按上下拖调高度`));
       bar(app.dock.sprite(tool.piece.slot, 40, "ed-modebar-sprite"),
-        h("span", { class: "ed-say" }, say),
+        say,
         Math.abs(lift) >= 0.05 && !app.tools.lifting ? h("span", { class: "ed-say ed-height" }, `离地 ${lift.toFixed(1)} 米`) : undefined,
         Math.abs(lift) >= 0.05 ? iconButton("k-down", "贴地", () => app.tools.resetLift(), { title: "高度清零，贴着地面放" }) : undefined,
         iconButton("k-left", "左转", () => { app.tools.rotateGhost(15); }, { title: "Q 或滚轮" }),
