@@ -6,6 +6,10 @@
  */
 import { Vector3, type PerspectiveCamera } from "three";
 import { MY_ROOM_BALLOON_MS, MyRoomRiderLabels } from "../ui/my-room-labels";
+import { CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
+
+/** My Room's 1.9 m over a full-size rider, at the city's kart size. */
+const HEAD_HEIGHT = 1.9 * CITY_VEHICLE_SCALE;
 
 export interface CityLabelHost {
   root: HTMLElement;
@@ -19,6 +23,8 @@ export class CityLabels {
   private readonly labels: MyRoomRiderLabels;
   private readonly balloons = new Map<string, { text: string; until: number }>();
   private readonly scratch = new Vector3();
+  private readonly eye = new Vector3();
+  private readonly forward = new Vector3();
   disposed = false;
 
   constructor(readonly host: CityLabelHost, fontFamily = "'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif") {
@@ -37,11 +43,13 @@ export class CityLabels {
     const camera = this.host.camera;
     const heads: Array<{ id: string; x: number; y: number }> = [];
     const names = new Map<string, string>();
+    // The race camera sets its matrices directly; its quaternion is not its view.
+    const eye = this.eye.setFromMatrixPosition(camera.matrixWorld);
+    const forward = this.forward.setFromMatrixColumn(camera.matrixWorld, 2).negate();
     for (const head of this.host.heads()) {
-      this.scratch.set(head.position.x, head.position.y + 1.9, head.position.z);
+      this.scratch.set(head.position.x, head.position.y + HEAD_HEIGHT, head.position.z);
       // Skip karts behind the camera.
-      const direction = this.scratch.clone().sub(camera.position);
-      const forward = new Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+      const direction = this.scratch.clone().sub(eye);
       if (direction.dot(forward) <= 0) continue;
       const distance = direction.length();
       if (distance > 120) continue;
