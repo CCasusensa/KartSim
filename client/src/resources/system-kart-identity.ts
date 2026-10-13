@@ -29,18 +29,23 @@ const blacklineParameters = () => ({
   resource: "practiceblack0", generation: "G3",
 });
 
+// The model number is the license index (0 beginner, 1 rookie, 2 L3, 3 L2,
+// 4 L1, 5 PRO): practice0/1 and practiceblack0/1 are the same file, and the
+// blackline family below uses this numbering. The release started the plain
+// family at practice1 for L3, so L3 looked exactly like Rookie and L2/L1 each
+// showed the level below.
 export const legacyKartFamilies: LegacyKartFamily[] = [
   {
     key: "legacyPractice", identityClass: "legacy-system-family",
     title: "旧版练习用卡丁车", defaultLevel: "l1", engineGrade: 0,
     states: [
-      { level: "rookie", resource: "practice0", aliases: ["practice0"],
+      { level: "rookie", resource: "practice0", aliases: ["practice0", "practice1"],
         parameterSource: { status: "school-spec" } },
-      { level: "l3", resource: "practice1", aliases: ["practice1"],
+      { level: "l3", resource: "practice2", aliases: ["practice2"],
         parameterSource: { status: "school-spec" } },
-      { level: "l2", resource: "practice2", aliases: ["practice2"],
+      { level: "l2", resource: "practice3", aliases: ["practice3"],
         parameterSource: { status: "school-spec" } },
-      { level: "l1", resource: "practice3", aliases: ["practice3"],
+      { level: "l1", resource: "practice4", aliases: ["practice4"],
         parameterSource: { status: "school-spec" } },
     ],
   },

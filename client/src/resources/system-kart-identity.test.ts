@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { mirrorArchives } from "./mirror-archives.test-support";
 import {
   blockedKartMessage, defaultLegacyKartState, isBlockedKartId,
   kartCatalogIdentity, legacyKartFamilies, legacyKartStateForAlias,
@@ -29,16 +30,29 @@ async function releaseKartIdentity() {
     };
 }
 
-test("旧系统车辆家族及等级映射逐字段与发行版一致", async () => {
+test("旧系统车辆家族与发行版一致，只有普通练习车的等级模型改为按驾照编号", async () => {
   const old = await releaseKartIdentity();
-  assert.deepEqual(legacyKartFamilies, old.Cr);
-  for (const family of legacyKartFamilies) {
-    assert.deepEqual(defaultLegacyKartState(family), old._Z(family));
-    for (const state of family.states)
-      for (const alias of state.aliases)
-        assert.deepEqual(legacyKartStateForAlias(family.key, alias.toUpperCase()),
-          old.xw(family.key, alias.toUpperCase()));
-  }
+  const [practice, blackline] = legacyKartFamilies;
+  const [oldPractice, oldBlackline] = old.Cr;
+  assert.deepEqual(blackline, oldBlackline);
+  assert.deepEqual({ ...practice, states: [] }, { ...oldPractice!, states: [] });
+  assert.deepEqual(practice!.states.map(state => [state.level, state.resource, state.aliases]), [
+    ["rookie", "practice0", ["practice0", "practice1"]],
+    ["l3", "practice2", ["practice2"]],
+    ["l2", "practice3", ["practice3"]],
+    ["l1", "practice4", ["practice4"]],
+  ]);
+  assert.deepEqual(practice!.states.map(state => state.parameterSource),
+    oldPractice!.states.map(state => state.parameterSource));
+  assert.equal(defaultLegacyKartState(practice!).level, old._Z(oldPractice!).level);
+  assert.deepEqual(defaultLegacyKartState(blackline!), old._Z(oldBlackline!));
+  for (const state of blackline!.states)
+    for (const alias of state.aliases)
+      assert.deepEqual(legacyKartStateForAlias(blackline!.key, alias.toUpperCase()),
+        old.xw(blackline!.key, alias.toUpperCase()));
+  assert.equal(legacyKartStateForAlias("legacyPractice", "PRACTICE1")?.level, "rookie");
+  assert.equal(legacyKartStateForAlias("legacyPractice", "practice4")?.level, "l1");
+  assert.equal(legacyKartStateForAlias("legacyPractice", "practice5"), undefined);
   const invalid = { key: "bad", defaultLevel: "l1", states: [] } as unknown as LegacyKartFamily;
   assert.throws(() => defaultLegacyKartState(invalid),
     (error: Error) => error.message ===
@@ -84,4 +98,28 @@ test("系统车辆选择、稳定键与禁止项诊断和发行版一致", async
       capture(() => old.N3({ itemId: 0, systemKey: key,
         internalId: "", path: "" })));
   }
+});
+
+test("真实 p3553：练习车模型编号即驾照等级，每个等级外观各不相同", async () => {
+  const archives = mirrorArchives();
+  const look = async (resource: string) => Buffer.concat(await Promise.all(
+    ["model.1s", "1.png"].map(name => archives.read("DataPack2", `kart_/${resource}/${name}`))))
+    .toString("base64");
+  const licenseIndex = { rookie: 1, l3: 2, l2: 3, l1: 4 } as const;
+  for (const family of legacyKartFamilies) {
+    const prefix = family.key === "legacyPractice" ? "practice" : "practiceblack";
+    const looks = new Set<string>();
+    for (const state of family.states) {
+      assert.ok(state.aliases.includes(`${prefix}${licenseIndex[state.level]}`),
+        `${family.title} ${state.level}`);
+      const own = await look(state.resource);
+      for (const alias of state.aliases) assert.equal(await look(alias), own, alias);
+      looks.add(own);
+    }
+    assert.equal(looks.size, family.states.length, family.title);
+  }
+  assert.deepEqual(resolveKartSelection([{ itemId: 0, systemKey: "legacyPractice",
+    internalId: "practice4", path: "kart_/practice4/model.1s" }], 0,
+  "kart_/practice2/model.1s", "legacyPractice"), { itemId: 0, systemKey: "legacyPractice",
+    internalId: "practice2", path: "kart_/practice2/model.1s" });
 });
