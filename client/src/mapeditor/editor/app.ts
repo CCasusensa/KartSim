@@ -223,6 +223,8 @@ export class EditorApp {
       this.viewport.addScene(sky);
     } catch (error) {
       console.warn("天空盒载入失败", error);
+      // 下次改动时再试
+      if (this.skyFolder === folder) this.skyFolder = undefined;
     }
   }
 

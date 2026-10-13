@@ -12,10 +12,17 @@ const SURFACE_NAMES: Record<string, string> = {
   surface: "路面", sound: "声音", dust: "尘土", rail: "轨道", movable: "移动", alphaBias: "透明偏移",
 };
 
+/** 原版属性值里的韩文（路面声音与特殊路面）。 */
+const VALUE_NAMES: Record<string, string> = {
+  모래바닥: "沙地", 눈바닥: "雪地", 나무다리: "木桥", 돌바닥: "石地", 물밟기: "踩水", 강철바닥: "钢板",
+  돌다리: "石桥", 수풀바닥: "草丛", 철바닥: "铁板", 강철다리: "钢桥", 리셋: "掉落重置", 점프: "跳台",
+};
+
 function roadSummary(road: [string, string][] | undefined): string {
   if (!road) return "";
   if (!road.length) return "可行驶";
-  return road.map(([key, value]) => key === "surface" && value === "리셋" ? "掉落重置" : `${SURFACE_NAMES[key] ?? key} ${value}`).join("，");
+  return road.map(([key, value]) => key === "surface" && value === "리셋" ? "掉落重置"
+    : `${SURFACE_NAMES[key] ?? key} ${VALUE_NAMES[value] ?? value}`).join("，");
 }
 
 function sizeText(info: PieceInfo): string {
