@@ -1,19 +1,51 @@
 /**
  * 赛道对决 races (TIMEATTACK.md): the practice window's 开始对决 starts a story
- * style race against the stage's NPC ghost, which the race builder generates
- * along the course line (duel-npc-ghost.ts); back on Ready the data service
- * settles the duel and the NPC's line is shown.
+ * style race against the stage's NPC, whose original recording plays as the
+ * rival ghost; back on Ready the data service settles the duel and the NPC's
+ * line is shown.
  */
 import { activeBrowserSession } from "../account/account-runtime";
 import { newRequestId } from "../account/rewards";
-import type { StoryRaceOutcome } from "../story/story-race";
+import type { StoryMission } from "../story/story-data";
+import type { StoryGhostSource, StoryRaceOutcome } from "../story/story-race";
 import { openMessengerMessage } from "../ui/messenger-dialogs";
 import type { DuelRaceRequest } from "../ui/ready-missions";
 import type { ReadyFlowController, ReadyOptions, ReadySelection } from "./ready-flow";
 import type { ReadyHomeController } from "./ready-home";
+import { storyGhostSources } from "./ready-story";
 import { formatRecordTime, settleDuelRace, timeAttackErrorMessage } from "./timeattack-api";
 
 const TITLE = "赛道对决";
+/** Each stage's NPC recording (timeAttackMission.xml mission ksv), in DataPack4. */
+const DUEL_KSV_ROOT = "zeta_/cn/content/timeAttack/ksv";
+
+interface CatalogEntry { itemId: number; path: string }
+interface DuelLibrary {
+  timeAttackGarageCatalog(): Promise<{ karts: CatalogEntry[]; characters: CatalogEntry[] }>;
+  timeAttackTrackCatalog(): Promise<Array<{ id: string; path: string }>>;
+  exactCanonicalCandidates(path: string): Array<{ bytes(): Promise<Uint8Array> }>;
+}
+
+/**
+ * The stage NPC as the race's rival: its recording, dressed as the mission's
+ * itemOn (kart, color, dye). The recording starts at the countdown like any
+ * .ksv and keeps its start slot; a 难度设定 level above 无 runs it advantageMs
+ * behind the clock, so the NPC sets off that much later.
+ */
+export async function duelNpcGhost(library: Pick<DuelLibrary, "exactCanonicalCandidates">, duel: DuelRaceRequest,
+  trackId: string, catalog: { karts: CatalogEntry[]; characters: CatalogEntry[] }): Promise<StoryGhostSource> {
+  const { npc, ksv } = duel.stage;
+  const file = ksv ? library.exactCanonicalCandidates(`${DUEL_KSV_ROOT}/${ksv}.ksv`)[0] : undefined;
+  if (!file) throw new Error(`缺少 ${npc.name} 的对决录像 ${ksv || "（未配置）"}。`);
+  const mission = { kind: "Shadow", track: trackId, laps: 0, timeLimitMs: 0, speed: duel.stage.speed,
+    rival: { name: npc.name, kartId: npc.kartId, characterId: npc.characterId, ksv } } as StoryMission;
+  const source = storyGhostSources(await file.bytes(), trackId, mission, catalog).sources[0];
+  if (!source) throw new Error(`${npc.name} 的对决录像里没有车手。`);
+  source.equipment.kartPaint = npc.color || 0;
+  source.equipment.characterColor = npc.dye || 0;
+  const advantageMs = duel.stage.difficulties[duel.difficulty]?.advantageMs ?? 0;
+  return { ...source, timeOffsetMs: 0 - advantageMs };
+}
 
 export interface ReadyDuelController extends ReadyFlowController {
   duelMessage?: AbortController;
@@ -23,21 +55,17 @@ export interface ReadyDuelController extends ReadyFlowController {
 export async function startDuelRace(controller: ReadyDuelController, selection: ReadySelection,
   options: ReadyOptions, duel: DuelRaceRequest): Promise<void> {
   const host = controller.host;
-  const library = host.getLibrary();
+  const library = host.getLibrary() as unknown as DuelLibrary | undefined;
   if (!library) return;
   const previousOptions = host.getReadyOptions();
-  const catalog = await library.timeAttackGarageCatalog() as { karts: Array<{ itemId: number }>;
-    characters: Array<{ itemId: number }> };
-  const npc = duel.stage.npc;
-  const kart = catalog.karts.some(entry => entry.itemId === npc.kartId) ? npc.kartId : selection.vehicleItemId ?? 0;
-  const character = catalog.characters.some(entry => entry.itemId === npc.characterId) ? npc.characterId
-    : selection.characterItemId ?? 0;
+  const catalog = await library.timeAttackGarageCatalog();
   const advantageMs = duel.stage.difficulties[duel.difficulty]?.advantageMs ?? 0;
   const targetMs = duel.stage.targetMs + advantageMs;
   // The duel runs on the event's track, whatever track the window shows.
   const tracks = await library.timeAttackTrackCatalog();
   const track = tracks.find(entry => entry.id.toLowerCase() === duel.event.trackId.toLowerCase());
   if (!track) throw new Error(`赛道 ${duel.event.trackId} 不在本地资源中`);
+  const npc = await duelNpcGhost(library, duel, track.id, catalog);
   const previous = host.getSelection();
   const restore = (): void => {
     if (previous) host.setSelection(previous);
@@ -47,12 +75,7 @@ export async function startDuelRace(controller: ReadyDuelController, selection: 
     ...selection,
     mapPath: track.path, trackId: track.id,
     story: {
-      ghosts: [],
-      npc: {
-        targetMs: duel.stage.targetMs, advantageMs,
-        equipment: { character, kart, kartPaint: npc.color || 0, characterColor: npc.dye || 0, plate: 0, goggle: 0,
-          balloon: 0, headBand: 0, handGearL: 0, plateText: "", playerName: npc.name, startSlot: 1 },
-      },
+      ghosts: [npc],
       restore,
       judge: (elapsedMs: number) => elapsedMs < targetMs,
       onReturn: (outcome: StoryRaceOutcome) => { void finishDuel(controller, duel, outcome); },

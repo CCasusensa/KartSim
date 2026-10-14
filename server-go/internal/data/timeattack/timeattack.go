@@ -98,8 +98,11 @@ type Difficulty struct {
 // DuelStage is one NPC of a duel event; a stage opens when the previous
 // one was won.
 type DuelStage struct {
-	Stage       int          `json:"stage"`
-	Ksv         string       `json:"ksv"`
+	Stage int    `json:"stage"`
+	Ksv   string `json:"ksv"`
+	// NPCTimeMs is the NPC's time, the best time of its recording (Ksv): the
+	// browser plays that .ksv in the race, so the NPC crosses the line then.
+	NPCTimeMs   int64        `json:"npcTimeMs"`
 	Speed       int          `json:"speed"`
 	TeamBooster bool         `json:"teamBooster"`
 	NPC         NPC          `json:"npc"`
@@ -192,7 +195,7 @@ func Parse(raw []byte) (*Data, error) {
 		}
 		for j := range d.Stages {
 			s := &d.Stages[j]
-			if s.Stage != j+1 || s.NPC.Name == "" || s.NPC.CharacterID <= 0 {
+			if s.Stage != j+1 || s.NPC.Name == "" || s.NPC.CharacterID <= 0 || s.Ksv == "" || s.NPCTimeMs <= 0 {
 				return nil, fmt.Errorf("duel %s stage %d: invalid", d.TrackID, j+1)
 			}
 			if len(s.Difficulties) != MaxDifficulty+1 || s.Difficulties[0].AdvantageMs != 0 {
@@ -293,30 +296,6 @@ func (d *Data) RecordGoalMs(trackID string) int64 {
 		}
 	}
 	return 0
-}
-
-// FallbackRecordMs stands in for tracks without a record goal.
-const FallbackRecordMs = 180_000
-
-// duelFactors scale the record goal into each stage's NPC time: the first
-// NPC runs the record goal (the release's stage-1 NPC was about that), the
-// next two a little faster.
-var duelFactors = [...]float64{1.0, 0.97, 0.94}
-
-// DuelTargetMs is the time the NPC of a stage finishes in (its "最高纪录"):
-// the release delivered a recorded .ksv per stage, which the resource
-// mirror lacks, so the NPC drives the route at a steady pace and finishes
-// in this time. The 难度设定 advantage delays its start instead.
-func (d *Data) DuelTargetMs(trackID string, stage int) int64 {
-	record := d.RecordGoalMs(trackID)
-	if record <= 0 {
-		record = FallbackRecordMs
-	}
-	factor := duelFactors[len(duelFactors)-1]
-	if stage >= 1 && stage <= len(duelFactors) {
-		factor = duelFactors[stage-1]
-	}
-	return int64(float64(record) * factor)
 }
 
 // DifficultyLevel is the 难度设定 a racer may pick after losses consecutive

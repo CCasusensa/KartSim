@@ -12,15 +12,15 @@
 //   zeta_/cn/content/timeAttack/timeAttackMission.xml   duelMissionList (events: track, period,
 //                                                       NPC stages, rewards) and
 //                                                       trainingMissionListSet (goal sets per track)
+//   zeta_/cn/content/timeAttack/ksv/<ksv>.ksv           each duel stage's NPC recording: its
+//                                                       best time is the stage's npcTimeMs
 //   zeta_/cn/shop/data/stock.kml                        the items of each reward stock
-//
-// The release gave each duel stage an NPC .ksv ghost the server delivered;
-// those files are not in the resource mirror, so the data service derives
-// the NPC's time from the track's 达成赛道纪录 goal instead (timeattack.go).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ksvCompression } from "../src/codecs/ksv-compression.ts";
+import { decodeKsvFile } from "../src/game/ghost/ksv-codec.ts";
 import { formatDocument } from "./economy-export/canonical.mjs";
 import { loadResourceLibrary, parseNormalizedXml, uniqueBytes } from "./economy-export/resource-library.mjs";
 import { attr, parseStocks } from "./economy-export/shop-data.mjs";
@@ -35,6 +35,7 @@ const outDir = outIndex >= 0 ? path.resolve(args[outIndex + 1] ?? "")
 
 const SOURCES = {
   missions: "zeta_/cn/content/timeAttack/timeAttackMission.xml",
+  ksv: "zeta_/cn/content/timeAttack/ksv",
   stocks: "zeta_/cn/shop/data/stock.kml",
 };
 
@@ -152,6 +153,24 @@ const tracks = new Set(library.mapAssets().map(file =>
 // Reverse tracks (_rvs) run the forward track's model.
 const shipped = trackId => tracks.has(trackId.toLowerCase().replace(/_rvs$/, ""));
 for (const duel of duels) if (!shipped(duel.trackId)) problem(`duel track ${duel.trackId} has no model in the mirror`);
+// The NPC's time is its recording's (the client plays the same .ksv in the race).
+for (const duel of duels) for (const stage of duel.stages) {
+  stage.npcTimeMs = 0;
+  try {
+    const bytes = await uniqueBytes(library, `${SOURCES.ksv}/${stage.ksv}.ksv`);
+    // The z ceiling only shapes the frames; the header's best time is the same either way.
+    const recording = [1500, 3000].map(ceiling => {
+      try { return decodeKsvFile(bytes, ceiling, ksvCompression); } catch { return undefined; }
+    }).find(Boolean);
+    if (!recording) throw new Error("cannot decode");
+    if (recording.trackName.toLowerCase() !== duel.trackId.toLowerCase())
+      throw new Error(`recorded on ${recording.trackName}`);
+    stage.npcTimeMs = recording.bestTimeMs;
+    if (!(stage.npcTimeMs > 0)) throw new Error(`best time ${stage.npcTimeMs}`);
+  } catch (error) {
+    problem(`duel ${duel.trackId} stage ${stage.stage}: ${stage.ksv}.ksv: ${error instanceof Error ? error.message : error}`);
+  }
+}
 const unshipped = Object.keys(training).filter(trackId => !shipped(trackId));
 for (const trackId of unshipped) delete training[trackId]; // goals of tracks the mirror does not ship
 
@@ -173,8 +192,9 @@ if (problems.length > 0) {
 }
 const document = formatDocument({
   generatedFrom: `client/tools/export-timeattack-missions.mjs over mirror/${manifest.version} ` +
-    `revision ${manifest.revision}: ${SOURCES.missions} (duel events and training goal sets) ` +
-    `and the reward stocks' items from ${SOURCES.stocks}. Do not edit by hand.`,
+    `revision ${manifest.revision}: ${SOURCES.missions} (duel events and training goal sets), ` +
+    `the duel NPCs' times from ${SOURCES.ksv} and the reward stocks' items from ${SOURCES.stocks}. ` +
+    `Do not edit by hand.`,
   duels, training, rewardStocks,
 });
 const file = path.join(outDir, "missions.json");

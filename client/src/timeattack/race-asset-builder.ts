@@ -10,9 +10,7 @@ import { WrongWayWarning } from "../ui/wrong-way-warning";
 import { kartAlignedPetOwner } from "../world/flying-pet-mount";
 import { AutopilotPrank, isAutopilotKart, loadAutopilotPrompts } from "../ui/autopilot-prank";
 import type { StoryRaceRequest } from "../story/story-race";
-import { generateNpcGhostRecord } from "./duel-npc-ghost";
 import { racePlaylistReady } from "./race-bgm-loading";
-import { ghostZCeiling } from "./ranked-race";
 
 /**
  * Construct every owner needed by a solo race before the application publishes it.
@@ -289,16 +287,8 @@ async function buildLoadedSoloRace(
             solid: participant.solid });
         }
       }
-      // 赛道对决: the NPC drives the course line in the stage's time (duel-npc-ghost.ts),
-      // setting off advantageMs later at a 难度设定 level above 无.
       // OB 观看: the console's 退出 leaves like the pause menu's 菜单.
       if (selection.story?.observe) selection.story.observe.exit = () => { host.returnToReady(); };
-      if (selection.story?.npc) {
-        const npc = selection.story.npc;
-        ghostSources.push({ equipment: npc.equipment,
-          record: generateNpcGhostRecord(map.data, map.data.lapTarget ?? 1, npc.targetMs, ghostZCeiling(selection.trackId)),
-          timeOffsetMs: -npc.advantageMs });
-      }
 
       if (map.lensFlarePoint)
         lensFlare = await ops.loadLensFlare(host.getLibrary(), map.lensFlarePoint);

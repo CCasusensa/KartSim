@@ -78,7 +78,7 @@ func TestTimeAttackPracticeGoalsRankedAndDuel(t *testing.T) {
 		t.Fatalf("goals %+v record %d", missions.Goals, missions.RecordGoalMs)
 	}
 	if missions.Duel == nil || missions.Duel.TrackID != track || missions.Duel.Stages[0].NPC.Name != "小乖" ||
-		missions.Duel.Stages[0].TargetMs != 118_590 || !missions.Duel.Standing[0].Open || missions.Duel.Standing[1].Open {
+		missions.Duel.Stages[0].TargetMs != 118_040 || !missions.Duel.Standing[0].Open || missions.Duel.Standing[1].Open {
 		t.Fatalf("duel %+v", missions.Duel)
 	}
 	h.get("/api/timeattack/missions?trackId=nope", auth).expect(t, http.StatusBadRequest, "INVALID_TRACK")
@@ -197,7 +197,7 @@ func TestTimeAttackPracticeGoalsRankedAndDuel(t *testing.T) {
 	duel(2, 0, 100_000, true).expect(t, http.StatusConflict, "DUEL_STAGE_LOCKED")
 	duel(1, 1, 100_000, true).expect(t, http.StatusConflict, "DUEL_STAGE_LOCKED") // level 1 needs 3 losses
 	duel(1, 0, 130_000, true).expect(t, http.StatusOK, "").json(t, fresh(&duelResult))
-	if duelResult.Won || duelResult.TargetMs != 118_590 || duelResult.Result.Losses != 1 {
+	if duelResult.Won || duelResult.TargetMs != 118_040 || duelResult.Result.Losses != 1 {
 		t.Fatalf("lost duel %+v", duelResult)
 	}
 	duel(1, 0, 0, false).expect(t, http.StatusOK, "")
@@ -207,7 +207,7 @@ func TestTimeAttackPracticeGoalsRankedAndDuel(t *testing.T) {
 	}
 	// Level 1: the NPC sets off 1 s later, so the target grows by 1 s.
 	duel(1, 1, 119_000, true).expect(t, http.StatusOK, "").json(t, fresh(&duelResult))
-	if !duelResult.Won || duelResult.TargetMs != 119_590 || !duelResult.Result.FirstWin || duelResult.Result.Bonus == nil ||
+	if !duelResult.Won || duelResult.TargetMs != 119_040 || !duelResult.Result.FirstWin || duelResult.Result.Bonus == nil ||
 		!duelResult.Result.Stages[0].Won || !duelResult.Result.Stages[1].Open {
 		t.Fatalf("won duel %+v", duelResult)
 	}

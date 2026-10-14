@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { quantizeStamp } from "./duel-npc-ghost";
 import { encodeRunReplay } from "./ranked-race";
 import { storyGhostSources, storyStepResult } from "./ready-story";
 import { chapterHeaderShift, currentStoryStep, storyColor, storyMapPages, storyMissionImage,
@@ -23,8 +22,8 @@ test("故事关卡通关判定", () => {
 });
 
 test("对手录像从录制时的起跑槽位出发，玩家让到空槽位", () => {
-  const stamps = Array.from({ length: 10 }, (_unused, index) => quantizeStamp({ timeMs: index * 100,
-    x: 0, y: -index, z: 600, w: 1, qx: 0, qy: 0, qz: 0, status: 0 }, 1500));
+  const stamps = Array.from({ length: 10 }, (_unused, index) => ({ time: index,
+    x: 0, y: -index * 10, z: 500, w: 10_000, qx: 0, qy: 0, qz: 0, status: 0 }));
   const rivalKsv = (startSlot: number) => encodeRunReplay({ record: { stamps } }, { character: 1, kart: 1,
     kartPaint: 0, characterColor: 0, plate: 0, goggle: 0, balloon: 0, headBand: 0, handGearL: 0,
     plateText: "", playerName: "x", startSlot }, "forest_I01", 113_550, 0);

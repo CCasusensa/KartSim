@@ -29,7 +29,7 @@
 ## 2. 赛道对决（duel）
 
 - 同一数据文件的 `duelMissionList`：按期间举办的活动，每期一条赛道、三个 NPC 阶段（名字、人物、车、喷漆、染色、对白、难度表、胜利奖励）。导出时保留两期（`tomb_R05` 2026-09-24~10-08、`tomb_I09` 2026-10-08~10-22，北京时间）；`GET /api/timeattack/missions` 返回当前进行中的一期（没有则 `duel: null`）。
-- 原版每个阶段配一份服务器下发的 NPC 录像（`.ksv`），资源镜像没有，所以 **NPC 沿赛道路线匀速行驶**（`client/src/timeattack/duel-npc-ghost.ts`），在阶段目标时间 `targetMs` 到达终点：第 1 阶段 = 该赛道"达成赛道纪录"的目标时间，第 2、3 阶段为其 97% / 94%（`timeattack.DuelTargetMs`；没有纪录目标的赛道按 180 秒）。
+- 每个阶段的 NPC 是原版录像 `zeta_/cn/content/timeAttack/ksv/<ksv>.ksv`（DataPack4，属于必需的"首页"资源组）：比赛里浏览器把它当对手影子播放（`client/src/timeattack/ready-duel.ts`），和其他 .ksv 一样从倒计时开始计时（第 7 秒 GO），保留录制时的起跑槽位，人物、车、喷漆、染色按任务的 `npcId` / `itemOn` 换装。阶段目标时间 `targetMs` = 该录像的最好成绩（导出时写进 `missions.json` 的 `npcTimeMs`，例如 `tomb_I09` 小乖 / 黑妞 / 皮蛋 = 1:58.04 / 1:54.76 / 1:51.29）。
 - 胜负由数据服务判定：完成且 `elapsedMs < targetMs + 难度让步`。难度设定（原版 difficulty）：在一个阶段每累计落败 3 次（原版 point）解锁一级，NPC 晚 1 / 3 / 5 秒出发；解锁后一直可选。第一次赢得阶段发放原版胜利奖励，在某难度等级下第一次获胜另发该等级的特别奖励；都进奖励箱。
 - 阶段依次开放（`DUEL_STAGE_LOCKED`）；对决比赛不计练习记录、不计计时赛奖励。
 - 行：`duel:<赛道>@<开始时间>:<阶段>`（value = 落败次数，cleared_at = 首胜）、`duelbonus:…:<难度>`。

@@ -199,7 +199,7 @@ func (a *API) duelJSON(duel *timeattack.Duel, standing []store.DuelStageView) *d
 	out := &duelJSON{Key: duel.Key(), TrackID: duel.TrackID, Track: a.trackName(duel.TrackID), From: from, To: to,
 		Standing: standing}
 	for _, stage := range duel.Stages {
-		out.Stages = append(out.Stages, duelStageJSON{DuelStage: stage, TargetMs: a.missions.DuelTargetMs(duel.TrackID, stage.Stage),
+		out.Stages = append(out.Stages, duelStageJSON{DuelStage: stage, TargetMs: stage.NPCTimeMs,
 			Rewards: a.rewardsJSON(stage.Reward)})
 	}
 	return out
@@ -347,7 +347,7 @@ func (a *API) settleDuel(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	stage := duel.Stages[request.Stage-1]
-	target := a.missions.DuelTargetMs(duel.TrackID, request.Stage) + int64(stage.Difficulties[request.Difficulty].AdvantageMs)
+	target := stage.NPCTimeMs + int64(stage.Difficulties[request.Difficulty].AdvantageMs)
 	won := request.Finished && request.ElapsedMs < target
 	result, err := a.store.SettleDuel(r.Context(), a.missions, store.DuelRun{AccountID: account.ID, RequestID: id, Duel: duel,
 		Stage: request.Stage, Difficulty: request.Difficulty, Won: won, Now: a.nowMillis()})

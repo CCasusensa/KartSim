@@ -92,12 +92,14 @@ export interface DuelDifficulty { point: number; advantageMs: number }
 
 export interface DuelStage {
   stage: number;
+  /** The NPC's recording, timeAttack/ksv/<ksv>.ksv (ready-duel.ts). */
+  ksv: string;
   speed: number;
   teamBooster: boolean;
   npc: DuelNpc;
   messages: { difficulty: string[]; win: string[] };
   difficulties: DuelDifficulty[];
-  /** The NPC's time (its 最高纪录); the player must finish under it plus the level's advantage. */
+  /** The NPC's time (its recording's); the player must finish under it plus the level's advantage. */
   targetMs: number;
   rewards: MissionReward[];
 }
@@ -232,7 +234,8 @@ function parseDuel(value: unknown): DuelEvent | undefined {
       const npc = record(stage.npc ?? {}, "赛道对决");
       const messages = stage.messages && typeof stage.messages === "object" ? stage.messages as Record<string, unknown> : {};
       return {
-        stage: integer(stage.stage, index + 1), speed: integer(stage.speed, 7), teamBooster: stage.teamBooster === true,
+        stage: integer(stage.stage, index + 1), ksv: text(stage.ksv), speed: integer(stage.speed, 7),
+        teamBooster: stage.teamBooster === true,
         npc: { name: text(npc.name), characterId: integer(npc.characterId), kartId: integer(npc.kartId),
           color: integer(npc.color), dye: integer(npc.dye) },
         messages: { difficulty: list(messages.difficulty).map(line => text(line)),
