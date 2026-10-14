@@ -243,3 +243,45 @@ export function updateLicenseMission(stage: LicenseMissionStage, rawNowMs: numbe
 export function licenseRouteTag(stage: LicenseMissionStage, tag: string, rawNowMs: number): void {
   runOf(stage)?.routeTag(stage, tag, rawNowMs);
 }
+
+/** Road surfaces off a license course: the retire ground and the 리셋 plane over it. */
+const OFF_COURSE_SURFACES: ReadonlySet<string> = new Set(["retire", "리셋"]);
+
+export interface LicenseCourseOutStage {
+  host: {
+    session: { selection?: unknown; lifecycle: MissionLifecycle };
+    getPhysics(): { wheels?: { roadDescriptor?: { road: {
+      attributes: ReadonlyArray<{ name: string; value: string }> } } } };
+    getTrack(): { data?: { licenseEvents?: ReadonlyMap<string, string> } };
+    handleTimeAttackActions?(actions: unknown[], rawNowMs: number): void;
+  };
+}
+
+/**
+ * The 驾照考试 courses lay a retire road on the ground around the course
+ * (Object09 of the village L/C courses, ice_C001's jump), and 漂移 2
+ * (village_L04_01 Plane06) and 跳跃漂移 (L04_03 Plane05) a 리셋 plane just
+ * above that ground. A kart that leaves the course onto either fails the step
+ * at once (retire@zz 未完成) instead of being reset [还原: the release has no
+ * consumer for retire; RiderSchoolSpeedStage loads retire@zz]. The R key and
+ * the wall/low-speed resets still reset. Run after the physics step with its
+ * reset request (`resetRequested`): these courses have no rails, so the request
+ * means the kart touched the 리셋 plane, even if it bounced off by the end of
+ * the step. Returns whether the race ended; if so, no reset follows.
+ */
+export function failLicenseCourseOut(stage: LicenseCourseOutStage, rawNowMs: number,
+  resetRequested = false): boolean {
+  const { host } = stage;
+  // Only the license-only courses carry licenseEvents: duels and PRO trials on
+  // regular tracks reset as any race does. Other races do nothing here.
+  if (!licenseMissionOf(host.session.selection) || !host.getTrack().data?.licenseEvents) return false;
+  const lifecycle = host.session.lifecycle;
+  if (lifecycle.phase !== 2 || lifecycle.startAtMs === 0 || lifecycle.finishAtMs !== 0 ||
+    lifecycle.effectiveTime(rawNowMs) < lifecycle.startAtMs || !lifecycle.forceFinish) return false;
+  const surface = host.getPhysics().wheels?.roadDescriptor?.road.attributes
+    .find(attribute => attribute.name === "surface")?.value;
+  if (!resetRequested && !(surface && OFF_COURSE_SURFACES.has(surface))) return false;
+  const actions = lifecycle.forceFinish(rawNowMs, { failed: true });
+  if (actions.length) host.handleTimeAttackActions?.(actions, rawNowMs);
+  return actions.length > 0;
+}

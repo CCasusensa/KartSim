@@ -1,4 +1,5 @@
 import { licenseItemsOf } from "../license/license-item-race";
+import { failLicenseCourseOut, type LicenseCourseOutStage } from "../license/license-mission";
 
 interface RouteProgress { lap: number }
 
@@ -139,7 +140,10 @@ export function updateTimeAttackDriving(
       host.session.lifecycle.phase <= dependencies.finishAcceptedPhase) {
     host.ghostRecorder?.update(effectiveNowMs);
   }
-  if (host.getPhysics().consumeRailResetRequest()) stage.initiateSpeedReset(false);
+  // 驾照考试: off the course onto its retire/리셋 ground the step fails instead of resetting.
+  const resetRequested = host.getPhysics().consumeRailResetRequest();
+  if (!failLicenseCourseOut(stage as unknown as LicenseCourseOutStage, rawNowMs, resetRequested) &&
+    resetRequested) stage.initiateSpeedReset(false);
   if (host.getPhysics().consumeSpeedSlotReordered()) {
     stage.ui?.gameplayUi?.startSlotReorder();
     host.audio.interfaceAudio?.playSlotChanger();

@@ -12,7 +12,8 @@ import type { RouteSection, Vec3 } from "../world/route";
 import { prepareCurrentSectionReset, resetRouteState, updateRoute } from "../world/route-state";
 import { routeSurfaceKind, routeTagFamily } from "../world/route-tag";
 import { alignLicenseFrames, alignLicenseSections, licenseEventScenes, markLicenseGoal } from "./license-course";
-import { DRILL_HOLD_MS, DRILL_PROMPTS, KeyDrill, licenseSceneNames, type DrillInput } from "./license-mission";
+import { DRILL_HOLD_MS, DRILL_PROMPTS, KeyDrill, failLicenseCourseOut, licenseSceneNames,
+  type DrillInput, type LicenseCourseOutStage } from "./license-mission";
 
 const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -203,4 +204,41 @@ test("a license race preloads its prompts, hints and start scene", () => {
     ["앞으로1@zz", "뒤로1@zz", "오른쪽1@zz", "왼쪽1@zz", "ok@zz"]);
   assert.deepEqual(licenseSceneNames({ step: 4, mission: 3, setup: { startTutoScene: "아이템_미사일" }, progress },
     new Map([["booster", "아이템"]])), ["아이템", "아이템_미사일"]);
+});
+
+test("leaving a license course onto its retire or 리셋 ground fails the step", () => {
+  const stage = (surface: string | undefined,
+    options: { events?: boolean; nowMs?: number; resetRequested?: boolean } = {}) => {
+    const finishes: boolean[] = [];
+    const lifecycle = { phase: 2, startAtMs: 1_000, finishAtMs: 0, effectiveTime: (raw: number) => raw,
+      forceFinish(rawNowMs: number, result: { failed: boolean }) {
+        lifecycle.finishAtMs = rawNowMs;
+        finishes.push(result.failed);
+        return [{ kind: "finish" }];
+      } };
+    const handled: unknown[] = [];
+    const value: LicenseCourseOutStage = { host: {
+      session: { selection: { story: { license: { step: 10, mission: 20, rule: "time", setup: {},
+        progress: { objective: false } } } }, lifecycle },
+      getPhysics: () => ({ wheels: { roadDescriptor: surface === undefined ? undefined
+        : { road: { attributes: [{ name: "surface", value: surface }] } } } }),
+      getTrack: () => ({ data: options.events === false ? {} : { licenseEvents: new Map() } }),
+      handleTimeAttackActions: actions => handled.push(...actions),
+    } };
+    const ended = failLicenseCourseOut(value, options.nowMs ?? 5_000, options.resetRequested);
+    return { ended, finishes, handled };
+  };
+  // 漂移 2 (village_L04_01): the 리셋 plane over the grass, and the retire grass itself.
+  assert.deepEqual(stage("리셋").finishes, [true]);
+  const retired = stage("retire");
+  assert.equal(retired.ended, true);
+  assert.deepEqual(retired.handled, [{ kind: "finish" }]);
+  // Bounced off the 리셋 plane by the end of the step: its reset request still fails the step.
+  assert.equal(stage(undefined, { resetRequested: true }).ended, true);
+  // On the road, or before GO, nothing happens.
+  assert.equal(stage(undefined).ended, false);
+  assert.equal(stage("dirt").ended, false);
+  assert.equal(stage("retire", { nowMs: 500 }).ended, false);
+  // A license step on a regular track (no licenseEvents) keeps its resets.
+  assert.equal(stage("리셋", { events: false, resetRequested: true }).ended, false);
 });
