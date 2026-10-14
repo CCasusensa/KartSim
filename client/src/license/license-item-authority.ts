@@ -22,6 +22,8 @@ export interface LicenseItemTarget {
   id: string;
   /** three.js pose. */
   pose: { position: Vec3 };
+  /** three.js foot on the road, if it stands above it: area items (a water bomb's splash) measure from here. */
+  ground?: Vec3;
   /** Gone after a hit (a board that was shot down). */
   alive: boolean;
 }
@@ -253,7 +255,7 @@ export class LicenseItemAuthority<Target extends LicenseItemTarget = LicenseItem
       if (area.at > nowMs) continue;
       this.areas.splice(index, 1);
       for (const target of this.options.targets ?? [])
-        if (target.alive && distance(target.pose.position, area.point) <= area.radius)
+        if (target.alive && distance(target.ground ?? target.pose.position, area.point) <= area.radius)
           this.hitTarget(target, area.useId, area.itemId);
     }
   }

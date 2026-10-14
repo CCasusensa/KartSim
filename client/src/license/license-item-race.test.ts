@@ -230,6 +230,40 @@ test("targets stand at the course's target dummies: boards, the iron and their n
   assert.ok(targets[0]!.pose.position.y > 20);
   // 磁铁练习 names the iron for its target0.
   assert.deepEqual(licenseTargets(dummies.slice(0, 1), { targetName: "iron" }).map(entry => entry.role), ["iron"]);
+  assert.equal(targets[0]!.pose.scale, undefined, "a missile's board keeps kart-size effects");
+  // 水炸弹练习: its board stands where a kart in the grown bubble would, the splash measured from its foot.
+  const [caught] = licenseTargets(dummies.slice(0, 1), { slots: ["waterBomb"] });
+  assert.equal(caught!.pose.scale, 2.5);
+  assert.deepEqual(caught!.ground, { x: 174, y: 20, z: -222 });
+  assert.ok(Math.abs(caught!.pose.position.y - (20 + 4 - 0.87 * 2.5)) < 1e-9);
+});
+
+test("水炸弹练习: a board's splash is measured from its foot, not from its raised pose", async () => {
+  const board: LicenseItemTarget = { id: RIVAL, pose: { position: { x: 0, y: 30, z: 200 } },
+    ground: { x: 0, y: 0, z: 200 }, alive: true };
+  const { f, authority, hits } = race({ capacity: 1, startSlots: [ItemIdx.waterBomb], targets: [board],
+    landing: () => ({ x: 4, y: 0, z: 200 }) });
+  authority.start();
+  await frames(f, authority, 50);
+  press(f, "press");
+  await frames(f, authority, 1200);
+  assert.deepEqual(hits, [[RIVAL, ItemIdx.waterBomb]]);
+});
+
+test("水炸弹练习: the bomb lands 211 down the course, as far off the centre line as the kart", () => {
+  const water = spec(11, 2, { slotCount: 1, slots: ["waterBomb"], targetArrow: true, goalArrow: true });
+  const { items, f, host } = itemRace(water, licenseItemPlan(water, catalog), []);
+  const lob = () => (items as unknown as { lobPoint(): Vec3 }).lobPoint();
+  // Without a route: along the kart's level heading.
+  Object.assign(f.physics.body.position, { x: 2, y: 1, z: 0 });
+  assert.deepEqual(lob(), { x: 2, y: 1, z: 211 });
+  // A course running toward -z: the kart's sideways offset is kept, its offset along the road is not.
+  const track = { sampleRoute: (_vehicle: object, lookahead: number) =>
+    ({ sampled: true, point: { x: 0, y: 0, z: -lookahead }, direction: { x: 0, y: 0, z: -1 } }) };
+  items.update({ ...host, getTrack: () => track }, 200);
+  Object.assign(f.physics.body.position, { x: 2, y: 0.5, z: -1 });
+  assert.deepEqual(lob(), { x: 2, y: 0.5, z: -211 });
+  items.dispose();
 });
 
 /** A license item race on fakes: the real controller and authority, targets without models. */

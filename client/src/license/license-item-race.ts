@@ -62,14 +62,19 @@ const FLY_ETA_MS = 1500;
 const LICENSE_AIM_RANGE = 300;
 const LICENSE_PULL = { acceleration: 60, maximumSpeed: 100 };
 /**
- * 水炸弹练习 (C108) throws at its red mark (event:waterbomb, x 590–572) and
- * traps the target 200 units on (target0, x 370) before the goal
- * (stage_stringBag step11_1/2). The item race's throw (1 s of the kart's
- * speed plus 20 ahead) lands 65 units on; here a water bomb lands on the
- * nearest board ahead within this reach and the aim cone [还原].
+ * 水炸弹练习 (C108): "在赛道中红色标出来的位置上，按 Ctrl 使用水炸弹" and trap the
+ * target before the goal (stage_stringBag step11_1/2). The red band
+ * (event:waterbomb, x 590–572) is 211 units before the target (target0,
+ * x 370); the item race's throw (1 s of the kart's speed plus 20 ahead) lands
+ * about 65 on. Here the player's water bomb lands this far down the course
+ * from where it is thrown, as far off the centre line as the kart, and traps
+ * what stands within its Set size (10): only a throw from the red band
+ * reaches the target [还原].
  */
-const LOB_REACH = 250;
-const LOB_CONE_COS = Math.cos(25 * Math.PI / 180);
+const LOB_DISTANCE = 211;
+
+/** The course centre line at a distance ahead of the kart (Track.sampleRoute), three.js. */
+interface LicenseRouteSample { sampled: boolean; point?: Vec3; direction?: Vec3 }
 
 export interface LicenseItemPlan {
   capacity: 1 | 2;
@@ -125,6 +130,7 @@ export interface LicenseItemHost {
   };
   warpNext?: { blocksDriving?(): boolean };
   drivingInput?: { setSteeringInverted?(enabled: boolean): void; setForwardReverseSwap?(enabled: boolean): void };
+  getTrack?(): { sampleRoute?(vehicle: object, lookahead: number): LicenseRouteSample } | undefined;
 }
 
 /** The local kart of an item step: the item mode members of AL. */
@@ -202,6 +208,8 @@ export class LicenseItemRace {
   private readonly hints: string[] = [];
   /** The app-wide input accumulator the devil reverses (cleared when the race ends). */
   private drivingInput?: LicenseItemHost["drivingInput"];
+  /** The course centre line ahead of the kart, from the last frame's track. */
+  private route?: (lookahead: number) => LicenseRouteSample | undefined;
   disposed = false;
 
   private constructor(
@@ -319,7 +327,7 @@ export class LicenseItemRace {
       position: () => ({ ...this.physics.body.position }),
       targets: this.targets.targets,
       onTargetHit: (target, itemId) => this.targetHit(target, itemId),
-      landing: itemId => this.catalog.get(itemId)?.behaviour.family === "waterBomb" ? this.lobTarget() : undefined,
+      landing: itemId => this.catalog.get(itemId)?.behaviour.family === "waterBomb" ? this.lobPoint() : undefined,
     });
     this.controller = new ItemRaceController({
       playerId: LICENSE_PLAYER,
@@ -354,23 +362,31 @@ export class LicenseItemRace {
 
   private collecting = (): boolean => this.racing && !this.suspended;
 
-  /** The board a thrown water bomb lands on: the nearest one ahead in reach. */
-  private lobTarget(): Vec3 | undefined {
+  /**
+   * Where the player's water bomb lands: LOB_DISTANCE down the course, as far
+   * off the centre line as the kart (and as high over it). Off the route,
+   * LOB_DISTANCE along the kart's level heading.
+   */
+  private lobPoint(): Vec3 {
     const { position, forward } = this.physics.body;
-    const length = Math.hypot(forward.x, forward.y, forward.z) || 1;
-    let best: LicenseTarget | undefined;
-    let bestDistance = Infinity;
-    for (const target of this.targets.targets) {
-      if (target.role !== "board" || !target.alive) continue;
-      const dx = target.pose.position.x - position.x, dy = target.pose.position.y - position.y,
-        dz = target.pose.position.z - position.z;
-      const gap = Math.hypot(dx, dy, dz);
-      const along = (dx * forward.x + dy * forward.y + dz * forward.z) / length;
-      if (gap > LOB_REACH || along <= 0 || along / gap < LOB_CONE_COS || gap >= bestDistance) continue;
-      best = target;
-      bestDistance = gap;
+    let here: LicenseRouteSample | undefined, ahead: LicenseRouteSample | undefined;
+    try {
+      here = this.route?.(0);
+      ahead = this.route?.(LOB_DISTANCE);
+    } catch (error) {
+      console.warn("驾照道具：水炸弹落点路线采样失败", error);
     }
-    return best ? { ...best.pose.position } : undefined;
+    const direction = here?.direction;
+    const length = direction ? Math.hypot(direction.x, direction.y, direction.z) : 0;
+    if (here?.sampled && here.point && ahead?.sampled && ahead.point && direction && length > 1e-6) {
+      const offset = { x: position.x - here.point.x, y: position.y - here.point.y, z: position.z - here.point.z };
+      const along = (offset.x * direction.x + offset.y * direction.y + offset.z * direction.z) / (length * length);
+      return { x: ahead.point.x + offset.x - direction.x * along, y: ahead.point.y + offset.y - direction.y * along,
+        z: ahead.point.z + offset.z - direction.z * along };
+    }
+    const level = Math.hypot(forward.x, forward.z) || 1;
+    return { x: position.x + forward.x / level * LOB_DISTANCE, y: position.y,
+      z: position.z + forward.z / level * LOB_DISTANCE };
   }
 
   /** Pair the item boxes with the race coordinator (made anew by every start). */
@@ -409,6 +425,8 @@ export class LicenseItemRace {
     // 大魔王 swaps left and right through the input snapshot.
     const effects = this.physics.itemEffects;
     this.drivingInput = host.drivingInput;
+    const track = host.getTrack?.();
+    this.route = track?.sampleRoute ? lookahead => track.sampleRoute!(this.physics, lookahead) : undefined;
     host.drivingInput?.setSteeringInverted?.(effects?.steeringInverted === true);
     host.drivingInput?.setForwardReverseSwap?.(effects?.forwardBackSwapped === true);
     this.controller.update(now);
@@ -423,7 +441,10 @@ export class LicenseItemRace {
   present(camera: unknown, width: number, height: number): void {
     if (this.disposed) return;
     this.cubes?.update(this.nowMs, camera, width, height);
-    this.targets.update(this.nowMs, camera, width, height);
+    this.targets.update(this.nowMs, camera, width, height, {
+      viewer: this.physics.body.position,
+      motion: id => this.presenter?.kartMotion?.(id, this.nowMs),
+    });
     this.controller.present({ nowMs: this.nowMs, camera, width, height });
   }
 

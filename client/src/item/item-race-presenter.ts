@@ -43,6 +43,8 @@ export interface ItemPresenterPose {
   right: ItemPresenterVec3;
   forward: ItemPresenterVec3;
   up: ItemPresenterVec3;
+  /** What is drawn on this racer is this much bigger (a 驾照考试 board); 1 when absent. */
+  scale?: number;
 }
 
 export interface ItemPresenterFrame {
@@ -226,13 +228,15 @@ function poseBasis(out: Placement, pose: ItemPresenterPose): void {
   copy(out.forward, pose.forward);
 }
 
-/** On a kart, with its basis, `lift` up its own up axis. */
+/** On a kart, with its basis, `lift` up its own up axis (both grown by the racer's scale). */
 function onKart(playerId: string, lift = 0): Placer {
   return (frame, _now, out) => {
     const pose = frame.pose(playerId);
     if (!pose) return false;
+    const scale = pose.scale ?? 1;
     poseBasis(out, pose);
-    addScaled(out.position, pose.position, pose.up, lift);
+    addScaled(out.position, pose.position, pose.up, lift * scale);
+    out.scale *= scale;
     return true;
   };
 }

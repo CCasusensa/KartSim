@@ -6,12 +6,21 @@
  * the iron. targetArrow / goalArrow put arrow.1s over the boards still up /
  * over the iron.
  *
- * How a board reacts to a hit, the arrow height and its bobbing are not in
- * the data [还原].
+ * arrow.1s is a flat green arrow with its tip along the model's -y; it hangs
+ * over its target tip down, turned to face the player's kart (the green
+ * arrow of the 连续导弹 briefing picture, stage_/riderSchoolReady/20/02.jpg).
+ * A board caught by a water bomb rides its bubble like a trapped kart (the
+ * item's firedkart motion), the bubble grown to the board: the pirate
+ * captain lifted in a bubble over the water bomb's splash of the 水炸弹练习
+ * briefing picture (11/02.jpg).
+ *
+ * How a board reacts to a missile, the arrow height, its bobbing and the
+ * bubble size are not in the data [还原].
  */
-import { Group } from "three";
+import { Group, type Matrix4 } from "three";
+import { drivenPose } from "../item/item-kart-motion";
 import type { ItemPresenterPose } from "../item/item-race-presenter-contract";
-import { clientToThreePoint, type Vec3 } from "../item/item-race-rules";
+import { clientToThreePoint, distance, threeToClient, type Vec3 } from "../item/item-race-rules";
 
 const FOLDER = "stage_/riderSchoolItem";
 /** Without targetName (水炸弹练习) the target<N> dummies get the plain board [还原]. */
@@ -20,8 +29,21 @@ const DEFAULT_TARGET = "target";
 const FALL_MS = 500;
 /** Aims and hits land this high above a board's foot (its face) [还原]. */
 const BOARD_CENTRE = 4;
-/** The arrow floats this high over its target and bobs this much [还原]. */
-const ARROW_HEIGHT = 12;
+/**
+ * A board a water bomb is to catch (水炸弹练习): the bubble (common
+ * 물방울갇힘_일반, its shell about 4.6 × 3.9 when grown, centred 0.87 over
+ * the kart it holds) is drawn this much bigger so the board (7.7 wide, 8
+ * tall) fits in it, and the board's pose stands where a kart would, so the
+ * shell's centre is the board's centre [还原].
+ */
+const BUBBLE_SCALE = 2.5;
+const BUBBLE_CENTRE = 0.87;
+/**
+ * The arrow's origin floats this high over its target's foot, its tip (3.9
+ * below the origin) clear of the board (8.1 tall) and the iron (9.5), and bobs
+ * this much [还原].
+ */
+const ARROW_HEIGHT = 15;
 const ARROW_BOB = 1;
 const ARROW_PERIOD_MS = 1200;
 
@@ -35,6 +57,8 @@ export interface LicenseTarget {
   name: string;
   /** three.js pose the items aim at and hit. */
   pose: ItemPresenterPose;
+  /** three.js foot on the road: where a water bomb's splash is measured from. */
+  ground: Vec3;
   /** Up until it is shot (a board); the iron always is. */
   alive: boolean;
   /** When it was shot (effective race clock). */
@@ -109,12 +133,16 @@ function order(name: string): number {
 const vector = (row: readonly number[] | undefined): Vec3 =>
   clientToThreePoint({ x: row?.[0] ?? 0, y: row?.[1] ?? 0, z: row?.[2] ?? 0 });
 
-function pose(dummy: LicenseDummy, lift: number): ItemPresenterPose {
+const footOf = (dummy: LicenseDummy): Vec3 =>
+  clientToThreePoint({ x: dummy.position[0], y: dummy.position[1], z: dummy.position[2] });
+
+function pose(dummy: LicenseDummy, lift: number, scale: number): ItemPresenterPose {
   const up = vector(dummy.basis[2]);
-  const foot = clientToThreePoint({ x: dummy.position[0], y: dummy.position[1], z: dummy.position[2] });
+  const foot = footOf(dummy);
   return {
     position: { x: foot.x + up.x * lift, y: foot.y + up.y * lift, z: foot.z + up.z * lift },
     right: vector(dummy.basis[0]), forward: vector(dummy.basis[1]), up,
+    ...(scale !== 1 ? { scale } : {}),
   };
 }
 
@@ -123,16 +151,22 @@ export interface LicenseTargetPlan {
   targetName?: string;
   targetArrow?: boolean;
   goalArrow?: boolean;
+  /** The step's items (itemslot0/1): with the water bomb the boards are to be caught in its bubble. */
+  slots?: readonly string[];
 }
 
 /** The targets of a course for a step (no model is loaded). */
 export function licenseTargets(dummies: readonly LicenseDummy[], plan: LicenseTargetPlan): LicenseTarget[] {
+  const caught = plan.slots?.includes("waterBomb") === true;
   return dummies.map(dummy => {
     const iron = dummy.name === "iron" || plan.targetName === "iron";
     return {
       id: dummy.name, role: iron ? "iron" as const : "board" as const,
       name: iron ? "铁块" : plan.targetName === "target2" ? "海盗船长" : "目标物",
-      pose: pose(dummy, iron ? 0 : BOARD_CENTRE), alive: true,
+      pose: iron ? pose(dummy, 0, 1)
+        : caught ? pose(dummy, BOARD_CENTRE - BUBBLE_CENTRE * BUBBLE_SCALE, BUBBLE_SCALE)
+          : pose(dummy, BOARD_CENTRE, 1),
+      ground: footOf(dummy), alive: true,
     };
   });
 }
@@ -144,6 +178,10 @@ interface Instance {
   view?: RenderedScene["rootObjects"][number];
   /** Client position at load. */
   base: number[];
+  /** Client basis rows at load (an arrow: the last way it faced). */
+  basis: number[][];
+  /** Moved off its load pose by a bubble. */
+  riding?: boolean;
 }
 
 interface Placed {
@@ -169,10 +207,63 @@ function cloneTree(node: SceneNode): SceneNode {
   return { ...node, children: node.children.map(cloneTree) };
 }
 
-/** Moves an instance to its load position raised by `rise` (client z); like the cubes, through its node. */
-function raise(instance: Instance, rise: number): void {
-  instance.wrapper.position = [instance.base[0]!, instance.base[1]!, instance.base[2]! + rise];
+/** Puts an instance at a client position and basis; like the cubes, through its node. */
+function place(instance: Instance, position: readonly number[], basis: readonly (readonly number[])[]): void {
+  instance.wrapper.position = [...position];
+  instance.wrapper.transform = basis.map(row => [...row]);
   instance.scene.setNodeScale(instance.wrapper, ONE);
+}
+
+/** Moves an instance to its load pose raised by `rise` (client z). */
+function raise(instance: Instance, rise: number): void {
+  place(instance, [instance.base[0]!, instance.base[1]!, instance.base[2]! + rise], instance.basis);
+}
+
+/*
+ * A node's basis is the rows of its matrix (formats Jm): the model's axes are
+ * its columns. A dummy's basis rows are its axes (right, forward, up).
+ */
+const columns = (x: Vec3, y: Vec3, z: Vec3): number[][] =>
+  [[x.x, y.x, z.x], [x.y, y.y, z.y], [x.z, y.z, z.z]];
+const transpose = (m: readonly (readonly number[])[]): number[][] =>
+  [0, 1, 2].map(r => [0, 1, 2].map(c => m[c]![r]!));
+const multiply = (a: readonly (readonly number[])[], b: readonly (readonly number[])[]): number[][] =>
+  a.map(row => [0, 1, 2].map(c => row[0]! * b[0]![c]! + row[1]! * b[1]![c]! + row[2]! * b[2]![c]!));
+
+/** An arrow's node basis: tip (model -y) down, its face (model z) turned level toward `toward`; x = y × z. */
+function arrowBasis(toward: { x: number; y: number }): number[][] {
+  return columns({ x: -toward.y, y: toward.x, z: 0 }, { x: 0, y: 0, z: 1 }, { x: toward.x, y: toward.y, z: 0 });
+}
+
+const client = (vector: Vec3): Vec3 => threeToClient(vector);
+
+/**
+ * A board held by a water bubble rides it like a trapped kart: the item's
+ * firedkart motion drives its pose (item-kart-motion.ts), the lift grown with
+ * the bubble (the pose's scale).
+ */
+function ride(instance: Instance, target: LicenseTarget, motion: Matrix4): void {
+  const { pose, ground } = target;
+  const scale = pose.scale ?? 1;
+  const grown = (vector: Vec3): Vec3 => ({ x: vector.x * scale, y: vector.y * scale, z: vector.z * scale });
+  const drawn = drivenPose({ position: pose.position, right: grown(pose.right), up: grown(pose.up),
+    forward: grown(pose.forward) }, motion);
+  // The pose stands this far over the board's foot.
+  const lift = distance(pose.position, ground);
+  const foot = client({ x: drawn.position.x - drawn.up.x * lift, y: drawn.position.y - drawn.up.y * lift,
+    z: drawn.position.z - drawn.up.z * lift });
+  // The motion's turn (drawn axes against the pose's), applied to the board's own basis.
+  const turn = multiply(columns(client(drawn.right), client(drawn.forward), client(drawn.up)),
+    transpose(columns(client(pose.right), client(pose.forward), client(pose.up))));
+  place(instance, [foot.x, foot.y, foot.z], multiply(turn, instance.basis));
+}
+
+/** What the field reads from the race each frame besides the clock. */
+export interface LicenseTargetSurroundings {
+  /** The player's kart (three.js): the arrows face it. */
+  viewer?: Vec3;
+  /** A racer's hit motion now (the item presenter's kartMotion), if it rides one. */
+  motion?(targetId: string): Matrix4 | undefined;
 }
 
 /** Course targets with their models in the track group. */
@@ -222,7 +313,7 @@ export class LicenseTargetField {
       const instances = await this.loadInstances(archive, "arrow", arrowed.map(({ index }) => {
         const dummy = dummies[index]!;
         const up = dummy.basis[2] ?? [0, 0, 1];
-        return { name: `arrow#${dummy.name}`, basis: IDENTITY(),
+        return { name: `arrow#${dummy.name}`, basis: arrowBasis({ x: 1, y: 0 }),
           position: dummy.position.map((value, axis) => value + (up[axis] ?? 0) * ARROW_HEIGHT) };
       }), options, ops);
       arrowed.forEach(({ entry }, at) => { entry.arrow = instances[at]; });
@@ -245,7 +336,7 @@ export class LicenseTargetField {
     if (scene.rootObjects.length !== wrappers.length + 1) throw new Error(`${path} 场景根节点数量不一致。`);
     scene.reset(0);
     return wrappers.map((node, index) => ({ scene, wrapper: node, view: scene.rootObjects[index + 1],
-      base: [...node.position] }));
+      base: [...node.position], basis: node.transform.map(entry => [...entry]) }));
   }
 
   /** The race (re)starts: every board up again. */
@@ -255,6 +346,7 @@ export class LicenseTargetField {
       entry.target.hitAtMs = undefined;
       if (entry.model) {
         raise(entry.model, 0);
+        entry.model.riding = false;
         if (entry.model.view) entry.model.view.visible = true;
       }
       if (entry.arrow?.view) entry.arrow.view.visible = true;
@@ -270,17 +362,37 @@ export class LicenseTargetField {
     if (entry?.arrow?.view) entry.arrow.view.visible = false;
   }
 
-  update(nowMs: number, camera?: unknown, width?: number, height?: number): void {
+  update(nowMs: number, camera?: unknown, width?: number, height?: number,
+    surroundings: LicenseTargetSurroundings = {}): void {
     if (this.disposed) return;
     const bob = Math.sin((nowMs % ARROW_PERIOD_MS) / ARROW_PERIOD_MS * Math.PI * 2) * ARROW_BOB;
+    const viewer = surroundings.viewer ? threeToClient(surroundings.viewer) : undefined;
     for (const entry of this.placed) {
-      if (entry.arrow?.view?.visible) raise(entry.arrow, bob);
+      const arrow = entry.arrow;
+      if (arrow?.view?.visible) {
+        const dx = viewer ? viewer.x - arrow.base[0]! : 0, dy = viewer ? viewer.y - arrow.base[1]! : 0;
+        const length = Math.hypot(dx, dy);
+        // Right over its target it keeps the way it last faced.
+        if (length > 1e-3) arrow.basis = arrowBasis({ x: dx / length, y: dy / length });
+        raise(arrow, bob);
+      }
       const { model, target } = entry;
-      if (!model?.view?.visible || target.hitAtMs === undefined) continue;
-      // A shot board sinks into the ground, then is gone.
-      const progress = Math.min(1, Math.max(0, (nowMs - target.hitAtMs) / FALL_MS));
-      raise(model, -progress * BOARD_CENTRE * 2);
-      if (progress >= 1) model.view.visible = false;
+      if (!model?.view?.visible) continue;
+      if (target.hitAtMs !== undefined) {
+        // A shot board sinks into the ground, then is gone.
+        const progress = Math.min(1, Math.max(0, (nowMs - target.hitAtMs) / FALL_MS));
+        raise(model, -progress * BOARD_CENTRE * 2);
+        if (progress >= 1) model.view.visible = false;
+        continue;
+      }
+      const motion = surroundings.motion?.(target.id);
+      if (motion) {
+        ride(model, target, motion);
+        model.riding = true;
+      } else if (model.riding) {
+        raise(model, 0);
+        model.riding = false;
+      }
     }
     for (const scene of this.scenes) scene.update(Math.trunc(nowMs) >>> 0, camera, width, height);
   }
