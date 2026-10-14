@@ -209,7 +209,7 @@ test("the M map opens on the rider and the delivery's target together", () => {
   assert.equal(fitView([me, { x: me.x + 5, z: me.z }], rect, 2).zoom, 2);
 });
 
-test("65 task-point NPCs (5 × the first 13) each give template deliveries", async () => {
+test("65 task-point NPCs (5 × the first 13) each give template quests of every type", async () => {
   const npcs = JSON.parse(readFileSync(new URL("client/src/city/city-npcs.json", root), "utf8")).npcs as
     Array<{ id: string; name: string; x: number; z: number }>;
   assert.equal(npcs.length, 65);
@@ -224,12 +224,26 @@ test("65 task-point NPCs (5 × the first 13) each give template deliveries", asy
   const { DELIVERY_TEMPLATES } = await import("../../tools/city/quests/city-quests.templates.mjs");
   assert.ok(DELIVERY_TEMPLATES.length >= 40);
   const generated = QUESTS.filter(quest => quest.id.includes("~"));
-  const keys = new Set(generated.map(quest => quest.id.slice(quest.id.indexOf("~") + 1)));
-  assert.ok(keys.size >= 40, `${keys.size} templates used`);
-  for (const npc of npcs) assert.ok(generated.filter(quest => quest.giver === npc.id).length >= 3, npc.id);
+  const keys = new Set(generated.filter(quest => quest.type === "delivery").map(quest => quest.id.slice(quest.id.indexOf("~") + 1)));
+  assert.ok(keys.size >= 40, `${keys.size} delivery templates used`);
+  for (const npc of npcs) {
+    const mine = generated.filter(quest => quest.giver === npc.id);
+    assert.ok(mine.filter(quest => quest.type === "delivery").length >= 3, npc.id);
+    // One ride, one collection and one search from templates for everyone.
+    for (const type of ["passenger", "collect", "search"]) assert.equal(mine.filter(quest => quest.type === type).length, 1, `${npc.id} ${type}`);
+  }
+  const { PASSENGER_TEMPLATES, COLLECT_TEMPLATES, SEARCH_TEMPLATES } = await import("../../tools/city/quests/city-quests.templates.mjs");
+  assert.ok(PASSENGER_TEMPLATES.length >= 12 && COLLECT_TEMPLATES.length >= 12 && SEARCH_TEMPLATES.length >= 12);
   for (const quest of generated) {
-    assert.equal(quest.type, "delivery");
-    assert.notEqual(quest.giver, quest.receiver);
+    if (quest.type === "delivery" || quest.type === "passenger") assert.notEqual(quest.giver, quest.receiver);
+    if (quest.type === "passenger") assert.equal(quest.item, shortName(QUEST_NPCS[quest.giver]));
+    if (quest.type === "collect") {
+      // Stops spread out near the giver.
+      const stops = quest.stops!;
+      for (const stop of stops) for (const other of stops)
+        if (other !== stop) assert.ok(Math.hypot(other.x - stop.x, other.z - stop.z) >= 100, quest.id);
+    }
+    if (quest.type === "search") assert.equal(quest.receiver, quest.giver);
     const text = [quest.title, quest.synopsis, quest.thanks, ...quest.offer.map(line => line.text)].join("");
     assert.doesNotMatch(text, /[{}]/, quest.id);
   }

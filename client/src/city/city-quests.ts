@@ -162,11 +162,14 @@ export class CityQuests {
         : `你还有「${quest.title}」没做完呢，${receiver}在等你！`);
       return;
     }
-    const quest = this.nextQuest(npcId);
-    if (!quest) return;
-    if (quest.type === "passenger" && !this.host.isDriving()) {
-      this.host.say(npcId, "你得开着车来接我呀！");
-      this.host.notice("载客任务要坐在驾驶座上才能接。");
+    const driving = this.host.isDriving();
+    const quest = this.nextQuest(npcId, driving);
+    if (!quest) {
+      // Only rides are left: they need the member at the wheel.
+      if (!driving && questsOf(npcId).length) {
+        this.host.say(npcId, "你得开着车来接我呀！");
+        this.host.notice("载客任务要坐在驾驶座上才能接。");
+      }
       return;
     }
     this.busy = true;
@@ -191,10 +194,10 @@ export class CityQuests {
     }
   }
 
-  /** The NPC's quest least often done here (ties: file order). */
-  private nextQuest(npcId: string): QuestDef | undefined {
+  /** The NPC's quest least often done here (ties: file order); rides only for a driver. */
+  private nextQuest(npcId: string, driving: boolean): QuestDef | undefined {
     const done = loadDone();
-    const quests = questsOf(npcId);
+    const quests = questsOf(npcId).filter(quest => driving || quest.type !== "passenger");
     return [...quests].sort((a, b) => (done[a.id] ?? 0) - (done[b.id] ?? 0))[0];
   }
 

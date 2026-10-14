@@ -654,6 +654,28 @@ function paintStoryPortrait(context: CanvasRenderingContext2D, portrait: StoryPo
   context.restore();
 }
 
+/**
+ * The step badge's text in white, centred: on one line when it fits, else
+ * split at " · " (卡丁城: "收集 · 小心驾驶" → two lines), shrunk to fit.
+ */
+function paintBadge(context: CanvasRenderingContext2D, text: string, rect: Rect): void {
+  context.save();
+  const width = (size: number, line: string) => {
+    context.font = `bold ${size}px ${FONT}`;
+    return context.measureText(line).width;
+  };
+  let lines = [text];
+  if (width(20, text) > rect.width - 10 && text.includes(" · ")) lines = text.split(" · ");
+  let size = 20;
+  while (size > 11 && (Math.max(...lines.map(line => width(size, line))) > rect.width - 10 ||
+    lines.length * (size + 2) > rect.height - 4)) size--;
+  context.restore();
+  const lineHeight = size + 2;
+  const top = rect.y + (rect.height - lines.length * lineHeight) / 2;
+  lines.forEach((line, i) => paintText(context, line, { x: rect.x, y: top + i * lineHeight - 3, width: rect.width,
+    height: lineHeight + 6 }, { size, color: "white", align: "center", gap: 0 }));
+}
+
 /** "赛道完成 %d回/%d回" with this step's count. */
 export function storyMissionText(template: string, cleared: boolean): string {
   let index = 0;
@@ -714,8 +736,7 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
           context.roundRect(rect.x, rect.y, rect.width, rect.height, 8);
           context.fill();
           context.restore();
-          paintText(context, options.badgeText ?? `第 ${step.id} 关`, rect, { size: 20, color: "white",
-            align: "center", middle: true });
+          paintBadge(context, options.badgeText ?? `第 ${step.id} 关`, rect);
         } };
         case "scenarioTitle": return { text: step.title };
         case "synopsis": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
