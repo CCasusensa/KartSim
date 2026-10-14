@@ -185,7 +185,11 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 	// The sessions of the global lobby's racers (and city visitors) are
 	// held by the lobby: they are only checked, and listed by the lobby.
 	var own, borrowed []contract.OnlinePlayer
+	inCity := 0
 	for _, player := range request.Players {
+		if strings.HasPrefix(player.Room, contract.CityRoomPrefix) {
+			inCity++
+		}
 		if player.Lobby {
 			borrowed = append(borrowed, player)
 		} else {
@@ -204,6 +208,7 @@ func (a *API) heartbeat(w http.ResponseWriter, r *http.Request) error {
 		Capacity:        request.Capacity,
 		Rooms:           request.Rooms,
 		Players:         len(request.Players),
+		CityPlayers:     inCity,
 		StartedAt:       request.StartedAt,
 		ProtocolVersion: request.ProtocolVersion,
 		SeenAt:          now,

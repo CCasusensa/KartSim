@@ -5,9 +5,10 @@ import { api, errorMessage } from '../api/client'
 import type { NodeChoice, NodeChoiceNode, NodeChoicePlayer, NodeRow, NodesResponse, ProbeStatus } from '../api/types'
 import { useNarrow } from '../composables/useNarrow'
 import { useTab } from '../composables/useTabs'
-import { formatHeap, formatNumber, text, type TagType } from '../utils/format'
+import { cityExcludedLabels, cityRuleLabels, formatHeap, formatNumber, text, type TagType } from '../utils/format'
 import { formatAgo, formatDuration, formatTime } from '../utils/time'
 import { showError } from '../utils/ui'
+import CityServerCard from '../components/CityServerCard.vue'
 import GameNodesCard from '../components/GameNodesCard.vue'
 
 // 服务器节点: GET /api/admin/nodes. Refreshes every 5 seconds while this tab
@@ -105,7 +106,8 @@ const choices = computed(() => data.value?.choices ?? [])
 const excludedLabels: Record<string, string> = { protocol: '协议版本不同', full: '容量不足' }
 
 function nodeLabel(choice: NodeChoice, nodeId: string) {
-  return choice.nodes.find((node) => node.nodeId === nodeId)?.name || nodeId
+  return choice.nodes.find((node) => node.nodeId === nodeId)?.name ||
+    rows.value.find((row) => row.nodeId === nodeId)?.name || nodeId
 }
 
 /** A player's report, in the order of the pick's nodes: "一区（46 ms）· 三区（9 ms）". */
@@ -126,10 +128,28 @@ function nobodyCounted(choice: NodeChoice) {
 }
 
 function nodeScore(choice: NodeChoice, node: NodeChoiceNode) {
-  if (node.score == null) return excludedLabels[node.excluded ?? ''] ?? (node.excluded || '—')
-  if (nobodyCounted(choice)) return `负载 ${node.players}/${node.capacity}`
-  return `${node.score} ms`
+  const city = choice.kind === 'city' && node.cityPlayers ? ` · 城里 ${node.cityPlayers} 人` : ''
+  if (node.score == null) return (excludedLabels[node.excluded ?? ''] ?? (node.excluded || '—')) + city
+  if (nobodyCounted(choice)) return `负载 ${node.players}/${node.capacity}${city}`
+  return `${node.score} ms${city}`
 }
+
+/** Why a city pick went where it did; empty for races (and older records). */
+function cityRule(choice: NodeChoice) {
+  if (choice.kind !== 'city' || !choice.rule) return ''
+  const rule = choice.rule === 'latency' ? '城里还没人，按该玩家的延迟选' : cityRuleLabels[choice.rule] ?? choice.rule
+  if (!choice.settingExcluded) return rule
+  const why = cityExcludedLabels[choice.settingExcluded] ?? choice.settingExcluded
+  return `指定的「${nodeLabel(choice, choice.setting ?? '')}」${why}，改按自动：${rule}`
+}
+
+/** The latency of a city pick only decides on an empty city. */
+function latencyDecided(choice: NodeChoice) {
+  return choice.kind !== 'city' || !choice.rule || choice.rule === 'latency'
+}
+
+// The node the next player entering the 卡丁城 goes to.
+const cityNode = computed(() => data.value?.city?.next.nodeId ?? '')
 
 function probe(value: ProbeStatus | null | undefined) {
   if (!value) return { type: 'info' as TagType, label: '未知' }
@@ -178,6 +198,8 @@ function probe(value: ProbeStatus | null | undefined) {
       <el-skeleton v-else-if="loading" :rows="2" animated />
     </el-card>
 
+    <CityServerCard :city="data ? data.city ?? null : undefined" :nodes="rows" @saved="load(true)" />
+
     <GameNodesCard ref="managed" :now="data?.now" />
 
     <el-card shadow="never" class="page-card">
@@ -199,7 +221,10 @@ function probe(value: ProbeStatus | null | undefined) {
       >
         <el-table-column label="节点" min-width="170" fixed="left">
           <template #default="{ row }">
-            <div class="ellipsis" :title="row.name || row.nodeId">{{ row.name || row.nodeId }}</div>
+            <div class="ellipsis" :title="row.name || row.nodeId">
+              {{ row.name || row.nodeId }}
+              <el-tag v-if="row.nodeId === cityNode && !isOffline(row)" size="small" type="success" disable-transitions>卡丁城</el-tag>
+            </div>
             <div class="muted mono ellipsis" :title="row.nodeId">{{ row.nodeId }}</div>
           </template>
         </el-table-column>
@@ -221,6 +246,9 @@ function probe(value: ProbeStatus | null | undefined) {
         </el-table-column>
         <el-table-column label="房间" width="70" align="right">
           <template #default="{ row }">{{ formatNumber(row.rooms) }}</template>
+        </el-table-column>
+        <el-table-column label="卡丁城" width="80" align="right">
+          <template #default="{ row }">{{ isOffline(row) ? '—' : formatNumber(row.cityPlayers ?? 0) }}</template>
         </el-table-column>
         <el-table-column label="启动时间 / 运行时长" width="190">
           <template #default="{ row }">
@@ -260,7 +288,7 @@ function probe(value: ProbeStatus | null | undefined) {
         <div class="card-head">
           <span>最近分配（{{ choices.length }}）</span>
           <span class="muted small">
-            得分 = 房间里延迟最高的人到该节点的延迟，取最低；没测速的玩家不计，测过别的节点却没测到这个节点按 250 ms；同分选负载低的。保留最近 100 次，数据服务重启后清空
+            得分 = 房间里延迟最高的人到该节点的延迟，取最低；没测速的玩家不计，测过别的节点却没测到这个节点按 250 ms；同分选负载低的。卡丁城按上面「卡丁城服务器」的规则，所有人去同一台。保留最近 100 次，数据服务重启后清空
           </span>
         </div>
       </template>
@@ -284,7 +312,8 @@ function probe(value: ProbeStatus | null | undefined) {
           <template #default="{ row }">
             <span v-if="row.nodeId">{{ row.nodeName || row.nodeId }}</span>
             <span v-else class="error-text">没有可用节点</span>
-            <div v-if="row.nodeId && nobodyCounted(row)" class="muted small">无人测速，按负载选</div>
+            <div v-if="cityRule(row)" class="muted small">{{ cityRule(row) }}</div>
+            <div v-if="row.nodeId && nobodyCounted(row) && latencyDecided(row)" class="muted small">无人测速，按负载选</div>
           </template>
         </el-table-column>
         <el-table-column label="玩家测到的延迟" min-width="280">

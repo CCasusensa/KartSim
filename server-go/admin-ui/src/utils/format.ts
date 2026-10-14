@@ -295,3 +295,18 @@ export function accountLabel(nickname: string | null | undefined, username: stri
   if (nickname && username) return `${nickname}（${username}）`
   return nickname || username || '—'
 }
+
+/** How a 卡丁城 node was chosen (NodeChoice.rule, CityServer.next.rule). */
+export const cityRuleLabels: Record<string, string> = {
+  setting: '后台指定',
+  crowd: '城里人最多的节点',
+  last: '城里还没人，跟上一位进城的玩家',
+  latency: '城里还没人，按进城玩家的延迟选（没测速时选负载最低的）',
+}
+
+/** Why the 卡丁城 node set in the console could not take a player. */
+export const cityExcludedLabels: Record<string, string> = {
+  offline: '不在线',
+  protocol: '协议版本不同',
+  full: '已满员',
+}

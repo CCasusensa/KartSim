@@ -16,7 +16,7 @@
 | 用户管理 | 表格：账号、昵称、等级、经验、点券、金币、K币、物品数、注册时间、注册 IP、最后登录时间、最后登录 IP、在线（所在节点）、管理员、封禁；搜索：关键字（账号/昵称/IP）、注册时间范围、在线/封禁/管理员筛选；排序；分页。操作：详情（抽屉：基本信息、钱包、物品表、货币流水、登录记录、比赛记录）、编辑（昵称、管理员、封禁到期与原因、重置密码）、赠送（点券/金币/K币/经验，正数发放、负数扣除，备注）、踢下线 |
 | 登录记录 | 注册与登录记录：时间、类型、账号、昵称、IP、浏览器；按账号/IP/时间/类型搜索 |
 | 在线玩家 | 当前在线的账号与游客：昵称、账号、所在节点、所在房间（有就显示）；按昵称/账号/节点搜索；可踢下线 |
-| 服务器节点 | 节点管理（后台添加的节点与节点密钥，第 8 节）；游戏节点：节点 ID、名称、地址、玩家/容量（进度条）、房间数、启动时间与运行时长、最后心跳、协议版本、状态（正常/超时/满员）、内存、协程数、连接数、进行中的比赛；数据服务自身：版本、启动时间、数据库与 Redis 状态。自动刷新（5 秒） |
+| 服务器节点 | 卡丁城服务器（所有进城玩家去的节点，或自动：跟着城里人最多的节点；`GLOBAL_LOBBY.md`“卡丁城”）；节点管理（后台添加的节点与节点密钥，第 8 节）；游戏节点：节点 ID、名称、地址、玩家/容量（进度条）、房间数、卡丁城人数、启动时间与运行时长、最后心跳、协议版本、状态（正常/超时/满员）、内存、协程数、连接数、进行中的比赛；数据服务自身：版本、启动时间、数据库与 Redis 状态。自动刷新（5 秒） |
 | 货币流水 | `wallet_ledger` 与经验流水：时间、账号、货币、变化、余额、原因、关联；按账号/货币/原因/时间搜索 |
 | 发放记录 | 管理员发放与扣除（`admin_grants`）：时间、管理员、账号、货币、数量、备注 |
 | 比赛记录 | 比赛结算：时间、模式、玩法、赛道、人数、名次与成绩、奖励；按账号/玩法/赛道/时间搜索 |
@@ -76,7 +76,8 @@
 | POST | `/api/admin/grant` | 现有接口（点券/金币/K币/经验发放与扣除），请求与错误不变；响应的 `account` 改为 `AccountRow` 加 `wallet: {coupon, lucci, koin}`（原有的 `wallet`、`level` 等字段仍在） |
 | GET | `/api/admin/logins` | 登录记录；筛选 `kind`、`account`、`ip` |
 | GET | `/api/admin/online` | 在线玩家（来自游戏节点注册信息）；`q` 匹配昵称/账号 |
-| GET | `/api/admin/nodes` | 游戏节点与数据服务状态 |
+| GET | `/api/admin/nodes` | 游戏节点与数据服务状态，卡丁城服务器设置 |
+| PUT | `/api/admin/city-server` | 卡丁城服务器：所有进城玩家去的节点，或自动 |
 | GET | `/api/admin/ledger` | 货币流水（含经验）；筛选 `currency`、`reason`、`account` |
 | GET | `/api/admin/grants` | 发放记录 |
 | GET | `/api/admin/races` | 比赛结算（每场一行，带参赛者名次与奖励）；筛选 `gameplay`、`track`、`account` |
@@ -100,7 +101,8 @@
 - `InventoryRow`：`id, category, categoryName, itemId, name, systemKey, quantity, expiresAt, source, createdAt, updatedAt`
 - `LoginRow`：`id, at, kind, accountId, username, nickname, ip, userAgent`
 - `OnlineRow`：`playerId, name, guest, accountId, username, nodeId, nodeName, room`（`room` 是所在房间名，在大厅或旧节点为空串；游客的 `accountId`、`username` 为空串）
-- `GET /api/admin/nodes` → `{now, nodes: NodeRow[], data: {version, goVersion, startedAt, goroutines, heapMB, mysql: {ok, latencyMs, error}, redis: {ok, latencyMs, error}}}`；`NodeRow`：`nodeId, name, origin, players, capacity, rooms, full, startedAt, seenAt, protocolVersion, status`（`ok` | `stale`（心跳超过 10 秒）| `full`）`, stats`（`null` 或 `{heapMB, goroutines, connections, races, version}`）。`origin` 为 `null` 表示经数据服务同源访问。节点注册 15 秒没有心跳就过期消失，所以“超时”取 10 秒（漏了两次 5 秒心跳）才能被看到。`mysql`/`redis` 检查失败时 `ok: false`、`latencyMs: null`、`error` 是中文说明（成功时为空串）；Redis 不可用时 `nodes` 为空数组。`choices` 是全局大厅最近 100 次选节点（新的在前，只在内存里，数据服务重启后清空）：`{at, kind`（`race` | `city`）`, roomId?, roomName?, nodeId, nodeName, error?`（没有可用节点时 `NO_GAME_SERVER`，`nodeId` 为空）`, players: [{name, counted, latency`（节点 ID → 毫秒；`null` 未测速）`}], nodes: [{nodeId, name, players, capacity, score`（候选节点的分数；非候选为 `null`）`, excluded?`（`protocol` | `full`）`}]}`，`nodes` 按分数从低到高、非候选排最后；规则见 [`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md) 第 4 步
+- `GET /api/admin/nodes` → `{now, nodes: NodeRow[], data: {version, goVersion, startedAt, goroutines, heapMB, mysql: {ok, latencyMs, error}, redis: {ok, latencyMs, error}}}`；`NodeRow`：`nodeId, name, origin, players, capacity, rooms, full, startedAt, seenAt, protocolVersion, status`（`ok` | `stale`（心跳超过 10 秒）| `full`）`, stats`（`null` 或 `{heapMB, goroutines, connections, races, version}`）`, cityPlayers`（在它卡丁城里的人数，大厅送去的也算；离线节点为 0）。`origin` 为 `null` 表示经数据服务同源访问。节点注册 15 秒没有心跳就过期消失，所以“超时”取 10 秒（漏了两次 5 秒心跳）才能被看到。`mysql`/`redis` 检查失败时 `ok: false`、`latencyMs: null`、`error` 是中文说明（成功时为空串）；Redis 不可用时 `nodes` 为空数组。`choices` 是全局大厅最近 100 次选节点（新的在前，只在内存里，数据服务重启后清空）：`{at, kind`（`race` | `city`）`, roomId?, roomName?, nodeId, nodeName, error?`（没有可用节点时 `NO_GAME_SERVER`，`nodeId` 为空）`, players: [{name, counted, latency`（节点 ID → 毫秒；`null` 未测速）`}], nodes: [{nodeId, name, players, capacity, score`（候选节点的分数；非候选为 `null`）`, excluded?`（`protocol` | `full`）`, cityPlayers?`（卡丁城的选择：当时在它城里的人数）`}], rule?`（卡丁城：`setting` 后台指定 | `crowd` 城里人最多 | `last` 城里没人、跟上一位进城的玩家 | `latency` 城里没人、按延迟）`, setting?, settingExcluded?`（指定的节点没能接收时：`offline` | `full` | `protocol`）`}`，`nodes` 按分数从低到高、非候选排最后；规则见 [`GLOBAL_LOBBY.md`](GLOBAL_LOBBY.md) 第 4 步与“卡丁城”。`city` 是卡丁城服务器设置（MySQL 不可用时为 `null`）：`{nodeId`（空串 = 自动）`, updatedAt, updatedBy, next: {nodeId, nodeName, rule, settingExcluded?, error?}}`，`next` 是现在一位没测速的玩家进城会分到的节点（没有可用节点时 `nodeId` 为空、`error: "NO_GAME_SERVER"`），不写进最近分配
+- `PUT /api/admin/city-server` `{nodeId}`：空串为自动，否则是节点 ID（`[A-Za-z0-9_-]{1,64}`，不能是 `lobby`；可以是当前不在线的节点，它上线前按自动分配），否则 400 `INVALID_CITY_SERVER`；存进 `app_settings` 的 `cityServer` 行，返回与 `GET /api/admin/nodes` 的 `city` 相同的对象，写日志 `admin city server`。只影响之后进城的玩家
 - `LedgerRow`：`id, at, accountId, username, nickname, currency`（`coupon` | `lucci` | `koin` | `exp`）`, delta, balanceAfter, reason, refId, note`。两张流水表合在一起，`id` 是字符串：`w<编号>`（`wallet_ledger`）或 `e<编号>`（`exp_ledger`），保证唯一；经验行的 `balanceAfter` 是变化后的经验
 - `GrantRow`：`at, admin, requestId, accountId, username, nickname, currency, amount, note`（`note` 取自该次发放写的流水行；重复提交等没有改变余额的发放为空串）
 - `RaceRow`：`raceId, roomId, at, gameplay, trackId, trackName, players, participants: RaceParticipantRow[]`（按名次）；`RaceParticipantRow`：`raceId, at, gameplay, trackId, trackName, rank, name, accountId, username, elapsedMs, points, exp, lucci`。`trackName` 是赛道表的中文名（不认识的赛道为空串）；`exp`、`lucci` 是这场比赛实际入账的经验与金币（游客或没有入账时为 `null`）；游客的 `accountId`、`username` 为空串；没有完赛的 `elapsedMs` 为 `null`

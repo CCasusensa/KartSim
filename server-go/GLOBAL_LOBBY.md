@@ -23,14 +23,24 @@
    - 候选：在线、协议版本相同、`players + 房间人数 ≤ capacity` 的节点；
    - 计分的玩家：测到过至少一个候选节点的成员。还没有测速数据（刚进大厅、旧客户端、所有节点都连不上）的成员**不计分**，不会让所有节点同分；
    - 分数：计分玩家里**延迟最高的那个人**到该节点的延迟，取最小；计分玩家没测到的节点对他按 250 毫秒算。没有人计分时所有节点 0 分；同分取负载（人数/容量）低的，再按节点 ID；
-   - 每次选择（含卡丁城与没有可用节点）都写进数据服务内存里最近 100 条的记录：成员各自的测速表、是否计分、每个节点的分数或不是候选的原因（`protocol` 协议不同、`full` 容量不足）。管理后台“服务器节点 → 最近分配”显示它；比赛的选择同时写进日志 `room handed to a game node`（`latency`、`scores` 两个字段），没有节点时是 `no game node for a room`；
+   - 每次选择（含卡丁城（规则见下面“卡丁城”）与没有可用节点）都写进数据服务内存里最近 100 条的记录：成员各自的测速表、是否计分、每个节点的分数或不是候选的原因（`protocol` 协议不同、`full` 容量不足）。管理后台“服务器节点 → 最近分配”显示它；比赛的选择同时写进日志 `room handed to a game node`（`latency`、`scores` 两个字段），没有节点时是 `no game node for a room`；
    - 每个成员收到 `{"type":"race-host","roomId","nodeId","name","origin","ticket"}`，票据声明里带大厅里的 `pid`（玩家 ID 不变）、`use:"race"` 与 `rh`（交接 ID），用该节点的票据密钥签发。
    - 没有可用节点时房间立刻回到等待，`raceError:"NO_GAME_SERVER"`。
 5. **节点上的比赛**：浏览器另开一条到节点的连接（与以前相同的 WebRTC/WebSocket），`hello` 带 race 票据。节点第一次见到这个交接 ID 时向数据服务 `POST /internal/v1/rooms/claim` 领取房间（`contract.RoomHandoff`：房间设置、成员与装备、修订号、道具换位卡与变更卡），建房后立即开始载入；`welcome` 之后紧接着发房间快照（修订号接着大厅的往上加）。节点**不为这些会话占用昵称**（`hello` 不调 presence claim），心跳里把它们标 `lobby:true`：数据服务只检查大厅是否仍为该玩家持有账号，不是就列为冲突，节点断开它。装备用大厅交来的，不再核对。比赛、结算、奖励、反作弊与以前完全相同。
 6. **回大厅**：全员“返回房间”（或开赛前取消、所有车手离开）后，节点把房间状态经发件箱 `POST /internal/v1/rooms/return`（排在这局的结算之后），删除房间，给这些会话发 `{"type":"room-home","roomId"}`，2 秒后以 1000 关闭连接。大厅收到后：成员以**大厅自己的名单**为准（只留仍连着大厅、仍在这个房间的人；比赛中主动离开的人已在大厅离开），从节点取房主、聊天、比赛错误、每人赛后的座位、队伍与准备状态（座位冲突时重新分配），修订号取两边较大者再加一，推送给成员。浏览器收到大厅的房间快照后关闭节点连接，命令回到大厅。
 7. **兜底**（数据服务每 5 秒检查）：交出 30 秒仍没有节点来领取 → 房间回来，`raceError:"RACE_SERVER_UNREACHABLE"`；节点从注册表消失（宕机、下线）或比赛超过 45 分钟 → 房间回来，`raceError:"RACE_SERVER_LOST"`；之后节点再交回的同一房间被忽略。数据服务重启时大厅与房间都在内存里，玩家回到首页重新进入（与节点重启相同）。
 
-**卡丁城**：大厅命令 `city-host` 回复 `{"type":"city-host","nodeId","name","origin","ticket"}`（`use:"city"` 票据，按该玩家的延迟选节点），浏览器另开一条到该节点的连接，`city-join` 等命令与以前相同；离开卡丁城时关闭这条连接。
+## 卡丁城
+
+大厅命令 `city-host` 回复 `{"type":"city-host","nodeId","name","origin","ticket"}`（`use:"city"` 票据），浏览器另开一条到该节点的连接，`city-join` 等命令与以前相同；离开卡丁城时关闭这条连接。
+
+**所有人进同一台节点**，大家在同一座城里见面（节点内部再按线路分流）。数据服务按下面的顺序选（`pickCityNode`，`internal/data/api/lobby_node_choice.go`），候选节点与比赛相同（在线、协议版本相同、还有一个空位）：
+
+1. **后台指定**（`setting`）：管理后台“服务器节点 → 卡丁城服务器”选的节点（`app_settings` 的 `cityServer` 行，`PUT /api/admin/city-server`，见 ADMIN.md）。它离线、满员或协议版本不同时跳过，按下面的自动规则选，记录里写明原因（`settingExcluded`：`offline`、`full`、`protocol`）；它恢复后新进城的玩家回到它上面。读不到设置（MySQL 故障）时按自动处理，卡丁城照常开放。
+2. **城里人最多的节点**（`crowd`）：节点心跳里 `players[].room` 以 `city:` 开头的人数（大厅送去的玩家也算），数据服务存在节点信息的 `cityPlayers` 里。同样多时优先上一位进城玩家去的节点，再按比赛的规则（延迟、负载、节点 ID）。
+3. **城里还没人**：上一位进城玩家去的节点（`last`，记在数据服务内存里；心跳最多晚 5 秒，几个人同时进城也不会分开）；数据服务刚启动、还没有人进过城时，按这位玩家的延迟选（`latency`，规则同比赛；没测速时选负载最低的）。
+
+每次选择和比赛一样写进“最近分配”，另带 `rule`、`setting`、`settingExcluded` 与每个节点当时的 `cityPlayers`。改设置只影响之后进城的玩家，已经在城里的人留在原来的节点，离开卡丁城再进来时才换过去。
 
 ## 浏览器（`client/src/multiplayer/race-host.ts`）
 
@@ -49,7 +59,8 @@
 | 数据服务公网 | `POST /multiplayer/lobby/ticket`、`GET /multiplayer/lobby/ws`、`POST /multiplayer/lobby/offer`（501） |
 | 大厅命令 | `node-latency`（回 `{"type":"ok"}`）、`city-host`；事件 `race-host` |
 | 数据服务内部 API | `/internal/v1/rooms/claim`、`/internal/v1/rooms/return`（共享密钥或节点密钥；节点只能领取 / 交回交给自己的房间） |
-| 节点 | 接受带 `use` 的票据；事件 `room-home`；心跳 `players[].lobby` |
+| 节点 | 接受带 `use` 的票据；事件 `room-home`；心跳 `players[].lobby`；卡丁城玩家的 `players[].room` 为 `city:<线路>` |
+| 管理后台 | `PUT /api/admin/city-server`；`GET /api/admin/nodes` 的 `city` 与 `nodes[].cityPlayers` |
 | 错误码 | `ROOM_RACING`（409）、`NOT_RACE_PARTICIPANT`（403）、`INVALID_LATENCY`；房间 `raceError`：`NO_GAME_SERVER`、`RACE_SERVER_UNREACHABLE`、`RACE_SERVER_LOST` |
 
 旧的“在节点上开房间”的方式仍然可用（节点照常接受普通票据与 `create`/`join`），`run-full-local.sh` 的冒烟脚本、`item-bot.mjs` 等测试工具继续走它；新版浏览器只走全局大厅。
@@ -62,7 +73,7 @@
 
 ## 测试
 
-- Go：`internal/game/lobby/handoff_test.go`（大厅与节点两侧、交接、回大厅、领取失败、卡丁城）、`internal/data/api/lobby_home_test.go`（经真实 WebSocket 与内部 API 的全流程、选节点规则）。
+- Go：`internal/game/lobby/handoff_test.go`（大厅与节点两侧、交接、回大厅、领取失败、卡丁城）、`internal/data/api/lobby_home_test.go`（经真实 WebSocket 与内部 API 的全流程、选节点规则）、`internal/data/api/lobby_city_test.go`（卡丁城选节点规则、后台设置、离线回退）。
 - 前端：`client/src/multiplayer/race-host.test.ts`。
 - 端到端：`node test/lobby-smoke.mjs`（对已运行的集群：三个账号、交接、比赛、回大厅、结算、卡丁城；节点要 `KART_ANTICHEAT=log`）。
 - 手动：`node test/lobby-bot.mjs --room <房间名>` 是一个会自动加入房间、准备、跟着去节点比赛、回来再准备的陪练，用来在浏览器里试玩。

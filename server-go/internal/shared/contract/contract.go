@@ -38,12 +38,18 @@ const (
 	Ruleset         = "launcher-room-v1"
 )
 
+// CityRoomPrefix starts OnlinePlayer.Room for a player in the 卡丁城
+// ("city:<line>").
+const CityRoomPrefix = "city:"
+
 // OnlinePlayer is one hello'd WebSocket session on a game node.
 type OnlinePlayer struct {
 	PlayerID string `json:"playerId"`
 	Name     string `json:"name"`
-	// Room is the name of the room the player is in; absent in the lobby
-	// and from older nodes (shown by the admin console only).
+	// Room is the name of the room the player is in, or CityRoomPrefix and
+	// the line in the 卡丁城; absent in the lobby and from older nodes. The
+	// admin console shows it and the global lobby counts the city players
+	// with it (GLOBAL_LOBBY.md 卡丁城).
 	Room string `json:"room,omitempty"`
 	// AccountID is the account the player claimed at hello; absent for
 	// guests and from older nodes. The data service rebuilds the node's

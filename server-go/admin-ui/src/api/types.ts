@@ -188,6 +188,8 @@ export interface NodeRow {
   /** offline: no longer registered but seen in the last 24 hours (seenAt is its last heartbeat). */
   status: 'ok' | 'stale' | 'full' | 'offline' | string
   stats: NodeStats | null
+  /** Players in its 卡丁城 (0 offline; absent from older data services). */
+  cityPlayers?: number
 }
 
 /** A game node added in the console (GET /api/admin/game-nodes). */
@@ -230,6 +232,8 @@ export interface NodeChoiceNode {
   capacity: number
   score: number | null
   excluded?: 'protocol' | 'full' | string
+  /** Players in its 卡丁城 at the time (city picks). */
+  cityPlayers?: number
 }
 
 /** One of the global lobby's latest node picks (GLOBAL_LOBBY.md 4). */
@@ -244,6 +248,37 @@ export interface NodeChoice {
   error?: string
   players: NodeChoicePlayer[]
   nodes: NodeChoiceNode[]
+  /** How a city node was chosen (CityRule). */
+  rule?: CityRule
+  /** The console's city node when one was set, and why it could not take the player. */
+  setting?: string
+  settingExcluded?: CityExcluded
+}
+
+/**
+ * How the 卡丁城 node is chosen (GLOBAL_LOBBY.md 卡丁城): setting = the node set
+ * here; crowd = the node most city players are on; last = the city is
+ * empty, the node the last player went to; latency = the city is empty,
+ * by the player's latency (by load without a report).
+ */
+export type CityRule = 'setting' | 'crowd' | 'last' | 'latency' | string
+export type CityExcluded = 'offline' | 'protocol' | 'full' | string
+
+/** The 卡丁城服务器 setting (PUT /api/admin/city-server). */
+export interface CityServer {
+  /** Empty: automatic. */
+  nodeId: string
+  updatedAt: number
+  updatedBy: string
+  /** Where a player entering the city now would go. */
+  next: {
+    /** Empty when no node can take players (error NO_GAME_SERVER). */
+    nodeId: string
+    nodeName: string
+    rule: CityRule
+    settingExcluded?: CityExcluded
+    error?: string
+  }
 }
 
 export interface NodesResponse {
@@ -251,6 +286,8 @@ export interface NodesResponse {
   nodes: NodeRow[]
   /** Newest first; absent from older data services. */
   choices?: NodeChoice[]
+  /** null when MySQL cannot say; absent from older data services. */
+  city?: CityServer | null
   data: {
     version: string
     goVersion: string

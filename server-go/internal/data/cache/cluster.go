@@ -37,15 +37,18 @@ const (
 
 // Node is the registry entry of one game node (Redis node:{id}).
 type Node struct {
-	NodeID          string `json:"nodeId"`
-	Name            string `json:"name"`
-	Origin          string `json:"origin"`
-	Capacity        int    `json:"capacity"`
-	Rooms           int    `json:"rooms"`
-	Players         int    `json:"players"`
-	StartedAt       int64  `json:"startedAt"`
-	ProtocolVersion int    `json:"protocolVersion"`
-	SeenAt          int64  `json:"seenAt"`
+	NodeID   string `json:"nodeId"`
+	Name     string `json:"name"`
+	Origin   string `json:"origin"`
+	Capacity int    `json:"capacity"`
+	Rooms    int    `json:"rooms"`
+	Players  int    `json:"players"`
+	// CityPlayers is how many of them are in its 卡丁城, the global
+	// lobby's visitors included (GLOBAL_LOBBY.md 卡丁城).
+	CityPlayers     int   `json:"cityPlayers,omitempty"`
+	StartedAt       int64 `json:"startedAt"`
+	ProtocolVersion int   `json:"protocolVersion"`
+	SeenAt          int64 `json:"seenAt"`
 	// Stats are the load figures of the latest heartbeat; nil from nodes
 	// that send none.
 	Stats *contract.NodeStats `json:"stats,omitempty"`

@@ -25,12 +25,27 @@ const (
 const (
 	excludedProtocol = "protocol"
 	excludedFull     = "full"
+	// excludedOffline is the console's city node not being registered.
+	excludedOffline = "offline"
 )
 
 // choiceKind is what a node was picked for.
 const (
 	choiceRace = "race"
 	choiceCity = "city"
+)
+
+// How the city node was chosen (pickCityNode).
+const (
+	// cityRuleSetting: the node set in the console.
+	cityRuleSetting = "setting"
+	// cityRuleCrowd: the node most city players are on.
+	cityRuleCrowd = "crowd"
+	// cityRuleLast: nobody in the city yet by the heartbeats, so the node
+	// the lobby last sent a player to.
+	cityRuleLast = "last"
+	// cityRuleLatency: the city is empty; pickNode for this player.
+	cityRuleLatency = "latency"
 )
 
 // nodeChoice is one node pick: who asked, what each player measured, how
@@ -45,6 +60,13 @@ type nodeChoice struct {
 	Error    string         `json:"error,omitempty"`
 	Players  []choicePlayer `json:"players"`
 	Nodes    []choiceNode   `json:"nodes"`
+	// Rule is how a city node was chosen (cityRule*; empty for races).
+	Rule string `json:"rule,omitempty"`
+	// Setting is the console's city node when one was set, and
+	// SettingExcluded why it could not take the player (offline, protocol
+	// or full); the lobby then chose as if none were set.
+	Setting         string `json:"setting,omitempty"`
+	SettingExcluded string `json:"settingExcluded,omitempty"`
 }
 
 // choicePlayer is a player's latency report (node ID → ms; nil: none yet)
@@ -64,6 +86,8 @@ type choiceNode struct {
 	Capacity int    `json:"capacity"`
 	Score    *int   `json:"score"`
 	Excluded string `json:"excluded,omitempty"`
+	// CityPlayers is how many players were in its 卡丁城 (city picks).
+	CityPlayers int `json:"cityPlayers,omitempty"`
 }
 
 // nodePick is the outcome of pickNode.
@@ -122,13 +146,81 @@ func pickNode(nodes []cache.Node, latency []map[string]int) nodePick {
 	if len(candidates) == 0 {
 		return pick
 	}
-	load := func(n cache.Node) float64 { return float64(n.Players) / float64(max(n.Capacity, 1)) }
-	pick.node = slices.MinFunc(candidates, func(a, b cache.Node) int {
-		return cmp.Or(cmp.Compare(pick.scores[a.NodeID], pick.scores[b.NodeID]), cmp.Compare(load(a), load(b)),
-			cmp.Compare(a.NodeID, b.NodeID))
-	})
+	pick.node = slices.MinFunc(candidates, pick.order)
 	pick.found = true
 	return pick
+}
+
+// order ranks two candidates of the pick: the lower score first, then the
+// less loaded, then the node ID.
+func (pick nodePick) order(a, b cache.Node) int {
+	load := func(n cache.Node) float64 { return float64(n.Players) / float64(max(n.Capacity, 1)) }
+	return cmp.Or(cmp.Compare(pick.scores[a.NodeID], pick.scores[b.NodeID]), cmp.Compare(load(a), load(b)),
+		cmp.Compare(a.NodeID, b.NodeID))
+}
+
+// cityPick is the outcome of pickCityNode.
+type cityPick struct {
+	nodePick
+	rule string
+	// settingExcluded is why the console's node could not take the player.
+	settingExcluded string
+}
+
+// pickCityNode chooses the 卡丁城 node for a player (GLOBAL_LOBBY.md 卡丁城):
+// everyone goes to the same one. That is setting, the node set in the
+// console, when it can take the player. Otherwise, among the candidates of
+// pickNode: the node most city players are on (by the heartbeats; a tie
+// goes to last, then to pickNode's order); with nobody in the city, last,
+// the node the lobby last sent a player to (heartbeats lag a few seconds
+// behind); and with neither, pickNode's choice for the player's latency
+// report.
+func pickCityNode(nodes []cache.Node, latency map[string]int, setting, last string) cityPick {
+	pick := cityPick{nodePick: pickNode(nodes, []map[string]int{latency})}
+	var candidates []cache.Node
+	for _, node := range nodes {
+		if _, candidate := pick.scores[node.NodeID]; candidate {
+			candidates = append(candidates, node)
+		}
+	}
+	if setting != "" {
+		if i := slices.IndexFunc(candidates, func(n cache.Node) bool { return n.NodeID == setting }); i >= 0 {
+			pick.node, pick.rule = candidates[i], cityRuleSetting
+			return pick
+		}
+		pick.settingExcluded = cmp.Or(pick.excluded[setting], excludedOffline)
+	}
+	if !pick.found {
+		return pick
+	}
+	most := 0
+	for _, node := range candidates {
+		most = max(most, node.CityPlayers)
+	}
+	if most > 0 {
+		lastFirst := func(n cache.Node) int { return boolRank(n.NodeID != last) }
+		pick.node = slices.MinFunc(slices.DeleteFunc(candidates, func(n cache.Node) bool { return n.CityPlayers < most }),
+			func(a, b cache.Node) int { return cmp.Or(cmp.Compare(lastFirst(a), lastFirst(b)), pick.order(a, b)) })
+		pick.rule = cityRuleCrowd
+		return pick
+	}
+	if i := slices.IndexFunc(candidates, func(n cache.Node) bool { return n.NodeID == last }); i >= 0 {
+		pick.node, pick.rule = candidates[i], cityRuleLast
+		return pick
+	}
+	pick.rule = cityRuleLatency
+	return pick
+}
+
+// describeCity adds to the record of a city pick how it was made and each
+// node's city players.
+func (choice *nodeChoice) describeCity(nodes []cache.Node, pick cityPick, setting string) {
+	choice.Rule, choice.Setting, choice.SettingExcluded = pick.rule, setting, pick.settingExcluded
+	for i := range choice.Nodes {
+		if j := slices.IndexFunc(nodes, func(n cache.Node) bool { return n.NodeID == choice.Nodes[i].NodeID }); j >= 0 {
+			choice.Nodes[i].CityPlayers = nodes[j].CityPlayers
+		}
+	}
 }
 
 // describe fills the record of a pick: the players' counting, every node

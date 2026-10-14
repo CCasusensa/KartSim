@@ -52,6 +52,8 @@ type lobbyHome struct {
 	handoffs map[string]*handoffRecord
 	// choices are the latest node picks, newest last (the console's 最近分配).
 	choices []nodeChoice
+	// cityNode is the node the lobby last sent a player to the city on.
+	cityNode string
 }
 
 // handoffRecord is a room handed to a node, until it comes back.
@@ -116,11 +118,14 @@ func (h *lobbyHome) Handoff(ctx context.Context, handoff contract.RoomHandoff,
 	return plan, nil
 }
 
-// CityHost picks the node of a player's city line.
+// CityHost sends a player to the 卡丁城 node everyone goes to
+// (pickCityNode).
 func (h *lobbyHome) CityHost(ctx context.Context, player lobby.CityPlayer) (lobby.NodeEntry, error) {
 	choice := nodeChoice{Kind: choiceCity, Players: []choicePlayer{{Name: player.Name, Latency: player.Latency}}}
-	node, err := h.pickNode(ctx, &choice, []map[string]int{player.Latency})
+	node, err := h.pickCityNode(ctx, &choice, player.Latency)
 	if err != nil {
+		h.a.log.Warn("no game node for the city", "player", player.Name, "error", err,
+			"setting", choice.Setting, "settingExcluded", choice.SettingExcluded)
 		return lobby.NodeEntry{}, err
 	}
 	entry := h.entry(node)
@@ -157,6 +162,60 @@ func (h *lobbyHome) pickNode(ctx context.Context, choice *nodeChoice, latency []
 		return cache.Node{}, errNoGameServer
 	}
 	return pick.node, nil
+}
+
+// pickCityNode chooses the city node for a player (its latency report)
+// from the registry, the console's setting and the city players of each
+// node, and keeps the record of the choice.
+func (h *lobbyHome) pickCityNode(ctx context.Context, choice *nodeChoice, latency map[string]int) (cache.Node, error) {
+	if h.a.cluster == nil {
+		return cache.Node{}, errNoGameServer
+	}
+	nodes, err := h.a.cluster.Nodes(ctx)
+	if err != nil {
+		return cache.Node{}, errServiceUnavailable
+	}
+	setting := h.citySetting(ctx)
+	h.mu.Lock()
+	last := h.cityNode
+	h.mu.Unlock()
+	pick := pickCityNode(nodes, latency, setting, last)
+	choice.At = h.a.nowMillis()
+	choice.describe(nodes, pick.nodePick)
+	choice.describeCity(nodes, pick, setting)
+	if pick.found {
+		h.mu.Lock()
+		h.cityNode = pick.node.NodeID
+		h.mu.Unlock()
+	}
+	h.remember(*choice)
+	if !pick.found {
+		return cache.Node{}, errNoGameServer
+	}
+	return pick.node, nil
+}
+
+// citySetting is the console's city node ("" automatic, also when MySQL
+// cannot say: the city stays open).
+func (h *lobbyHome) citySetting(ctx context.Context) string {
+	if h.a.store == nil {
+		return ""
+	}
+	setting, err := h.a.store.CityServer(ctx)
+	if err != nil {
+		h.a.log.Warn("city server setting unavailable; choosing automatically", "error", err)
+		return ""
+	}
+	return setting.NodeID
+}
+
+// cityNext is where a player without a latency report entering the city
+// now would go, for the console; nothing is recorded.
+func (h *lobbyHome) cityNext(nodes []cache.Node, setting string) cityPick {
+	h.mu.Lock()
+	last := h.cityNode
+	h.mu.Unlock()
+	return pickCityNode(nodes, nil, setting, last)
 }
 
 // claim gives a node the room it was handed (the first racer's hello).

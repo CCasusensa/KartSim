@@ -252,6 +252,8 @@ type nodeRowJSON struct {
 	ProtocolVersion int                 `json:"protocolVersion"`
 	Status          string              `json:"status"`
 	Stats           *contract.NodeStats `json:"stats"`
+	// CityPlayers is how many of its players are in its 卡丁城 (0 offline).
+	CityPlayers int `json:"cityPlayers"`
 }
 
 // serviceCheck is the state of a backing service: whether it answered a
@@ -312,7 +314,9 @@ func (a *API) offlineNodes(ctx context.Context, live []cache.NodeOnline) []cache
 // left them), and the data service's own build, start, goroutines, heap
 // in use (MB, one decimal) and MySQL and Redis checks. nodes is empty while
 // Redis is unavailable. choices are the global lobby's latest node picks,
-// newest first (lobby_node_choice.go).
+// newest first (lobby_node_choice.go); city is the 卡丁城 server setting
+// and where the next player would go (admin_city.go), null when MySQL
+// fails.
 func (a *API) adminNodes(w http.ResponseWriter, r *http.Request) error {
 	if _, err := a.requireAdmin(r); err != nil {
 		return err
@@ -333,20 +337,25 @@ func (a *API) adminNodes(w http.ResponseWriter, r *http.Request) error {
 			Capacity: node.Capacity, Rooms: node.Rooms, Full: node.Full(), StartedAt: node.StartedAt,
 			SeenAt: node.SeenAt, ProtocolVersion: node.ProtocolVersion, Status: status, Stats: node.Stats}
 	}
-	if a.cluster != nil {
-		live, err := a.cluster.Nodes(ctx)
-		if err != nil {
-			a.log.Warn("admin: node list unavailable", "error", err)
-		} else {
-			registered := make([]cache.NodeOnline, len(live))
-			for i, node := range live {
-				nodes = append(nodes, row(node, nodeStatus(node, now)))
-				registered[i].Node = node
-			}
-			for _, node := range a.offlineNodes(ctx, registered) {
-				nodes = append(nodes, row(node, nodeOffline))
-			}
+	live, err := a.liveNodes(ctx)
+	if a.cluster != nil && err == nil {
+		registered := make([]cache.NodeOnline, len(live))
+		for i, node := range live {
+			row := row(node, nodeStatus(node, now))
+			row.CityPlayers = node.CityPlayers
+			nodes = append(nodes, row)
+			registered[i].Node = node
 		}
+		for _, node := range a.offlineNodes(ctx, registered) {
+			nodes = append(nodes, row(node, nodeOffline))
+		}
+	}
+	var city *cityServerJSON
+	if setting, err := a.store.CityServer(ctx); err != nil {
+		a.log.Warn("admin: city server setting unavailable", "error", err)
+	} else {
+		described := a.cityServerJSON(setting, live)
+		city = &described
 	}
 	wg.Wait()
 	sample := []metrics.Sample{{Name: heapMetric}}
@@ -359,6 +368,7 @@ func (a *API) adminNodes(w http.ResponseWriter, r *http.Request) error {
 		"now":     now,
 		"nodes":   nodes,
 		"choices": a.lobby.recent(),
+		"city":    city,
 		"data": map[string]any{
 			"version": buildinfo.Version(), "goVersion": runtime.Version(), "startedAt": a.startedAt,
 			"goroutines": runtime.NumGoroutine(), "heapMB": heapMB, "mysql": mysql, "redis": redis,

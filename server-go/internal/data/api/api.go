@@ -368,6 +368,7 @@ func (a *API) PublicHandler() http.Handler {
 	route("GET /api/admin/anti-cheat", a.adminAntiCheat)
 	route("GET /api/admin/online", a.adminOnline)
 	route("GET /api/admin/nodes", a.adminNodes)
+	route("PUT /api/admin/city-server", a.adminSaveCityServer)
 	route("GET /api/admin/game-nodes", a.adminGameNodes)
 	route("POST /api/admin/game-nodes", a.adminCreateGameNode)
 	route("PATCH /api/admin/game-nodes/{id}", a.adminUpdateGameNode)

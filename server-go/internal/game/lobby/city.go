@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+	"kartsim/internal/shared/contract"
 )
 
 // The city zone (internal/game/city, CITY.md) runs beside the lobby: a
@@ -25,7 +27,7 @@ func (c *Client) CityLine() int { return int(c.city.Load()) }
 func (c *Client) SetCityLine(line int) { c.city.Store(int32(line)) }
 
 // cityRoom is the heartbeat's room field of a city member.
-func cityRoom(line int) string { return "city:" + strconv.Itoa(line) }
+func cityRoom(line int) string { return contract.CityRoomPrefix + strconv.Itoa(line) }
 
 // errInCity answers create and join while the connection is in the city
 // (CITY.md 1): it must city-leave first.

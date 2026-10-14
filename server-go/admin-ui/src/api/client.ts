@@ -65,6 +65,7 @@ const messages: Record<string, string> = {
   REQUEST_TOO_LARGE: '请求内容过大',
   INVALID_NODE: '节点信息无效（名称 1–32 字；节点 ID 只能用字母、数字、- 和 _；对外地址须为 http(s)://主机[:端口]；备注最多 200 字）',
   NODE_EXISTS: '该节点 ID 已存在',
+  INVALID_CITY_SERVER: '卡丁城服务器无效（请选择一个节点，或选自动）',
   NODE_NOT_FOUND: '节点不存在或已删除',
   MAP_NOT_FOUND: '地图不存在或已删除',
   INVALID_LOBBY_PROMOS: '宣传设置无效（轮播图最多 8 张且每张都要有图片，间隔 2–60 秒，链接须为 http(s):// 网址或以 / 开头的路径，标题最多 40 字）',
