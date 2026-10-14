@@ -103,7 +103,7 @@ export function questGoal(quest: QuestDef): string {
   }
 }
 
-/** "限速 45 km/h" etc.: what the quest must keep to. */
+/** "限速 85 km/h" etc.: what the quest must keep to. */
 export function limitText(quest: QuestDef): string {
   switch (quest.kind) {
     case "speed": return `全程车速不超过 ${quest.maxKmh} km/h（超速超过 ${QUEST_RULES.speedGraceMs / 1000} 秒即失败）`;

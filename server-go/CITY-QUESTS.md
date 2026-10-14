@@ -38,7 +38,7 @@ node tools/city/quests/build-city-quests.mjs          # 在 client/ 下；--chec
 | 类型 | 界面名 | 倍率 | 要求 |
 | --- | --- | --- | --- |
 | `normal` | 普通 | 1.0 | 无 |
-| `speed` | 限速 | 1.4 | 全程车速不超过 `maxKmh`，超出持续 1 s（`speedGraceMs`）即失败 |
+| `speed` | 限速 | 1.4 | 全程车速不超过 `maxKmh`（80、85 或 90 km/h），超出持续 1 s（`speedGraceMs`）即失败 |
 | `collision` | 小心驾驶 | 1.5 | 碰撞不超过 `maxCollisions` 次 |
 | `time` | 限时 | 1.6 | `timeLimitMs` 内完成；时限 = 路程 ÷ 15 m/s + 30 s（寻物再加 60 s），向上取整到 5 s |
 
