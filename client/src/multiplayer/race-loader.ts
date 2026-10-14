@@ -42,6 +42,8 @@ export interface MultiplayerRaceLoaderHost {
   status: unknown;
   raceAnonymous?(): boolean;
   classicHud?(): boolean;
+  /** 冰河圣诞版 HUD (圣诞码表 + 道具栏框) on the Christmas ice tracks. */
+  xmasHud?(): boolean;
   raceTimeGap?(): boolean;
   flyingPetVisible?(): boolean;
   [key: string]: unknown;
@@ -81,6 +83,7 @@ export function createMultiplayerRaceLoader(
             profile: host.profile(),
             anonymous: host.raceAnonymous?.() ?? false,
             classicHud: host.classicHud?.() ?? false,
+            xmasHud: host.xmasHud?.() ?? false,
           }, signal,
         );
       } finally {

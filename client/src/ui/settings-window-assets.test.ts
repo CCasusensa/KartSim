@@ -197,9 +197,11 @@ function originalLoader(dependencies: SettingsWindowAssetDependencies):
 }
 
 function snapshot(assets: any, released = false) {
-  // The 资源下载 row is ours (its own test below); the release has none.
+  // The 资源下载 row and the 冰河圣诞版 HUD check box are ours (their own test
+  // below); the release has neither.
   const ours = (entry: SettingsWindowNode) =>
-    [resourceSettingName, resourceButtonName].includes(attribute(entry, "name") ?? "");
+    [resourceSettingName, resourceButtonName, "webXmasHudSetting", "xmasHud"]
+      .includes(attribute(entry, "name") ?? "");
   return {
     definition: assets.definition,
     // The browser-only graphics checkbox is layered onto the native definition.
@@ -271,7 +273,7 @@ test("settings resource blueprint, images, strings and failures match release qc
   }
 });
 
-test("变更设置 gains a 资源下载 row with a release-styled button under the custom settings", async () => {
+test("变更设置 gains the 冰河圣诞版 HUD check box and a 资源下载 row with a release-styled button under the custom settings", async () => {
   const previous = Object.fromEntries(["document", "ImageData", "DOMParser"].map(name =>
     [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
   Object.defineProperties(globalThis, {
@@ -289,9 +291,17 @@ test("变更设置 gains a 资源下载 row with a release-styled button under t
     const assets = await loadSettingsWindowAssets(library, dependencies);
     const names = assets.game.children.map(child => attribute(child, "name"));
     const row = assets.game.children.find(child => attribute(child, "name") === resourceSettingName)!;
-    // The last child: below the four check boxes (420 + 4 × 36), 14 further down.
+    // The 冰河圣诞版 HUD check box is the fifth custom setting (420 + 4 × 36).
+    const xmas = assets.game.children.find(child => attribute(child, "name") === "webXmasHudSetting")!;
+    assert.equal(attribute(xmas, "leftTopWH"), "36 564 868 26");
+    const xmasCheck = xmas.children.find(child => child.name === "PlaneCheckButton")!;
+    assert.equal(attribute(xmasCheck, "name"), "xmasHud");
+    assert.equal(attribute(xmasCheck, "enable"), "true");
+    assert.ok(xmas.children.some(child => attribute(child, "text") === "冰河赛道使用圣诞节码表与道具栏"));
+    // The last child: below the five check boxes (420 + 5 × 36), 14 further down.
     assert.equal(names.at(-1), resourceSettingName);
-    assert.equal(attribute(row, "leftTopWH"), "36 578 868 26");
+    assert.equal(names.at(-2), "webXmasHudSetting");
+    assert.equal(attribute(row, "leftTopWH"), "36 614 868 26");
     const button = row.children.find(child => child.name === "TextButton")!;
     assert.equal(attribute(button, "name"), resourceButtonName);
     assert.equal(attribute(button, "text"), "资源下载");

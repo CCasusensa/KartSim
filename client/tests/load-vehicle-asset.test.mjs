@@ -246,3 +246,35 @@ test("冰河圣诞版 swaps the classic dashboard for its Christmas skin only", 
   assert.notEqual(modern.renderer, "xmas classic tachometer");
   assert.equal(modern.loads.length, 0);
 });
+
+test("圣诞节码表 setting brings the Christmas dial to karts it fits even with 经典仪表 off", async () => {
+  const run = async ({ fits, classicSetting = false, suppressClassic = false }, xmas) => {
+    const f = fixture({});
+    const asked = [];
+    // The release rule: the classic dial needs the option and a kart it fits.
+    f.ops.useClassicHud = forceNew => { asked.push(forceNew); return forceNew && fits; };
+    f.ops.loadXmasClassicTachometer = async () => ({ name: "xmas classic tachometer" });
+    const result = await loadVehicleAsset(f.owner, "kart/model.1s", 100, "hint", {
+      name: "body", chargeBoostBySpeed: 2.5, defaultExceedType: 3,
+      motorcycleType: 0, effectSetupSelectorByte: 4,
+      normalBoosterTime: 100, footprintExtent0: 1, footprintExtent1: 2,
+    }, "kartname", "environment", "stage binding", "audio context",
+    "coating texture", "decoration option", false, suppressClassic, classicSetting, f.ops, xmas);
+    return { renderer: simplify(result.tachometerRenderer), classicHud: result.classicHud, asked };
+  };
+  // Ticked on a Christmas track: an old kart gets the Christmas classic HUD.
+  assert.deepEqual(await run({ fits: true }, true),
+    { renderer: "xmas classic tachometer", classicHud: true, asked: [true] });
+  // Unticked (or off the Christmas tracks): the normal HUD, as before.
+  const plain = await run({ fits: true }, false);
+  assert.equal(plain.classicHud, false);
+  assert.deepEqual(plain.asked, [false]);
+  // A newer tachometer has no Christmas skin and keeps its own dial.
+  const modern = await run({ fits: false }, true);
+  assert.equal(modern.classicHud, false);
+  assert.notEqual(modern.renderer, "xmas classic tachometer");
+  // Other racers' karts never draw a local HUD.
+  const remote = await run({ fits: true, suppressClassic: true }, true);
+  assert.equal(remote.classicHud, false);
+  assert.deepEqual(remote.asked, []);
+});

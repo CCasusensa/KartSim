@@ -84,8 +84,11 @@ async function loadTachometer(library: any, visual: any, grade: number,
   }> {
   const selection = ops.tachometerSelection(
     visual.tachometerType, visual.tachometerName, grade);
+  // The Christmas dashboard is a skin of the classic dial, so the 冰河圣诞版
+  // HUD setting brings the classic HUD to the karts it fits even when 经典仪表
+  // is off; newer tachometers have no Christmas skin and stay as they are.
   const classicHud = !suppressClassic && ops.useClassicHud(
-    forceNew, grade, selection, ops.resourceVersion("p3553"));
+    forceNew || xmasDashboard, grade, selection, ops.resourceVersion("p3553"));
   if (classicHud) return {
     selection, classicHud,
     renderer: await (xmasDashboard

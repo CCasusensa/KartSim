@@ -55,6 +55,8 @@ function fixture(roadblock, failAt, drivingMode) {
   };
   const loadRaceAssets = async (_assets, _config, _room, _audio, player) => {
     log.push(["assets", player.playerId, player.anonymous, player.classicHud]);
+    // Ours, not the release's: the 冰河圣诞版 HUD option (tested on its own).
+    if (player.xmasHud !== undefined) log.push(["xmas-hud", player.xmasHud]);
     return raceAssets;
   };
   const loadCharacterAnimations = load("animations");
@@ -141,17 +143,19 @@ function fixture(roadblock, failAt, drivingMode) {
 }
 
 async function exercise(rewritten, roadblock, failAt) {
-  const { log, host, config, room, signal, connection, dependencies, Original } =
+  const { log: entries, host, config, room, signal, connection, dependencies, Original } =
     fixture(roadblock, failAt);
+  // The release passes no 冰河圣诞版 HUD option (its own test below).
+  const ours = () => entries.filter(entry => entry[0] !== "xmas-hud");
   const loader = rewritten ? createMultiplayerRaceLoader(host, dependencies) : Original(host);
   try {
     const session = await loader.prepare(config, room, signal, connection);
     await session.callbacks.leave();
     await session.callbacks.returnToRoom();
     session.callbacks.closePresentation();
-    return { result: "success", log };
+    return { result: "success", log: ours() };
   } catch (error) {
-    return { result: error.message, log };
+    return { result: error.message, log: ours() };
   }
 }
 
@@ -164,6 +168,15 @@ test("multiplayer race failure cleanup matches the release", async () => {
   for (const failedStep of ["roadblockResult", "prepareGiant", "chat"])
     assert.deepEqual(await exercise(true, true, failedStep),
       await exercise(false, true, failedStep), failedStep);
+});
+
+test("multiplayer race assets get the player's 冰河圣诞版 HUD option", async () => {
+  for (const [option, expected] of [[undefined, false], [false, false], [true, true]]) {
+    const { log, host, config, room, signal, connection, dependencies } = fixture();
+    if (option !== undefined) host.xmasHud = () => option;
+    await createMultiplayerRaceLoader(host, dependencies).prepare(config, room, signal, connection);
+    assert.deepEqual(log.filter(entry => entry[0] === "xmas-hud"), [["xmas-hud", expected]]);
+  }
 });
 
 test("item races name their mode on the track card and drop TP from team results", async () => {

@@ -102,8 +102,10 @@ test("multiplayer HUD state, minimap tint, Giant Boost and rendering match relea
       exercise(false, anonymous, competition));
 });
 
-async function exerciseLoad(readable: boolean, mode: string) {
+async function exerciseLoad(readable: boolean, mode: string,
+  xmas?: { track: boolean; hud: boolean }) {
   const events: unknown[] = [];
+  const xmasFlags: unknown[] = [];
   class Gap { update() { return []; } }
   const gapView = { update() {}, dispose() {} };
   const loadTimeGap = async (_library: unknown, target: unknown) => {
@@ -118,7 +120,8 @@ async function exerciseLoad(readable: boolean, mode: string) {
     { node: rank.riderCount }, { node: { id: "diagonal", attributes: {
       texture: "diagonal" } } }, { node: { id: "keep" } }];
   const loadHudAssets = async (_library: unknown, selection: unknown,
-    slot: number, grade: number) => {
+    slot: number, grade: number, xmasHud?: boolean) => {
+    xmasFlags.push(xmasHud);
     events.push(["hud-assets", selection, slot, grade]); return { rank };
   };
   const attribute = (node: { attributes?: Record<string, string> }, name: string) =>
@@ -171,8 +174,10 @@ async function exerciseLoad(readable: boolean, mode: string) {
   const race = { participants: [local, remote],
     drivingMode: { kind: mode }, mode: "team", anonymous: true,
     competition: false, roadblockRunnerId: mode === "roadblock" ? "local" : undefined,
+    ...(xmas ? { xmasHud: xmas.hud } : {}),
     map: { path: "track", metadata: "meta", minimap: "minimap",
-      environment: "environment", stageBinding: "stage" },
+      environment: "environment", stageBinding: "stage",
+      ...(xmas?.track ? { data: { xmas: true } } : {}) },
   };
   const library = {};
   const hud = readable ? await MultiplayerRaceHud.load(library, race, "local", deps,
@@ -183,10 +188,17 @@ async function exerciseLoad(readable: boolean, mode: string) {
   const snapshot = { events, tints: [...hud.tints], giant: hud.giant === giant,
     runnerId: hud.runnerId, timeGapEnabled: hud.timeGapEnabled };
   hud.dispose();
-  return { ...snapshot, events };
+  return { ...snapshot, events, ...(xmas ? { xmasFlags } : {}) };
 }
 
 test("multiplayer HUD asset construction and mode variants match release", async () => {
   for (const mode of ["normal", "roadblock", "giant"])
     assert.deepEqual(await exerciseLoad(true, mode), await exerciseLoad(false, mode));
+});
+
+test("multiplayer HUD takes the Christmas slot frame from the race's 冰河圣诞版 HUD option", async () => {
+  // A Christmas track alone keeps the normal HUD; the race says whether the
+  // local player ticked 冰河赛道使用圣诞节码表与道具栏.
+  assert.deepEqual((await exerciseLoad(true, "normal", { track: true, hud: false })).xmasFlags, [false]);
+  assert.deepEqual((await exerciseLoad(true, "normal", { track: true, hud: true })).xmasFlags, [true]);
 });

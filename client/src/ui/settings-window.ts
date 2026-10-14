@@ -117,7 +117,8 @@ const CHECK_FIELDS: Record<string, string> = {
   verticalSync: "verticalSync", boostBlur: "boostBlur",
   setDualBoostAuto: "dualBoostAuto", toonLine: "toonLine", shadow: "shadow",
   inGameFlyingPetVisible: "inGameFlyingPetVisible", raceAnonymous: "raceAnonymous",
-  raceTimeGap: "raceTimeGap", classicHud: "classicHud", onAutoReady: "autoReady",
+  raceTimeGap: "raceTimeGap", classicHud: "classicHud", xmasHud: "xmasHud",
+  onAutoReady: "autoReady",
   // item-mode(hud): the in-race item options are real settings now.
   itemStateNotice: "itemStateNotice", itemStateTotalNotice: "itemStateTotalNotice",
   dispIngameItemInfoCard: "dispIngameItemInfoCard",

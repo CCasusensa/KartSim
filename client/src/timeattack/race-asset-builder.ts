@@ -107,6 +107,8 @@ async function buildLoadedSoloRace(
   const characterPath = selection.characterPath;
   const generation = host.generationValue();
   const classicHud = host.gameOptions.classicHud;
+  // 冰河圣诞版 HUD only when the player ticked it in 设置.
+  const xmasHud = host.gameOptions.xmasHud === true;
   const teamBooster = raceOptions.booster === 1;
   const catalog = await host.getLibrary()?.timeAttackGarageCatalog();
   const kart = catalog && ops.findKart(catalog.karts, selection.vehicleItemId,
@@ -220,7 +222,7 @@ async function buildLoadedSoloRace(
         selection.vehicleItemId, selection.vehicleSystemKey, physicsSpec,
         selection.trackId, map.environment, map.stageBinding, audioContext,
         coatingStage?.textures(host.getLibrary()), boosterVisuals,
-        undefined, false, classicHud, map.data.xmas === true);
+        undefined, false, classicHud, xmasHud && map.data.xmas === true);
     } catch (error) {
       disposeNewBgm();
       outlineBatch.dispose();
@@ -322,7 +324,7 @@ async function buildLoadedSoloRace(
         snow = await ops.loadSnow(host.getLibrary(), host.targetRandom);
       const tachometer = await ops.loadTachometer(host.getLibrary(),
         vehicle.tachometerSelection, host.webTimeAttackAiDyeId,
-        vehicle.kartItem.engineGrade, map.data.xmas === true);
+        vehicle.kartItem.engineGrade, xmasHud && map.data.xmas === true);
       const minimap = await ops.loadMinimap(host.getLibrary(), map.path,
         map.metadata, map.minimap, map.environment, map.stageBinding,
         ghostSources.length);

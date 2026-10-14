@@ -75,7 +75,7 @@ test("solo race asset selection and identity checks match the release", async ()
   }
 });
 
-async function runBgmFailure(kind, failureStage = "bgm", hasSky = true) {
+async function runBgmFailure(kind, failureStage = "bgm", hasSky = true, xmas = {}) {
   const events = [];
   const selection = {
     mapPath: "track/map", trackId: "track",
@@ -93,7 +93,7 @@ async function runBgmFailure(kind, failureStage = "bgm", hasSky = true) {
   };
   const map = {
     metadata: { id: "track" },
-    data: {},
+    data: xmas.track ? { xmas: true } : {},
     scene: { removeFromParent() {} },
     renderScene: { dispose: () => events.push("dispose-render") },
     skydome: hasSky ? { object: {},
@@ -101,7 +101,7 @@ async function runBgmFailure(kind, failureStage = "bgm", hasSky = true) {
     environment: { dispose: () => events.push("dispose-environment") },
   };
   const host = {
-    gameOptions: { classicHud: false },
+    gameOptions: { classicHud: false, ...(xmas.setting ? { xmasHud: true } : {}) },
     userProfile: { equipment: { itemIds: { 3: 71 }, kartSerial: 17 },
       garage: {} },
     audio: {},
@@ -155,7 +155,10 @@ async function runBgmFailure(kind, failureStage = "bgm", hasSky = true) {
       { load: loadRaceBgm });
   const builder = kind === "readable"
     ? { host, async loadAssetMap() { events.push("load-map"); return map; },
-        async loadVehicleAsset() { return vehicle; },
+        async loadVehicleAsset(...args) {
+          events.push(["xmas-dashboard", args.at(-1)]);
+          return vehicle;
+        },
         async loadRaceCharacters() { return {}; } }
     : new Original(host);
   let error;
@@ -179,7 +182,10 @@ async function runBgmFailure(kind, failureStage = "bgm", hasSky = true) {
           events.push(["prepare", scene === map.scene ? "map" : "sky",
             uploadGeometry]);
         },
-        loadTachometer: () => { throw new Error("stop after scene warmup"); },
+        loadTachometer: (...args) => {
+          events.push(["xmas-hud", args.at(-1)]);
+          throw new Error("stop after scene warmup");
+        },
         disposeImportedObject() {},
       });
     } else await builder.build(selection, { booster: 0 }, undefined);
@@ -192,6 +198,17 @@ async function runBgmFailure(kind, failureStage = "bgm", hasSky = true) {
 test("solo race audio and map cleanup on BGM failure matches the release", async () => {
   assert.deepEqual(await runBgmFailure("readable"),
     withoutPreload(await runBgmFailure("original")));
+});
+
+test("solo races use the 冰河圣诞版 HUD only on its tracks with the setting ticked", async () => {
+  for (const track of [false, true]) for (const setting of [false, true]) {
+    const { events, error } = await runBgmFailure("readable", "after-warm", false,
+      { track, setting });
+    assert.equal(error, "stop after scene warmup");
+    const flags = events.filter(event => Array.isArray(event) && event[0].startsWith("xmas-"));
+    assert.deepEqual(flags, [["xmas-dashboard", track && setting],
+      ["xmas-hud", track && setting]], `track=${track} setting=${setting}`);
+  }
 });
 
 test("solo map and optional sky upload geometry after fog setup before race UI loading", async () => {

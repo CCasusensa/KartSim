@@ -106,7 +106,7 @@ export class MultiplayerRaceHud {
     }));
     const source = await dependencies.loadHudAssets(library,
       local.vehicle.tachometerSelection, 0, local.vehicle.kartItem.engineGrade,
-      race.map.data?.xmas === true);
+      race.xmasHud === true);
     const rankNodes = new Set([
       source.rank.rank, source.rank.suffix, source.rank.riderCount,
     ]);

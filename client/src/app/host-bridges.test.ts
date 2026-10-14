@@ -75,7 +75,7 @@ function makeApplication(rewritten: boolean) {
     autoForward: "auto", rhoLibrary: "library", userProfile: "profile",
     audio: { context: "context", bgm: "bgm", interfaceAudio: { playSlotChanger: call("slot-sound") } },
     gameOptions: { inGameFlyingPetVisible: true, raceAnonymous: false,
-      raceTimeGap: 13, classicHud: true },
+      raceTimeGap: 13, classicHud: true, xmasHud: false },
     session: { selection: { trackId: "test-track" }, vehicleTitle: "kart" },
     timeAttackReadyOptions: "ready-options", replayLibrary: { record: call("record") },
     raceStartProgramCount: 0, createRaceBuilderHost: call("race-builder-host"),
@@ -119,7 +119,8 @@ function exerciseReady(rewritten: boolean) {
   const { app, events } = makeApplication(rewritten);
   const host = app.createReadyHost();
   const loader = host.multiplayerRaceLoader;
-  const loaderKeys = Object.keys(loader);
+  // The 冰河圣诞版 HUD getter is ours (tested below); the release has none.
+  const loaderKeys = Object.keys(loader).filter(key => key !== "xmasHud");
   const loaderValues = Object.entries(loader).filter(([, value]) => typeof value !== "function");
   const hostKeys = Object.keys(host);
   const hostGetters = readProperties(host);
@@ -147,6 +148,14 @@ function exerciseReady(rewritten: boolean) {
 test("Ready bridge getters and operations match the release", () => {
   assert.deepEqual(JSON.parse(JSON.stringify(exerciseReady(true))),
     JSON.parse(JSON.stringify(exerciseReady(false))));
+});
+
+test("Ready bridge hands the multiplayer loader the 冰河圣诞版 HUD option", () => {
+  const { app } = makeApplication(true);
+  const loader = app.createReadyHost().multiplayerRaceLoader;
+  assert.equal(loader.xmasHud(), false);
+  app.gameOptions = { ...app.gameOptions, xmasHud: true };
+  assert.equal(loader.xmasHud(), true);
 });
 
 function exercisePresenter(rewritten: boolean) {

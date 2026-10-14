@@ -13,6 +13,10 @@
  * - the item slot frame `xmas` (item/slot/slot_frameResource.bml id 1),
  * - the classic dashboard skin zeta_/cn/stage/common/aw_01_xmas@cn.png.
  * Every racer decides from the track id alone, so a room races one model.
+ * The HUD part (slot frame and dashboard) is the player's own choice: 设置 →
+ * 自定义设置 → 冰河赛道使用圣诞节码表与道具栏 (game option `xmasHud`, off by
+ * default). Ticked, karts the classic dial fits show it in this skin even
+ * with 经典仪表 off; unticked, the race keeps the normal HUD.
  */
 
 /** The ice tracks with a track_xmas.1s (reverse ids end in `_rvs`). */

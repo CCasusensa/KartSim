@@ -2378,7 +2378,7 @@ function vJ() {
     (nh ??= wJ(async (n) => {
       const e = await fetch(`/classic-hud/p948-v1/${encodeURIComponent(n)}`);
       if (!e.ok)
-        throw new Error("经典仪表包未安装或读取失败，请关闭此设置后重试。");
+        throw new Error("经典仪表包未安装或读取失败，请在设置里关闭经典码表与圣诞节码表后重试。");
       return new Uint8Array(await e.arrayBuffer());
     }).catch((n) => {
       throw ((nh = void 0), n);

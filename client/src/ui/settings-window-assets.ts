@@ -135,7 +135,7 @@ export function parseOfficialBgmChoices(
   });
 }
 
-/** Extend the native game tab with the four browser settings and the 资源下载 row. */
+/** Extend the native game tab with the five browser settings and the 资源下载 row. */
 function addWebSettings(root: SettingsWindowNode,
   attribute: SettingsWindowAssetDependencies["attribute"]): SettingsWindowNode {
   const autoReady = root.children.find(child =>
@@ -165,6 +165,7 @@ function addWebSettings(root: SettingsWindowNode,
     ["webRaceAnonymousSetting", "raceAnonymous", "比赛匿名（比赛期间隐藏其他玩家ID）"],
     ["webRaceTimeGapSetting", "raceTimeGap", "多人比赛时间差提示（估算）"],
     ["webClassicHudSetting", "classicHud", "老车使用经典码表与氮气条"],
+    ["webXmasHudSetting", "xmasHud", "冰河赛道使用圣诞节码表与道具栏"],
   ];
   const replaced = new Set([
     "onIgnoreRequestFriendMsgCont", "onIgnoreInviteMsgCont", "recOption",

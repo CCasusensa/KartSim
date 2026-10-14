@@ -40,6 +40,7 @@ export interface ReadyBridgeApplication {
     raceAnonymous: Value;
     raceTimeGap: Value;
     classicHud: Value;
+    xmasHud: Value;
   };
   session: { selection?: ReadySelection; vehicleTitle: string };
   timeAttackReadyOptions: Value;
@@ -116,6 +117,7 @@ export function createReadyHost(
       raceAnonymous: () => application.gameOptions.raceAnonymous,
       raceTimeGap: () => application.gameOptions.raceTimeGap,
       classicHud: () => application.gameOptions.classicHud,
+      xmasHud: () => application.gameOptions.xmasHud,
       bgm: () => application.audio.bgm,
       playSlotChanger: () => application.audio.interfaceAudio?.playSlotChanger(),
       publish: (race: Value) => {

@@ -3997,6 +3997,7 @@ const _P = {
     raceAnonymous: !1,
     raceTimeGap: !1,
     classicHud: !1,
+    xmasHud: !1,
     autoReady: !1,
     keyMap: Br,
     gamepadMap: TP,
@@ -4018,6 +4019,7 @@ function la0() {
             raceAnonymous: !1,
             raceTimeGap: !1,
             classicHud: !1,
+            xmasHud: !1,
             autoReady: !1,
             mainMenuBgmPath: "",
             keyMap: Br,
@@ -4047,6 +4049,7 @@ function RP(n) {
     "raceAnonymous",
     "raceTimeGap",
     "classicHud",
+    "xmasHud",
     "autoReady",
   ])
     if (typeof n?.[e] != "boolean")

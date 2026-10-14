@@ -6012,6 +6012,7 @@ async function A40(n, e, t, i, r, s) {
     a = { ...o, equipment: zw(o) },
     c = r.anonymous ?? !1,
     l = r.classicHud ?? !1,
+    xmasHudOption = r.xmasHud === !0, // 设置：冰河赛道使用圣诞节码表与道具栏
     u = RI(e),
     h = w40(e, t),
     f = t.roster.find((D) => D.playerId === r.playerId)?.equipment,
@@ -6189,7 +6190,7 @@ async function A40(n, e, t, i, r, s) {
           void 0,
           !z,
           z && l,
-          C.data.xmas === !0,
+          xmasHudOption && C.data.xmas === !0,
         );
       (P2.push(() => y40(R)), w());
       const $ = await mv.load(
@@ -6259,6 +6260,7 @@ async function A40(n, e, t, i, r, s) {
       channel: y,
       checkClientFramerate: b,
       anonymous: c,
+      xmasHud: xmasHudOption && C.data.xmas === !0,
       competition: u.competition,
       mode: e.mode,
       drivingMode: vI(SX(e)),
