@@ -8,7 +8,7 @@ import { y9 } from "../generated/formats.js";
 import { FI } from "../generated/library.js";
 import { ag } from "../generated/vehicle.js";
 import { BoxGeometry, Group, Mesh, Vector3 } from "three";
-import { findMyRoomSceneAssets, myRoomFacingYaw, myRoomSceneAnchors,
+import { findMyRoomSceneAssets, MY_ROOM_WALK_SPEED, myRoomCameraYaw, myRoomWalkStep, myRoomSceneAnchors,
   myRoomSceneFrame, myRoomVisibleBounds } from "./my-room-scene";
 
 const defaultRoom = {
@@ -31,14 +31,39 @@ test("My Room selects both original 3D assets from the same archive folder", () 
     defaultRoom), /skydome\.1s/);
 });
 
-test("ordinary character front turns toward all walking directions", () => {
-  for (const [dx, dz] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]] as Array<[number, number]>) {
-    const expected = new Vector3(dx, 0, dz).normalize();
-    const facing = new Vector3(0, 0, 1).applyAxisAngle(
-      new Vector3(0, 1, 0), myRoomFacingYaw(dx, dz));
-    assert.ok(facing.distanceTo(expected) < 0.00001,
-      `facing ${facing.toArray()} should match movement ${expected.toArray()}`);
+test("小屋 walking: ←/→ turn in place, ↑/↓ walk along the facing", () => {
+  const facing = (yaw: number) => new Vector3(0, 0, 1).applyAxisAngle(new Vector3(0, 1, 0), yaw);
+  // ← turns the rider to its own left: facing +Z, its left is +X.
+  const left = myRoomWalkStep(0, { forward: 0, turn: 1 }, 0.125);
+  assert.ok(Math.abs(left.yaw - Math.PI / 2) < 1e-9, "a quarter turn in 1/8 s (two turns a second)");
+  assert.equal(left.dx, 0);
+  assert.equal(left.dz, 0);
+  assert.ok(facing(left.yaw).distanceTo(new Vector3(1, 0, 0)) < 1e-9);
+  const right = myRoomWalkStep(0, { forward: 0, turn: -1 }, 0.125);
+  assert.ok(facing(right.yaw).distanceTo(new Vector3(-1, 0, 0)) < 1e-9);
+  // ↑ walks the way the rider faces, ↓ backs away from it.
+  for (const yaw of [0, 1, -2.5, Math.PI]) {
+    const ahead = myRoomWalkStep(yaw, { forward: 1, turn: 0 }, 0.5);
+    const moved = new Vector3(ahead.dx, 0, ahead.dz);
+    assert.ok(moved.distanceTo(facing(yaw).multiplyScalar(MY_ROOM_WALK_SPEED * 0.5)) < 1e-9);
+    const back = myRoomWalkStep(yaw, { forward: -1, turn: 0 }, 0.5);
+    assert.ok(new Vector3(back.dx, 0, back.dz).distanceTo(moved.clone().negate()) < 1e-9);
   }
+  assert.ok(Math.abs(myRoomWalkStep(3, { forward: 0, turn: 1 }, 0.1).yaw) <= Math.PI);
+});
+
+test("小屋 camera swings behind a walking rider and holds while it turns in place", () => {
+  // Turning in place leaves the camera where it is.
+  assert.equal(myRoomCameraYaw(0.3, 2, false, 0.5), 0.3);
+  // Walking eases it behind the rider (rider yaw + π), the shorter way round.
+  let yaw = 0;
+  for (let frame = 0; frame < 300; frame++) yaw = myRoomCameraYaw(yaw, Math.PI / 2, true, 1 / 60);
+  assert.ok(Math.abs(yaw - -Math.PI / 2) < 1e-3, `camera ${yaw} should end behind the rider`);
+  const first = myRoomCameraYaw(0, Math.PI / 2, true, 1 / 60);
+  assert.ok(first < 0 && first > -0.1, "eases, not a cut");
+  // From 3 to behind = -3 the short way crosses ±π (0.28 rad), not back through 0.
+  const across = myRoomCameraYaw(3, -3 - Math.PI, true, 1 / 60);
+  assert.ok(across > 3 && across < 3.05, `camera ${across} should move up towards π`);
 });
 
 test("parked kart grounding ignores hidden effect meshes", () => {

@@ -352,9 +352,36 @@ export interface MyRoomSceneAnchors {
 const nativePoint = (position: [number, number, number]): Vector3 =>
   new Vector3(position[0], position[2], -position[1]);
 
-/** The ordinary character model faces local +Z at yaw zero. */
-export function myRoomFacingYaw(dx: number, dz: number): number {
-  return Math.atan2(dx, dz);
+/**
+ * 小屋 walking as the original client does it (the user's 2010 我的聊天室
+ * recording). The ordinary character model faces local +Z at yaw zero.
+ * ←/→ turn the rider in place, two full turns a second, and
+ * ↑/↓ walk along its facing; the camera swings in behind a walking rider
+ * and stays put while it only turns.
+ */
+export const MY_ROOM_TURN_RATE = Math.PI * 4;
+export const MY_ROOM_WALK_SPEED = 1.8;
+/** Seconds the chase camera takes to cover ~63% of the way behind a walking rider. */
+export const MY_ROOM_CAMERA_FOLLOW = 0.6;
+
+const wrapAngle = (angle: number): number => Math.atan2(Math.sin(angle), Math.cos(angle));
+
+/** One frame of walking: `forward` +1 ↑ / -1 ↓, `turn` +1 ← (the rider's left) / -1 →. */
+export function myRoomWalkStep(yaw: number, input: { forward: number; turn: number }, delta: number):
+  { yaw: number; dx: number; dz: number } {
+  const next = wrapAngle(yaw + input.turn * MY_ROOM_TURN_RATE * delta);
+  const distance = input.forward * MY_ROOM_WALK_SPEED * delta;
+  return { yaw: next, dx: Math.sin(next) * distance, dz: Math.cos(next) * distance };
+}
+
+/**
+ * The chase camera's yaw (zero looks along -Z from +Z): it eases behind a
+ * walking rider, the shorter way round, and holds while the rider stands.
+ */
+export function myRoomCameraYaw(cameraYaw: number, riderYaw: number, walking: boolean, delta: number): number {
+  if (!walking || delta <= 0) return cameraYaw;
+  const behind = wrapAngle(riderYaw + Math.PI);
+  return wrapAngle(cameraYaw + wrapAngle(behind - cameraYaw) * (1 - Math.exp(-delta / MY_ROOM_CAMERA_FOLLOW)));
 }
 
 /** Original rider00 and parking00 define a safe plaza for the local character. */
@@ -586,6 +613,8 @@ export interface MyRoomSceneOptions {
 
 /** Follow camera distance at zoom 1, close behind the walking character. */
 const FOLLOW_DISTANCE = 8;
+/** Nearest the follow camera comes when scenery stands behind the rider. */
+const FOLLOW_NEAREST = 2.2;
 const FOLLOW_MIN_ZOOM = 0.7;
 // Zoom 1 is the widest view; going further out shows the edge of smaller rooms.
 const FOLLOW_MAX_ZOOM = 1;
@@ -636,8 +665,13 @@ export class MyRoomSceneView {
   private pitch = Math.PI * 0.15;
   private zoom = 1;
   private readonly cameraTarget = new Vector3();
+  /** The follow camera's yaw (myRoomCameraYaw) and boom length, shortened by scenery behind the rider. */
+  private cameraYaw = 0;
+  private cameraBoom = FOLLOW_DISTANCE;
   private readonly heldKeys = new Set<string>();
   private collider?: Mesh;
+  /** Solid scenery around the room that the follow camera keeps in front of. */
+  private cameraCollider?: Mesh;
   private displays: ParkedDisplay[] = [];
   private displayGeneration = 0;
   private floorCollider?: Mesh;
@@ -653,7 +687,7 @@ export class MyRoomSceneView {
     options: MyRoomSceneOptions = {}) {
     this.showcase = options.showcase;
     this.canvas.setAttribute("aria-label", this.showcase
-      ? "大厅三维场景" : "原版小屋三维场景，可用 WASD 行走，滚轮缩放");
+      ? "大厅三维场景" : "原版小屋三维场景，↑↓ 前进后退，←→ 转身，滚轮缩放");
     this.canvas.tabIndex = this.showcase ? -1 : 0;
     this.canvas.style.width = "100%";
     this.canvas.style.height = "100%";
@@ -745,7 +779,7 @@ export class MyRoomSceneView {
       this.disposeCollider();
       previousSky?.dispose();
       this.setStatus(this.avatar
-        ? "WASD / 方向键行走 · 滚轮缩放"
+        ? "↑↓ / WS 前进后退 · ←→ / AD 转身 · 滚轮缩放"
         : "滚轮缩放", false);
       this.startTime = performance.now();
       this.resize();
@@ -821,7 +855,7 @@ export class MyRoomSceneView {
       this.placeSubject();
       previous && Lt(previous);
       disposeWalkingAvatar(previousWalking);
-      this.setStatus("WASD / 方向键行走 · 滚轮缩放");
+      this.setStatus("↑↓ / WS 前进后退 · ←→ / AD 转身 · 滚轮缩放");
       void this.setDisplayKarts(subject.displayKarts ?? []);
       return true;
     } catch (error) {
@@ -1158,18 +1192,42 @@ export class MyRoomSceneView {
 
   private positionCamera(): void {
     if (!this.frame) return;
-    if (this.followingPlayer)
-      this.poseCamera(this.camera, this.cameraTarget, FOLLOW_DISTANCE * this.zoom);
+    if (this.followingPlayer) this.poseCamera(this.camera, this.cameraTarget, this.cameraBoom, this.cameraYaw);
     else this.poseCamera(this.camera, this.frame.target, this.frame.distance * this.zoom);
   }
 
-  private poseCamera(camera: PerspectiveCamera, target: Vector3, distance: number): void {
+  /** The camera `distance` from `target` at the scene pitch, `yaw` round from +Z. */
+  private poseCamera(camera: PerspectiveCamera, target: Vector3, distance: number, yaw = 0): void {
+    const across = Math.cos(this.pitch) * distance;
     camera.position.set(
-      target.x,
+      target.x + Math.sin(yaw) * across,
       target.y + Math.sin(this.pitch) * distance,
-      target.z + Math.cos(this.pitch) * distance,
+      target.z + Math.cos(yaw) * across,
     );
     camera.lookAt(target);
+  }
+
+  /**
+   * Ease the follow camera's boom towards the zoomed distance, pulled in at
+   * once when scenery stands between the rider and the camera.
+   */
+  private updateCameraBoom(delta: number): void {
+    const wanted = FOLLOW_DISTANCE * this.zoom;
+    let room = wanted;
+    const collider = this.cameraCollider;
+    if (collider) {
+      const across = Math.cos(this.pitch);
+      const direction = new Vector3(Math.sin(this.cameraYaw) * across, Math.sin(this.pitch),
+        Math.cos(this.cameraYaw) * across);
+      const ray = this.walkRay;
+      ray.set(this.cameraTarget, direction);
+      ray.far = wanted;
+      const hit = ray.intersectObject(collider, false)[0];
+      ray.far = Infinity;
+      if (hit) room = Math.max(FOLLOW_NEAREST, hit.distance - 0.4);
+    }
+    this.cameraBoom = room < this.cameraBoom ? room
+      : this.cameraBoom + (room - this.cameraBoom) * (1 - Math.exp(-delta / 0.35));
   }
 
   private resize(): void {
@@ -1315,6 +1373,9 @@ export class MyRoomSceneView {
     this.followingPlayer = true;
     this.pitch = Math.PI * 0.045;
     this.cameraTarget.copy(this.playerRoot.position).add(new Vector3(0, 1.8, 0));
+    // The rider enters facing the camera, which looks across the plaza from +Z.
+    this.cameraYaw = 0;
+    this.cameraBoom = FOLLOW_DISTANCE * this.zoom;
     this.lastFrameTime = 0;
   }
 
@@ -1407,6 +1468,11 @@ export class MyRoomSceneView {
       new Vector3(maxX + 2, this.riderGroundY + 2.5, maxZ + 2));
     this.collider = myRoomCollider(this.room.object, walkArea);
     this.floorCollider = myRoomCollider(this.room.object, walkArea, true);
+    // Everything the follow camera can swing behind, up to its full boom above the plaza.
+    const reach = FOLLOW_DISTANCE * FOLLOW_MAX_ZOOM + 1;
+    this.cameraCollider = myRoomCollider(this.room.object, new Box3(
+      new Vector3(minX - reach, this.riderGroundY + 0.3, minZ - reach),
+      new Vector3(maxX + reach, this.riderGroundY + 1.8 + reach, maxZ + reach)));
     this.avatarNeedsGrounding = Boolean(this.avatar);
     this.kartNeedsGrounding = Boolean(this.avatar);
     for (const remote of this.remotes.values()) remote.needsGrounding = true;
@@ -1417,33 +1483,33 @@ export class MyRoomSceneView {
   private updateWalk(delta: number): void {
     if (!this.followingPlayer || !this.anchors || !this.avatar || delta <= 0) return;
     if (document.activeElement !== this.canvas) this.heldKeys.clear();
-    const forward = Number(this.heldKeys.has("w") || this.heldKeys.has("arrowup")) -
-      Number(this.heldKeys.has("s") || this.heldKeys.has("arrowdown"));
-    const right = Number(this.heldKeys.has("d") || this.heldKeys.has("arrowright")) -
-      Number(this.heldKeys.has("a") || this.heldKeys.has("arrowleft"));
-    if (forward || right) {
+    const held = (...keys: string[]) => Number(keys.some(key => this.heldKeys.has(key)));
+    const forward = held("w", "arrowup") - held("s", "arrowdown");
+    const turn = held("a", "arrowleft") - held("d", "arrowright");
+    if (forward || turn) {
+      // Turning in place plays the stride too, as in the original.
       this.walkingAvatar?.motion.submitMotion(4);
-      const length = Math.hypot(forward, right);
-      const dx = right / length;
-      const dz = -forward / length;
-      const x = Math.max(this.anchors.minX, Math.min(this.anchors.maxX,
-        this.playerRoot.position.x + dx * 1.8 * delta));
-      const z = Math.max(this.anchors.minZ, Math.min(this.anchors.maxZ,
-        this.playerRoot.position.z + dz * 1.8 * delta));
-      const position = this.playerRoot.position;
-      // Slide along whatever blocks a diagonal step instead of stopping dead.
-      const step = [[x, z], [x, position.z], [position.x, z]]
-        .find(([nextX, nextZ]) => this.canWalkTo(nextX!, nextZ!));
-      if (step) position.set(step[0]!, this.anchors.rider.y, step[1]!);
-      this.playerRoot.rotation.y = myRoomFacingYaw(dx, dz);
+      const step = myRoomWalkStep(this.playerRoot.rotation.y, { forward, turn }, delta);
+      this.playerRoot.rotation.y = step.yaw;
+      if (forward) {
+        const position = this.playerRoot.position;
+        const x = Math.max(this.anchors.minX, Math.min(this.anchors.maxX, position.x + step.dx));
+        const z = Math.max(this.anchors.minZ, Math.min(this.anchors.maxZ, position.z + step.dz));
+        // Slide along whatever blocks a slanted step instead of stopping dead.
+        const next = [[x, z], [x, position.z], [position.x, z]]
+          .find(([nextX, nextZ]) => this.canWalkTo(nextX!, nextZ!));
+        if (next) position.set(next[0]!, this.anchors.rider.y, next[1]!);
+      }
       this.reportPose(true, performance.now());
     } else {
       this.walkingAvatar?.motion.submitMotion(3);
       this.playerRoot.position.y = this.anchors.rider.y;
       this.reportPose(false, performance.now());
     }
+    this.cameraYaw = myRoomCameraYaw(this.cameraYaw, this.playerRoot.rotation.y, forward !== 0, delta);
     const desired = this.playerRoot.position.clone().add(new Vector3(0, 1.8, 0));
     this.cameraTarget.lerp(desired, Math.min(1, delta * 9));
+    this.updateCameraBoom(delta);
   }
 
   /** Keep clear of the parked kart, solid scenery and floor edges or raised platforms. */
@@ -1483,11 +1549,11 @@ export class MyRoomSceneView {
   }
 
   private disposeCollider(): void {
-    for (const collider of [this.collider, this.floorCollider]) {
+    for (const collider of [this.collider, this.floorCollider, this.cameraCollider]) {
       collider?.geometry.dispose();
       (collider?.material as Material | undefined)?.dispose();
     }
-    this.collider = this.floorCollider = undefined;
+    this.collider = this.floorCollider = this.cameraCollider = undefined;
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
