@@ -2,6 +2,7 @@ import { alignLicenseFrames, alignLicenseSections, licenseEventScenes, markLicen
 import { itemGameObjectKind } from "./track-object-admission";
 import { invisibleTrackGeometry } from "../resources/moving-obstacle";
 import { trackMetadataOverride } from "../resources/track-overrides";
+import { minimapProjection } from "../resources/minimap-projection";
 import { isXmasTrack, xmasTrackModelPath } from "../resources/xmas-theme";
 import { isCustomTrackId } from "../mapeditor/design";
 
@@ -340,7 +341,8 @@ export async function loadTrackMap(
     stageBinding,
     admission,
     metadata,
-    minimap: minimaps[0],
+    // A few tracks' map art was drawn with another projection (minimap-projection.ts).
+    minimap: minimapProjection(trackId, minimaps[0]),
     readyCamera,
     warpNextCamera,
     lensFlarePoint,
