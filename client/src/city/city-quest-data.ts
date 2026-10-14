@@ -216,9 +216,15 @@ export function moodColor(satisfaction: number): string {
   return satisfaction >= 70 ? "rgb(40, 150, 60)" : satisfaction >= 40 ? "rgb(214, 150, 0)" : "rgb(206, 40, 40)";
 }
 
+const QUESTS_BY_GIVER = new Map<string, QuestDef[]>();
+for (const quest of QUESTS) {
+  if (!QUESTS_BY_GIVER.has(quest.giver)) QUESTS_BY_GIVER.set(quest.giver, []);
+  QUESTS_BY_GIVER.get(quest.giver)!.push(quest);
+}
+
 /** The quests an NPC gives, in file order. */
 export function questsOf(npcId: string): QuestDef[] {
-  return QUESTS.filter(quest => quest.giver === npcId);
+  return QUESTS_BY_GIVER.get(npcId) ?? [];
 }
 
 /** Character item → story-mode sprite (stage_scene emotion.bml), for the player's lines. */

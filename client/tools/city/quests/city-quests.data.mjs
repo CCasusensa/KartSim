@@ -50,32 +50,37 @@ export const QUEST_RULES = {
   search: { spots: 4, allowance: 2, signalBands: [25, 60, 120, 200], extraTimeS: 60 },
 };
 
+/**
+ * 13 位主要任务点人物（站位见 build-city-npcs.mjs）：故事模式立绘、背景、背景故事，
+ * 以及能托付哪些送货模板的行业（category，见 city-quests.templates.mjs）。52 位
+ * 居民的这些资料在 ../npcs/citizens.data.mjs。
+ */
 export const QUEST_NPCS = {
-  "guide-beach": { sprite: "dao", background: "beach1",
+  "guide-beach": { category: "leisure", sprite: "dao", background: "beach1",
     story: "皮蛋是卡丁城最有名的导游。自从卡丁城对外开放，他每天带着一车又一车的游客沿海滨兜风。他常说：开车就像带团，最重要的是让每个人都平平安安到达。" },
-  "warden-washington": { sprite: "uni", background: "USA1",
+  "warden-washington": { category: "office", sprite: "uni", background: "USA1",
     story: "小乖是华盛顿海滩的交通协管员，能背出全城每一个红绿灯的周期，最看不得有人闯红灯。最近城里车多了起来，她忙得连午饭都顾不上吃。" },
-  "citizen-vicepoint": { sprite: "bazzi", background: "beach3",
+  "citizen-vicepoint": { category: "leisure", sprite: "bazzi", background: "beach3",
     story: "宝宝住在罪恶角的海边公寓，是个闲不住的热心市民，谁家有事都想帮一把。可他自己的卡丁车总被拿去比赛，结果常常要请别人帮忙跑腿。" },
-  "shop-havana": { sprite: "dizini", background: "vill2",
+  "shop-havana": { category: "food", sprite: "dizini", background: "vill2",
     story: "黑妞在小哈瓦那开了一家古巴咖啡小馆，招牌是热腾腾的古巴三明治和冰咖啡。小馆生意红火，外卖单从城东排到了城西。" },
-  "mechanic-haiti": { sprite: "kephi", background: "fac1",
+  "mechanic-haiti": { category: "work", sprite: "kephi", background: "fac1",
     story: "胖墩是小海地的修车师傅，修过的卡丁车比他吃过的面包还多。车库里永远堆满了零件，可他自己从不肯出门送货——说是要守着店。" },
-  "marshal-airport": { sprite: "ethi", background: "USA3",
+  "marshal-airport": { category: "office", sprite: "ethi", background: "USA3",
     story: "葱头在国际机场当地勤引导员，每天挥着指挥棒引导飞机滑行。旅客落下的行李、寄错地方的包裹，最后都会堆到他的值班室里。" },
-  "police-downtown": { sprite: "mobi", background: "USA2",
+  "police-downtown": { category: "office", sprite: "mobi", background: "USA2",
     story: "吉米是市中心的巡警，开着巡逻车维护全城的交通秩序。他坚信守法驾驶才是真正的车技，时不时还会考考路过的车手。" },
-  "postman-starfish": { sprite: "mos", background: "park1",
+  "postman-starfish": { category: "office", sprite: "mos", background: "park1",
     story: "小强是海星岛邮局唯一的邮差。岛上的住户天天网购，包裹堆得像小山一样。小强一个人忙不过来，正在招募靠谱的临时送货员。" },
-  "kite-beach": { sprite: "wenwen", background: "beach2",
+  "kite-beach": { category: "shop", sprite: "wenwen", background: "beach2",
     story: "雯雯来自遥远的龙之国度，是伟大龙之家族的一员，也是皮蛋的好朋友。她一边在卡丁城旅行一边练车，在海滩上摆了个风筝摊，她扎的龙形风筝是全城最漂亮的。" },
-  "captain-vicepoint": { sprite: "lodumani", background: "pirate2",
+  "captain-vicepoint": { category: "work", sprite: "lodumani", background: "pirate2",
     story: "海盗船长曾经驰骋七海，如今在罪恶角开了一家船坞，修船、卖缆绳，顺便收集各种藏宝传说。他坐船从来不晕，坐卡丁车却晕得厉害，所以出门总得找人开车。" },
-  "foreman-downtown": { sprite: "brodi", background: "brodi_01",
+  "foreman-downtown": { category: "work", sprite: "brodi", background: "brodi_01",
     story: "没人知道神秘工头叫什么名字，只知道市中心那片永远在施工的工地归他管。他的工具散落在全城各处，图纸上画的大楼好像永远也盖不完。" },
-  "busdriver-havana": { sprite: "tutu", background: "vill3",
+  "busdriver-havana": { category: "leisure", sprite: "tutu", background: "vill3",
     story: "嘟嘟开了十年校车，小哈瓦那的孩子们都是坐着他的车长大的。他最得意的是从没让一位乘客晕过车——开得稳，才是真本事。" },
-  "florist-washington": { sprite: "marid", background: "beach5",
+  "florist-washington": { category: "shop", sprite: "marid", background: "beach5",
     story: "蓝蓝在华盛顿海滩开了一家小花店，每天一大早就去各处采花。她养了一只调皮的小狗，三天两头溜出去玩，每次都要全街的人帮忙找。" },
 };
 

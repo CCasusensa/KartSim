@@ -18,9 +18,15 @@ import { CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
 
 export { withTraffic };
 
-/** Task-point NPCs load within this distance (m) and are drawn within DRAW. */
-const LOAD_RADIUS = 160;
-const DRAW_RADIUS = 130;
+/**
+ * Task-point NPCs load within this distance (m), are drawn within DRAW and
+ * let go of beyond UNLOAD (65 of them over the city: only those nearby are
+ * kept), at most MAX_LOADING at a time.
+ */
+const LOAD_RADIUS = 220;
+const DRAW_RADIUS = 200;
+const UNLOAD_RADIUS = 300;
+const MAX_LOADING = 2;
 /** A rider this close (m) and this slow (m/s) is greeted. */
 const GREET_RADIUS = 12;
 const GREET_SPEED = 6;
@@ -61,6 +67,8 @@ export class CityNpcs {
   traffic?: CityTraffic;
   lights?: CityTrafficLights;
   readonly tasks: TaskNpc[];
+  private readonly byId: Map<string, TaskNpc>;
+  private loading = 0;
   disposed = false;
   /** The honks already announced, by car. */
   private readonly announced = new Map<number, number>();
@@ -72,6 +80,7 @@ export class CityNpcs {
       return { definition, world: designToWorld(definition.x, definition.y, definition.z), yaw,
         failed: false, grounded: false, greetedAt: -Infinity, line: 0 };
     });
+    this.byId = new Map(this.tasks.map(npc => [npc.definition.id, npc]));
   }
 
   /** Loads the traffic network and the traffic's karts; packets before that are dropped. */
@@ -115,7 +124,12 @@ export class CityNpcs {
       const away = this.away.has(npc.definition.id);
       const distance = away ? Infinity
         : local ? Math.hypot(local.position.x - npc.world.x, local.position.z - npc.world.z) : Infinity;
-      if (!npc.figure && !npc.failed && distance < LOAD_RADIUS) this.load(npc);
+      if (!npc.figure && !npc.failed && distance < LOAD_RADIUS && this.loading < MAX_LOADING) this.load(npc);
+      if (npc.figure && distance > UNLOAD_RADIUS && npc.figure.avatar) {
+        npc.figure.dispose();
+        npc.figure = undefined;
+        npc.grounded = false;
+      }
       const figure = npc.figure;
       if (!figure?.avatar) continue;
       if (!npc.grounded) this.ground(npc);
@@ -145,9 +159,11 @@ export class CityNpcs {
     }, npc.definition.character, npc.definition.dye, npc.definition.id);
     npc.figure = figure;
     figure.place(npc.world.x, npc.world.y, npc.world.z, npc.yaw);
-    figure.ready.catch(error => {
+    this.loading++;
+    figure.ready.then(() => { this.loading--; }, error => {
+      this.loading--;
       npc.failed = true;
-      npc.figure = undefined;
+      if (npc.figure === figure) npc.figure = undefined;
       figure.dispose();
       this.host.onError(error);
     });
@@ -166,7 +182,7 @@ export class CityNpcs {
 
   /** A task-point NPC's feet (world), once its figure stands on the ground. */
   feetOf(id: string): { x: number; y: number; z: number } | undefined {
-    const npc = this.tasks.find(task => task.definition.id === id);
+    const npc = this.byId.get(id);
     return npc?.figure?.avatar && npc.grounded && !this.away.has(id) ? npc.world : undefined;
   }
 

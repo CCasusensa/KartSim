@@ -208,3 +208,29 @@ test("the M map opens on the rider and the delivery's target together", () => {
   // Two points close together zoom in no further than the plain open.
   assert.equal(fitView([me, { x: me.x + 5, z: me.z }], rect, 2).zoom, 2);
 });
+
+test("65 task-point NPCs (5 × the first 13) each give template deliveries", async () => {
+  const npcs = JSON.parse(readFileSync(new URL("client/src/city/city-npcs.json", root), "utf8")).npcs as
+    Array<{ id: string; name: string; x: number; z: number }>;
+  assert.equal(npcs.length, 65);
+  assert.deepEqual(new Set(npcs.map(npc => npc.id)).size, 65);
+  for (const npc of npcs) {
+    const profile = QUEST_NPCS[npc.id]!;
+    assert.ok(profile && profile.sprite && profile.background && profile.story, npc.id);
+    // Nobody stands on anyone else's spot.
+    for (const other of npcs)
+      if (other !== npc) assert.ok(Math.hypot(other.x - npc.x, other.z - npc.z) > 30, `${npc.id} / ${other.id}`);
+  }
+  const { DELIVERY_TEMPLATES } = await import("../../tools/city/quests/city-quests.templates.mjs");
+  assert.ok(DELIVERY_TEMPLATES.length >= 40);
+  const generated = QUESTS.filter(quest => quest.id.includes("~"));
+  const keys = new Set(generated.map(quest => quest.id.slice(quest.id.indexOf("~") + 1)));
+  assert.ok(keys.size >= 40, `${keys.size} templates used`);
+  for (const npc of npcs) assert.ok(generated.filter(quest => quest.giver === npc.id).length >= 3, npc.id);
+  for (const quest of generated) {
+    assert.equal(quest.type, "delivery");
+    assert.notEqual(quest.giver, quest.receiver);
+    const text = [quest.title, quest.synopsis, quest.thanks, ...quest.offer.map(line => line.text)].join("");
+    assert.doesNotMatch(text, /[{}]/, quest.id);
+  }
+});

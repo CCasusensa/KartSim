@@ -11,6 +11,7 @@
  * client/src/city/city-npcs.json (run after build-traffic-network.mjs).
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { CITIZENS } from "../npcs/citizens.data.mjs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadRoadRaster } from "./road-raster.mjs";
@@ -124,12 +125,65 @@ export function nearestLanePoint(list, x, z) {
   return best;
 }
 
+/** Citizens stand on ground-level streets (lanes this high or lower, m) … */
+const STREET_MAX_Y = 12.5;
+/** … mid-block: at least this far (m) from a junction centre. */
+const JUNCTION_CLEARANCE = 25;
+
+function inPolygon([x, z], polygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, zi] = polygon[i], [xj, zj] = polygon[j];
+    if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/**
+ * Where the citizens (citizens.data.mjs) stand: in its district, the lane
+ * point farthest from everyone already placed (farthest-point sampling, in
+ * file order), so the same build always picks the same spots.
+ */
+export function citizenAnchors(map, network, taken) {
+  const pools = new Map();
+  for (const path of network.paths) {
+    if (path.kind !== "lane") continue;
+    for (let i = 0; i < path.p.length; i += 12) {
+      const x = path.p[i], z = path.p[i + 1], y = path.p[i + 2];
+      if (y > STREET_MAX_Y) continue;
+      if (network.junctions.some(j => Math.hypot(j.x - x, j.z - z) < JUNCTION_CLEARANCE)) continue;
+      const district = map.districts.find(d => inPolygon([x, z], d.polygon));
+      if (!district) continue;
+      if (!pools.has(district.name)) pools.set(district.name, []);
+      pools.get(district.name).push([x, z]);
+    }
+  }
+  const placed = [...taken];
+  const anchors = new Map();
+  for (const citizen of CITIZENS) {
+    const pool = pools.get(citizen.district);
+    if (!pool?.length) throw new Error(`城区 ${citizen.district} 没有可站的街道。`);
+    let best, bestGap = -1;
+    for (const point of pool) {
+      const gap = Math.min(...placed.map(p => Math.hypot(p[0] - point[0], p[1] - point[1])));
+      if (gap > bestGap) { bestGap = gap; best = point; }
+    }
+    anchors.set(citizen.id, best);
+    placed.push(best);
+  }
+  return anchors;
+}
+
 export function buildNpcs() {
   const map = JSON.parse(readFileSync(resolve(ROOT, "design/open-world/city-map.json"), "utf8"));
   const network = JSON.parse(readFileSync(resolve(ROOT, "design/open-world/vice-city/traffic-network.json"), "utf8"));
   const raster = loadRoadRaster(resolve(ROOT, "design/open-world/vice-city/assets/source-road-surfaces.json"), map.meta.extent);
   const list = lanes(network);
-  const npcs = NPCS.map(npc => {
+  const main = NPCS.map(npc => typeof npc.anchor === "string" ? map.pois.find(p => p.id === npc.anchor)?.at : npc.anchor);
+  const anchors = citizenAnchors(map, network, main.filter(Boolean));
+  const everyone = [...NPCS, ...CITIZENS.map(citizen => ({ id: citizen.id, dye: citizen.dye, character: citizen.character,
+    name: `${citizen.role} · ${citizen.name}`, lines: citizen.lines, anchor: anchors.get(citizen.id) }))];
+  const npcs = everyone.map(npc => {
     let anchor = npc.anchor, poi;
     if (typeof anchor === "string") {
       poi = map.pois.find(p => p.id === anchor);

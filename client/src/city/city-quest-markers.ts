@@ -12,7 +12,7 @@ import { CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
 export type QuestMark = "!" | "?" | "★";
 
 /** Beyond this distance (m) no mark shows; the "?" of a delivery shows from further. */
-const MARK_RANGE = 140;
+const MARK_RANGE = 200;
 const TARGET_RANGE = 400;
 /** The name tags' anchor over a standing NPC's feet (m; city-npcs heads + city-labels HEAD_HEIGHT). */
 const HEAD_HEIGHT = 1.6 * CITY_VEHICLE_SCALE;

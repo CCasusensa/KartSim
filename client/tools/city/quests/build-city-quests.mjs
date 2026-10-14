@@ -16,6 +16,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { QUEST_NPCS, QUEST_RULES, QUESTS } from "./city-quests.data.mjs";
+import { DELIVERY_TEMPLATES } from "./city-quests.templates.mjs";
+import { CITIZENS } from "../npcs/citizens.data.mjs";
 import { lanes, nearestLanePoint } from "../traffic/build-city-npcs.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -150,26 +152,102 @@ function searchSpots(network, area, count) {
   return chosen.map(([x, z]) => ({ x: round1(x), z: round1(z) }));
 }
 
+/** Generated deliveries (city-quests.templates.mjs) each task-point NPC gives. */
+const TEMPLATE_QUESTS_PER_NPC = 3;
+/** A generated delivery's receiver stands this far (m, straight) from its giver, when anyone does. */
+const RECEIVER_RANGE = [600, 2800];
+
+/** FNV-1a: a stable order for the generator's choices. */
+function hash(text) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193) >>> 0;
+  return h;
+}
+
+function inPolygon([x, z], polygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, zi] = polygon[i], [xj, zj] = polygon[j];
+    if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+const shortName = name => name.slice(name.lastIndexOf("·") + 1).trim();
+const roleOf = name => name.includes("·") ? name.slice(0, name.indexOf("·")).trim() : "";
+
+/**
+ * The template deliveries: each task-point NPC (in file order) gets
+ * TEMPLATE_QUESTS_PER_NPC templates its trade may give (the least used so
+ * far first, mixing limits), each to a different receiver in RECEIVER_RANGE
+ * (the least served so far first). Ties go by a hash, so the same data
+ * always builds the same quests.
+ */
+export function templateQuests(people, districts) {
+  const used = new Map(), served = new Map();
+  const where = person => districts.find(d => inPolygon([person.x, person.z], d.polygon))?.name ?? "城外";
+  const quests = [];
+  for (const [giverId, giver] of Object.entries(people)) {
+    const fits = DELIVERY_TEMPLATES.filter(t => t.from.includes(giver.category) || t.from.includes("any"));
+    const order = (a, b) => (used.get(a.key) ?? 0) - (used.get(b.key) ?? 0) ||
+      hash(`${giverId}/${a.key}`) - hash(`${giverId}/${b.key}`);
+    const picked = [];
+    for (const template of [...fits].sort(order)) {
+      if (picked.length >= TEMPLATE_QUESTS_PER_NPC) break;
+      // At most two of one limit per NPC.
+      if (picked.filter(p => p.kind === template.kind).length >= 2) continue;
+      picked.push(template);
+    }
+    const others = Object.entries(people).filter(([id]) => id !== giverId);
+    const distance = ([, person]) => Math.hypot(person.x - giver.x, person.z - giver.z);
+    const inRange = others.filter(entry => distance(entry) >= RECEIVER_RANGE[0] && distance(entry) <= RECEIVER_RANGE[1]);
+    const pool = inRange.length >= TEMPLATE_QUESTS_PER_NPC ? inRange : others;
+    const chosen = new Set();
+    for (const template of picked) {
+      const [receiverId, receiver] = [...pool].filter(([id]) => !chosen.has(id)).sort((a, b) =>
+        (served.get(a[0]) ?? 0) - (served.get(b[0]) ?? 0) ||
+        hash(`${giverId}/${template.key}/${a[0]}`) - hash(`${giverId}/${template.key}/${b[0]}`))[0];
+      chosen.add(receiverId);
+      used.set(template.key, (used.get(template.key) ?? 0) + 1);
+      served.set(receiverId, (served.get(receiverId) ?? 0) + 1);
+      const fill = text => text.replaceAll("{from}", shortName(giver.name)).replaceAll("{to}", shortName(receiver.name))
+        .replaceAll("{toRole}", roleOf(receiver.name)).replaceAll("{where}", where(receiver));
+      quests.push({
+        id: `${giverId}~${template.key}`, giver: giverId, receiver: receiverId, item: template.item, title: fill(template.title),
+        kind: template.kind, ...(template.maxKmh ? { maxKmh: template.maxKmh } : {}),
+        ...(template.maxCollisions !== undefined ? { maxCollisions: template.maxCollisions } : {}),
+        synopsis: fill(template.synopsis), offer: template.offer.map(line => ({ who: line.who, text: fill(line.text) })),
+        thanks: fill(template.thanks),
+      });
+    }
+  }
+  return quests;
+}
+
 export function buildQuests() {
   const npcs = JSON.parse(readFileSync(resolve(ROOT, "design/open-world/vice-city/city-npcs.json"), "utf8"));
   const network = JSON.parse(readFileSync(resolve(ROOT, "design/open-world/vice-city/traffic-network.json"), "utf8"));
+  const map = JSON.parse(readFileSync(resolve(ROOT, "design/open-world/city-map.json"), "utf8"));
   const laneList = lanes(network);
   const spots = new Map(npcs.npcs.map(npc => [npc.id, npc]));
+  const profiles = { ...QUEST_NPCS };
+  for (const citizen of CITIZENS)
+    profiles[citizen.id] = { category: citizen.category, sprite: citizen.sprite, background: citizen.background, story: citizen.story };
   const people = {};
-  for (const [id, profile] of Object.entries(QUEST_NPCS)) {
+  for (const [id, profile] of Object.entries(profiles)) {
     const npc = spots.get(id);
     if (!npc) throw new Error(`任务点人物 ${id} 不在 city-npcs.json 里。`);
     people[id] = { name: npc.name, character: npc.character, dye: npc.dye, ...profile, x: npc.x, z: npc.z };
   }
   const seen = new Set();
-  const quests = QUESTS.map(quest => {
+  const quests = [...QUESTS, ...templateQuests(people, map.districts)].map(quest => {
     if (seen.has(quest.id)) throw new Error(`任务 id ${quest.id} 重复。`);
     seen.add(quest.id);
     const type = quest.type ?? "delivery";
     const typeRule = QUEST_RULES.types[type];
     if (!typeRule) throw new Error(`任务 ${quest.id} 的类型 ${type} 不存在。`);
     const giver = spots.get(quest.giver), receiver = spots.get(quest.receiver);
-    if (!giver || !receiver || !QUEST_NPCS[quest.giver] || !QUEST_NPCS[quest.receiver])
+    if (!giver || !receiver || !profiles[quest.giver] || !profiles[quest.receiver])
       throw new Error(`任务 ${quest.id} 的托付人或收件人不对。`);
     if ((type === "delivery" || type === "passenger") && quest.giver === quest.receiver)
       throw new Error(`任务 ${quest.id} 要送到另一个人那里。`);
@@ -225,7 +303,7 @@ export function buildQuests() {
     }
     return out;
   });
-  for (const id of Object.keys(QUEST_NPCS))
+  for (const id of Object.keys(profiles))
     if (!quests.some(q => q.giver === id)) throw new Error(`任务点人物 ${id} 没有任务可托付。`);
   return { version: 2, network: network.id, rules: QUEST_RULES, npcs: people, quests };
 }

@@ -71,6 +71,7 @@
    "name": "导游 · 皮蛋",
    "character": 2,
    "dye": 4,
+   "category": "leisure",
    "sprite": "dao",
    "background": "beach1",
    "story": "皮蛋是卡丁城最有名的导游。自从卡丁城对外开放，他每天带着一车又一车的游客沿海滨兜风。他常说：开车就像带团，最重要的是让每个人都平平安安到达。",
@@ -81,6 +82,7 @@
    "name": "交通协管员 · 小乖",
    "character": 8,
    "dye": 9,
+   "category": "office",
    "sprite": "uni",
    "background": "USA1",
    "story": "小乖是华盛顿海滩的交通协管员，能背出全城每一个红绿灯的周期，最看不得有人闯红灯。最近城里车多了起来，她忙得连午饭都顾不上吃。",
@@ -91,6 +93,7 @@
    "name": "热心市民 · 宝宝",
    "character": 1,
    "dye": 1,
+   "category": "leisure",
    "sprite": "bazzi",
    "background": "beach3",
    "story": "宝宝住在罪恶角的海边公寓，是个闲不住的热心市民，谁家有事都想帮一把。可他自己的卡丁车总被拿去比赛，结果常常要请别人帮忙跑腿。",
@@ -101,6 +104,7 @@
    "name": "店主 · 黑妞",
    "character": 3,
    "dye": 7,
+   "category": "food",
    "sprite": "dizini",
    "background": "vill2",
    "story": "黑妞在小哈瓦那开了一家古巴咖啡小馆，招牌是热腾腾的古巴三明治和冰咖啡。小馆生意红火，外卖单从城东排到了城西。",
@@ -111,6 +115,7 @@
    "name": "修车师傅 · 胖墩",
    "character": 5,
    "dye": 3,
+   "category": "work",
    "sprite": "kephi",
    "background": "fac1",
    "story": "胖墩是小海地的修车师傅，修过的卡丁车比他吃过的面包还多。车库里永远堆满了零件，可他自己从不肯出门送货——说是要守着店。",
@@ -121,6 +126,7 @@
    "name": "机场引导员 · 葱头",
    "character": 4,
    "dye": 6,
+   "category": "office",
    "sprite": "ethi",
    "background": "USA3",
    "story": "葱头在国际机场当地勤引导员，每天挥着指挥棒引导飞机滑行。旅客落下的行李、寄错地方的包裹，最后都会堆到他的值班室里。",
@@ -131,6 +137,7 @@
    "name": "巡警 · 吉米",
    "character": 15,
    "dye": 11,
+   "category": "office",
    "sprite": "mobi",
    "background": "USA2",
    "story": "吉米是市中心的巡警，开着巡逻车维护全城的交通秩序。他坚信守法驾驶才是真正的车技，时不时还会考考路过的车手。",
@@ -141,6 +148,7 @@
    "name": "邮差 · 小强",
    "character": 7,
    "dye": 5,
+   "category": "office",
    "sprite": "mos",
    "background": "park1",
    "story": "小强是海星岛邮局唯一的邮差。岛上的住户天天网购，包裹堆得像小山一样。小强一个人忙不过来，正在招募靠谱的临时送货员。",
@@ -151,6 +159,7 @@
    "name": "风筝摊主 · 雯雯",
    "character": 25,
    "dye": 2,
+   "category": "shop",
    "sprite": "wenwen",
    "background": "beach2",
    "story": "雯雯来自遥远的龙之国度，是伟大龙之家族的一员，也是皮蛋的好朋友。她一边在卡丁城旅行一边练车，在海滩上摆了个风筝摊，她扎的龙形风筝是全城最漂亮的。",
@@ -161,6 +170,7 @@
    "name": "船坞老板 · 海盗船长",
    "character": 9,
    "dye": 8,
+   "category": "work",
    "sprite": "lodumani",
    "background": "pirate2",
    "story": "海盗船长曾经驰骋七海，如今在罪恶角开了一家船坞，修船、卖缆绳，顺便收集各种藏宝传说。他坐船从来不晕，坐卡丁车却晕得厉害，所以出门总得找人开车。",
@@ -171,6 +181,7 @@
    "name": "工地主管 · 神秘工头",
    "character": 16,
    "dye": 10,
+   "category": "work",
    "sprite": "brodi",
    "background": "brodi_01",
    "story": "没人知道神秘工头叫什么名字，只知道市中心那片永远在施工的工地归他管。他的工具散落在全城各处，图纸上画的大楼好像永远也盖不完。",
@@ -181,6 +192,7 @@
    "name": "校车司机 · 嘟嘟",
    "character": 18,
    "dye": 5,
+   "category": "leisure",
    "sprite": "tutu",
    "background": "vill3",
    "story": "嘟嘟开了十年校车，小哈瓦那的孩子们都是坐着他的车长大的。他最得意的是从没让一位乘客晕过车——开得稳，才是真本事。",
@@ -191,11 +203,584 @@
    "name": "花店店主 · 蓝蓝",
    "character": 6,
    "dye": 6,
+   "category": "shop",
    "sprite": "marid",
    "background": "beach5",
    "story": "蓝蓝在华盛顿海滩开了一家小花店，每天一大早就去各处采花。她养了一只调皮的小狗，三天两头溜出去玩，每次都要全街的人帮忙找。",
    "x": -422.48,
    "z": 432.29
+  },
+  "ob-lifeguard": {
+   "name": "救生员 · 大海",
+   "character": 435,
+   "dye": 1,
+   "category": "leisure",
+   "sprite": "bazzi",
+   "background": "beach1",
+   "story": "大海是海洋海滩的救生员，穿着鲨鱼外套在瞭望台上一坐就是一整天。他游泳比卡丁车还快，可惜海滩上不让开快车。",
+   "x": -975.09,
+   "z": 652.86
+  },
+  "ob-icecream": {
+   "name": "冰淇淋小贩 · 糖糖",
+   "character": 287,
+   "dye": 9,
+   "category": "food",
+   "sprite": "dizini",
+   "background": "beach2",
+   "story": "糖糖推着冰淇淋车在海滨步道上来回叫卖。天越热她越开心，因为每一个满头大汗的车手都是她的顾客。",
+   "x": -563.91,
+   "z": 724.57
+  },
+  "ob-surf": {
+   "name": "冲浪教练 · 阿浪",
+   "character": 351,
+   "dye": 6,
+   "category": "leisure",
+   "sprite": "dao",
+   "background": "beach5",
+   "story": "阿浪是海滩冲浪学校的教练，肌肉练得比冲浪板还结实。他说开卡丁车和冲浪是一个道理：重心要稳，时机要准。",
+   "x": -943.77,
+   "z": 1137.9
+  },
+  "ob-volley": {
+   "name": "沙滩排球选手 · 小麦",
+   "character": 206,
+   "dye": 2,
+   "category": "leisure",
+   "sprite": "wenwen",
+   "background": "beach1",
+   "story": "小麦是沙滩排球队的主攻手，晒得一身小麦色。她正在备战下个月的卡丁城沙滩排球联赛。",
+   "x": -978.85,
+   "z": 872.95
+  },
+  "ob-photo": {
+   "name": "海滨摄影师 · 阿光",
+   "character": 181,
+   "dye": 11,
+   "category": "shop",
+   "sprite": "ethi",
+   "background": "beach2",
+   "story": "阿光背着相机在海滩上给游客拍照，最拿手的是拍卡丁车冲过海滨大道的瞬间。",
+   "x": -729.68,
+   "z": 586.85
+  },
+  "ob-coconut": {
+   "name": "椰子摊主 · 椰叔",
+   "character": 140,
+   "dye": 8,
+   "category": "food",
+   "sprite": "bazzi",
+   "background": "beach1",
+   "story": "椰叔年轻时当过水手，现在在海滩边开了个椰子摊。他劈椰子的刀法又快又准，一刀一个。",
+   "x": -748.25,
+   "z": 753.02
+  },
+  "ob-bellboy": {
+   "name": "酒店门童 · 小新",
+   "character": 10,
+   "dye": 7,
+   "category": "office",
+   "sprite": "taki",
+   "background": "beach5",
+   "story": "小新在海滨大酒店当门童，记得住每一位客人的名字和车子。客人落下的东西，他总是第一时间帮忙送回去。",
+   "x": -853.33,
+   "z": 1284.71
+  },
+  "wb-gym": {
+   "name": "健身教练 · 大力",
+   "character": 79,
+   "dye": 4,
+   "category": "leisure",
+   "sprite": "kephi",
+   "background": "USA1",
+   "story": "大力在华盛顿海滩开了一家健身房，口头禅是“再来一组”。他自己的目标是减掉十斤，已经坚持说了三年。",
+   "x": -542.1,
+   "z": -0.17
+  },
+  "wb-barista": {
+   "name": "咖啡师 · 阿豆",
+   "character": 298,
+   "dye": 3,
+   "category": "food",
+   "sprite": "narin",
+   "background": "beach5",
+   "story": "阿豆是海滨咖啡馆的咖啡师，能在拿铁上拉出一辆卡丁车的图案。她和小哈瓦那的黑妞是多年的竞争对手兼好朋友。",
+   "x": -275.08,
+   "z": -126.72
+  },
+  "wb-books": {
+   "name": "书店店员 · 书书",
+   "character": 224,
+   "dye": 6,
+   "category": "shop",
+   "sprite": "tiera",
+   "background": "USA1",
+   "story": "书书在街角的旧书店打工，读过店里一半的书。她最喜欢的书是《卡丁车驾驶技巧大全》，虽然她还不会开车。",
+   "x": -338.67,
+   "z": 176.9
+  },
+  "wb-dog": {
+   "name": "遛狗少年 · 跳跳",
+   "character": 83,
+   "dye": 2,
+   "category": "leisure",
+   "sprite": "uni",
+   "background": "park1",
+   "story": "跳跳每天帮邻居们遛狗赚零花钱，一次能牵五条狗。和蓝蓝家的小狗不一样，他牵的狗从来不乱跑。",
+   "x": -715.57,
+   "z": 174.1
+  },
+  "wb-news": {
+   "name": "报亭老板 · 老周",
+   "character": 160,
+   "dye": 8,
+   "category": "shop",
+   "sprite": "uni",
+   "background": "USA1",
+   "story": "老周在华盛顿海滩守着一座小报亭，全城的大事小事他都知道得最早。他最爱看的是卡丁车联赛的赛报。",
+   "x": -937.95,
+   "z": 196.89
+  },
+  "wb-barber": {
+   "name": "理发师 · 小剪",
+   "character": 325,
+   "dye": 9,
+   "category": "shop",
+   "sprite": "uni",
+   "background": "beach5",
+   "story": "小剪的理发店开在海滨步道旁，顾客多是刚比完赛、头发被头盔压扁的车手。她能三分钟剪出一个冠军发型。",
+   "x": -453.55,
+   "z": -233.03
+  },
+  "wb-smoothie": {
+   "name": "冰沙店店员 · 果果",
+   "character": 221,
+   "dye": 4,
+   "category": "food",
+   "sprite": "wenwen",
+   "background": "park1",
+   "story": "果果放学后在冰沙店打工，研究出了二十种水果冰沙的配方。她的梦想是开一家全城最大的果汁店。",
+   "x": -607.74,
+   "z": 381.29
+  },
+  "vp-docker": {
+   "name": "码头工人 · 大壮",
+   "character": 205,
+   "dye": 1,
+   "category": "work",
+   "sprite": "mos",
+   "background": "pirate2",
+   "story": "大壮在罪恶角码头搬货，一个人能扛起两只木箱。他嗓门大、心肠好，码头上谁有事都找他帮忙。",
+   "x": -761.53,
+   "z": -1148.19
+  },
+  "vp-fisher": {
+   "name": "渔夫 · 老海",
+   "character": 288,
+   "dye": 5,
+   "category": "food",
+   "sprite": "lodumani",
+   "background": "pirate2",
+   "story": "老海以前跟着海盗船长跑过船，现在在罪恶角打渔为生。他的鱼总是城里最新鲜的。",
+   "x": -510.81,
+   "z": -708.17
+  },
+  "vp-yacht": {
+   "name": "游艇俱乐部经理 · 阿彬",
+   "character": 244,
+   "dye": 10,
+   "category": "office",
+   "sprite": "brodi",
+   "background": "beach3",
+   "story": "阿彬管理着罪恶角的游艇俱乐部，穿着笔挺的船长服。听说他和神秘工头长得一模一样，可他坚称两人毫无关系。",
+   "x": -437.35,
+   "z": -1268.11
+  },
+  "vp-mall": {
+   "name": "商场售货员 · 小美",
+   "character": 232,
+   "dye": 9,
+   "category": "shop",
+   "sprite": "bazzi",
+   "background": "USA2",
+   "story": "小美是罪恶角商场的金牌售货员，推销起东西来没人能拒绝。她的业绩表上永远排第一。",
+   "x": -915.07,
+   "z": -1377
+  },
+  "vp-magic": {
+   "name": "街头魔术师 · 阿奇",
+   "character": 252,
+   "dye": 7,
+   "category": "leisure",
+   "sprite": "bazzi",
+   "background": "beach3",
+   "story": "阿奇在罪恶角的广场上表演魔术，能把一枚金币变成一辆迷你卡丁车。他的梦想是有一天把真卡丁车变没。",
+   "x": -238.92,
+   "z": -666.25
+  },
+  "vp-nightmarket": {
+   "name": "夜市摊主 · 阿香",
+   "character": 152,
+   "dye": 1,
+   "category": "food",
+   "sprite": "dizini",
+   "background": "USA2",
+   "story": "阿香在罪恶角夜市卖烤串，一到晚上摊位前就排起长队。她的秘制酱料配方连黑妞都想打听。",
+   "x": -528.62,
+   "z": -1008.9
+  },
+  "vp-dessert": {
+   "name": "甜品师 · 米粒",
+   "character": 375,
+   "dye": 10,
+   "category": "food",
+   "sprite": "bazzi",
+   "background": "beach3",
+   "story": "米粒是海边甜品店的甜品师，做的蛋糕漂亮得让人舍不得吃。她最近在研究卡丁车形状的马卡龙。",
+   "x": -195.34,
+   "z": -1122.25
+  },
+  "vp-super": {
+   "name": "公寓管理员 · 王伯",
+   "character": 178,
+   "dye": 3,
+   "category": "work",
+   "sprite": "brodi",
+   "background": "USA2",
+   "story": "王伯管着罪恶角最大的海景公寓，水管、电梯、门锁什么都会修。住户们都说，有王伯在就什么都不怕。",
+   "x": -728.34,
+   "z": -1346.51
+  },
+  "vp-guard": {
+   "name": "保安 · 阿虎",
+   "character": 126,
+   "dye": 4,
+   "category": "office",
+   "sprite": "dao",
+   "background": "USA2",
+   "story": "阿虎是商业街的保安，站岗时一动不动，像一尊雕像。可一到下班，他就是卡丁车训练场上最快的那个。",
+   "x": -520.28,
+   "z": -524.4
+  },
+  "vp-lighthouse": {
+   "name": "灯塔看守人 · 老灯",
+   "character": 142,
+   "dye": 11,
+   "category": "work",
+   "sprite": "marid",
+   "background": "pirate2",
+   "story": "老灯守着罪恶角的灯塔三十年，每晚准时点亮灯塔为渔船指路。她说灯塔的光就是港口的心跳。",
+   "x": -399.82,
+   "z": -817
+  },
+  "vp-singer": {
+   "name": "街头歌手 · 晴晴",
+   "character": 320,
+   "dye": 9,
+   "category": "leisure",
+   "sprite": "dizini",
+   "background": "beach3",
+   "story": "晴晴每天傍晚在罪恶角的海边唱歌，歌声吸引了不少路过的车手停下来听。她的新歌叫《漂移的夏天》。",
+   "x": -376.36,
+   "z": -1125.17
+  },
+  "vp-tourist": {
+   "name": "游客中心向导 · 安安",
+   "character": 354,
+   "dye": 6,
+   "category": "office",
+   "sprite": "marid",
+   "background": "beach3",
+   "story": "安安在罪恶角游客中心工作，能用五种语言介绍卡丁城。她和导游皮蛋经常交流哪条路线风景最好。",
+   "x": -332.97,
+   "z": -550.37
+  },
+  "lh-chef": {
+   "name": "餐厅主厨 · 大勺",
+   "character": 367,
+   "dye": 10,
+   "category": "food",
+   "sprite": "kephi",
+   "background": "vill2",
+   "story": "大勺是小哈瓦那老字号餐厅的主厨，炖了一辈子的古巴黑豆饭。他和修车的胖墩长得像，常被认错。",
+   "x": -1968.04,
+   "z": 192.15
+  },
+  "lh-candy": {
+   "name": "糖果店老板 · 甜甜",
+   "character": 88,
+   "dye": 2,
+   "category": "food",
+   "sprite": "wenwen",
+   "background": "vill3",
+   "story": "甜甜穿着牛仔服经营着一家西部风格的糖果店，店里有上百种糖果。小朋友们放学后都往她店里跑。",
+   "x": -1548.18,
+   "z": 840.79
+  },
+  "lh-baker": {
+   "name": "面包师 · 阿麦",
+   "character": 154,
+   "dye": 1,
+   "category": "food",
+   "sprite": "bazzi",
+   "background": "vill2",
+   "story": "阿麦每天凌晨四点就开始揉面，小哈瓦那的早餐面包都出自他手。他烤的古巴面包外脆里软，远近闻名。",
+   "x": -1757.63,
+   "z": 1103.8
+  },
+  "lh-dance": {
+   "name": "舞蹈老师 · 莎莎",
+   "character": 257,
+   "dye": 1,
+   "category": "leisure",
+   "sprite": "carol",
+   "background": "vill3",
+   "story": "莎莎在小哈瓦那教萨尔萨舞，舞步轻快得像在漂移。她说跳舞和开车一样，都要跟着节奏走。",
+   "x": -1481.53,
+   "z": 193.18
+  },
+  "lh-music": {
+   "name": "音乐老师 · 美玲",
+   "character": 74,
+   "dye": 6,
+   "category": "office",
+   "sprite": "lena",
+   "background": "vill2",
+   "story": "美玲在小哈瓦那的社区学校教音乐，钢琴弹得非常好。她正在为社区音乐会排练节目。",
+   "x": -1718.17,
+   "z": 164.84
+  },
+  "lh-student": {
+   "name": "小学生 · 豆豆",
+   "character": 96,
+   "dye": 4,
+   "category": "leisure",
+   "sprite": "dao",
+   "background": "vill3",
+   "story": "豆豆是小哈瓦那小学的学生，最大的愿望是快点长大，考到卡丁车驾照。每天坐嘟嘟的校车上学。",
+   "x": -1848.08,
+   "z": 401.74
+  },
+  "lh-tailor": {
+   "name": "裁缝 · 针婶",
+   "character": 155,
+   "dye": 7,
+   "category": "shop",
+   "sprite": "tiera",
+   "background": "vill2",
+   "story": "针婶的裁缝铺做了几十年的赛车服，城里不少冠军的战袍都是她亲手缝的。",
+   "x": -1472.99,
+   "z": 636.05
+  },
+  "lh-pharmacy": {
+   "name": "药店店员 · 小白",
+   "character": 138,
+   "dye": 10,
+   "category": "care",
+   "sprite": "tiera",
+   "background": "vill3",
+   "story": "小白在社区药店工作，对每种药的用法都了如指掌。她最常卖出去的是晕车药——海盗船长是常客。",
+   "x": -1868.09,
+   "z": 5.97
+  },
+  "lh-laundry": {
+   "name": "洗衣店老板 · 泡泡",
+   "character": 272,
+   "dye": 5,
+   "category": "shop",
+   "sprite": "bazzi",
+   "background": "vill2",
+   "story": "泡泡开着一家自助洗衣店，下雨天总穿着雨衣到处给客人送洗好的衣服。她说洗衣服最解压了。",
+   "x": -1333.28,
+   "z": 71.19
+  },
+  "lh-grocer": {
+   "name": "杂货铺老板 · 阿宽",
+   "character": 153,
+   "dye": 3,
+   "category": "shop",
+   "sprite": "dao",
+   "background": "vill3",
+   "story": "阿宽的杂货铺什么都卖，从螺丝钉到辣椒酱应有尽有。街坊们说，在阿宽那里找不到的东西，全城都找不到。",
+   "x": -1578.85,
+   "z": 1033.15
+  },
+  "lt-apprentice": {
+   "name": "修车学徒 · 小扳",
+   "character": 187,
+   "dye": 2,
+   "category": "work",
+   "sprite": "dao",
+   "background": "fac1",
+   "story": "小扳是胖墩车库新来的学徒，扳手不离手。他偷偷改装了一辆卡丁车，打算有一天参加联赛。",
+   "x": -1776.73,
+   "z": -598.43
+  },
+  "lt-scrap": {
+   "name": "回收站老板 · 老铁",
+   "character": 255,
+   "dye": 8,
+   "category": "work",
+   "sprite": "bazzi",
+   "background": "fac2",
+   "story": "老铁的回收站堆满了旧零件，他能从一堆废铁里拼出一辆能跑的卡丁车。机器人一样的外表下是一颗热心肠。",
+   "x": -1516,
+   "z": -410.32
+  },
+  "lt-truck": {
+   "name": "卡车司机 · 大刘",
+   "character": 92,
+   "dye": 6,
+   "category": "work",
+   "sprite": "mobi",
+   "background": "fac1",
+   "story": "大刘开着大卡车往返小海地和码头，一天能跑十几趟。他说大卡车和卡丁车最大的区别是：转弯要提前。",
+   "x": -1845.96,
+   "z": -281.89
+  },
+  "lt-paint": {
+   "name": "涂装师 · 彩彩",
+   "character": 186,
+   "dye": 9,
+   "category": "work",
+   "sprite": "dizini",
+   "background": "fac2",
+   "story": "彩彩是小海地最好的卡丁车涂装师，车身上的火焰、闪电、星星都是她一笔一笔画上去的。",
+   "x": -1483.64,
+   "z": -633.92
+  },
+  "lt-parts": {
+   "name": "零件店老板 · 阿钉",
+   "character": 94,
+   "dye": 3,
+   "category": "shop",
+   "sprite": "taki",
+   "background": "fac1",
+   "story": "阿钉的零件店里分门别类摆满了上万种零件，他闭着眼睛都能找到你要的那一个。",
+   "x": -1710.66,
+   "z": -422.23
+  },
+  "lt-carwash": {
+   "name": "洗车工 · 水水",
+   "character": 310,
+   "dye": 11,
+   "category": "work",
+   "sprite": "bazzi",
+   "background": "fac2",
+   "story": "水水在小海地的洗车场工作，洗过的卡丁车亮得能照出人影。她最怕的是从泥地赛道回来的车。",
+   "x": -1955.58,
+   "z": -156.51
+  },
+  "dt-nurse": {
+   "name": "护士 · 小雪",
+   "character": 72,
+   "dye": 9,
+   "category": "care",
+   "sprite": "bazzi",
+   "background": "USA3",
+   "story": "小雪是市中心医院的护士，温柔又细心。每次赛车场有人受伤，她总是第一个赶到。",
+   "x": -1275.86,
+   "z": -1629.95
+  },
+  "dt-doctor": {
+   "name": "医生 · 白大夫",
+   "character": 120,
+   "dye": 10,
+   "category": "care",
+   "sprite": "bazzi",
+   "background": "USA3",
+   "story": "白大夫是市中心医院的主治医生，医术高明，脾气却有点急。他总叮嘱车手们：安全带比车速重要。",
+   "x": -1442.84,
+   "z": -1294.63
+  },
+  "dt-bank": {
+   "name": "银行职员 · 金金",
+   "character": 50,
+   "dye": 2,
+   "category": "office",
+   "sprite": "uni",
+   "background": "USA2",
+   "story": "金金在市中心的银行柜台工作，点钞速度全城第一。她算账从来没错过一分钱。",
+   "x": -1549.13,
+   "z": -1768.93
+  },
+  "dt-detective": {
+   "name": "侦探 · 福尔摩斯",
+   "character": 102,
+   "dye": 8,
+   "category": "office",
+   "sprite": "kai",
+   "background": "USA4",
+   "story": "福尔摩斯在市中心开了一家侦探事务所，没有他破不了的案子。最近他在调查卡丁城连续闯红灯事件。",
+   "x": -1192.87,
+   "z": -1360.34
+  },
+  "dt-reporter": {
+   "name": "记者 · 罗杰",
+   "character": 76,
+   "dye": 6,
+   "category": "office",
+   "sprite": "steve",
+   "background": "USA3",
+   "story": "罗杰是《卡丁城日报》的记者，哪里有新闻哪里就有他。他正在写一篇关于城市送货员的专题报道。",
+   "x": -1647.97,
+   "z": -1160.78
+  },
+  "dt-library": {
+   "name": "图书管理员 · 卡米拉",
+   "character": 370,
+   "dye": 7,
+   "category": "office",
+   "sprite": "camilla",
+   "background": "USA4",
+   "story": "卡米拉管理着市中心图书馆，书架上的每一本书她都知道放在哪里。逾期不还书的人会收到她的“特别提醒”。",
+   "x": -1058.45,
+   "z": -1554.65
+  },
+  "dt-courier": {
+   "name": "快递员 · 阿快",
+   "character": 447,
+   "dye": 1,
+   "category": "office",
+   "sprite": "mos",
+   "background": "USA2",
+   "story": "阿快是特快配送公司的快递员，号称“没有送不到的件”。可最近件太多，他也开始找外援了。",
+   "x": -1814.16,
+   "z": -1703.32
+  },
+  "si-star": {
+   "name": "天文爱好者 · 星星",
+   "character": 326,
+   "dye": 11,
+   "category": "leisure",
+   "sprite": "dao",
+   "background": "park1",
+   "story": "星星在海星岛上架了一台大望远镜，每天晚上都在观察星空。她的梦想是开着卡丁车去月球。",
+   "x": -1033.22,
+   "z": 99.78
+  },
+  "si-farm": {
+   "name": "农场主 · 阿丰",
+   "character": 5,
+   "dye": 4,
+   "category": "food",
+   "sprite": "kephi",
+   "background": "park2",
+   "story": "阿丰在海星岛经营着一个小农场，种菜、养鸡，还养了一头会跟着卡丁车跑的小猪。",
+   "x": -1075.97,
+   "z": 207.6
+  },
+  "si-clerk": {
+   "name": "邮局柜员 · 小信",
+   "character": 7,
+   "dye": 9,
+   "category": "office",
+   "sprite": "mos",
+   "background": "park1",
+   "story": "小信是海星岛邮局的柜员，和邮差小强是双胞胎，只是衣服颜色不同。她负责收件，小强负责送件。",
+   "x": -1011.13,
+   "z": 165.63
   }
  },
  "quests": [
@@ -1397,6 +1982,5585 @@
     }
    ],
    "thanks": "镀金轮毂盖！还一点划痕都没有，客人不会发现了，嘿嘿。"
+  },
+  {
+   "id": "guide-beach~photo-album",
+   "type": "delivery",
+   "giver": "guide-beach",
+   "receiver": "wb-books",
+   "item": "冲洗好的相册",
+   "title": "旅行相册",
+   "kind": "normal",
+   "distanceM": 999,
+   "lucci": 150,
+   "exp": 60,
+   "synopsis": "书书的旅行照片冲洗好了，装成了一本相册。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "书书上次旅行的照片冲洗好了，做成了一本相册。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在华盛顿海滩。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "哇，每一张都拍得这么好！谢谢你送过来。"
+  },
+  {
+   "id": "guide-beach~lost-wallet",
+   "type": "delivery",
+   "giver": "guide-beach",
+   "receiver": "vp-nightmarket",
+   "item": "捡到的钱包",
+   "title": "失物归还",
+   "kind": "normal",
+   "distanceM": 2529,
+   "lucci": 290,
+   "exp": 114,
+   "synopsis": "有人在皮蛋这里捡到一个钱包，里面的证件写着阿香的名字。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "有人捡到一个钱包，里面的证件是阿香的。"
+    },
+    {
+     "who": "npc",
+     "text": "阿香一定急坏了，帮我送回去吧，在罪恶角。"
+    },
+    {
+     "who": "me",
+     "text": "物归原主！"
+    }
+   ],
+   "thanks": "我的钱包！还以为找不回来了，太谢谢你了！"
+  },
+  {
+   "id": "guide-beach~concert-tickets",
+   "type": "delivery",
+   "giver": "guide-beach",
+   "receiver": "florist-washington",
+   "item": "演唱会门票",
+   "title": "演唱会门票",
+   "kind": "time",
+   "distanceM": 733,
+   "lucci": 200,
+   "exp": 81,
+   "synopsis": "今晚的演唱会快开始了，蓝蓝的门票还在皮蛋这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "蓝蓝的演唱会门票还在我这儿，演出快开始了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到，不然就进不去了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送！"
+    }
+   ],
+   "thanks": "赶上了！今晚要好好嗨一场！",
+   "timeLimitMs": 80000
+  },
+  {
+   "id": "warden-washington~library-books",
+   "type": "delivery",
+   "giver": "warden-washington",
+   "receiver": "vp-docker",
+   "item": "一摞预约的书",
+   "title": "预约图书",
+   "kind": "normal",
+   "distanceM": 1420,
+   "lucci": 190,
+   "exp": 75,
+   "synopsis": "大壮预约的书到了，一大摞。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大壮预约的书到了，一大摞呢。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到罪恶角吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "书到了！这个周末有得看了。"
+  },
+  {
+   "id": "warden-washington~blueprints",
+   "type": "delivery",
+   "giver": "warden-washington",
+   "receiver": "lt-scrap",
+   "item": "一卷施工图纸",
+   "title": "施工图纸",
+   "kind": "normal",
+   "distanceM": 1422,
+   "lucci": 190,
+   "exp": 75,
+   "synopsis": "老铁要的施工图纸画好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "老铁要的施工图纸画好了。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小海地吧，别弄皱了。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "图纸收到，一张都没皱，明天就能开工了。"
+  },
+  {
+   "id": "warden-washington~contract",
+   "type": "delivery",
+   "giver": "warden-washington",
+   "receiver": "lt-truck",
+   "item": "一份待签的合同",
+   "title": "合同急件",
+   "kind": "time",
+   "distanceM": 1990,
+   "lucci": 380,
+   "exp": 151,
+   "synopsis": "大刘那边等着签合同，下班前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大刘那边等着签这份合同，过了今天就作废了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到小海地！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "赶上了！合同签好了，太感谢你了。",
+   "timeLimitMs": 165000
+  },
+  {
+   "id": "citizen-vicepoint~thank-you-letter",
+   "type": "delivery",
+   "giver": "citizen-vicepoint",
+   "receiver": "busdriver-havana",
+   "item": "一封感谢信",
+   "title": "感谢信",
+   "kind": "normal",
+   "distanceM": 3231,
+   "lucci": 350,
+   "exp": 138,
+   "synopsis": "宝宝写了一封感谢信给嘟嘟，感谢上次的帮忙。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次嘟嘟帮了我大忙，我写了一封感谢信。"
+    },
+    {
+     "who": "npc",
+     "text": "能帮我送过去吗？在小哈瓦那。"
+    },
+    {
+     "who": "me",
+     "text": "当然可以。"
+    }
+   ],
+   "thanks": "感谢信？宝宝太客气了，我会好好收着的。"
+  },
+  {
+   "id": "citizen-vicepoint~keys",
+   "type": "delivery",
+   "giver": "citizen-vicepoint",
+   "receiver": "lh-grocer",
+   "item": "一串备用钥匙",
+   "title": "备用钥匙",
+   "kind": "time",
+   "distanceM": 3116,
+   "lucci": 540,
+   "exp": 214,
+   "synopsis": "阿宽把自己锁在门外了，备用钥匙放在宝宝这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿宽把自己锁在门外了，备用钥匙在我这儿。"
+    },
+    {
+     "who": "npc",
+     "text": "阿宽在门口等着呢，规定时间内送到吧！"
+    },
+    {
+     "who": "me",
+     "text": "马上就到！"
+    }
+   ],
+   "thanks": "终于能进门了！谢谢你，下次我一定记得带钥匙。",
+   "timeLimitMs": 240000
+  },
+  {
+   "id": "citizen-vicepoint~surfboard",
+   "type": "delivery",
+   "giver": "citizen-vicepoint",
+   "receiver": "ob-volley",
+   "item": "一块冲浪板",
+   "title": "冲浪板",
+   "kind": "normal",
+   "distanceM": 2278,
+   "lucci": 270,
+   "exp": 105,
+   "synopsis": "小麦想学冲浪，借了宝宝的一块冲浪板。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小麦想学冲浪，跟我借了块冲浪板。"
+    },
+    {
+     "who": "npc",
+     "text": "板子有点长，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "冲浪板到了！这个周末就去海边试试。"
+  },
+  {
+   "id": "shop-havana~egg-tray",
+   "type": "delivery",
+   "giver": "shop-havana",
+   "receiver": "wb-news",
+   "item": "一托新鲜鸡蛋",
+   "title": "鸡蛋别碎",
+   "kind": "collision",
+   "distanceM": 915,
+   "lucci": 210,
+   "exp": 86,
+   "synopsis": "老周要做早餐蛋饼，在黑妞这里买了一托新鲜鸡蛋。鸡蛋一撞就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "老周明早要做蛋饼，订了一托新鲜鸡蛋。"
+    },
+    {
+     "who": "npc",
+     "text": "鸡蛋可脆了，路上磕碰别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "轻拿轻放，明白。"
+    }
+   ],
+   "thanks": "一个都没碎！明天的蛋饼可以做双份了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "shop-havana~spice-jars",
+   "type": "delivery",
+   "giver": "shop-havana",
+   "receiver": "si-star",
+   "item": "一盒玻璃罐香料",
+   "title": "玻璃罐香料",
+   "kind": "collision",
+   "distanceM": 908,
+   "lucci": 210,
+   "exp": 85,
+   "synopsis": "星星订的进口香料装在玻璃罐里，一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "星星订的进口香料到了，都装在玻璃罐里。"
+    },
+    {
+     "who": "npc",
+     "text": "玻璃罐经不起撞，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会开得很稳。"
+    }
+   ],
+   "thanks": "罐子都完好无损，香料的味道真正！",
+   "maxCollisions": 3
+  },
+  {
+   "id": "shop-havana~first-aid",
+   "type": "delivery",
+   "giver": "shop-havana",
+   "receiver": "vp-lighthouse",
+   "item": "急救包",
+   "title": "急救包",
+   "kind": "time",
+   "distanceM": 2416,
+   "lucci": 440,
+   "exp": 175,
+   "synopsis": "老灯那边有人擦伤了，急需一个急救包。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "老灯那边有人摔了一跤，急需急救包！"
+    },
+    {
+     "who": "npc",
+     "text": "快！规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "马上到！"
+    }
+   ],
+   "thanks": "急救包来了，伤口处理好了，没大碍。谢谢你！",
+   "timeLimitMs": 195000
+  },
+  {
+   "id": "mechanic-haiti~spare-tires",
+   "type": "delivery",
+   "giver": "mechanic-haiti",
+   "receiver": "ob-photo",
+   "item": "一套卡丁车轮胎",
+   "title": "换胎急件",
+   "kind": "time",
+   "distanceM": 1649,
+   "lucci": 330,
+   "exp": 132,
+   "synopsis": "阿光的卡丁车爆胎了，等着新轮胎才能开。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿光的车爆胎了，困在海洋海滩动不了。"
+    },
+    {
+     "who": "npc",
+     "text": "这套轮胎得在规定时间内送到，不然阿光要错过比赛了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "轮胎到了！换上就能出发，太及时了！",
+   "timeLimitMs": 140000
+  },
+  {
+   "id": "mechanic-haiti~mirror",
+   "type": "delivery",
+   "giver": "mechanic-haiti",
+   "receiver": "dt-bank",
+   "item": "一面落地镜",
+   "title": "落地镜",
+   "kind": "collision",
+   "distanceM": 2246,
+   "lucci": 390,
+   "exp": 155,
+   "synopsis": "金金新家要一面落地镜，镜子又大又脆。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "金金搬新家，订了一面落地镜。"
+    },
+    {
+     "who": "npc",
+     "text": "镜子又大又脆，碰撞别超过两次，碎了可不吉利！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "镜子一点裂纹都没有！新家更亮堂了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "mechanic-haiti~toolbox",
+   "type": "delivery",
+   "giver": "mechanic-haiti",
+   "receiver": "ob-surf",
+   "item": "一箱维修工具",
+   "title": "借工具",
+   "kind": "normal",
+   "distanceM": 2124,
+   "lucci": 250,
+   "exp": 99,
+   "synopsis": "阿浪那边要修东西，想借胖墩的一箱维修工具。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿浪那边要修东西，跟我借这箱工具。"
+    },
+    {
+     "who": "npc",
+     "text": "箱子挺沉的，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "工具到了，这下能开工了。用完马上还！"
+  },
+  {
+   "id": "marshal-airport~plant-pot",
+   "type": "delivery",
+   "giver": "marshal-airport",
+   "receiver": "ob-coconut",
+   "item": "一盆多肉植物",
+   "title": "多肉盆栽",
+   "kind": "speed",
+   "distanceM": 2207,
+   "lucci": 360,
+   "exp": 143,
+   "synopsis": "葱头分了一盆多肉植物给椰叔，花盆是陶瓷的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我养的多肉长太多了，分一盆给椰叔。"
+    },
+    {
+     "who": "npc",
+     "text": "陶瓷花盆不经晃，车速别超过 50。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "好可爱的多肉！我会好好养的。",
+   "maxKmh": 50
+  },
+  {
+   "id": "marshal-airport~umbrella",
+   "type": "delivery",
+   "giver": "marshal-airport",
+   "receiver": "lh-music",
+   "item": "一把借来的雨伞",
+   "title": "还雨伞",
+   "kind": "normal",
+   "distanceM": 970,
+   "lucci": 150,
+   "exp": 59,
+   "synopsis": "上次下雨，葱头借了美玲一把伞，一直没机会还。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次下雨借了美玲一把伞，一直没还。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我还给美玲吧，在小哈瓦那。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "我的伞！我都忘了借出去了，谢谢你送回来。"
+  },
+  {
+   "id": "marshal-airport~souvenir",
+   "type": "delivery",
+   "giver": "marshal-airport",
+   "receiver": "vp-magic",
+   "item": "一盒旅行纪念品",
+   "title": "旅行纪念品",
+   "kind": "normal",
+   "distanceM": 3113,
+   "lucci": 340,
+   "exp": 134,
+   "synopsis": "葱头旅行回来，给阿奇带了一盒纪念品。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我刚旅行回来，给阿奇带了纪念品。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在罪恶角。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "纪念品！葱头还记着我，真开心。"
+  },
+  {
+   "id": "police-downtown~homemade-jam",
+   "type": "delivery",
+   "giver": "police-downtown",
+   "receiver": "lh-laundry",
+   "item": "一罐自制果酱",
+   "title": "自制果酱",
+   "kind": "collision",
+   "distanceM": 2618,
+   "lucci": 440,
+   "exp": 175,
+   "synopsis": "吉米做了自制果酱，想分一罐给泡泡。玻璃罐一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我做了好多果酱，想分一罐给泡泡。"
+    },
+    {
+     "who": "npc",
+     "text": "玻璃罐经不起撞，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "自制果酱！闻着好甜，明天早上抹面包吃。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "police-downtown~trophy",
+   "type": "delivery",
+   "giver": "police-downtown",
+   "receiver": "lh-baker",
+   "item": "比赛奖杯",
+   "title": "冠军奖杯",
+   "kind": "collision",
+   "distanceM": 3414,
+   "lucci": 550,
+   "exp": 217,
+   "synopsis": "阿麦在比赛中得了冠军，奖杯刚刻好名字。奖杯是水晶做的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿麦拿了冠军，奖杯刚刻好名字。"
+    },
+    {
+     "who": "npc",
+     "text": "这是水晶奖杯，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我一定小心。"
+    }
+   ],
+   "thanks": "我的奖杯！闪闪发亮，太漂亮了！",
+   "maxCollisions": 2
+  },
+  {
+   "id": "police-downtown~board-game",
+   "type": "delivery",
+   "giver": "police-downtown",
+   "receiver": "wb-barista",
+   "item": "一套桌游",
+   "title": "桌游之夜",
+   "kind": "normal",
+   "distanceM": 2614,
+   "lucci": 300,
+   "exp": 116,
+   "synopsis": "阿豆今晚办桌游之夜，借了吉米的一套桌游。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿豆今晚办桌游之夜，借了我的桌游。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在华盛顿海滩。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "桌游到了！今晚一定很热闹，要不要一起玩？"
+  },
+  {
+   "id": "postman-starfish~invitation",
+   "type": "delivery",
+   "giver": "postman-starfish",
+   "receiver": "dt-doctor",
+   "item": "一叠派对请柬",
+   "title": "派对请柬",
+   "kind": "normal",
+   "distanceM": 2398,
+   "lucci": 280,
+   "exp": 109,
+   "synopsis": "小强要办派对，请柬要送到白大夫那里帮忙分发。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我下周要办派对，请柬写好了一大叠。"
+    },
+    {
+     "who": "npc",
+     "text": "白大夫答应帮我分发，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "请柬收到，我会帮忙发给大家的。"
+  },
+  {
+   "id": "postman-starfish~urgent-parcel",
+   "type": "delivery",
+   "giver": "postman-starfish",
+   "receiver": "lh-chef",
+   "item": "一个加急包裹",
+   "title": "加急包裹",
+   "kind": "time",
+   "distanceM": 1200,
+   "lucci": 270,
+   "exp": 107,
+   "synopsis": "一个写着“加急”的包裹要送到大勺那里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这个包裹写着“加急”，是大勺的。"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到小哈瓦那！"
+    },
+    {
+     "who": "me",
+     "text": "加急件，马上送！"
+    }
+   ],
+   "thanks": "加急包裹准时到了，正等着用呢，谢谢！",
+   "timeLimitMs": 110000
+  },
+  {
+   "id": "postman-starfish~goldfish",
+   "type": "delivery",
+   "giver": "postman-starfish",
+   "receiver": "lt-parts",
+   "item": "一缸金鱼",
+   "title": "金鱼搬家",
+   "kind": "speed",
+   "distanceM": 1330,
+   "lucci": 250,
+   "exp": 100,
+   "synopsis": "阿钉领养了小强家的金鱼，鱼缸里的水满满的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿钉要领养我家的金鱼。"
+    },
+    {
+     "who": "npc",
+     "text": "鱼缸里水满满的，车速超过 40 就会晃出来！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "小金鱼们都好好的！欢迎来到新家～",
+   "maxKmh": 40
+  },
+  {
+   "id": "kite-beach~kite-gift",
+   "type": "delivery",
+   "giver": "kite-beach",
+   "receiver": "si-farm",
+   "item": "一只大风筝",
+   "title": "大风筝",
+   "kind": "collision",
+   "distanceM": 1840,
+   "lucci": 340,
+   "exp": 134,
+   "synopsis": "阿丰想要一只大风筝，骨架是竹子做的，一撞就散。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿丰想放风筝，我这只大风筝送给阿丰。"
+    },
+    {
+     "who": "npc",
+     "text": "竹骨架很脆，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "好大的风筝！明天就去海边放。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "kite-beach~glass-vase",
+   "type": "delivery",
+   "giver": "kite-beach",
+   "receiver": "dt-detective",
+   "item": "一只玻璃花瓶",
+   "title": "玻璃花瓶",
+   "kind": "collision",
+   "distanceM": 3634,
+   "lucci": 580,
+   "exp": 228,
+   "synopsis": "福尔摩斯在雯雯这里买了一只手工玻璃花瓶，一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "福尔摩斯买的手工玻璃花瓶，我包了三层还是不放心。"
+    },
+    {
+     "who": "npc",
+     "text": "路上碰撞千万别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会当心。"
+    }
+   ],
+   "thanks": "花瓶完好无损！插上花一定很漂亮。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "kite-beach~coffee-beans",
+   "type": "delivery",
+   "giver": "kite-beach",
+   "receiver": "lt-carwash",
+   "item": "一袋新烘焙咖啡豆",
+   "title": "新烘咖啡豆",
+   "kind": "normal",
+   "distanceM": 2674,
+   "lucci": 300,
+   "exp": 119,
+   "synopsis": "水水的咖啡豆快用完了，雯雯这里刚烘好一批。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "水水的咖啡豆快见底了，我这儿刚烘好一批。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在小海地。"
+    },
+    {
+     "who": "me",
+     "text": "好嘞！"
+    }
+   ],
+   "thanks": "新烘的豆子真香！下次请你喝一杯。"
+  },
+  {
+   "id": "captain-vicepoint~paint-cans",
+   "type": "delivery",
+   "giver": "captain-vicepoint",
+   "receiver": "wb-gym",
+   "item": "几桶油漆",
+   "title": "油漆别洒",
+   "kind": "speed",
+   "distanceM": 1841,
+   "lucci": 320,
+   "exp": 125,
+   "synopsis": "大力要刷墙，订了几桶油漆。桶盖不太严实，开快了会洒。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大力要粉刷房子，订了几桶油漆。"
+    },
+    {
+     "who": "npc",
+     "text": "桶盖不太严实，车速超过 45 会洒出来！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "一滴没洒！房子可以刷成新颜色了。",
+   "maxKmh": 45
+  },
+  {
+   "id": "captain-vicepoint~engine-part",
+   "type": "delivery",
+   "giver": "captain-vicepoint",
+   "receiver": "shop-havana",
+   "item": "精密发动机零件",
+   "title": "精密零件",
+   "kind": "collision",
+   "distanceM": 3266,
+   "lucci": 530,
+   "exp": 209,
+   "synopsis": "黑妞订的精密发动机零件到了，磕碰了就不能用。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "黑妞订的精密零件到了，那可是进口货。"
+    },
+    {
+     "who": "npc",
+     "text": "磕碰了就不能用了，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会稳稳地开。"
+    }
+   ],
+   "thanks": "零件完好！这下发动机能修好了。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "captain-vicepoint~lumber",
+   "type": "delivery",
+   "giver": "captain-vicepoint",
+   "receiver": "lh-tailor",
+   "item": "一捆木板",
+   "title": "修篱笆",
+   "kind": "normal",
+   "distanceM": 3246,
+   "lucci": 350,
+   "exp": 139,
+   "synopsis": "针婶家的篱笆被风吹倒了，要一捆木板修补。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "昨晚风太大，针婶家的篱笆被吹倒了。"
+    },
+    {
+     "who": "npc",
+     "text": "这捆木板帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "木板到了，今天就能把篱笆修好。"
+  },
+  {
+   "id": "foreman-downtown~battery",
+   "type": "delivery",
+   "giver": "foreman-downtown",
+   "receiver": "lh-dance",
+   "item": "一块备用电瓶",
+   "title": "电瓶没电",
+   "kind": "time",
+   "distanceM": 1637,
+   "lucci": 330,
+   "exp": 132,
+   "synopsis": "莎莎的车电瓶没电了，等着备用电瓶救急。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "莎莎的车电瓶没电了，打不着火。"
+    },
+    {
+     "who": "npc",
+     "text": "这块备用电瓶得尽快送到，规定时间内！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "换上电瓶，一下就打着火了！谢谢救急！",
+   "timeLimitMs": 140000
+  },
+  {
+   "id": "foreman-downtown~repaired-watch",
+   "type": "delivery",
+   "giver": "foreman-downtown",
+   "receiver": "postman-starfish",
+   "item": "修好的怀表",
+   "title": "修好的怀表",
+   "kind": "speed",
+   "distanceM": 2054,
+   "lucci": 340,
+   "exp": 136,
+   "synopsis": "小强的怀表修好了，里面的齿轮很精细，开太快会震坏。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小强的怀表修好了，那可是祖传的宝贝。"
+    },
+    {
+     "who": "npc",
+     "text": "里面的齿轮很精细，车速别超过 50！"
+    },
+    {
+     "who": "me",
+     "text": "我开慢点。"
+    }
+   ],
+   "thanks": "怀表又走起来了！嘀嗒嘀嗒，真好听。",
+   "maxKmh": 50
+  },
+  {
+   "id": "foreman-downtown~neon-sign",
+   "type": "delivery",
+   "giver": "foreman-downtown",
+   "receiver": "vp-dessert",
+   "item": "新做的霓虹招牌",
+   "title": "霓虹招牌",
+   "kind": "collision",
+   "distanceM": 1951,
+   "lucci": 350,
+   "exp": 140,
+   "synopsis": "米粒的店要换新招牌，霓虹灯管一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "米粒的店要挂新招牌，霓虹灯管做好了。"
+    },
+    {
+     "who": "npc",
+     "text": "灯管很脆，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "招牌亮起来了！今晚店里一定很热闹。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "busdriver-havana~toy-kart",
+   "type": "delivery",
+   "giver": "busdriver-havana",
+   "receiver": "kite-beach",
+   "item": "遥控卡丁车玩具",
+   "title": "遥控卡丁车",
+   "kind": "normal",
+   "distanceM": 2162,
+   "lucci": 250,
+   "exp": 101,
+   "synopsis": "雯雯给侄子买了一辆遥控卡丁车玩具当礼物。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "雯雯给侄子买了一辆遥控卡丁车，等着当礼物。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到海洋海滩吧！"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "就是这辆！孩子一定会喜欢的。"
+  },
+  {
+   "id": "busdriver-havana~goldfish",
+   "type": "delivery",
+   "giver": "busdriver-havana",
+   "receiver": "wb-smoothie",
+   "item": "一缸金鱼",
+   "title": "金鱼搬家",
+   "kind": "speed",
+   "distanceM": 1736,
+   "lucci": 300,
+   "exp": 120,
+   "synopsis": "果果领养了嘟嘟家的金鱼，鱼缸里的水满满的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "果果要领养我家的金鱼。"
+    },
+    {
+     "who": "npc",
+     "text": "鱼缸里水满满的，车速超过 40 就会晃出来！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "小金鱼们都好好的！欢迎来到新家～",
+   "maxKmh": 40
+  },
+  {
+   "id": "busdriver-havana~first-aid",
+   "type": "delivery",
+   "giver": "busdriver-havana",
+   "receiver": "vp-mall",
+   "item": "急救包",
+   "title": "急救包",
+   "kind": "time",
+   "distanceM": 3624,
+   "lucci": 620,
+   "exp": 243,
+   "synopsis": "小美那边有人擦伤了，急需一个急救包。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小美那边有人摔了一跤，急需急救包！"
+    },
+    {
+     "who": "npc",
+     "text": "快！规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "马上到！"
+    }
+   ],
+   "thanks": "急救包来了，伤口处理好了，没大碍。谢谢你！",
+   "timeLimitMs": 275000
+  },
+  {
+   "id": "florist-washington~costume",
+   "type": "delivery",
+   "giver": "florist-washington",
+   "receiver": "ob-bellboy",
+   "item": "定做的演出服",
+   "title": "演出服",
+   "kind": "time",
+   "distanceM": 1105,
+   "lucci": 260,
+   "exp": 102,
+   "synopsis": "小新今晚有演出，定做的演出服刚刚做好。演出前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小新今晚要上台，定做的演出服刚刚缝好。"
+    },
+    {
+     "who": "npc",
+     "text": "演出快开始了，得在规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "赶在演出前送到！"
+    }
+   ],
+   "thanks": "来得正好！马上换上，今晚一定是最闪亮的。",
+   "timeLimitMs": 105000
+  },
+  {
+   "id": "florist-washington~newspapers",
+   "type": "delivery",
+   "giver": "florist-washington",
+   "receiver": "wb-barber",
+   "item": "一捆当天的报纸",
+   "title": "早报",
+   "kind": "time",
+   "distanceM": 867,
+   "lucci": 220,
+   "exp": 89,
+   "synopsis": "小剪那边的报纸卖完了，等着新的一捆报纸。早报晚了就没人看了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小剪那边的报纸早早就卖光了，等着补货呢。"
+    },
+    {
+     "who": "npc",
+     "text": "早报可不能送晚，规定时间内送到华盛顿海滩！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "报纸来了！今天的头条是卡丁车联赛，大家都等着看呢。",
+   "timeLimitMs": 90000
+  },
+  {
+   "id": "florist-washington~new-shoes",
+   "type": "delivery",
+   "giver": "florist-washington",
+   "receiver": "warden-washington",
+   "item": "一双限量款赛车鞋",
+   "title": "限量赛车鞋",
+   "kind": "normal",
+   "distanceM": 970,
+   "lucci": 150,
+   "exp": 59,
+   "synopsis": "小乖抢到了一双限量款赛车鞋，在蓝蓝这里等着取货。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小乖抢到了一双限量款赛车鞋，可小乖没空来取。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到华盛顿海滩吧，小乖肯定高兴坏了。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "就是这双！限量款！我要穿着它去比赛！"
+  },
+  {
+   "id": "ob-lifeguard~homemade-jam",
+   "type": "delivery",
+   "giver": "ob-lifeguard",
+   "receiver": "vp-fisher",
+   "item": "一罐自制果酱",
+   "title": "自制果酱",
+   "kind": "collision",
+   "distanceM": 1845,
+   "lucci": 340,
+   "exp": 134,
+   "synopsis": "大海做了自制果酱，想分一罐给老海。玻璃罐一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我做了好多果酱，想分一罐给老海。"
+    },
+    {
+     "who": "npc",
+     "text": "玻璃罐经不起撞，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "自制果酱！闻着好甜，明天早上抹面包吃。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "ob-lifeguard~keys",
+   "type": "delivery",
+   "giver": "ob-lifeguard",
+   "receiver": "vp-super",
+   "item": "一串备用钥匙",
+   "title": "备用钥匙",
+   "kind": "time",
+   "distanceM": 2708,
+   "lucci": 490,
+   "exp": 192,
+   "synopsis": "王伯把自己锁在门外了，备用钥匙放在大海这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "王伯把自己锁在门外了，备用钥匙在我这儿。"
+    },
+    {
+     "who": "npc",
+     "text": "王伯在门口等着呢，规定时间内送到吧！"
+    },
+    {
+     "who": "me",
+     "text": "马上就到！"
+    }
+   ],
+   "thanks": "终于能进门了！谢谢你，下次我一定记得带钥匙。",
+   "timeLimitMs": 215000
+  },
+  {
+   "id": "ob-lifeguard~trophy",
+   "type": "delivery",
+   "giver": "ob-lifeguard",
+   "receiver": "vp-guard",
+   "item": "比赛奖杯",
+   "title": "冠军奖杯",
+   "kind": "collision",
+   "distanceM": 1595,
+   "lucci": 310,
+   "exp": 121,
+   "synopsis": "阿虎在比赛中得了冠军，奖杯刚刻好名字。奖杯是水晶做的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿虎拿了冠军，奖杯刚刻好名字。"
+    },
+    {
+     "who": "npc",
+     "text": "这是水晶奖杯，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我一定小心。"
+    }
+   ],
+   "thanks": "我的奖杯！闪闪发亮，太漂亮了！",
+   "maxCollisions": 2
+  },
+  {
+   "id": "ob-icecream~bread-basket",
+   "type": "delivery",
+   "giver": "ob-icecream",
+   "receiver": "police-downtown",
+   "item": "一篮刚出炉的面包",
+   "title": "早餐面包",
+   "kind": "normal",
+   "distanceM": 3518,
+   "lucci": 380,
+   "exp": 148,
+   "synopsis": "吉米每周都在糖糖这里订一篮面包，今天的刚出炉。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这是吉米每周订的面包，刚出炉，香着呢。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到市中心吧，路上别偷吃哦！"
+    },
+    {
+     "who": "me",
+     "text": "我忍住。"
+    }
+   ],
+   "thanks": "还是热的！闻着就香，谢谢你～"
+  },
+  {
+   "id": "ob-icecream~hot-lunch",
+   "type": "delivery",
+   "giver": "ob-icecream",
+   "receiver": "marshal-airport",
+   "item": "热腾腾的午餐便当",
+   "title": "午餐外卖",
+   "kind": "time",
+   "distanceM": 2574,
+   "lucci": 470,
+   "exp": 184,
+   "synopsis": "葱头忙得没空吃饭，在糖糖这里订了一份午餐便当。便当凉了就不好吃了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "机场引导员葱头打电话来订了午餐，说忙得连饭都顾不上吃。"
+    },
+    {
+     "who": "npc",
+     "text": "便当要趁热送到国际机场，你能在规定时间内送过去吗？"
+    },
+    {
+     "who": "me",
+     "text": "趁热送到！"
+    }
+   ],
+   "thanks": "还热乎着！正好饿坏了，谢谢你跑这一趟！",
+   "timeLimitMs": 205000
+  },
+  {
+   "id": "ob-icecream~party-snacks",
+   "type": "delivery",
+   "giver": "ob-icecream",
+   "receiver": "vp-yacht",
+   "item": "一大袋派对零食",
+   "title": "派对零食",
+   "kind": "normal",
+   "distanceM": 2276,
+   "lucci": 260,
+   "exp": 105,
+   "synopsis": "阿彬晚上要开派对，零食全在糖糖这里订好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿彬晚上要开派对，零食都在我这儿订的。"
+    },
+    {
+     "who": "npc",
+     "text": "袋子有点大，不过不怕颠，帮我送去罪恶角吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我！"
+    }
+   ],
+   "thanks": "零食到了，派对可以开始啦！你也留下来玩吧！"
+  },
+  {
+   "id": "ob-surf~plant-pot",
+   "type": "delivery",
+   "giver": "ob-surf",
+   "receiver": "lh-candy",
+   "item": "一盆多肉植物",
+   "title": "多肉盆栽",
+   "kind": "speed",
+   "distanceM": 1566,
+   "lucci": 280,
+   "exp": 112,
+   "synopsis": "阿浪分了一盆多肉植物给甜甜，花盆是陶瓷的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我养的多肉长太多了，分一盆给甜甜。"
+    },
+    {
+     "who": "npc",
+     "text": "陶瓷花盆不经晃，车速别超过 50。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "好可爱的多肉！我会好好养的。",
+   "maxKmh": 50
+  },
+  {
+   "id": "ob-surf~concert-tickets",
+   "type": "delivery",
+   "giver": "ob-surf",
+   "receiver": "captain-vicepoint",
+   "item": "演唱会门票",
+   "title": "演唱会门票",
+   "kind": "time",
+   "distanceM": 3256,
+   "lucci": 560,
+   "exp": 222,
+   "synopsis": "今晚的演唱会快开始了，海盗船长的门票还在阿浪这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "海盗船长的演唱会门票还在我这儿，演出快开始了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到，不然就进不去了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送！"
+    }
+   ],
+   "thanks": "赶上了！今晚要好好嗨一场！",
+   "timeLimitMs": 250000
+  },
+  {
+   "id": "ob-surf~umbrella",
+   "type": "delivery",
+   "giver": "ob-surf",
+   "receiver": "dt-nurse",
+   "item": "一把借来的雨伞",
+   "title": "还雨伞",
+   "kind": "normal",
+   "distanceM": 4061,
+   "lucci": 430,
+   "exp": 167,
+   "synopsis": "上次下雨，阿浪借了小雪一把伞，一直没机会还。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次下雨借了小雪一把伞，一直没还。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我还给小雪吧，在市中心。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "我的伞！我都忘了借出去了，谢谢你送回来。"
+  },
+  {
+   "id": "ob-volley~urgent-parcel",
+   "type": "delivery",
+   "giver": "ob-volley",
+   "receiver": "lt-paint",
+   "item": "一个加急包裹",
+   "title": "加急包裹",
+   "kind": "time",
+   "distanceM": 2691,
+   "lucci": 480,
+   "exp": 191,
+   "synopsis": "一个写着“加急”的包裹要送到彩彩那里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这个包裹写着“加急”，是彩彩的。"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到小海地！"
+    },
+    {
+     "who": "me",
+     "text": "加急件，马上送！"
+    }
+   ],
+   "thanks": "加急包裹准时到了，正等着用呢，谢谢！",
+   "timeLimitMs": 210000
+  },
+  {
+   "id": "ob-volley~kite-gift",
+   "type": "delivery",
+   "giver": "ob-volley",
+   "receiver": "lt-apprentice",
+   "item": "一只大风筝",
+   "title": "大风筝",
+   "kind": "collision",
+   "distanceM": 2551,
+   "lucci": 430,
+   "exp": 171,
+   "synopsis": "小扳想要一只大风筝，骨架是竹子做的，一撞就散。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小扳想放风筝，我这只大风筝送给小扳。"
+    },
+    {
+     "who": "npc",
+     "text": "竹骨架很脆，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "好大的风筝！明天就去海边放。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "ob-volley~souvenir",
+   "type": "delivery",
+   "giver": "ob-volley",
+   "receiver": "si-clerk",
+   "item": "一盒旅行纪念品",
+   "title": "旅行纪念品",
+   "kind": "normal",
+   "distanceM": 1466,
+   "lucci": 190,
+   "exp": 76,
+   "synopsis": "小麦旅行回来，给小信带了一盒纪念品。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我刚旅行回来，给小信带了纪念品。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在海星岛。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "纪念品！小麦还记着我，真开心。"
+  },
+  {
+   "id": "ob-photo~flowers-visit",
+   "type": "delivery",
+   "giver": "ob-photo",
+   "receiver": "citizen-vicepoint",
+   "item": "一束探病鲜花",
+   "title": "探病鲜花",
+   "kind": "normal",
+   "distanceM": 1760,
+   "lucci": 220,
+   "exp": 87,
+   "synopsis": "宝宝前几天受了伤，朋友托阿光送一束鲜花去探望。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "宝宝前几天比赛受了点伤，朋友们托我送束花。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到罪恶角吧，祝宝宝早日康复。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "好漂亮的花！看着心情都好多了。"
+  },
+  {
+   "id": "ob-photo~newspapers",
+   "type": "delivery",
+   "giver": "ob-photo",
+   "receiver": "dt-library",
+   "item": "一捆当天的报纸",
+   "title": "早报",
+   "kind": "time",
+   "distanceM": 3017,
+   "lucci": 530,
+   "exp": 209,
+   "synopsis": "卡米拉那边的报纸卖完了，等着新的一捆报纸。早报晚了就没人看了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "卡米拉那边的报纸早早就卖光了，等着补货呢。"
+    },
+    {
+     "who": "npc",
+     "text": "早报可不能送晚，规定时间内送到市中心！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "报纸来了！今天的头条是卡丁车联赛，大家都等着看呢。",
+   "timeLimitMs": 235000
+  },
+  {
+   "id": "ob-photo~mirror",
+   "type": "delivery",
+   "giver": "ob-photo",
+   "receiver": "dt-reporter",
+   "item": "一面落地镜",
+   "title": "落地镜",
+   "kind": "collision",
+   "distanceM": 3189,
+   "lucci": 520,
+   "exp": 205,
+   "synopsis": "罗杰新家要一面落地镜，镜子又大又脆。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "罗杰搬新家，订了一面落地镜。"
+    },
+    {
+     "who": "npc",
+     "text": "镜子又大又脆，碰撞别超过两次，碎了可不吉利！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "镜子一点裂纹都没有！新家更亮堂了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "ob-coconut~ice-drinks",
+   "type": "delivery",
+   "giver": "ob-coconut",
+   "receiver": "lh-student",
+   "item": "一箱冰镇饮料",
+   "title": "冰镇饮料",
+   "kind": "time",
+   "distanceM": 1500,
+   "lucci": 310,
+   "exp": 124,
+   "synopsis": "豆豆那边热得受不了，订了一箱冰镇饮料。冰镇饮料晚了就成常温的了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "豆豆说那边热得受不了，要一箱冰镇饮料。"
+    },
+    {
+     "who": "npc",
+     "text": "得趁冰的时候送到，规定时间内能到吗？"
+    },
+    {
+     "who": "me",
+     "text": "包在我身上。"
+    }
+   ],
+   "thanks": "透心凉！这下终于活过来了。",
+   "timeLimitMs": 130000
+  },
+  {
+   "id": "ob-coconut~soup-pot",
+   "type": "delivery",
+   "giver": "ob-coconut",
+   "receiver": "foreman-downtown",
+   "item": "一锅老火靓汤",
+   "title": "一锅好汤",
+   "kind": "speed",
+   "distanceM": 2877,
+   "lucci": 450,
+   "exp": 176,
+   "synopsis": "神秘工头身体不太舒服，椰叔熬了一锅老火靓汤要送过去。汤满满一锅，开快了会洒出来。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "听说神秘工头这两天身体不舒服，我熬了一锅老火靓汤。"
+    },
+    {
+     "who": "npc",
+     "text": "汤装得满满的，车速超过 40 就会洒出来，拜托开慢点！"
+    },
+    {
+     "who": "me",
+     "text": "一滴都不会洒。"
+    }
+   ],
+   "thanks": "好香的汤！喝完感觉整个人都暖起来了。",
+   "maxKmh": 40
+  },
+  {
+   "id": "ob-coconut~birthday-cake",
+   "type": "delivery",
+   "giver": "ob-coconut",
+   "receiver": "dt-courier",
+   "item": "双层奶油蛋糕",
+   "title": "生日蛋糕",
+   "kind": "speed",
+   "distanceM": 3965,
+   "lucci": 580,
+   "exp": 229,
+   "synopsis": "阿快今天过生日，朋友们在椰叔这里偷偷订了一个双层奶油蛋糕。蛋糕经不起颠簸。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "嘘——今天是阿快的生日，大家在我这儿订了个双层奶油蛋糕。"
+    },
+    {
+     "who": "npc",
+     "text": "奶油蛋糕可娇气了，车速别超过 45，不然就塌了！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "是给我的生日蛋糕？还完好无损！太感动了！",
+   "maxKmh": 45
+  },
+  {
+   "id": "ob-bellboy~ballot-box",
+   "type": "delivery",
+   "giver": "ob-bellboy",
+   "receiver": "vp-tourist",
+   "item": "社区投票箱",
+   "title": "投票箱",
+   "kind": "speed",
+   "distanceM": 2178,
+   "lucci": 360,
+   "exp": 142,
+   "synopsis": "社区投票结束了，投票箱要交给安安统计。投票箱要稳稳地送，路上不能出差错。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "社区投票结束了，投票箱要交给安安统计。"
+    },
+    {
+     "who": "npc",
+     "text": "这可是大家的心意，车速别超过 50，稳稳地送过去。"
+    },
+    {
+     "who": "me",
+     "text": "遵命。"
+    }
+   ],
+   "thanks": "投票箱收到，封条完好，马上开始统计！",
+   "maxKmh": 50
+  },
+  {
+   "id": "ob-bellboy~documents",
+   "type": "delivery",
+   "giver": "ob-bellboy",
+   "receiver": "wb-dog",
+   "item": "一袋机密文件",
+   "title": "机密文件",
+   "kind": "normal",
+   "distanceM": 1457,
+   "lucci": 190,
+   "exp": 76,
+   "synopsis": "一袋机密文件要亲手交给跳跳。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这袋文件很重要，必须亲手交给跳跳。"
+    },
+    {
+     "who": "npc",
+     "text": "你看起来很可靠，就拜托你了。"
+    },
+    {
+     "who": "me",
+     "text": "保证送到。"
+    }
+   ],
+   "thanks": "文件收到，封条完好。你真靠得住。"
+  },
+  {
+   "id": "ob-bellboy~library-books",
+   "type": "delivery",
+   "giver": "ob-bellboy",
+   "receiver": "mechanic-haiti",
+   "item": "一摞预约的书",
+   "title": "预约图书",
+   "kind": "normal",
+   "distanceM": 2231,
+   "lucci": 260,
+   "exp": 103,
+   "synopsis": "胖墩预约的书到了，一大摞。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "胖墩预约的书到了，一大摞呢。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小海地吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "书到了！这个周末有得看了。"
+  },
+  {
+   "id": "wb-gym~lost-wallet",
+   "type": "delivery",
+   "giver": "wb-gym",
+   "receiver": "ob-lifeguard",
+   "item": "捡到的钱包",
+   "title": "失物归还",
+   "kind": "normal",
+   "distanceM": 912,
+   "lucci": 140,
+   "exp": 57,
+   "synopsis": "有人在大力这里捡到一个钱包，里面的证件写着大海的名字。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "有人捡到一个钱包，里面的证件是大海的。"
+    },
+    {
+     "who": "npc",
+     "text": "大海一定急坏了，帮我送回去吧，在海洋海滩。"
+    },
+    {
+     "who": "me",
+     "text": "物归原主！"
+    }
+   ],
+   "thanks": "我的钱包！还以为找不回来了，太谢谢你了！"
+  },
+  {
+   "id": "wb-gym~board-game",
+   "type": "delivery",
+   "giver": "wb-gym",
+   "receiver": "ob-icecream",
+   "item": "一套桌游",
+   "title": "桌游之夜",
+   "kind": "normal",
+   "distanceM": 914,
+   "lucci": 140,
+   "exp": 57,
+   "synopsis": "糖糖今晚办桌游之夜，借了大力的一套桌游。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "糖糖今晚办桌游之夜，借了我的桌游。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在海洋海滩。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "桌游到了！今晚一定很热闹，要不要一起玩？"
+  },
+  {
+   "id": "wb-gym~plant-pot",
+   "type": "delivery",
+   "giver": "wb-gym",
+   "receiver": "guide-beach",
+   "item": "一盆多肉植物",
+   "title": "多肉盆栽",
+   "kind": "speed",
+   "distanceM": 1123,
+   "lucci": 230,
+   "exp": 90,
+   "synopsis": "大力分了一盆多肉植物给皮蛋，花盆是陶瓷的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我养的多肉长太多了，分一盆给皮蛋。"
+    },
+    {
+     "who": "npc",
+     "text": "陶瓷花盆不经晃，车速别超过 50。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "好可爱的多肉！我会好好养的。",
+   "maxKmh": 50
+  },
+  {
+   "id": "wb-barista~fresh-fish",
+   "type": "delivery",
+   "giver": "wb-barista",
+   "receiver": "lh-pharmacy",
+   "item": "一箱冰鲜海鱼",
+   "title": "冰鲜送达",
+   "kind": "time",
+   "distanceM": 2015,
+   "lucci": 390,
+   "exp": 153,
+   "synopsis": "小白要的冰鲜海鱼刚到货，冰块化完之前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小白订的冰鲜海鱼到了，冰块化得很快。"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到小哈瓦那，晚了鱼就不新鲜了！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "鱼还冰着呢，今晚的晚餐有着落了！",
+   "timeLimitMs": 165000
+  },
+  {
+   "id": "wb-barista~party-snacks",
+   "type": "delivery",
+   "giver": "wb-barista",
+   "receiver": "vp-singer",
+   "item": "一大袋派对零食",
+   "title": "派对零食",
+   "kind": "normal",
+   "distanceM": 1185,
+   "lucci": 170,
+   "exp": 66,
+   "synopsis": "晴晴晚上要开派对，零食全在阿豆这里订好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "晴晴晚上要开派对，零食都在我这儿订的。"
+    },
+    {
+     "who": "npc",
+     "text": "袋子有点大，不过不怕颠，帮我送去罪恶角吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我！"
+    }
+   ],
+   "thanks": "零食到了，派对可以开始啦！你也留下来玩吧！"
+  },
+  {
+   "id": "wb-barista~spice-jars",
+   "type": "delivery",
+   "giver": "wb-barista",
+   "receiver": "ob-lifeguard",
+   "item": "一盒玻璃罐香料",
+   "title": "玻璃罐香料",
+   "kind": "collision",
+   "distanceM": 1200,
+   "lucci": 250,
+   "exp": 101,
+   "synopsis": "大海订的进口香料装在玻璃罐里，一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大海订的进口香料到了，都装在玻璃罐里。"
+    },
+    {
+     "who": "npc",
+     "text": "玻璃罐经不起撞，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会开得很稳。"
+    }
+   ],
+   "thanks": "罐子都完好无损，香料的味道真正！",
+   "maxCollisions": 3
+  },
+  {
+   "id": "wb-books~repaired-watch",
+   "type": "delivery",
+   "giver": "wb-books",
+   "receiver": "lh-pharmacy",
+   "item": "修好的怀表",
+   "title": "修好的怀表",
+   "kind": "speed",
+   "distanceM": 1839,
+   "lucci": 320,
+   "exp": 125,
+   "synopsis": "小白的怀表修好了，里面的齿轮很精细，开太快会震坏。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小白的怀表修好了，那可是祖传的宝贝。"
+    },
+    {
+     "who": "npc",
+     "text": "里面的齿轮很精细，车速别超过 50！"
+    },
+    {
+     "who": "me",
+     "text": "我开慢点。"
+    }
+   ],
+   "thanks": "怀表又走起来了！嘀嗒嘀嗒，真好听。",
+   "maxKmh": 50
+  },
+  {
+   "id": "wb-books~coffee-beans",
+   "type": "delivery",
+   "giver": "wb-books",
+   "receiver": "vp-yacht",
+   "item": "一袋新烘焙咖啡豆",
+   "title": "新烘咖啡豆",
+   "kind": "normal",
+   "distanceM": 1677,
+   "lucci": 210,
+   "exp": 84,
+   "synopsis": "阿彬的咖啡豆快用完了，书书这里刚烘好一批。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿彬的咖啡豆快见底了，我这儿刚烘好一批。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在罪恶角。"
+    },
+    {
+     "who": "me",
+     "text": "好嘞！"
+    }
+   ],
+   "thanks": "新烘的豆子真香！下次请你喝一杯。"
+  },
+  {
+   "id": "wb-books~new-shoes",
+   "type": "delivery",
+   "giver": "wb-books",
+   "receiver": "lt-parts",
+   "item": "一双限量款赛车鞋",
+   "title": "限量赛车鞋",
+   "kind": "normal",
+   "distanceM": 2168,
+   "lucci": 260,
+   "exp": 101,
+   "synopsis": "阿钉抢到了一双限量款赛车鞋，在书书这里等着取货。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿钉抢到了一双限量款赛车鞋，可阿钉没空来取。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小海地吧，阿钉肯定高兴坏了。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "就是这双！限量款！我要穿着它去比赛！"
+  },
+  {
+   "id": "wb-dog~toy-kart",
+   "type": "delivery",
+   "giver": "wb-dog",
+   "receiver": "lh-chef",
+   "item": "遥控卡丁车玩具",
+   "title": "遥控卡丁车",
+   "kind": "normal",
+   "distanceM": 1555,
+   "lucci": 200,
+   "exp": 79,
+   "synopsis": "大勺给侄子买了一辆遥控卡丁车玩具当礼物。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大勺给侄子买了一辆遥控卡丁车，等着当礼物。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小哈瓦那吧！"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "就是这辆！孩子一定会喜欢的。"
+  },
+  {
+   "id": "wb-dog~thank-you-letter",
+   "type": "delivery",
+   "giver": "wb-dog",
+   "receiver": "lh-laundry",
+   "item": "一封感谢信",
+   "title": "感谢信",
+   "kind": "normal",
+   "distanceM": 710,
+   "lucci": 120,
+   "exp": 50,
+   "synopsis": "跳跳写了一封感谢信给泡泡，感谢上次的帮忙。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次泡泡帮了我大忙，我写了一封感谢信。"
+    },
+    {
+     "who": "npc",
+     "text": "能帮我送过去吗？在小哈瓦那。"
+    },
+    {
+     "who": "me",
+     "text": "当然可以。"
+    }
+   ],
+   "thanks": "感谢信？跳跳太客气了，我会好好收着的。"
+  },
+  {
+   "id": "wb-dog~kite-gift",
+   "type": "delivery",
+   "giver": "wb-dog",
+   "receiver": "vp-super",
+   "item": "一只大风筝",
+   "title": "大风筝",
+   "kind": "collision",
+   "distanceM": 2103,
+   "lucci": 370,
+   "exp": 148,
+   "synopsis": "王伯想要一只大风筝，骨架是竹子做的，一撞就散。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "王伯想放风筝，我这只大风筝送给王伯。"
+    },
+    {
+     "who": "npc",
+     "text": "竹骨架很脆，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "好大的风筝！明天就去海边放。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "wb-news~flowers-visit",
+   "type": "delivery",
+   "giver": "wb-news",
+   "receiver": "wb-barista",
+   "item": "一束探病鲜花",
+   "title": "探病鲜花",
+   "kind": "normal",
+   "distanceM": 898,
+   "lucci": 140,
+   "exp": 56,
+   "synopsis": "阿豆前几天受了伤，朋友托老周送一束鲜花去探望。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿豆前几天比赛受了点伤，朋友们托我送束花。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到华盛顿海滩吧，祝阿豆早日康复。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "好漂亮的花！看着心情都好多了。"
+  },
+  {
+   "id": "wb-news~glass-vase",
+   "type": "delivery",
+   "giver": "wb-news",
+   "receiver": "dt-bank",
+   "item": "一只玻璃花瓶",
+   "title": "玻璃花瓶",
+   "kind": "collision",
+   "distanceM": 3269,
+   "lucci": 530,
+   "exp": 209,
+   "synopsis": "金金在老周这里买了一只手工玻璃花瓶，一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "金金买的手工玻璃花瓶，我包了三层还是不放心。"
+    },
+    {
+     "who": "npc",
+     "text": "路上碰撞千万别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会当心。"
+    }
+   ],
+   "thanks": "花瓶完好无损！插上花一定很漂亮。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "wb-news~photo-album",
+   "type": "delivery",
+   "giver": "wb-news",
+   "receiver": "mechanic-haiti",
+   "item": "冲洗好的相册",
+   "title": "旅行相册",
+   "kind": "normal",
+   "distanceM": 1040,
+   "lucci": 150,
+   "exp": 61,
+   "synopsis": "胖墩的旅行照片冲洗好了，装成了一本相册。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "胖墩上次旅行的照片冲洗好了，做成了一本相册。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在小海地。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "哇，每一张都拍得这么好！谢谢你送过来。"
+  },
+  {
+   "id": "wb-barber~neon-sign",
+   "type": "delivery",
+   "giver": "wb-barber",
+   "receiver": "captain-vicepoint",
+   "item": "新做的霓虹招牌",
+   "title": "霓虹招牌",
+   "kind": "collision",
+   "distanceM": 1589,
+   "lucci": 300,
+   "exp": 121,
+   "synopsis": "海盗船长的店要换新招牌，霓虹灯管一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "海盗船长的店要挂新招牌，霓虹灯管做好了。"
+    },
+    {
+     "who": "npc",
+     "text": "灯管很脆，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "招牌亮起来了！今晚店里一定很热闹。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "wb-barber~costume",
+   "type": "delivery",
+   "giver": "wb-barber",
+   "receiver": "lt-scrap",
+   "item": "定做的演出服",
+   "title": "演出服",
+   "kind": "time",
+   "distanceM": 1606,
+   "lucci": 330,
+   "exp": 130,
+   "synopsis": "老铁今晚有演出，定做的演出服刚刚做好。演出前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "老铁今晚要上台，定做的演出服刚刚缝好。"
+    },
+    {
+     "who": "npc",
+     "text": "演出快开始了，得在规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "赶在演出前送到！"
+    }
+   ],
+   "thanks": "来得正好！马上换上，今晚一定是最闪亮的。",
+   "timeLimitMs": 140000
+  },
+  {
+   "id": "wb-barber~first-aid",
+   "type": "delivery",
+   "giver": "wb-barber",
+   "receiver": "kite-beach",
+   "item": "急救包",
+   "title": "急救包",
+   "kind": "time",
+   "distanceM": 1767,
+   "lucci": 350,
+   "exp": 139,
+   "synopsis": "雯雯那边有人擦伤了，急需一个急救包。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "雯雯那边有人摔了一跤，急需急救包！"
+    },
+    {
+     "who": "npc",
+     "text": "快！规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "马上到！"
+    }
+   ],
+   "thanks": "急救包来了，伤口处理好了，没大碍。谢谢你！",
+   "timeLimitMs": 150000
+  },
+  {
+   "id": "wb-smoothie~bread-basket",
+   "type": "delivery",
+   "giver": "wb-smoothie",
+   "receiver": "vp-docker",
+   "item": "一篮刚出炉的面包",
+   "title": "早餐面包",
+   "kind": "normal",
+   "distanceM": 2309,
+   "lucci": 270,
+   "exp": 106,
+   "synopsis": "大壮每周都在果果这里订一篮面包，今天的刚出炉。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这是大壮每周订的面包，刚出炉，香着呢。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到罪恶角吧，路上别偷吃哦！"
+    },
+    {
+     "who": "me",
+     "text": "我忍住。"
+    }
+   ],
+   "thanks": "还是热的！闻着就香，谢谢你～"
+  },
+  {
+   "id": "wb-smoothie~egg-tray",
+   "type": "delivery",
+   "giver": "wb-smoothie",
+   "receiver": "lh-student",
+   "item": "一托新鲜鸡蛋",
+   "title": "鸡蛋别碎",
+   "kind": "collision",
+   "distanceM": 1661,
+   "lucci": 310,
+   "exp": 125,
+   "synopsis": "豆豆要做早餐蛋饼，在果果这里买了一托新鲜鸡蛋。鸡蛋一撞就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "豆豆明早要做蛋饼，订了一托新鲜鸡蛋。"
+    },
+    {
+     "who": "npc",
+     "text": "鸡蛋可脆了，路上磕碰别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "轻拿轻放，明白。"
+    }
+   ],
+   "thanks": "一个都没碎！明天的蛋饼可以做双份了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "wb-smoothie~fresh-fish",
+   "type": "delivery",
+   "giver": "wb-smoothie",
+   "receiver": "dt-doctor",
+   "item": "一箱冰鲜海鱼",
+   "title": "冰鲜送达",
+   "kind": "time",
+   "distanceM": 3092,
+   "lucci": 540,
+   "exp": 213,
+   "synopsis": "白大夫要的冰鲜海鱼刚到货，冰块化完之前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "白大夫订的冰鲜海鱼到了，冰块化得很快。"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到市中心，晚了鱼就不新鲜了！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "鱼还冰着呢，今晚的晚餐有着落了！",
+   "timeLimitMs": 240000
+  },
+  {
+   "id": "vp-docker~blueprints",
+   "type": "delivery",
+   "giver": "vp-docker",
+   "receiver": "lt-truck",
+   "item": "一卷施工图纸",
+   "title": "施工图纸",
+   "kind": "normal",
+   "distanceM": 2446,
+   "lucci": 280,
+   "exp": 111,
+   "synopsis": "大刘要的施工图纸画好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大刘要的施工图纸画好了。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小海地吧，别弄皱了。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "图纸收到，一张都没皱，明天就能开工了。"
+  },
+  {
+   "id": "vp-docker~engine-part",
+   "type": "delivery",
+   "giver": "vp-docker",
+   "receiver": "dt-reporter",
+   "item": "精密发动机零件",
+   "title": "精密零件",
+   "kind": "collision",
+   "distanceM": 1406,
+   "lucci": 280,
+   "exp": 111,
+   "synopsis": "罗杰订的精密发动机零件到了，磕碰了就不能用。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "罗杰订的精密零件到了，那可是进口货。"
+    },
+    {
+     "who": "npc",
+     "text": "磕碰了就不能用了，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会稳稳地开。"
+    }
+   ],
+   "thanks": "零件完好！这下发动机能修好了。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "vp-docker~spare-tires",
+   "type": "delivery",
+   "giver": "vp-docker",
+   "receiver": "si-farm",
+   "item": "一套卡丁车轮胎",
+   "title": "换胎急件",
+   "kind": "time",
+   "distanceM": 2580,
+   "lucci": 470,
+   "exp": 184,
+   "synopsis": "阿丰的卡丁车爆胎了，等着新轮胎才能开。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿丰的车爆胎了，困在海星岛动不了。"
+    },
+    {
+     "who": "npc",
+     "text": "这套轮胎得在规定时间内送到，不然阿丰要错过比赛了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "轮胎到了！换上就能出发，太及时了！",
+   "timeLimitMs": 205000
+  },
+  {
+   "id": "vp-fisher~hot-lunch",
+   "type": "delivery",
+   "giver": "vp-fisher",
+   "receiver": "dt-nurse",
+   "item": "热腾腾的午餐便当",
+   "title": "午餐外卖",
+   "kind": "time",
+   "distanceM": 1870,
+   "lucci": 370,
+   "exp": 145,
+   "synopsis": "小雪忙得没空吃饭，在老海这里订了一份午餐便当。便当凉了就不好吃了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "护士小雪打电话来订了午餐，说忙得连饭都顾不上吃。"
+    },
+    {
+     "who": "npc",
+     "text": "便当要趁热送到市中心，你能在规定时间内送过去吗？"
+    },
+    {
+     "who": "me",
+     "text": "趁热送到！"
+    }
+   ],
+   "thanks": "还热乎着！正好饿坏了，谢谢你跑这一趟！",
+   "timeLimitMs": 155000
+  },
+  {
+   "id": "vp-fisher~birthday-cake",
+   "type": "delivery",
+   "giver": "vp-fisher",
+   "receiver": "lh-dance",
+   "item": "双层奶油蛋糕",
+   "title": "生日蛋糕",
+   "kind": "speed",
+   "distanceM": 2010,
+   "lucci": 340,
+   "exp": 133,
+   "synopsis": "莎莎今天过生日，朋友们在老海这里偷偷订了一个双层奶油蛋糕。蛋糕经不起颠簸。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "嘘——今天是莎莎的生日，大家在我这儿订了个双层奶油蛋糕。"
+    },
+    {
+     "who": "npc",
+     "text": "奶油蛋糕可娇气了，车速别超过 45，不然就塌了！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "是给我的生日蛋糕？还完好无损！太感动了！",
+   "maxKmh": 45
+  },
+  {
+   "id": "vp-fisher~soup-pot",
+   "type": "delivery",
+   "giver": "vp-fisher",
+   "receiver": "lt-paint",
+   "item": "一锅老火靓汤",
+   "title": "一锅好汤",
+   "kind": "speed",
+   "distanceM": 1731,
+   "lucci": 300,
+   "exp": 120,
+   "synopsis": "彩彩身体不太舒服，老海熬了一锅老火靓汤要送过去。汤满满一锅，开快了会洒出来。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "听说彩彩这两天身体不舒服，我熬了一锅老火靓汤。"
+    },
+    {
+     "who": "npc",
+     "text": "汤装得满满的，车速超过 40 就会洒出来，拜托开慢点！"
+    },
+    {
+     "who": "me",
+     "text": "一滴都不会洒。"
+    }
+   ],
+   "thanks": "好香的汤！喝完感觉整个人都暖起来了。",
+   "maxKmh": 40
+  },
+  {
+   "id": "vp-yacht~contract",
+   "type": "delivery",
+   "giver": "vp-yacht",
+   "receiver": "wb-dog",
+   "item": "一份待签的合同",
+   "title": "合同急件",
+   "kind": "time",
+   "distanceM": 1801,
+   "lucci": 360,
+   "exp": 141,
+   "synopsis": "跳跳那边等着签合同，下班前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "跳跳那边等着签这份合同，过了今天就作废了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到华盛顿海滩！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "赶上了！合同签好了，太感谢你了。",
+   "timeLimitMs": 155000
+  },
+  {
+   "id": "vp-yacht~documents",
+   "type": "delivery",
+   "giver": "vp-yacht",
+   "receiver": "lh-baker",
+   "item": "一袋机密文件",
+   "title": "机密文件",
+   "kind": "normal",
+   "distanceM": 3760,
+   "lucci": 400,
+   "exp": 157,
+   "synopsis": "一袋机密文件要亲手交给阿麦。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这袋文件很重要，必须亲手交给阿麦。"
+    },
+    {
+     "who": "npc",
+     "text": "你看起来很可靠，就拜托你了。"
+    },
+    {
+     "who": "me",
+     "text": "保证送到。"
+    }
+   ],
+   "thanks": "文件收到，封条完好。你真靠得住。"
+  },
+  {
+   "id": "vp-yacht~invitation",
+   "type": "delivery",
+   "giver": "vp-yacht",
+   "receiver": "wb-smoothie",
+   "item": "一叠派对请柬",
+   "title": "派对请柬",
+   "kind": "normal",
+   "distanceM": 1896,
+   "lucci": 230,
+   "exp": 91,
+   "synopsis": "阿彬要办派对，请柬要送到果果那里帮忙分发。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我下周要办派对，请柬写好了一大叠。"
+    },
+    {
+     "who": "npc",
+     "text": "果果答应帮我分发，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "请柬收到，我会帮忙发给大家的。"
+  },
+  {
+   "id": "vp-mall~mirror",
+   "type": "delivery",
+   "giver": "vp-mall",
+   "receiver": "police-downtown",
+   "item": "一面落地镜",
+   "title": "落地镜",
+   "kind": "collision",
+   "distanceM": 797,
+   "lucci": 200,
+   "exp": 79,
+   "synopsis": "吉米新家要一面落地镜，镜子又大又脆。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "吉米搬新家，订了一面落地镜。"
+    },
+    {
+     "who": "npc",
+     "text": "镜子又大又脆，碰撞别超过两次，碎了可不吉利！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "镜子一点裂纹都没有！新家更亮堂了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "vp-mall~goldfish",
+   "type": "delivery",
+   "giver": "vp-mall",
+   "receiver": "ob-volley",
+   "item": "一缸金鱼",
+   "title": "金鱼搬家",
+   "kind": "speed",
+   "distanceM": 3130,
+   "lucci": 480,
+   "exp": 188,
+   "synopsis": "小麦领养了小美家的金鱼，鱼缸里的水满满的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小麦要领养我家的金鱼。"
+    },
+    {
+     "who": "npc",
+     "text": "鱼缸里水满满的，车速超过 40 就会晃出来！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "小金鱼们都好好的！欢迎来到新家～",
+   "maxKmh": 40
+  },
+  {
+   "id": "vp-mall~lost-wallet",
+   "type": "delivery",
+   "giver": "vp-mall",
+   "receiver": "ob-coconut",
+   "item": "捡到的钱包",
+   "title": "失物归还",
+   "kind": "normal",
+   "distanceM": 2869,
+   "lucci": 320,
+   "exp": 125,
+   "synopsis": "有人在小美这里捡到一个钱包，里面的证件写着椰叔的名字。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "有人捡到一个钱包，里面的证件是椰叔的。"
+    },
+    {
+     "who": "npc",
+     "text": "椰叔一定急坏了，帮我送回去吧，在海洋海滩。"
+    },
+    {
+     "who": "me",
+     "text": "物归原主！"
+    }
+   ],
+   "thanks": "我的钱包！还以为找不回来了，太谢谢你了！"
+  },
+  {
+   "id": "vp-magic~surfboard",
+   "type": "delivery",
+   "giver": "vp-magic",
+   "receiver": "guide-beach",
+   "item": "一块冲浪板",
+   "title": "冲浪板",
+   "kind": "normal",
+   "distanceM": 1861,
+   "lucci": 230,
+   "exp": 90,
+   "synopsis": "皮蛋想学冲浪，借了阿奇的一块冲浪板。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "皮蛋想学冲浪，跟我借了块冲浪板。"
+    },
+    {
+     "who": "npc",
+     "text": "板子有点长，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "冲浪板到了！这个周末就去海边试试。"
+  },
+  {
+   "id": "vp-magic~homemade-jam",
+   "type": "delivery",
+   "giver": "vp-magic",
+   "receiver": "vp-mall",
+   "item": "一罐自制果酱",
+   "title": "自制果酱",
+   "kind": "collision",
+   "distanceM": 1257,
+   "lucci": 260,
+   "exp": 103,
+   "synopsis": "阿奇做了自制果酱，想分一罐给小美。玻璃罐一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我做了好多果酱，想分一罐给小美。"
+    },
+    {
+     "who": "npc",
+     "text": "玻璃罐经不起撞，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "自制果酱！闻着好甜，明天早上抹面包吃。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "vp-magic~umbrella",
+   "type": "delivery",
+   "giver": "vp-magic",
+   "receiver": "postman-starfish",
+   "item": "一把借来的雨伞",
+   "title": "还雨伞",
+   "kind": "normal",
+   "distanceM": 1618,
+   "lucci": 210,
+   "exp": 82,
+   "synopsis": "上次下雨，阿奇借了小强一把伞，一直没机会还。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次下雨借了小强一把伞，一直没还。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我还给小强吧，在小哈瓦那。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "我的伞！我都忘了借出去了，谢谢你送回来。"
+  },
+  {
+   "id": "vp-nightmarket~ice-drinks",
+   "type": "delivery",
+   "giver": "vp-nightmarket",
+   "receiver": "lt-carwash",
+   "item": "一箱冰镇饮料",
+   "title": "冰镇饮料",
+   "kind": "time",
+   "distanceM": 2768,
+   "lucci": 490,
+   "exp": 195,
+   "synopsis": "水水那边热得受不了，订了一箱冰镇饮料。冰镇饮料晚了就成常温的了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "水水说那边热得受不了，要一箱冰镇饮料。"
+    },
+    {
+     "who": "npc",
+     "text": "得趁冰的时候送到，规定时间内能到吗？"
+    },
+    {
+     "who": "me",
+     "text": "包在我身上。"
+    }
+   ],
+   "thanks": "透心凉！这下终于活过来了。",
+   "timeLimitMs": 215000
+  },
+  {
+   "id": "vp-nightmarket~egg-tray",
+   "type": "delivery",
+   "giver": "vp-nightmarket",
+   "receiver": "busdriver-havana",
+   "item": "一托新鲜鸡蛋",
+   "title": "鸡蛋别碎",
+   "kind": "collision",
+   "distanceM": 3532,
+   "lucci": 570,
+   "exp": 223,
+   "synopsis": "嘟嘟要做早餐蛋饼，在阿香这里买了一托新鲜鸡蛋。鸡蛋一撞就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "嘟嘟明早要做蛋饼，订了一托新鲜鸡蛋。"
+    },
+    {
+     "who": "npc",
+     "text": "鸡蛋可脆了，路上磕碰别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "轻拿轻放，明白。"
+    }
+   ],
+   "thanks": "一个都没碎！明天的蛋饼可以做双份了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "vp-nightmarket~coffee-beans",
+   "type": "delivery",
+   "giver": "vp-nightmarket",
+   "receiver": "si-clerk",
+   "item": "一袋新烘焙咖啡豆",
+   "title": "新烘咖啡豆",
+   "kind": "normal",
+   "distanceM": 2046,
+   "lucci": 240,
+   "exp": 97,
+   "synopsis": "小信的咖啡豆快用完了，阿香这里刚烘好一批。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小信的咖啡豆快见底了，我这儿刚烘好一批。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在海星岛。"
+    },
+    {
+     "who": "me",
+     "text": "好嘞！"
+    }
+   ],
+   "thanks": "新烘的豆子真香！下次请你喝一杯。"
+  },
+  {
+   "id": "vp-dessert~soup-pot",
+   "type": "delivery",
+   "giver": "vp-dessert",
+   "receiver": "ob-icecream",
+   "item": "一锅老火靓汤",
+   "title": "一锅好汤",
+   "kind": "speed",
+   "distanceM": 1958,
+   "lucci": 330,
+   "exp": 131,
+   "synopsis": "糖糖身体不太舒服，米粒熬了一锅老火靓汤要送过去。汤满满一锅，开快了会洒出来。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "听说糖糖这两天身体不舒服，我熬了一锅老火靓汤。"
+    },
+    {
+     "who": "npc",
+     "text": "汤装得满满的，车速超过 40 就会洒出来，拜托开慢点！"
+    },
+    {
+     "who": "me",
+     "text": "一滴都不会洒。"
+    }
+   ],
+   "thanks": "好香的汤！喝完感觉整个人都暖起来了。",
+   "maxKmh": 40
+  },
+  {
+   "id": "vp-dessert~keys",
+   "type": "delivery",
+   "giver": "vp-dessert",
+   "receiver": "lh-grocer",
+   "item": "一串备用钥匙",
+   "title": "备用钥匙",
+   "kind": "time",
+   "distanceM": 3273,
+   "lucci": 570,
+   "exp": 223,
+   "synopsis": "阿宽把自己锁在门外了，备用钥匙放在米粒这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿宽把自己锁在门外了，备用钥匙在我这儿。"
+    },
+    {
+     "who": "npc",
+     "text": "阿宽在门口等着呢，规定时间内送到吧！"
+    },
+    {
+     "who": "me",
+     "text": "马上就到！"
+    }
+   ],
+   "thanks": "终于能进门了！谢谢你，下次我一定记得带钥匙。",
+   "timeLimitMs": 250000
+  },
+  {
+   "id": "vp-dessert~spice-jars",
+   "type": "delivery",
+   "giver": "vp-dessert",
+   "receiver": "ob-surf",
+   "item": "一盒玻璃罐香料",
+   "title": "玻璃罐香料",
+   "kind": "collision",
+   "distanceM": 2686,
+   "lucci": 450,
+   "exp": 179,
+   "synopsis": "阿浪订的进口香料装在玻璃罐里，一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿浪订的进口香料到了，都装在玻璃罐里。"
+    },
+    {
+     "who": "npc",
+     "text": "玻璃罐经不起撞，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会开得很稳。"
+    }
+   ],
+   "thanks": "罐子都完好无损，香料的味道真正！",
+   "maxCollisions": 3
+  },
+  {
+   "id": "vp-super~battery",
+   "type": "delivery",
+   "giver": "vp-super",
+   "receiver": "vp-magic",
+   "item": "一块备用电瓶",
+   "title": "电瓶没电",
+   "kind": "time",
+   "distanceM": 1095,
+   "lucci": 250,
+   "exp": 101,
+   "synopsis": "阿奇的车电瓶没电了，等着备用电瓶救急。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿奇的车电瓶没电了，打不着火。"
+    },
+    {
+     "who": "npc",
+     "text": "这块备用电瓶得尽快送到，规定时间内！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "换上电瓶，一下就打着火了！谢谢救急！",
+   "timeLimitMs": 105000
+  },
+  {
+   "id": "vp-super~paint-cans",
+   "type": "delivery",
+   "giver": "vp-super",
+   "receiver": "marshal-airport",
+   "item": "几桶油漆",
+   "title": "油漆别洒",
+   "kind": "speed",
+   "distanceM": 3610,
+   "lucci": 540,
+   "exp": 212,
+   "synopsis": "葱头要刷墙，订了几桶油漆。桶盖不太严实，开快了会洒。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "葱头要粉刷房子，订了几桶油漆。"
+    },
+    {
+     "who": "npc",
+     "text": "桶盖不太严实，车速超过 45 会洒出来！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "一滴没洒！房子可以刷成新颜色了。",
+   "maxKmh": 45
+  },
+  {
+   "id": "vp-super~toolbox",
+   "type": "delivery",
+   "giver": "vp-super",
+   "receiver": "warden-washington",
+   "item": "一箱维修工具",
+   "title": "借工具",
+   "kind": "normal",
+   "distanceM": 1308,
+   "lucci": 180,
+   "exp": 71,
+   "synopsis": "小乖那边要修东西，想借王伯的一箱维修工具。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小乖那边要修东西，跟我借这箱工具。"
+    },
+    {
+     "who": "npc",
+     "text": "箱子挺沉的，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "工具到了，这下能开工了。用完马上还！"
+  },
+  {
+   "id": "vp-guard~ballot-box",
+   "type": "delivery",
+   "giver": "vp-guard",
+   "receiver": "foreman-downtown",
+   "item": "社区投票箱",
+   "title": "投票箱",
+   "kind": "speed",
+   "distanceM": 1715,
+   "lucci": 300,
+   "exp": 119,
+   "synopsis": "社区投票结束了，投票箱要交给神秘工头统计。投票箱要稳稳地送，路上不能出差错。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "社区投票结束了，投票箱要交给神秘工头统计。"
+    },
+    {
+     "who": "npc",
+     "text": "这可是大家的心意，车速别超过 50，稳稳地送过去。"
+    },
+    {
+     "who": "me",
+     "text": "遵命。"
+    }
+   ],
+   "thanks": "投票箱收到，封条完好，马上开始统计！",
+   "maxKmh": 50
+  },
+  {
+   "id": "vp-guard~blueprints",
+   "type": "delivery",
+   "giver": "vp-guard",
+   "receiver": "shop-havana",
+   "item": "一卷施工图纸",
+   "title": "施工图纸",
+   "kind": "normal",
+   "distanceM": 2116,
+   "lucci": 250,
+   "exp": 99,
+   "synopsis": "黑妞要的施工图纸画好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "黑妞要的施工图纸画好了。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小哈瓦那吧，别弄皱了。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "图纸收到，一张都没皱，明天就能开工了。"
+  },
+  {
+   "id": "vp-guard~trophy",
+   "type": "delivery",
+   "giver": "vp-guard",
+   "receiver": "florist-washington",
+   "item": "比赛奖杯",
+   "title": "冠军奖杯",
+   "kind": "collision",
+   "distanceM": 1218,
+   "lucci": 250,
+   "exp": 101,
+   "synopsis": "蓝蓝在比赛中得了冠军，奖杯刚刻好名字。奖杯是水晶做的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "蓝蓝拿了冠军，奖杯刚刻好名字。"
+    },
+    {
+     "who": "npc",
+     "text": "这是水晶奖杯，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我一定小心。"
+    }
+   ],
+   "thanks": "我的奖杯！闪闪发亮，太漂亮了！",
+   "maxCollisions": 2
+  },
+  {
+   "id": "vp-lighthouse~lumber",
+   "type": "delivery",
+   "giver": "vp-lighthouse",
+   "receiver": "dt-courier",
+   "item": "一捆木板",
+   "title": "修篱笆",
+   "kind": "normal",
+   "distanceM": 2114,
+   "lucci": 250,
+   "exp": 99,
+   "synopsis": "阿快家的篱笆被风吹倒了，要一捆木板修补。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "昨晚风太大，阿快家的篱笆被吹倒了。"
+    },
+    {
+     "who": "npc",
+     "text": "这捆木板帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "木板到了，今天就能把篱笆修好。"
+  },
+  {
+   "id": "vp-lighthouse~neon-sign",
+   "type": "delivery",
+   "giver": "vp-lighthouse",
+   "receiver": "dt-detective",
+   "item": "新做的霓虹招牌",
+   "title": "霓虹招牌",
+   "kind": "collision",
+   "distanceM": 1260,
+   "lucci": 260,
+   "exp": 104,
+   "synopsis": "福尔摩斯的店要换新招牌，霓虹灯管一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "福尔摩斯的店要挂新招牌，霓虹灯管做好了。"
+    },
+    {
+     "who": "npc",
+     "text": "灯管很脆，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "招牌亮起来了！今晚店里一定很热闹。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "vp-lighthouse~souvenir",
+   "type": "delivery",
+   "giver": "vp-lighthouse",
+   "receiver": "ob-photo",
+   "item": "一盒旅行纪念品",
+   "title": "旅行纪念品",
+   "kind": "normal",
+   "distanceM": 1638,
+   "lucci": 210,
+   "exp": 82,
+   "synopsis": "老灯旅行回来，给阿光带了一盒纪念品。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我刚旅行回来，给阿光带了纪念品。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在海洋海滩。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "纪念品！老灯还记着我，真开心。"
+  },
+  {
+   "id": "vp-singer~board-game",
+   "type": "delivery",
+   "giver": "vp-singer",
+   "receiver": "lh-tailor",
+   "item": "一套桌游",
+   "title": "桌游之夜",
+   "kind": "normal",
+   "distanceM": 2752,
+   "lucci": 310,
+   "exp": 121,
+   "synopsis": "针婶今晚办桌游之夜，借了晴晴的一套桌游。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "针婶今晚办桌游之夜，借了我的桌游。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在小哈瓦那。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "桌游到了！今晚一定很热闹，要不要一起玩？"
+  },
+  {
+   "id": "vp-singer~invitation",
+   "type": "delivery",
+   "giver": "vp-singer",
+   "receiver": "si-star",
+   "item": "一叠派对请柬",
+   "title": "派对请柬",
+   "kind": "normal",
+   "distanceM": 2046,
+   "lucci": 240,
+   "exp": 97,
+   "synopsis": "晴晴要办派对，请柬要送到星星那里帮忙分发。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我下周要办派对，请柬写好了一大叠。"
+    },
+    {
+     "who": "npc",
+     "text": "星星答应帮我分发，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "请柬收到，我会帮忙发给大家的。"
+  },
+  {
+   "id": "vp-singer~urgent-parcel",
+   "type": "delivery",
+   "giver": "vp-singer",
+   "receiver": "vp-guard",
+   "item": "一个加急包裹",
+   "title": "加急包裹",
+   "kind": "time",
+   "distanceM": 766,
+   "lucci": 210,
+   "exp": 83,
+   "synopsis": "一个写着“加急”的包裹要送到阿虎那里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这个包裹写着“加急”，是阿虎的。"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到罪恶角！"
+    },
+    {
+     "who": "me",
+     "text": "加急件，马上送！"
+    }
+   ],
+   "thanks": "加急包裹准时到了，正等着用呢，谢谢！",
+   "timeLimitMs": 85000
+  },
+  {
+   "id": "vp-tourist~contract",
+   "type": "delivery",
+   "giver": "vp-tourist",
+   "receiver": "wb-news",
+   "item": "一份待签的合同",
+   "title": "合同急件",
+   "kind": "time",
+   "distanceM": 1214,
+   "lucci": 270,
+   "exp": 108,
+   "synopsis": "老周那边等着签合同，下班前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "老周那边等着签这份合同，过了今天就作废了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到华盛顿海滩！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "赶上了！合同签好了，太感谢你了。",
+   "timeLimitMs": 115000
+  },
+  {
+   "id": "vp-tourist~ballot-box",
+   "type": "delivery",
+   "giver": "vp-tourist",
+   "receiver": "ob-bellboy",
+   "item": "社区投票箱",
+   "title": "投票箱",
+   "kind": "speed",
+   "distanceM": 2178,
+   "lucci": 360,
+   "exp": 142,
+   "synopsis": "社区投票结束了，投票箱要交给小新统计。投票箱要稳稳地送，路上不能出差错。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "社区投票结束了，投票箱要交给小新统计。"
+    },
+    {
+     "who": "npc",
+     "text": "这可是大家的心意，车速别超过 50，稳稳地送过去。"
+    },
+    {
+     "who": "me",
+     "text": "遵命。"
+    }
+   ],
+   "thanks": "投票箱收到，封条完好，马上开始统计！",
+   "maxKmh": 50
+  },
+  {
+   "id": "vp-tourist~newspapers",
+   "type": "delivery",
+   "giver": "vp-tourist",
+   "receiver": "lt-apprentice",
+   "item": "一捆当天的报纸",
+   "title": "早报",
+   "kind": "time",
+   "distanceM": 1845,
+   "lucci": 360,
+   "exp": 143,
+   "synopsis": "小扳那边的报纸卖完了，等着新的一捆报纸。早报晚了就没人看了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小扳那边的报纸早早就卖光了，等着补货呢。"
+    },
+    {
+     "who": "npc",
+     "text": "早报可不能送晚，规定时间内送到小海地！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "报纸来了！今天的头条是卡丁车联赛，大家都等着看呢。",
+   "timeLimitMs": 155000
+  },
+  {
+   "id": "lh-chef~hot-lunch",
+   "type": "delivery",
+   "giver": "lh-chef",
+   "receiver": "vp-dessert",
+   "item": "热腾腾的午餐便当",
+   "title": "午餐外卖",
+   "kind": "time",
+   "distanceM": 3111,
+   "lucci": 540,
+   "exp": 214,
+   "synopsis": "米粒忙得没空吃饭，在大勺这里订了一份午餐便当。便当凉了就不好吃了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "甜品师米粒打电话来订了午餐，说忙得连饭都顾不上吃。"
+    },
+    {
+     "who": "npc",
+     "text": "便当要趁热送到罪恶角，你能在规定时间内送过去吗？"
+    },
+    {
+     "who": "me",
+     "text": "趁热送到！"
+    }
+   ],
+   "thanks": "还热乎着！正好饿坏了，谢谢你跑这一趟！",
+   "timeLimitMs": 240000
+  },
+  {
+   "id": "lh-chef~birthday-cake",
+   "type": "delivery",
+   "giver": "lh-chef",
+   "receiver": "wb-gym",
+   "item": "双层奶油蛋糕",
+   "title": "生日蛋糕",
+   "kind": "speed",
+   "distanceM": 1848,
+   "lucci": 320,
+   "exp": 126,
+   "synopsis": "大力今天过生日，朋友们在大勺这里偷偷订了一个双层奶油蛋糕。蛋糕经不起颠簸。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "嘘——今天是大力的生日，大家在我这儿订了个双层奶油蛋糕。"
+    },
+    {
+     "who": "npc",
+     "text": "奶油蛋糕可娇气了，车速别超过 45，不然就塌了！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "是给我的生日蛋糕？还完好无损！太感动了！",
+   "maxKmh": 45
+  },
+  {
+   "id": "lh-chef~ice-drinks",
+   "type": "delivery",
+   "giver": "lh-chef",
+   "receiver": "vp-fisher",
+   "item": "一箱冰镇饮料",
+   "title": "冰镇饮料",
+   "kind": "time",
+   "distanceM": 2667,
+   "lucci": 480,
+   "exp": 189,
+   "synopsis": "老海那边热得受不了，订了一箱冰镇饮料。冰镇饮料晚了就成常温的了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "老海说那边热得受不了，要一箱冰镇饮料。"
+    },
+    {
+     "who": "npc",
+     "text": "得趁冰的时候送到，规定时间内能到吗？"
+    },
+    {
+     "who": "me",
+     "text": "包在我身上。"
+    }
+   ],
+   "thanks": "透心凉！这下终于活过来了。",
+   "timeLimitMs": 210000
+  },
+  {
+   "id": "lh-candy~fresh-fish",
+   "type": "delivery",
+   "giver": "lh-candy",
+   "receiver": "vp-nightmarket",
+   "item": "一箱冰鲜海鱼",
+   "title": "冰鲜送达",
+   "kind": "time",
+   "distanceM": 3145,
+   "lucci": 550,
+   "exp": 216,
+   "synopsis": "阿香要的冰鲜海鱼刚到货，冰块化完之前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿香订的冰鲜海鱼到了，冰块化得很快。"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到罪恶角，晚了鱼就不新鲜了！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "鱼还冰着呢，今晚的晚餐有着落了！",
+   "timeLimitMs": 240000
+  },
+  {
+   "id": "lh-candy~thank-you-letter",
+   "type": "delivery",
+   "giver": "lh-candy",
+   "receiver": "dt-library",
+   "item": "一封感谢信",
+   "title": "感谢信",
+   "kind": "normal",
+   "distanceM": 3235,
+   "lucci": 350,
+   "exp": 138,
+   "synopsis": "甜甜写了一封感谢信给卡米拉，感谢上次的帮忙。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次卡米拉帮了我大忙，我写了一封感谢信。"
+    },
+    {
+     "who": "npc",
+     "text": "能帮我送过去吗？在市中心。"
+    },
+    {
+     "who": "me",
+     "text": "当然可以。"
+    }
+   ],
+   "thanks": "感谢信？甜甜太客气了，我会好好收着的。"
+  },
+  {
+   "id": "lh-candy~party-snacks",
+   "type": "delivery",
+   "giver": "lh-candy",
+   "receiver": "lh-music",
+   "item": "一大袋派对零食",
+   "title": "派对零食",
+   "kind": "normal",
+   "distanceM": 814,
+   "lucci": 130,
+   "exp": 53,
+   "synopsis": "美玲晚上要开派对，零食全在甜甜这里订好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "美玲晚上要开派对，零食都在我这儿订的。"
+    },
+    {
+     "who": "npc",
+     "text": "袋子有点大，不过不怕颠，帮我送去小哈瓦那吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我！"
+    }
+   ],
+   "thanks": "零食到了，派对可以开始啦！你也留下来玩吧！"
+  },
+  {
+   "id": "lh-baker~bread-basket",
+   "type": "delivery",
+   "giver": "lh-baker",
+   "receiver": "wb-barber",
+   "item": "一篮刚出炉的面包",
+   "title": "早餐面包",
+   "kind": "normal",
+   "distanceM": 2519,
+   "lucci": 290,
+   "exp": 113,
+   "synopsis": "小剪每周都在阿麦这里订一篮面包，今天的刚出炉。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这是小剪每周订的面包，刚出炉，香着呢。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到华盛顿海滩吧，路上别偷吃哦！"
+    },
+    {
+     "who": "me",
+     "text": "我忍住。"
+    }
+   ],
+   "thanks": "还是热的！闻着就香，谢谢你～"
+  },
+  {
+   "id": "lh-baker~birthday-cake",
+   "type": "delivery",
+   "giver": "lh-baker",
+   "receiver": "vp-tourist",
+   "item": "双层奶油蛋糕",
+   "title": "生日蛋糕",
+   "kind": "speed",
+   "distanceM": 2948,
+   "lucci": 460,
+   "exp": 179,
+   "synopsis": "安安今天过生日，朋友们在阿麦这里偷偷订了一个双层奶油蛋糕。蛋糕经不起颠簸。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "嘘——今天是安安的生日，大家在我这儿订了个双层奶油蛋糕。"
+    },
+    {
+     "who": "npc",
+     "text": "奶油蛋糕可娇气了，车速别超过 45，不然就塌了！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "是给我的生日蛋糕？还完好无损！太感动了！",
+   "maxKmh": 45
+  },
+  {
+   "id": "lh-baker~plant-pot",
+   "type": "delivery",
+   "giver": "lh-baker",
+   "receiver": "vp-lighthouse",
+   "item": "一盆多肉植物",
+   "title": "多肉盆栽",
+   "kind": "speed",
+   "distanceM": 3249,
+   "lucci": 490,
+   "exp": 194,
+   "synopsis": "阿麦分了一盆多肉植物给老灯，花盆是陶瓷的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我养的多肉长太多了，分一盆给老灯。"
+    },
+    {
+     "who": "npc",
+     "text": "陶瓷花盆不经晃，车速别超过 50。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "好可爱的多肉！我会好好养的。",
+   "maxKmh": 50
+  },
+  {
+   "id": "lh-dance~photo-album",
+   "type": "delivery",
+   "giver": "lh-dance",
+   "receiver": "lh-candy",
+   "item": "冲洗好的相册",
+   "title": "旅行相册",
+   "kind": "normal",
+   "distanceM": 786,
+   "lucci": 130,
+   "exp": 53,
+   "synopsis": "甜甜的旅行照片冲洗好了，装成了一本相册。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "甜甜上次旅行的照片冲洗好了，做成了一本相册。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在小哈瓦那。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "哇，每一张都拍得这么好！谢谢你送过来。"
+  },
+  {
+   "id": "lh-dance~toy-kart",
+   "type": "delivery",
+   "giver": "lh-dance",
+   "receiver": "citizen-vicepoint",
+   "item": "遥控卡丁车玩具",
+   "title": "遥控卡丁车",
+   "kind": "normal",
+   "distanceM": 2183,
+   "lucci": 260,
+   "exp": 101,
+   "synopsis": "宝宝给侄子买了一辆遥控卡丁车玩具当礼物。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "宝宝给侄子买了一辆遥控卡丁车，等着当礼物。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到罪恶角吧！"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "就是这辆！孩子一定会喜欢的。"
+  },
+  {
+   "id": "lh-dance~concert-tickets",
+   "type": "delivery",
+   "giver": "lh-dance",
+   "receiver": "wb-books",
+   "item": "演唱会门票",
+   "title": "演唱会门票",
+   "kind": "time",
+   "distanceM": 1268,
+   "lucci": 280,
+   "exp": 111,
+   "synopsis": "今晚的演唱会快开始了，书书的门票还在莎莎这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "书书的演唱会门票还在我这儿，演出快开始了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到，不然就进不去了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送！"
+    }
+   ],
+   "thanks": "赶上了！今晚要好好嗨一场！",
+   "timeLimitMs": 115000
+  },
+  {
+   "id": "lh-music~library-books",
+   "type": "delivery",
+   "giver": "lh-music",
+   "receiver": "vp-singer",
+   "item": "一摞预约的书",
+   "title": "预约图书",
+   "kind": "normal",
+   "distanceM": 2705,
+   "lucci": 300,
+   "exp": 120,
+   "synopsis": "晴晴预约的书到了，一大摞。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "晴晴预约的书到了，一大摞呢。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到罪恶角吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "书到了！这个周末有得看了。"
+  },
+  {
+   "id": "lh-music~documents",
+   "type": "delivery",
+   "giver": "lh-music",
+   "receiver": "ob-surf",
+   "item": "一袋机密文件",
+   "title": "机密文件",
+   "kind": "normal",
+   "distanceM": 1932,
+   "lucci": 230,
+   "exp": 93,
+   "synopsis": "一袋机密文件要亲手交给阿浪。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这袋文件很重要，必须亲手交给阿浪。"
+    },
+    {
+     "who": "npc",
+     "text": "你看起来很可靠，就拜托你了。"
+    },
+    {
+     "who": "me",
+     "text": "保证送到。"
+    }
+   ],
+   "thanks": "文件收到，封条完好。你真靠得住。"
+  },
+  {
+   "id": "lh-music~homemade-jam",
+   "type": "delivery",
+   "giver": "lh-music",
+   "receiver": "wb-news",
+   "item": "一罐自制果酱",
+   "title": "自制果酱",
+   "kind": "collision",
+   "distanceM": 848,
+   "lucci": 200,
+   "exp": 82,
+   "synopsis": "美玲做了自制果酱，想分一罐给老周。玻璃罐一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我做了好多果酱，想分一罐给老周。"
+    },
+    {
+     "who": "npc",
+     "text": "玻璃罐经不起撞，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "自制果酱！闻着好甜，明天早上抹面包吃。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "lh-student~surfboard",
+   "type": "delivery",
+   "giver": "lh-student",
+   "receiver": "vp-singer",
+   "item": "一块冲浪板",
+   "title": "冲浪板",
+   "kind": "normal",
+   "distanceM": 2944,
+   "lucci": 320,
+   "exp": 128,
+   "synopsis": "晴晴想学冲浪，借了豆豆的一块冲浪板。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "晴晴想学冲浪，跟我借了块冲浪板。"
+    },
+    {
+     "who": "npc",
+     "text": "板子有点长，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "冲浪板到了！这个周末就去海边试试。"
+  },
+  {
+   "id": "lh-student~trophy",
+   "type": "delivery",
+   "giver": "lh-student",
+   "receiver": "dt-library",
+   "item": "比赛奖杯",
+   "title": "冠军奖杯",
+   "kind": "collision",
+   "distanceM": 2833,
+   "lucci": 470,
+   "exp": 186,
+   "synopsis": "卡米拉在比赛中得了冠军，奖杯刚刻好名字。奖杯是水晶做的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "卡米拉拿了冠军，奖杯刚刻好名字。"
+    },
+    {
+     "who": "npc",
+     "text": "这是水晶奖杯，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我一定小心。"
+    }
+   ],
+   "thanks": "我的奖杯！闪闪发亮，太漂亮了！",
+   "maxCollisions": 2
+  },
+  {
+   "id": "lh-student~first-aid",
+   "type": "delivery",
+   "giver": "lh-student",
+   "receiver": "citizen-vicepoint",
+   "item": "急救包",
+   "title": "急救包",
+   "kind": "time",
+   "distanceM": 2711,
+   "lucci": 490,
+   "exp": 192,
+   "synopsis": "宝宝那边有人擦伤了，急需一个急救包。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "宝宝那边有人摔了一跤，急需急救包！"
+    },
+    {
+     "who": "npc",
+     "text": "快！规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "马上到！"
+    }
+   ],
+   "thanks": "急救包来了，伤口处理好了，没大碍。谢谢你！",
+   "timeLimitMs": 215000
+  },
+  {
+   "id": "lh-tailor~glass-vase",
+   "type": "delivery",
+   "giver": "lh-tailor",
+   "receiver": "lt-paint",
+   "item": "一只玻璃花瓶",
+   "title": "玻璃花瓶",
+   "kind": "collision",
+   "distanceM": 1713,
+   "lucci": 320,
+   "exp": 127,
+   "synopsis": "彩彩在针婶这里买了一只手工玻璃花瓶，一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "彩彩买的手工玻璃花瓶，我包了三层还是不放心。"
+    },
+    {
+     "who": "npc",
+     "text": "路上碰撞千万别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会当心。"
+    }
+   ],
+   "thanks": "花瓶完好无损！插上花一定很漂亮。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "lh-tailor~repaired-watch",
+   "type": "delivery",
+   "giver": "lh-tailor",
+   "receiver": "vp-nightmarket",
+   "item": "修好的怀表",
+   "title": "修好的怀表",
+   "kind": "speed",
+   "distanceM": 2819,
+   "lucci": 440,
+   "exp": 173,
+   "synopsis": "阿香的怀表修好了，里面的齿轮很精细，开太快会震坏。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿香的怀表修好了，那可是祖传的宝贝。"
+    },
+    {
+     "who": "npc",
+     "text": "里面的齿轮很精细，车速别超过 50！"
+    },
+    {
+     "who": "me",
+     "text": "我开慢点。"
+    }
+   ],
+   "thanks": "怀表又走起来了！嘀嗒嘀嗒，真好听。",
+   "maxKmh": 50
+  },
+  {
+   "id": "lh-tailor~new-shoes",
+   "type": "delivery",
+   "giver": "lh-tailor",
+   "receiver": "vp-yacht",
+   "item": "一双限量款赛车鞋",
+   "title": "限量赛车鞋",
+   "kind": "normal",
+   "distanceM": 2907,
+   "lucci": 320,
+   "exp": 127,
+   "synopsis": "阿彬抢到了一双限量款赛车鞋，在针婶这里等着取货。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿彬抢到了一双限量款赛车鞋，可阿彬没空来取。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到罪恶角吧，阿彬肯定高兴坏了。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "就是这双！限量款！我要穿着它去比赛！"
+  },
+  {
+   "id": "lh-pharmacy~vaccine",
+   "type": "delivery",
+   "giver": "lh-pharmacy",
+   "receiver": "lh-candy",
+   "item": "一箱冷藏疫苗",
+   "title": "冷藏疫苗",
+   "kind": "collision",
+   "distanceM": 1096,
+   "lucci": 240,
+   "exp": 95,
+   "synopsis": "一箱冷藏疫苗要送到甜甜那里，冷藏箱经不起磕碰。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这箱冷藏疫苗要送到甜甜那里。"
+    },
+    {
+     "who": "npc",
+     "text": "冷藏箱经不起磕碰，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "冷藏箱完好，温度也正常。辛苦你了！",
+   "maxCollisions": 2
+  },
+  {
+   "id": "lh-pharmacy~medicine",
+   "type": "delivery",
+   "giver": "lh-pharmacy",
+   "receiver": "captain-vicepoint",
+   "item": "一盒急用药品",
+   "title": "急用药品",
+   "kind": "time",
+   "distanceM": 3267,
+   "lucci": 570,
+   "exp": 223,
+   "synopsis": "海盗船长那边急需一盒药品。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "海盗船长那边急需这盒药品，耽误不得！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到罪恶角！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "药来了！太及时了，谢谢你。",
+   "timeLimitMs": 250000
+  },
+  {
+   "id": "lh-pharmacy~x-ray",
+   "type": "delivery",
+   "giver": "lh-pharmacy",
+   "receiver": "ob-coconut",
+   "item": "一袋检查报告",
+   "title": "检查报告",
+   "kind": "speed",
+   "distanceM": 1824,
+   "lucci": 310,
+   "exp": 124,
+   "synopsis": "椰叔的检查报告出来了，里面还有易碎的玻璃片样本，路上要稳。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "椰叔的检查报告出来了，袋子里还有玻璃片样本。"
+    },
+    {
+     "who": "npc",
+     "text": "车速别超过 50，开稳一点。"
+    },
+    {
+     "who": "me",
+     "text": "明白。"
+    }
+   ],
+   "thanks": "报告收到，样本完好。谢谢你！",
+   "maxKmh": 50
+  },
+  {
+   "id": "lh-laundry~flowers-visit",
+   "type": "delivery",
+   "giver": "lh-laundry",
+   "receiver": "vp-magic",
+   "item": "一束探病鲜花",
+   "title": "探病鲜花",
+   "kind": "normal",
+   "distanceM": 1804,
+   "lucci": 220,
+   "exp": 88,
+   "synopsis": "阿奇前几天受了伤，朋友托泡泡送一束鲜花去探望。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿奇前几天比赛受了点伤，朋友们托我送束花。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到罪恶角吧，祝阿奇早日康复。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "好漂亮的花！看着心情都好多了。"
+  },
+  {
+   "id": "lh-laundry~costume",
+   "type": "delivery",
+   "giver": "lh-laundry",
+   "receiver": "ob-icecream",
+   "item": "定做的演出服",
+   "title": "演出服",
+   "kind": "time",
+   "distanceM": 1571,
+   "lucci": 320,
+   "exp": 128,
+   "synopsis": "糖糖今晚有演出，定做的演出服刚刚做好。演出前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "糖糖今晚要上台，定做的演出服刚刚缝好。"
+    },
+    {
+     "who": "npc",
+     "text": "演出快开始了，得在规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "赶在演出前送到！"
+    }
+   ],
+   "thanks": "来得正好！马上换上，今晚一定是最闪亮的。",
+   "timeLimitMs": 135000
+  },
+  {
+   "id": "lh-laundry~lost-wallet",
+   "type": "delivery",
+   "giver": "lh-laundry",
+   "receiver": "dt-courier",
+   "item": "捡到的钱包",
+   "title": "失物归还",
+   "kind": "normal",
+   "distanceM": 2968,
+   "lucci": 330,
+   "exp": 129,
+   "synopsis": "有人在泡泡这里捡到一个钱包，里面的证件写着阿快的名字。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "有人捡到一个钱包，里面的证件是阿快的。"
+    },
+    {
+     "who": "npc",
+     "text": "阿快一定急坏了，帮我送回去吧，在市中心。"
+    },
+    {
+     "who": "me",
+     "text": "物归原主！"
+    }
+   ],
+   "thanks": "我的钱包！还以为找不回来了，太谢谢你了！"
+  },
+  {
+   "id": "lh-grocer~newspapers",
+   "type": "delivery",
+   "giver": "lh-grocer",
+   "receiver": "lt-parts",
+   "item": "一捆当天的报纸",
+   "title": "早报",
+   "kind": "time",
+   "distanceM": 1697,
+   "lucci": 340,
+   "exp": 135,
+   "synopsis": "阿钉那边的报纸卖完了，等着新的一捆报纸。早报晚了就没人看了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿钉那边的报纸早早就卖光了，等着补货呢。"
+    },
+    {
+     "who": "npc",
+     "text": "早报可不能送晚，规定时间内送到小海地！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "报纸来了！今天的头条是卡丁车联赛，大家都等着看呢。",
+   "timeLimitMs": 145000
+  },
+  {
+   "id": "lh-grocer~board-game",
+   "type": "delivery",
+   "giver": "lh-grocer",
+   "receiver": "vp-lighthouse",
+   "item": "一套桌游",
+   "title": "桌游之夜",
+   "kind": "normal",
+   "distanceM": 2993,
+   "lucci": 330,
+   "exp": 130,
+   "synopsis": "老灯今晚办桌游之夜，借了阿宽的一套桌游。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "老灯今晚办桌游之夜，借了我的桌游。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在罪恶角。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "桌游到了！今晚一定很热闹，要不要一起玩？"
+  },
+  {
+   "id": "lh-grocer~kite-gift",
+   "type": "delivery",
+   "giver": "lh-grocer",
+   "receiver": "ob-photo",
+   "item": "一只大风筝",
+   "title": "大风筝",
+   "kind": "collision",
+   "distanceM": 1363,
+   "lucci": 270,
+   "exp": 109,
+   "synopsis": "阿光想要一只大风筝，骨架是竹子做的，一撞就散。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿光想放风筝，我这只大风筝送给阿光。"
+    },
+    {
+     "who": "npc",
+     "text": "竹骨架很脆，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "好大的风筝！明天就去海边放。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "lt-apprentice~paint-cans",
+   "type": "delivery",
+   "giver": "lt-apprentice",
+   "receiver": "lh-laundry",
+   "item": "几桶油漆",
+   "title": "油漆别洒",
+   "kind": "speed",
+   "distanceM": 1415,
+   "lucci": 260,
+   "exp": 104,
+   "synopsis": "泡泡要刷墙，订了几桶油漆。桶盖不太严实，开快了会洒。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "泡泡要粉刷房子，订了几桶油漆。"
+    },
+    {
+     "who": "npc",
+     "text": "桶盖不太严实，车速超过 45 会洒出来！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "一滴没洒！房子可以刷成新颜色了。",
+   "maxKmh": 45
+  },
+  {
+   "id": "lt-apprentice~lumber",
+   "type": "delivery",
+   "giver": "lt-apprentice",
+   "receiver": "ob-volley",
+   "item": "一捆木板",
+   "title": "修篱笆",
+   "kind": "normal",
+   "distanceM": 2551,
+   "lucci": 290,
+   "exp": 114,
+   "synopsis": "小麦家的篱笆被风吹倒了，要一捆木板修补。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "昨晚风太大，小麦家的篱笆被吹倒了。"
+    },
+    {
+     "who": "npc",
+     "text": "这捆木板帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "木板到了，今天就能把篱笆修好。"
+  },
+  {
+   "id": "lt-apprentice~battery",
+   "type": "delivery",
+   "giver": "lt-apprentice",
+   "receiver": "vp-mall",
+   "item": "一块备用电瓶",
+   "title": "电瓶没电",
+   "kind": "time",
+   "distanceM": 1791,
+   "lucci": 350,
+   "exp": 140,
+   "synopsis": "小美的车电瓶没电了，等着备用电瓶救急。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小美的车电瓶没电了，打不着火。"
+    },
+    {
+     "who": "npc",
+     "text": "这块备用电瓶得尽快送到，规定时间内！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "换上电瓶，一下就打着火了！谢谢救急！",
+   "timeLimitMs": 150000
+  },
+  {
+   "id": "lt-scrap~toolbox",
+   "type": "delivery",
+   "giver": "lt-scrap",
+   "receiver": "police-downtown",
+   "item": "一箱维修工具",
+   "title": "借工具",
+   "kind": "normal",
+   "distanceM": 1303,
+   "lucci": 180,
+   "exp": 71,
+   "synopsis": "吉米那边要修东西，想借老铁的一箱维修工具。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "吉米那边要修东西，跟我借这箱工具。"
+    },
+    {
+     "who": "npc",
+     "text": "箱子挺沉的，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "工具到了，这下能开工了。用完马上还！"
+  },
+  {
+   "id": "lt-scrap~engine-part",
+   "type": "delivery",
+   "giver": "lt-scrap",
+   "receiver": "ob-bellboy",
+   "item": "精密发动机零件",
+   "title": "精密零件",
+   "kind": "collision",
+   "distanceM": 2964,
+   "lucci": 490,
+   "exp": 193,
+   "synopsis": "小新订的精密发动机零件到了，磕碰了就不能用。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小新订的精密零件到了，那可是进口货。"
+    },
+    {
+     "who": "npc",
+     "text": "磕碰了就不能用了，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会稳稳地开。"
+    }
+   ],
+   "thanks": "零件完好！这下发动机能修好了。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "lt-scrap~spare-tires",
+   "type": "delivery",
+   "giver": "lt-scrap",
+   "receiver": "lh-student",
+   "item": "一套卡丁车轮胎",
+   "title": "换胎急件",
+   "kind": "time",
+   "distanceM": 1338,
+   "lucci": 290,
+   "exp": 115,
+   "synopsis": "豆豆的卡丁车爆胎了，等着新轮胎才能开。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "豆豆的车爆胎了，困在小哈瓦那动不了。"
+    },
+    {
+     "who": "npc",
+     "text": "这套轮胎得在规定时间内送到，不然豆豆要错过比赛了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "轮胎到了！换上就能出发，太及时了！",
+   "timeLimitMs": 120000
+  },
+  {
+   "id": "lt-truck~spare-tires",
+   "type": "delivery",
+   "giver": "lt-truck",
+   "receiver": "dt-reporter",
+   "item": "一套卡丁车轮胎",
+   "title": "换胎急件",
+   "kind": "time",
+   "distanceM": 1398,
+   "lucci": 300,
+   "exp": 118,
+   "synopsis": "罗杰的卡丁车爆胎了，等着新轮胎才能开。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "罗杰的车爆胎了，困在市中心动不了。"
+    },
+    {
+     "who": "npc",
+     "text": "这套轮胎得在规定时间内送到，不然罗杰要错过比赛了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "轮胎到了！换上就能出发，太及时了！",
+   "timeLimitMs": 125000
+  },
+  {
+   "id": "lt-truck~keys",
+   "type": "delivery",
+   "giver": "lt-truck",
+   "receiver": "postman-starfish",
+   "item": "一串备用钥匙",
+   "title": "备用钥匙",
+   "kind": "time",
+   "distanceM": 1255,
+   "lucci": 280,
+   "exp": 110,
+   "synopsis": "小强把自己锁在门外了，备用钥匙放在大刘这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小强把自己锁在门外了，备用钥匙在我这儿。"
+    },
+    {
+     "who": "npc",
+     "text": "小强在门口等着呢，规定时间内送到吧！"
+    },
+    {
+     "who": "me",
+     "text": "马上就到！"
+    }
+   ],
+   "thanks": "终于能进门了！谢谢你，下次我一定记得带钥匙。",
+   "timeLimitMs": 115000
+  },
+  {
+   "id": "lt-truck~toolbox",
+   "type": "delivery",
+   "giver": "lt-truck",
+   "receiver": "si-clerk",
+   "item": "一箱维修工具",
+   "title": "借工具",
+   "kind": "normal",
+   "distanceM": 1331,
+   "lucci": 180,
+   "exp": 72,
+   "synopsis": "小信那边要修东西，想借大刘的一箱维修工具。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小信那边要修东西，跟我借这箱工具。"
+    },
+    {
+     "who": "npc",
+     "text": "箱子挺沉的，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "工具到了，这下能开工了。用完马上还！"
+  },
+  {
+   "id": "lt-paint~repaired-watch",
+   "type": "delivery",
+   "giver": "lt-paint",
+   "receiver": "ob-lifeguard",
+   "item": "修好的怀表",
+   "title": "修好的怀表",
+   "kind": "speed",
+   "distanceM": 2208,
+   "lucci": 360,
+   "exp": 143,
+   "synopsis": "大海的怀表修好了，里面的齿轮很精细，开太快会震坏。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大海的怀表修好了，那可是祖传的宝贝。"
+    },
+    {
+     "who": "npc",
+     "text": "里面的齿轮很精细，车速别超过 50！"
+    },
+    {
+     "who": "me",
+     "text": "我开慢点。"
+    }
+   ],
+   "thanks": "怀表又走起来了！嘀嗒嘀嗒，真好听。",
+   "maxKmh": 50
+  },
+  {
+   "id": "lt-paint~souvenir",
+   "type": "delivery",
+   "giver": "lt-paint",
+   "receiver": "si-star",
+   "item": "一盒旅行纪念品",
+   "title": "旅行纪念品",
+   "kind": "normal",
+   "distanceM": 1851,
+   "lucci": 230,
+   "exp": 90,
+   "synopsis": "彩彩旅行回来，给星星带了一盒纪念品。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我刚旅行回来，给星星带了纪念品。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在海星岛。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "纪念品！彩彩还记着我，真开心。"
+  },
+  {
+   "id": "lt-paint~mirror",
+   "type": "delivery",
+   "giver": "lt-paint",
+   "receiver": "lh-dance",
+   "item": "一面落地镜",
+   "title": "落地镜",
+   "kind": "collision",
+   "distanceM": 1311,
+   "lucci": 270,
+   "exp": 106,
+   "synopsis": "莎莎新家要一面落地镜，镜子又大又脆。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "莎莎搬新家，订了一面落地镜。"
+    },
+    {
+     "who": "npc",
+     "text": "镜子又大又脆，碰撞别超过两次，碎了可不吉利！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "镜子一点裂纹都没有！新家更亮堂了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "lt-parts~glass-vase",
+   "type": "delivery",
+   "giver": "lt-parts",
+   "receiver": "vp-tourist",
+   "item": "一只玻璃花瓶",
+   "title": "玻璃花瓶",
+   "kind": "collision",
+   "distanceM": 1690,
+   "lucci": 320,
+   "exp": 126,
+   "synopsis": "安安在阿钉这里买了一只手工玻璃花瓶，一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "安安买的手工玻璃花瓶，我包了三层还是不放心。"
+    },
+    {
+     "who": "npc",
+     "text": "路上碰撞千万别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会当心。"
+    }
+   ],
+   "thanks": "花瓶完好无损！插上花一定很漂亮。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "lt-parts~neon-sign",
+   "type": "delivery",
+   "giver": "lt-parts",
+   "receiver": "kite-beach",
+   "item": "新做的霓虹招牌",
+   "title": "霓虹招牌",
+   "kind": "collision",
+   "distanceM": 2752,
+   "lucci": 460,
+   "exp": 182,
+   "synopsis": "雯雯的店要换新招牌，霓虹灯管一碰就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "雯雯的店要挂新招牌，霓虹灯管做好了。"
+    },
+    {
+     "who": "npc",
+     "text": "灯管很脆，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "招牌亮起来了！今晚店里一定很热闹。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "lt-parts~goldfish",
+   "type": "delivery",
+   "giver": "lt-parts",
+   "receiver": "si-farm",
+   "item": "一缸金鱼",
+   "title": "金鱼搬家",
+   "kind": "speed",
+   "distanceM": 1320,
+   "lucci": 250,
+   "exp": 100,
+   "synopsis": "阿丰领养了阿钉家的金鱼，鱼缸里的水满满的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿丰要领养我家的金鱼。"
+    },
+    {
+     "who": "npc",
+     "text": "鱼缸里水满满的，车速超过 40 就会晃出来！"
+    },
+    {
+     "who": "me",
+     "text": "我慢慢开。"
+    }
+   ],
+   "thanks": "小金鱼们都好好的！欢迎来到新家～",
+   "maxKmh": 40
+  },
+  {
+   "id": "lt-carwash~lumber",
+   "type": "delivery",
+   "giver": "lt-carwash",
+   "receiver": "shop-havana",
+   "item": "一捆木板",
+   "title": "修篱笆",
+   "kind": "normal",
+   "distanceM": 930,
+   "lucci": 140,
+   "exp": 58,
+   "synopsis": "黑妞家的篱笆被风吹倒了，要一捆木板修补。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "昨晚风太大，黑妞家的篱笆被吹倒了。"
+    },
+    {
+     "who": "npc",
+     "text": "这捆木板帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "木板到了，今天就能把篱笆修好。"
+  },
+  {
+   "id": "lt-carwash~umbrella",
+   "type": "delivery",
+   "giver": "lt-carwash",
+   "receiver": "foreman-downtown",
+   "item": "一把借来的雨伞",
+   "title": "还雨伞",
+   "kind": "normal",
+   "distanceM": 1212,
+   "lucci": 170,
+   "exp": 67,
+   "synopsis": "上次下雨，水水借了神秘工头一把伞，一直没机会还。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次下雨借了神秘工头一把伞，一直没还。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我还给神秘工头吧，在市中心。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "我的伞！我都忘了借出去了，谢谢你送回来。"
+  },
+  {
+   "id": "lt-carwash~engine-part",
+   "type": "delivery",
+   "giver": "lt-carwash",
+   "receiver": "warden-washington",
+   "item": "精密发动机零件",
+   "title": "精密零件",
+   "kind": "collision",
+   "distanceM": 2200,
+   "lucci": 390,
+   "exp": 153,
+   "synopsis": "小乖订的精密发动机零件到了，磕碰了就不能用。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小乖订的精密零件到了，那可是进口货。"
+    },
+    {
+     "who": "npc",
+     "text": "磕碰了就不能用了，碰撞别超过三次！"
+    },
+    {
+     "who": "me",
+     "text": "我会稳稳地开。"
+    }
+   ],
+   "thanks": "零件完好！这下发动机能修好了。",
+   "maxCollisions": 3
+  },
+  {
+   "id": "dt-nurse~medicine",
+   "type": "delivery",
+   "giver": "dt-nurse",
+   "receiver": "wb-barber",
+   "item": "一盒急用药品",
+   "title": "急用药品",
+   "kind": "time",
+   "distanceM": 2393,
+   "lucci": 440,
+   "exp": 174,
+   "synopsis": "小剪那边急需一盒药品。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小剪那边急需这盒药品，耽误不得！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到华盛顿海滩！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "药来了！太及时了，谢谢你。",
+   "timeLimitMs": 190000
+  },
+  {
+   "id": "dt-nurse~vaccine",
+   "type": "delivery",
+   "giver": "dt-nurse",
+   "receiver": "vp-guard",
+   "item": "一箱冷藏疫苗",
+   "title": "冷藏疫苗",
+   "kind": "collision",
+   "distanceM": 2055,
+   "lucci": 370,
+   "exp": 145,
+   "synopsis": "一箱冷藏疫苗要送到阿虎那里，冷藏箱经不起磕碰。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这箱冷藏疫苗要送到阿虎那里。"
+    },
+    {
+     "who": "npc",
+     "text": "冷藏箱经不起磕碰，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "冷藏箱完好，温度也正常。辛苦你了！",
+   "maxCollisions": 2
+  },
+  {
+   "id": "dt-nurse~x-ray",
+   "type": "delivery",
+   "giver": "dt-nurse",
+   "receiver": "wb-books",
+   "item": "一袋检查报告",
+   "title": "检查报告",
+   "kind": "speed",
+   "distanceM": 2821,
+   "lucci": 440,
+   "exp": 173,
+   "synopsis": "书书的检查报告出来了，里面还有易碎的玻璃片样本，路上要稳。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "书书的检查报告出来了，袋子里还有玻璃片样本。"
+    },
+    {
+     "who": "npc",
+     "text": "车速别超过 50，开稳一点。"
+    },
+    {
+     "who": "me",
+     "text": "明白。"
+    }
+   ],
+   "thanks": "报告收到，样本完好。谢谢你！",
+   "maxKmh": 50
+  },
+  {
+   "id": "dt-doctor~vaccine",
+   "type": "delivery",
+   "giver": "dt-doctor",
+   "receiver": "lt-scrap",
+   "item": "一箱冷藏疫苗",
+   "title": "冷藏疫苗",
+   "kind": "collision",
+   "distanceM": 909,
+   "lucci": 210,
+   "exp": 85,
+   "synopsis": "一箱冷藏疫苗要送到老铁那里，冷藏箱经不起磕碰。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这箱冷藏疫苗要送到老铁那里。"
+    },
+    {
+     "who": "npc",
+     "text": "冷藏箱经不起磕碰，碰撞别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "我会小心的。"
+    }
+   ],
+   "thanks": "冷藏箱完好，温度也正常。辛苦你了！",
+   "maxCollisions": 2
+  },
+  {
+   "id": "dt-doctor~medicine",
+   "type": "delivery",
+   "giver": "dt-doctor",
+   "receiver": "lt-truck",
+   "item": "一盒急用药品",
+   "title": "急用药品",
+   "kind": "time",
+   "distanceM": 1347,
+   "lucci": 290,
+   "exp": 115,
+   "synopsis": "大刘那边急需一盒药品。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大刘那边急需这盒药品，耽误不得！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到小海地！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "药来了！太及时了，谢谢你。",
+   "timeLimitMs": 120000
+  },
+  {
+   "id": "dt-doctor~x-ray",
+   "type": "delivery",
+   "giver": "dt-doctor",
+   "receiver": "vp-docker",
+   "item": "一袋检查报告",
+   "title": "检查报告",
+   "kind": "speed",
+   "distanceM": 1108,
+   "lucci": 220,
+   "exp": 89,
+   "synopsis": "大壮的检查报告出来了，里面还有易碎的玻璃片样本，路上要稳。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "大壮的检查报告出来了，袋子里还有玻璃片样本。"
+    },
+    {
+     "who": "npc",
+     "text": "车速别超过 50，开稳一点。"
+    },
+    {
+     "who": "me",
+     "text": "明白。"
+    }
+   ],
+   "thanks": "报告收到，样本完好。谢谢你！",
+   "maxKmh": 50
+  },
+  {
+   "id": "dt-bank~documents",
+   "type": "delivery",
+   "giver": "dt-bank",
+   "receiver": "lh-music",
+   "item": "一袋机密文件",
+   "title": "机密文件",
+   "kind": "normal",
+   "distanceM": 2556,
+   "lucci": 290,
+   "exp": 114,
+   "synopsis": "一袋机密文件要亲手交给美玲。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这袋文件很重要，必须亲手交给美玲。"
+    },
+    {
+     "who": "npc",
+     "text": "你看起来很可靠，就拜托你了。"
+    },
+    {
+     "who": "me",
+     "text": "保证送到。"
+    }
+   ],
+   "thanks": "文件收到，封条完好。你真靠得住。"
+  },
+  {
+   "id": "dt-bank~invitation",
+   "type": "delivery",
+   "giver": "dt-bank",
+   "receiver": "marshal-airport",
+   "item": "一叠派对请柬",
+   "title": "派对请柬",
+   "kind": "normal",
+   "distanceM": 3390,
+   "lucci": 370,
+   "exp": 144,
+   "synopsis": "金金要办派对，请柬要送到葱头那里帮忙分发。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我下周要办派对，请柬写好了一大叠。"
+    },
+    {
+     "who": "npc",
+     "text": "葱头答应帮我分发，帮我送过去吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "请柬收到，我会帮忙发给大家的。"
+  },
+  {
+   "id": "dt-bank~urgent-parcel",
+   "type": "delivery",
+   "giver": "dt-bank",
+   "receiver": "lh-tailor",
+   "item": "一个加急包裹",
+   "title": "加急包裹",
+   "kind": "time",
+   "distanceM": 3125,
+   "lucci": 550,
+   "exp": 215,
+   "synopsis": "一个写着“加急”的包裹要送到针婶那里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这个包裹写着“加急”，是针婶的。"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到小哈瓦那！"
+    },
+    {
+     "who": "me",
+     "text": "加急件，马上送！"
+    }
+   ],
+   "thanks": "加急包裹准时到了，正等着用呢，谢谢！",
+   "timeLimitMs": 240000
+  },
+  {
+   "id": "dt-detective~blueprints",
+   "type": "delivery",
+   "giver": "dt-detective",
+   "receiver": "lh-baker",
+   "item": "一卷施工图纸",
+   "title": "施工图纸",
+   "kind": "normal",
+   "distanceM": 3486,
+   "lucci": 370,
+   "exp": 147,
+   "synopsis": "阿麦要的施工图纸画好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "阿麦要的施工图纸画好了。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小哈瓦那吧，别弄皱了。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "图纸收到，一张都没皱，明天就能开工了。"
+  },
+  {
+   "id": "dt-detective~thank-you-letter",
+   "type": "delivery",
+   "giver": "dt-detective",
+   "receiver": "wb-smoothie",
+   "item": "一封感谢信",
+   "title": "感谢信",
+   "kind": "normal",
+   "distanceM": 2634,
+   "lucci": 300,
+   "exp": 117,
+   "synopsis": "福尔摩斯写了一封感谢信给果果，感谢上次的帮忙。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "上次果果帮了我大忙，我写了一封感谢信。"
+    },
+    {
+     "who": "npc",
+     "text": "能帮我送过去吗？在华盛顿海滩。"
+    },
+    {
+     "who": "me",
+     "text": "当然可以。"
+    }
+   ],
+   "thanks": "感谢信？福尔摩斯太客气了，我会好好收着的。"
+  },
+  {
+   "id": "dt-detective~contract",
+   "type": "delivery",
+   "giver": "dt-detective",
+   "receiver": "florist-washington",
+   "item": "一份待签的合同",
+   "title": "合同急件",
+   "kind": "time",
+   "distanceM": 2689,
+   "lucci": 480,
+   "exp": 191,
+   "synopsis": "蓝蓝那边等着签合同，下班前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "蓝蓝那边等着签这份合同，过了今天就作废了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到华盛顿海滩！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "赶上了！合同签好了，太感谢你了。",
+   "timeLimitMs": 210000
+  },
+  {
+   "id": "dt-reporter~library-books",
+   "type": "delivery",
+   "giver": "dt-reporter",
+   "receiver": "mechanic-haiti",
+   "item": "一摞预约的书",
+   "title": "预约图书",
+   "kind": "normal",
+   "distanceM": 1557,
+   "lucci": 200,
+   "exp": 79,
+   "synopsis": "胖墩预约的书到了，一大摞。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "胖墩预约的书到了，一大摞呢。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到小海地吧。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "书到了！这个周末有得看了。"
+  },
+  {
+   "id": "dt-reporter~ballot-box",
+   "type": "delivery",
+   "giver": "dt-reporter",
+   "receiver": "lh-chef",
+   "item": "社区投票箱",
+   "title": "投票箱",
+   "kind": "speed",
+   "distanceM": 1981,
+   "lucci": 330,
+   "exp": 132,
+   "synopsis": "社区投票结束了，投票箱要交给大勺统计。投票箱要稳稳地送，路上不能出差错。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "社区投票结束了，投票箱要交给大勺统计。"
+    },
+    {
+     "who": "npc",
+     "text": "这可是大家的心意，车速别超过 50，稳稳地送过去。"
+    },
+    {
+     "who": "me",
+     "text": "遵命。"
+    }
+   ],
+   "thanks": "投票箱收到，封条完好，马上开始统计！",
+   "maxKmh": 50
+  },
+  {
+   "id": "dt-reporter~contract",
+   "type": "delivery",
+   "giver": "dt-reporter",
+   "receiver": "lh-pharmacy",
+   "item": "一份待签的合同",
+   "title": "合同急件",
+   "kind": "time",
+   "distanceM": 1715,
+   "lucci": 340,
+   "exp": 136,
+   "synopsis": "小白那边等着签合同，下班前必须送到。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小白那边等着签这份合同，过了今天就作废了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到小哈瓦那！"
+    },
+    {
+     "who": "me",
+     "text": "马上出发！"
+    }
+   ],
+   "thanks": "赶上了！合同签好了，太感谢你了。",
+   "timeLimitMs": 145000
+  },
+  {
+   "id": "dt-library~documents",
+   "type": "delivery",
+   "giver": "dt-library",
+   "receiver": "wb-barista",
+   "item": "一袋机密文件",
+   "title": "机密文件",
+   "kind": "normal",
+   "distanceM": 2240,
+   "lucci": 260,
+   "exp": 103,
+   "synopsis": "一袋机密文件要亲手交给阿豆。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "这袋文件很重要，必须亲手交给阿豆。"
+    },
+    {
+     "who": "npc",
+     "text": "你看起来很可靠，就拜托你了。"
+    },
+    {
+     "who": "me",
+     "text": "保证送到。"
+    }
+   ],
+   "thanks": "文件收到，封条完好。你真靠得住。"
+  },
+  {
+   "id": "dt-library~plant-pot",
+   "type": "delivery",
+   "giver": "dt-library",
+   "receiver": "lh-grocer",
+   "item": "一盆多肉植物",
+   "title": "多肉盆栽",
+   "kind": "speed",
+   "distanceM": 3507,
+   "lucci": 530,
+   "exp": 207,
+   "synopsis": "卡米拉分了一盆多肉植物给阿宽，花盆是陶瓷的。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "我养的多肉长太多了，分一盆给阿宽。"
+    },
+    {
+     "who": "npc",
+     "text": "陶瓷花盆不经晃，车速别超过 50。"
+    },
+    {
+     "who": "me",
+     "text": "没问题。"
+    }
+   ],
+   "thanks": "好可爱的多肉！我会好好养的。",
+   "maxKmh": 50
+  },
+  {
+   "id": "dt-library~first-aid",
+   "type": "delivery",
+   "giver": "dt-library",
+   "receiver": "guide-beach",
+   "item": "急救包",
+   "title": "急救包",
+   "kind": "time",
+   "distanceM": 3485,
+   "lucci": 600,
+   "exp": 235,
+   "synopsis": "皮蛋那边有人擦伤了，急需一个急救包。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "皮蛋那边有人摔了一跤，急需急救包！"
+    },
+    {
+     "who": "npc",
+     "text": "快！规定时间内送到！"
+    },
+    {
+     "who": "me",
+     "text": "马上到！"
+    }
+   ],
+   "thanks": "急救包来了，伤口处理好了，没大碍。谢谢你！",
+   "timeLimitMs": 265000
+  },
+  {
+   "id": "dt-courier~ballot-box",
+   "type": "delivery",
+   "giver": "dt-courier",
+   "receiver": "vp-fisher",
+   "item": "社区投票箱",
+   "title": "投票箱",
+   "kind": "speed",
+   "distanceM": 2318,
+   "lucci": 380,
+   "exp": 149,
+   "synopsis": "社区投票结束了，投票箱要交给老海统计。投票箱要稳稳地送，路上不能出差错。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "社区投票结束了，投票箱要交给老海统计。"
+    },
+    {
+     "who": "npc",
+     "text": "这可是大家的心意，车速别超过 50，稳稳地送过去。"
+    },
+    {
+     "who": "me",
+     "text": "遵命。"
+    }
+   ],
+   "thanks": "投票箱收到，封条完好，马上开始统计！",
+   "maxKmh": 50
+  },
+  {
+   "id": "dt-courier~board-game",
+   "type": "delivery",
+   "giver": "dt-courier",
+   "receiver": "lt-apprentice",
+   "item": "一套桌游",
+   "title": "桌游之夜",
+   "kind": "normal",
+   "distanceM": 1791,
+   "lucci": 220,
+   "exp": 88,
+   "synopsis": "小扳今晚办桌游之夜，借了阿快的一套桌游。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小扳今晚办桌游之夜，借了我的桌游。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在小海地。"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "桌游到了！今晚一定很热闹，要不要一起玩？"
+  },
+  {
+   "id": "dt-courier~blueprints",
+   "type": "delivery",
+   "giver": "dt-courier",
+   "receiver": "wb-dog",
+   "item": "一卷施工图纸",
+   "title": "施工图纸",
+   "kind": "normal",
+   "distanceM": 3393,
+   "lucci": 370,
+   "exp": 144,
+   "synopsis": "跳跳要的施工图纸画好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "跳跳要的施工图纸画好了。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到华盛顿海滩吧，别弄皱了。"
+    },
+    {
+     "who": "me",
+     "text": "好的。"
+    }
+   ],
+   "thanks": "图纸收到，一张都没皱，明天就能开工了。"
+  },
+  {
+   "id": "si-star~photo-album",
+   "type": "delivery",
+   "giver": "si-star",
+   "receiver": "vp-super",
+   "item": "冲洗好的相册",
+   "title": "旅行相册",
+   "kind": "normal",
+   "distanceM": 2503,
+   "lucci": 290,
+   "exp": 113,
+   "synopsis": "王伯的旅行照片冲洗好了，装成了一本相册。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "王伯上次旅行的照片冲洗好了，做成了一本相册。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在罪恶角。"
+    },
+    {
+     "who": "me",
+     "text": "交给我。"
+    }
+   ],
+   "thanks": "哇，每一张都拍得这么好！谢谢你送过来。"
+  },
+  {
+   "id": "si-star~toy-kart",
+   "type": "delivery",
+   "giver": "si-star",
+   "receiver": "dt-detective",
+   "item": "遥控卡丁车玩具",
+   "title": "遥控卡丁车",
+   "kind": "normal",
+   "distanceM": 2940,
+   "lucci": 320,
+   "exp": 128,
+   "synopsis": "福尔摩斯给侄子买了一辆遥控卡丁车玩具当礼物。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "福尔摩斯给侄子买了一辆遥控卡丁车，等着当礼物。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送到市中心吧！"
+    },
+    {
+     "who": "me",
+     "text": "好的！"
+    }
+   ],
+   "thanks": "就是这辆！孩子一定会喜欢的。"
+  },
+  {
+   "id": "si-star~concert-tickets",
+   "type": "delivery",
+   "giver": "si-star",
+   "receiver": "busdriver-havana",
+   "item": "演唱会门票",
+   "title": "演唱会门票",
+   "kind": "time",
+   "distanceM": 1713,
+   "lucci": 340,
+   "exp": 136,
+   "synopsis": "今晚的演唱会快开始了，嘟嘟的门票还在星星这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "嘟嘟的演唱会门票还在我这儿，演出快开始了！"
+    },
+    {
+     "who": "npc",
+     "text": "得在规定时间内送到，不然就进不去了！"
+    },
+    {
+     "who": "me",
+     "text": "马上送！"
+    }
+   ],
+   "thanks": "赶上了！今晚要好好嗨一场！",
+   "timeLimitMs": 145000
+  },
+  {
+   "id": "si-farm~egg-tray",
+   "type": "delivery",
+   "giver": "si-farm",
+   "receiver": "dt-bank",
+   "item": "一托新鲜鸡蛋",
+   "title": "鸡蛋别碎",
+   "kind": "collision",
+   "distanceM": 3130,
+   "lucci": 510,
+   "exp": 202,
+   "synopsis": "金金要做早餐蛋饼，在阿丰这里买了一托新鲜鸡蛋。鸡蛋一撞就碎。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "金金明早要做蛋饼，订了一托新鲜鸡蛋。"
+    },
+    {
+     "who": "npc",
+     "text": "鸡蛋可脆了，路上磕碰别超过两次！"
+    },
+    {
+     "who": "me",
+     "text": "轻拿轻放，明白。"
+    }
+   ],
+   "thanks": "一个都没碎！明天的蛋饼可以做双份了。",
+   "maxCollisions": 2
+  },
+  {
+   "id": "si-farm~party-snacks",
+   "type": "delivery",
+   "giver": "si-farm",
+   "receiver": "dt-doctor",
+   "item": "一大袋派对零食",
+   "title": "派对零食",
+   "kind": "normal",
+   "distanceM": 2389,
+   "lucci": 280,
+   "exp": 109,
+   "synopsis": "白大夫晚上要开派对，零食全在阿丰这里订好了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "白大夫晚上要开派对，零食都在我这儿订的。"
+    },
+    {
+     "who": "npc",
+     "text": "袋子有点大，不过不怕颠，帮我送去市中心吧。"
+    },
+    {
+     "who": "me",
+     "text": "交给我！"
+    }
+   ],
+   "thanks": "零食到了，派对可以开始啦！你也留下来玩吧！"
+  },
+  {
+   "id": "si-farm~coffee-beans",
+   "type": "delivery",
+   "giver": "si-farm",
+   "receiver": "vp-dessert",
+   "item": "一袋新烘焙咖啡豆",
+   "title": "新烘咖啡豆",
+   "kind": "normal",
+   "distanceM": 1936,
+   "lucci": 230,
+   "exp": 93,
+   "synopsis": "米粒的咖啡豆快用完了，阿丰这里刚烘好一批。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "米粒的咖啡豆快见底了，我这儿刚烘好一批。"
+    },
+    {
+     "who": "npc",
+     "text": "帮我送过去吧，在罪恶角。"
+    },
+    {
+     "who": "me",
+     "text": "好嘞！"
+    }
+   ],
+   "thanks": "新烘的豆子真香！下次请你喝一杯。"
+  },
+  {
+   "id": "si-clerk~newspapers",
+   "type": "delivery",
+   "giver": "si-clerk",
+   "receiver": "dt-nurse",
+   "item": "一捆当天的报纸",
+   "title": "早报",
+   "kind": "time",
+   "distanceM": 3278,
+   "lucci": 570,
+   "exp": 224,
+   "synopsis": "小雪那边的报纸卖完了，等着新的一捆报纸。早报晚了就没人看了。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小雪那边的报纸早早就卖光了，等着补货呢。"
+    },
+    {
+     "who": "npc",
+     "text": "早报可不能送晚，规定时间内送到市中心！"
+    },
+    {
+     "who": "me",
+     "text": "马上送到！"
+    }
+   ],
+   "thanks": "报纸来了！今天的头条是卡丁车联赛，大家都等着看呢。",
+   "timeLimitMs": 250000
+  },
+  {
+   "id": "si-clerk~lost-wallet",
+   "type": "delivery",
+   "giver": "si-clerk",
+   "receiver": "lt-carwash",
+   "item": "捡到的钱包",
+   "title": "失物归还",
+   "kind": "normal",
+   "distanceM": 1328,
+   "lucci": 180,
+   "exp": 71,
+   "synopsis": "有人在小信这里捡到一个钱包，里面的证件写着水水的名字。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "有人捡到一个钱包，里面的证件是水水的。"
+    },
+    {
+     "who": "npc",
+     "text": "水水一定急坏了，帮我送回去吧，在小海地。"
+    },
+    {
+     "who": "me",
+     "text": "物归原主！"
+    }
+   ],
+   "thanks": "我的钱包！还以为找不回来了，太谢谢你了！"
+  },
+  {
+   "id": "si-clerk~keys",
+   "type": "delivery",
+   "giver": "si-clerk",
+   "receiver": "lt-apprentice",
+   "item": "一串备用钥匙",
+   "title": "备用钥匙",
+   "kind": "time",
+   "distanceM": 1665,
+   "lucci": 340,
+   "exp": 133,
+   "synopsis": "小扳把自己锁在门外了，备用钥匙放在小信这里。",
+   "offer": [
+    {
+     "who": "npc",
+     "text": "小扳把自己锁在门外了，备用钥匙在我这儿。"
+    },
+    {
+     "who": "npc",
+     "text": "小扳在门口等着呢，规定时间内送到吧！"
+    },
+    {
+     "who": "me",
+     "text": "马上就到！"
+    }
+   ],
+   "thanks": "终于能进门了！谢谢你，下次我一定记得带钥匙。",
+   "timeLimitMs": 145000
   }
  ]
 }
