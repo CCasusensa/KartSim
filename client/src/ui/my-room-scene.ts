@@ -3,13 +3,13 @@ import {
   PerspectiveCamera, Raycaster, Scene, SRGBColorSpace, Vector3, WebGLRenderer,
   type Material, type Object3D,
 } from "three";
-import { CR, SR, TR, W1, Yb, e4, sn, xR, y9, yo } from "../generated/formats.js";
+import { CR, SR, TR, W1, We, Yb, e4, sn, xR, y9, yo } from "../generated/formats.js";
 import { FI, Ma, Tr, p5, xa } from "../generated/library.js";
 import { Jv, Lt, T4 } from "../generated/ui.js";
 import { ag, hr, pk } from "../generated/vehicle.js";
 import { S4 } from "../generated/world.js";
 import type { GarageCatalogEntry } from "../resources/garage-catalog";
-import type { LocalProfile } from "./local-profile";
+import type { Equipment, LocalProfile } from "./local-profile";
 import type { MyRoomEnvironment, MyRoomResourceLibrary } from "./my-room-catalog";
 
 type RoomFile = MyRoomResourceLibrary["files"][number];
@@ -578,6 +578,19 @@ export function myRoomShowcasePose(): MyRoomShowcasePose {
   };
 }
 
+/**
+ * A representative kart stands stock: no paint, plate, balloon, rider gear or
+ * garage build of the owner's, only the kart itself (its own orgColorId paint).
+ */
+export function myRoomStockKartEquipment(equipment: Equipment,
+  kart: Pick<GarageCatalogEntry, "itemId" | "systemKey">): Equipment {
+  const itemIds = Object.fromEntries(Object.keys(equipment.itemIds)
+    .map(category => [category, 0])) as Record<number, number>;
+  itemIds[3] = kart.itemId;
+  return { ...equipment, itemIds, kartSerial: 0,
+    systemKart: kart.itemId === 0 ? kart.systemKey : undefined, systemKartVariant: undefined };
+}
+
 /** Spots 4 and 5 count as one back row when this level with each other and the floor. */
 const ROW_TOLERANCE = 0.5;
 const SHELF_HEIGHT = 1;
@@ -878,19 +891,13 @@ export class MyRoomSceneView {
     const loaded: RoomAvatar[] = [];
     try {
       const equipment = subject.profile.equipment;
-      const [kartColors, riderColors] = await Promise.all([
-        Yb(this.library, equipment.itemIds[2] ?? 0),
-        Yb(this.library, equipment.itemIds[70] ?? 0, 70),
-      ]);
+      const riderColors = await Yb(this.library, equipment.itemIds[70] ?? 0, 70);
       for (const kart of karts.slice(0, 2)) {
-        // Shown as a different kart with the owner's paint, like a garage preview.
-        const shown = { ...equipment, itemIds: { ...equipment.itemIds, 3: kart.itemId },
-          kartSerial: 0, systemKart: kart.itemId === 0 ? kart.systemKey : undefined,
-          systemKartVariant: undefined };
+        const kartColors = await We(this.library, kart.orgColorId ?? 1);
         loaded.push(await Jv(this.library, kart, subject.character, subject.environment,
           subject.stageBinding, new Tr(), "kart-only", {
-            equipment: shown, initial: subject.profile.initial,
-            build: p5(subject.profile.garage, kart.itemId, 0), kartColors, riderColors,
+            equipment: myRoomStockKartEquipment(equipment, kart), initial: "",
+            build: {}, kartColors, riderColors,
           }, undefined, true));
         if (this.disposed || generation !== this.displayGeneration) return false;
       }

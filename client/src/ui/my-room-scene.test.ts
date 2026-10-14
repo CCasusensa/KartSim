@@ -9,7 +9,7 @@ import { FI } from "../generated/library.js";
 import { ag } from "../generated/vehicle.js";
 import { BoxGeometry, Group, Mesh, Vector3 } from "three";
 import { findMyRoomSceneAssets, MY_ROOM_WALK_SPEED, myRoomCameraYaw, myRoomWalkStep, myRoomSceneAnchors,
-  myRoomSceneFrame, myRoomVisibleBounds } from "./my-room-scene";
+  myRoomSceneFrame, myRoomStockKartEquipment, myRoomVisibleBounds } from "./my-room-scene";
 
 const defaultRoom = {
   id: 16, resourceName: "tomb_M01", title: "墓地小屋背景", isDefault: true,
@@ -187,4 +187,15 @@ test("大厅站位：后排直线时在第 4、5 车位前方，特殊小屋站�
   assert.deepEqual(at(row([undefined, undefined, undefined, undefined, [16, -8.7, 3],
     [17, -8.7, 3]])), { straight: false, center: hallCenter });
   assert.deepEqual(at([]), { straight: false, center: hallCenter });
+});
+
+test("代表卡丁车用原装：不带屋主的颜色、车牌、气球和人物装饰", () => {
+  const equipment = { itemIds: { 1: 2, 2: 9, 3: 387, 4: 12, 8: 5, 9: 40, 26: 7, 52: 3, 70: 4 },
+    kartSerial: 6, valueAt3E: 0, exceedType: 0, systemKart: undefined };
+  const stock = myRoomStockKartEquipment(equipment, { itemId: 580 });
+  assert.deepEqual(stock.itemIds, { 1: 0, 2: 0, 3: 580, 4: 0, 8: 0, 9: 0, 26: 0, 52: 0, 70: 0 });
+  assert.equal(stock.kartSerial, 0);
+  assert.deepEqual(equipment.itemIds[9], 40, "屋主自己的装备不变");
+  assert.equal(myRoomStockKartEquipment(equipment, { itemId: 0, systemKey: "practice" }).systemKart,
+    "practice");
 });
