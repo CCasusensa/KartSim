@@ -1,5 +1,6 @@
 import { alignLicenseFrames, alignLicenseSections, licenseEventScenes, markLicenseGoal } from "../license/license-course";
 import { itemGameObjectKind } from "./track-object-admission";
+import { carriedHazards, loadHazardItemScenery } from "../item/hazard-scenery-items";
 import { invisibleTrackGeometry } from "../resources/moving-obstacle";
 import { trackMetadataOverride } from "../resources/track-overrides";
 import { minimapProjection } from "../resources/minimap-projection";
@@ -83,11 +84,11 @@ export function itemGameRoots(movingObjects: any[]): { roots: any[]; matrixOnly:
 }
 
 /**
- * Speed races and time attack keep the item hazards' nested scenes as scenery
+ * Speed races and time attack keep the item hazards' movables as scenery
  * (`item-hazard-scenery-admitted`): factory_I04's propeller robots fly their
- * route, without the item they carry or its trap.
+ * route and carry their water mine (hazard-scenery-items.ts), without a trap.
  */
-export function hazardSceneryRoots(model: any, course: { records: any[] }): any[] {
+export function hazardSceneryObjects(model: any, course: { records: any[] }): any[] {
   if (model.root.kind !== "track") return [];
   return course.records.flatMap((record: any) => {
     if (record.occurrence.kind !== "track-object" || record.reason !== "item-hazard-scenery-admitted")
@@ -95,8 +96,38 @@ export function hazardSceneryRoots(model: any, course: { records: any[] }): any[
     const object = model.root.trackObjects[record.occurrence.index];
     if (object?.kind !== "ToMovableObject" || !object.object || object.object.kind !== "node")
       throw new Error(`ToMovableObject ${record.occurrence.name} 缺少道具陷阱嵌套场景。`);
-    return [object.object];
+    return [object];
   });
+}
+
+/**
+ * Show each scenery carrier's item in the track scene: the scene's update and
+ * dispose also drive the items. A failed item load leaves the carriers bare.
+ */
+async function withCarriedHazardItems(renderScene: any, objects: any[], library: any,
+  environment: unknown, stageBinding: unknown, ops: TrackMapOps): Promise<any> {
+  const hazards = carriedHazards(objects);
+  if (hazards.length === 0 || !library) return renderScene;
+  let items;
+  try {
+    items = await loadHazardItemScenery(library, hazards, renderScene, environment, stageBinding,
+      { decodeModel: ops.decodeModel, loadScene: ops.loadScene });
+  } catch (error) {
+    console.warn("赛道道具陷阱载体上的道具模型载入失败", error);
+    return renderScene;
+  }
+  if (items.count === 0) return renderScene;
+  return {
+    ...renderScene,
+    update(time: number, camera?: any, width?: number, height?: number) {
+      renderScene.update(time, camera, width, height);
+      items.update(time, camera, width, height);
+    },
+    dispose() {
+      items.dispose();
+      renderScene.dispose();
+    },
+  };
 }
 
 /** Builds all physical, animated and visual ownership for a track asset. */
@@ -178,7 +209,7 @@ export async function loadTrackMap(
     (entry: any) => [entry.object, entry.transform]));
   const itemRoots = itemGame ? itemGameRoots(movingObjects)
     : { roots: [], matrixOnly: [] };
-  const sceneryRoots = hazardSceneryRoots(model, course);
+  const sceneryObjects = hazardSceneryObjects(model, course);
   const admittedObjects = movingObjects.flatMap((entry: any) => {
     const result = ops.admitMovingObject(entry);
     return result.status === "admit" ? [result] : [];
@@ -267,7 +298,7 @@ export async function loadTrackMap(
       ...eventProjections.map((entry: any) => entry.renderRoot),
       ...matrixRoots,
       ...itemRoots.roots,
-      ...sceneryRoots,
+      ...sceneryObjects.map((object: any) => object.object),
     ];
     renderScene = await ops.loadScene(model, owner.assetHost.getLibrary(),
       path, metadata, {
@@ -280,6 +311,8 @@ export async function loadTrackMap(
         stageBinding,
         advanceEnvironment: false,
       });
+    renderScene = await withCarriedHazardItems(renderScene, sceneryObjects,
+      owner.assetHost.getLibrary(), environment, stageBinding, ops);
     warpNextCamera = ops.warpNextCamera(model, renderScene);
     if (mode === "speed-individual" && warp?.inType !== "fairy" &&
       course.records.some((record: any) =>

@@ -732,7 +732,8 @@ export function itemBehaviour(name: string, states: ReadonlyMap<string, ItemStat
   }
 }
 
-async function uniqueBytes(library: ItemCatalogLibrary, path: string): Promise<Uint8Array> {
+/** The bytes of the one complete original at `path`. */
+export async function uniqueBytes(library: ItemCatalogLibrary, path: string): Promise<Uint8Array> {
   const candidates = library.exactCanonicalCandidates(path);
   if (candidates.length !== 1 || candidates[0]!.absenceAuthoritative !== true)
     throw Error(`${path} 需要唯一完整原件。`);

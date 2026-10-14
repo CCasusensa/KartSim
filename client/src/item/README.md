@@ -11,6 +11,7 @@
 | `item-cube-source.ts` | 从载入的 `track*.1s` 取静态 `ToItemCube` 与移动 `itemCube`；`trackLocale@cn` 的 `customItemCube` → 赛道 ID 主题 → `village`，`cn` 优先于 `zz` |
 | `item-cubes.ts` | `ItemCubeField`：所有道具箱共用一个装配场景（每箱一个包装节点 + 旋转节点 + 模型副本，几何同池、材质与贴图共享），类别 2 配对对象 `GoItemCube[]`，每位车手各自的 stay → eaten（`Eaten.life` 隐藏、`fired01` 特效跟随本机车、`eaten.ogg`）→ stay |
 | `item-hazards.ts` | 赛道预置香蕉/地雷/隐形地雷/水雷：位置跟随嵌套场景世界矩阵，进入半径触发，同一物件 3 秒冷却；载体（机器人等）由赛道场景渲染，道具本身的 Set 模型由表现层 `trackHazards` 挂在锚点上 |
+| `hazard-scenery-items.ts` | 竞速与计时赛：布景危险物里带载体模型的，按 `item.bml` Set 状态（或 `object@model`）在锚点处显示道具模型，挂在赛道场景对象下（客户端坐标），只跟随锚点位置；不触发陷阱 |
 | `item-race-map.ts` | 道具房间判定、载图时的道具来源（目录按资源库缓存）、比赛装配时的道具箱与危险物 owner |
 | `item-race-controller.ts` | 本机道具控制器（每局道具赛一个）：镜像服务器道具槽、Ctrl/Alt/Z 请求、导弹/磁铁瞄准、受害时间线与护盾/天使/电磁波/蓝盾判定、区域道具检测、命中与落点上报、喂 HUD 与表现层 |
 | `item-race-rules.ts` | 控制器的纯规则：坐标换算（协议 `point` 用原版 z 向上坐标）、生效时刻、防御判定、瞄准候选、1600×900 舞台投影、`ITEM_RACE_TUNING`（[还原] 常量） |
@@ -33,7 +34,7 @@
 
 道具箱编号：静态箱用 `instanceOrdinal`（每个 `track*.1s` 内 1..N 唯一），移动箱用 `2048 + 可动物件 instanceOrdinal`，都落在 `cube` 请求允许的 1..4096。少数原版移动箱（`fengshen_I03`–`I05` 的 `mo_ic042`、`mo_ic044`）变换与 PRS 均为 NaN，无法到达，载入时跳过。
 
-载图准入在 `src/vehicle/track-object-admission.ts` 的 `admitItemGameTrackObject`：道具赛沿用 speed-individual 账本（模式名与协调器 token 不变），只额外准入道具箱、移动道具箱、`onlyItemGame` 物件（按其类型继续判定）与四类危险物；`ltejump` 仍省略。竞速与计时赛把四类危险物的嵌套场景当布景载入（`item-hazard-scenery-admitted`，不是发行版行为：工厂 神秘之门的螺旋桨机器人照常飞，没有道具与陷阱），其余准入逐条不变。
+载图准入在 `src/vehicle/track-object-admission.ts` 的 `admitItemGameTrackObject`：道具赛沿用 speed-individual 账本（模式名与协调器 token 不变），只额外准入道具箱、移动道具箱、`onlyItemGame` 物件（按其类型继续判定）与四类危险物；`ltejump` 仍省略。竞速与计时赛把四类危险物的嵌套场景当布景载入（`item-hazard-scenery-admitted`，不是发行版行为：工厂 神秘之门的螺旋桨机器人照常飞，没有陷阱），其余准入逐条不变；`hazard-scenery-items.ts` 给其中带载体模型的（根节点下有 `Relement`）在锚点处挂上道具赛同款的 Set 模型（机器人下的水雷/香蕉），由 `loadTrackMap` 包进赛道场景的 update/dispose，光秃的危险物不显示。
 
 ## 道具控制器（第二波）
 

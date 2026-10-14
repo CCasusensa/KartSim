@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Group } from "three";
+import { Group, PerspectiveCamera, Vector3, type Mesh, type Object3D } from "three";
 import { uniqueOriginalCoinAsset } from "../vehicle/track-coin-source";
 import { ItemIdx } from "./item-catalog";
 import { MOVING_CUBE_ID_OFFSET, type ItemCubeSource, type ItemVec3 } from "./item-cube-source";
@@ -20,7 +20,7 @@ interface LoadedMap {
   itemCubeSource?: ItemCubeSource;
   itemHazardSource?: ItemHazardSource;
   itemCatalog?: unknown;
-  renderScene: { update(time: number): void; clientWorldElements(node: object): ArrayLike<number> | undefined;
+  renderScene: { update(time: number, camera?: unknown, width?: number, height?: number): void; clientWorldElements(node: object): ArrayLike<number> | undefined;
     dispose(): void };
   skydome?: { dispose(): void };
   environment: { dispose(): void };
@@ -237,26 +237,80 @@ test("factory_I04's door boxes (<ob><inv>) push karts but are not drawn over the
   }
 });
 
-test("speed races fly factory_I04's water-mine robots as scenery, without their water mines", async () => {
+/** The carried-item mounts of a speed/time-attack map, by hazard name. */
+function hazardItemMounts(map: LoadedMap): Map<string, Object3D> {
+  const mounts = new Map<string, Object3D>();
+  (map.scene as Group).traverse(object => {
+    if (object.name.startsWith("hazardItem:")) mounts.set(object.name.slice("hazardItem:".length), object);
+  });
+  return mounts;
+}
+
+test("speed races fly factory_I04's robots as scenery with their water mines, without a trap", async () => {
   const map = await loadMap("factory_I04");
   try {
     const objects = new Map<string, { type: string }>();
     (map.scene as Group).traverse(object => { objects.set(object.name, object); });
     for (const robot of ["default04+_Geom", "default05+_Geom", "default06_Geom"])
       assert.equal(objects.get(robot)?.type, "Mesh", robot);
-    assert.equal("itemHazardSource" in map, false, "no trap and no item model");
+    assert.equal("itemHazardSource" in map, false, "no trap");
+    const mounts = hazardItemMounts(map);
+    assert.deepEqual([...mounts.keys()].sort(), ["mo_dfdf548+", "mo_dfdf549+", "mo_dfdf550"]);
+    const anchors = new Map<string, Object3D>();
+    (map.scene as Group).traverse(object => {
+      if (object.type === "Group" && mounts.has(object.name.slice(1))) anchors.set(object.name.slice(1), object);
+    });
+    assert.equal(anchors.size, 3);
+    const camera = new PerspectiveCamera(60, 16 / 9, 1, 100000);
+    for (const time of [1000, 4321]) {
+      map.renderScene.update(time, camera, 1600, 900);
+      (map.scene as Group).updateMatrixWorld(true);
+      for (const [name, mount] of mounts) {
+        // The item mesh is the water mine's Set model, standing at the robot's anchor.
+        let meshes = 0;
+        mount.traverse(object => { if ((object as Mesh).isMesh) meshes += 1; });
+        assert.ok(meshes > 0, name);
+        assert.equal(mount.visible, true, name);
+        const at = mount.getWorldPosition(new Vector3());
+        const anchor = anchors.get(name)!.getWorldPosition(new Vector3());
+        assert.ok(at.distanceTo(anchor) < 0.01, `${name} ${at.toArray()} vs ${anchor.toArray()}`);
+      }
+    }
   } finally {
     release(map);
   }
 });
 
-test("time attack keeps the hazards' carriers as scenery and omits every item object", async () => {
+test("speed races hang 巨型齿轮's bananas and 能量之源泉's water mines on carriers only", async () => {
+  const gears = await loadMap("factory_I02");
+  try {
+    assert.deepEqual([...hazardItemMounts(gears).keys()].sort(), ["mo_banana04+", "mo_banana07+", "mo_banana08+"]);
+  } finally { release(gears); }
+  // brodi_I02's two bare water mines (only a hidden marker mesh) stay item-race only.
+  const energy = await loadMap("brodi_I02");
+  try {
+    assert.deepEqual([...hazardItemMounts(energy).keys()].sort(), ["mo_dfdf554", "mo_dfdf555"]);
+  } finally { release(energy); }
+});
+
+test("item races show hazard items through the presenter, not as scenery", async () => {
+  const map = await loadMap("factory_I04", "item");
+  try {
+    assert.equal(hazardItemMounts(map).size, 0);
+    assert.equal(map.itemHazardSource?.hazards.length, 3);
+  } finally { release(map); }
+});
+
+test("time attack keeps the hazards' carriers and their items as scenery and omits every item object", async () => {
   const { vehicle, host } = await pipeline();
   const map: LoadedMap = await new vehicle.ul(host).loadAssetMap("track_/factory_I03/track.1s", "factory_I03");
   try {
     assert.equal(map.admission.ledger.mode, "time-attack");
     assert.deepEqual(reasons(map), { "cube-loader-omission": 59, "item-hazard-scenery-admitted": 4 });
     assert.equal("itemCubeSource" in map, false);
+    // All four are carried (robots and a claw), so each shows its banana or water mine.
+    assert.deepEqual([...hazardItemMounts(map).keys()].sort(),
+      ["mo_banana05+", "mo_banana06+", "mo_banana07+", "mo_dfdf549+"]);
   } finally { release(map); }
 });
 
