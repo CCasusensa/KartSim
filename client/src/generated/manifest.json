@@ -1880,8 +1880,8 @@
     },
     {
       "file": "vehicle.js",
-      "bytes": 186781,
-      "sha256": "cba7b4f2c0b95f26b66b65ff96693834dd75368ad5356267b0035efa825d556a",
+      "bytes": 187269,
+      "sha256": "3b758efcddb9af477b54a6c7d41d5a82234fd82ea482a13c7298f9d2e58fb742",
       "imports": 183,
       "exports": 104
     },

@@ -33,6 +33,7 @@ import { loadVehicleAsset } from "../vehicle/load-vehicle-asset.ts";
 import { loadTrackMap, loadTimeAttackMap, loadMultiplayerMap } from "../vehicle/load-track-map.ts";
 import { isItemRaceRoom, loadItemGameTrackSources, loadItemRaceFields } from "../item/item-race-map.ts";
 import { loadItemRacePresenter } from "../item/item-race-presenter.ts"; // item-mode(fx)
+import { loadHazardTraps } from "../item/hazard-traps.ts"; // speed hazard traps
 import { itemRaceVehicleSpec } from "../physics/item-race-tuning.ts"; // item-mode(p3p)
 import { cityTrackChoice, isCityRace } from "../city/city-track.ts"; // city
 import { KartAudioRuntime, loadKartAudio, decodeMotorAudio, parseRoadSoundConfig } from "../vehicle/kart-audio-runtime.ts";
@@ -6084,6 +6085,13 @@ async function A40(n, e, t, i, r, s) {
       ? await loadItemRacePresenter(g, itemRaceFields.catalog, C.environment, C.stageBinding, i, itemPresenterOps)
       : void 0;
     (itemPresenter && S.push(() => itemPresenter.dispose()), w());
+    const hazardTraps = itemRaceFields // speed hazard traps
+      ? void 0
+      : await loadHazardTraps(g, C, i, itemPresenterOps).catch((error) => {
+        console.warn("赛道水雷未能载入", error);
+        return void 0;
+      });
+    (hazardTraps && S.push(() => hazardTraps.dispose()), w());
     const V = C.lensFlarePoint ? await w7.load(g, C.lensFlarePoint) : void 0;
     (V && S.push(() => V.dispose()), w());
     const K = C.data.weather?.rainEnabled
@@ -6245,7 +6253,8 @@ async function A40(n, e, t, i, r, s) {
       itemCatalog: itemRaceFields?.catalog,
       itemCubes: itemRaceFields?.cubes,
       itemHazards: itemRaceFields?.hazards,
-      itemPresenter, // item-mode(fx)
+      itemPresenter: itemPresenter ?? hazardTraps?.presenter, // item-mode(fx); speed hazard traps
+      hazardTraps, // speed hazard traps
       roadblockRunnerId: t.roadblock?.runnerId,
       channel: y,
       checkClientFramerate: b,

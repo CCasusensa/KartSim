@@ -519,6 +519,26 @@ itemWorldRaceAssetPatches.push(
     `      itemHazards: itemRaceFields?.hazards,
       itemPresenter, // item-mode(fx)`],
 );
+// Speed races (not in the release): the water mines the hazard carriers hold
+// (factory robots and the like) trap karts, src/item/hazard-traps.ts. A40
+// builds the trap owner when the map is not an item map and hands its item
+// presenter over as assets.itemPresenter (the bubble lift of the drawn karts).
+itemWorldVehicleImports.push(
+  'import { loadHazardTraps } from "../item/hazard-traps.ts"; // speed hazard traps');
+itemWorldRaceAssetPatches.push(
+  [`    (itemPresenter && S.push(() => itemPresenter.dispose()), w());`,
+    `    (itemPresenter && S.push(() => itemPresenter.dispose()), w());
+    const hazardTraps = itemRaceFields // speed hazard traps
+      ? void 0
+      : await loadHazardTraps(g, C, i, itemPresenterOps).catch((error) => {
+        console.warn("赛道水雷未能载入", error);
+        return void 0;
+      });
+    (hazardTraps && S.push(() => hazardTraps.dispose()), w());`],
+  [`      itemPresenter, // item-mode(fx)`,
+    `      itemPresenter: itemPresenter ?? hazardTraps?.presenter, // item-mode(fx); speed hazard traps
+      hazardTraps, // speed hazard traps`],
+);
 // item-mode(p3p): item races drive with the kart XML's BoosterAccelFactorItem
 // and the flying pet's tune-group itemBoosterTime (src/physics/item-race-tuning.ts).
 // R2 is the kart's param@cn/param document A40 already loaded; vI(SX(e)) is the

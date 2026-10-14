@@ -6,6 +6,7 @@ import { ItemIdx } from "./item-catalog";
 import { MOVING_CUBE_ID_OFFSET, type ItemCubeSource, type ItemVec3 } from "./item-cube-source";
 import type { CubeModelData, ItemCubeFieldOps, ItemPairObject } from "./item-cubes";
 import type { ItemHazardHit, ItemHazardSource } from "./item-hazards";
+import { loadHazardTraps } from "./hazard-traps";
 import { isItemRaceRoom, loadItemRaceFields } from "./item-race-map";
 import { loadMirrorLibrary, type MirrorLibrary } from "./item-test-fixtures";
 
@@ -246,14 +247,14 @@ function hazardItemMounts(map: LoadedMap): Map<string, Object3D> {
   return mounts;
 }
 
-test("speed races fly factory_I04's robots as scenery with their water mines, without a trap", async () => {
+test("speed races fly factory_I04's robots as scenery with their water mines", async () => {
   const map = await loadMap("factory_I04");
   try {
     const objects = new Map<string, { type: string }>();
     (map.scene as Group).traverse(object => { objects.set(object.name, object); });
     for (const robot of ["default04+_Geom", "default05+_Geom", "default06_Geom"])
       assert.equal(objects.get(robot)?.type, "Mesh", robot);
-    assert.equal("itemHazardSource" in map, false, "no trap");
+    assert.equal("itemHazardSource" in map, false, "no item race hazard field (hazard-traps.ts traps instead)");
     const mounts = hazardItemMounts(map);
     assert.deepEqual([...mounts.keys()].sort(), ["mo_dfdf548+", "mo_dfdf549+", "mo_dfdf550"]);
     const anchors = new Map<string, Object3D>();
@@ -291,6 +292,38 @@ test("speed races hang 巨型齿轮's bananas and 能量之源泉's water mines 
   try {
     assert.deepEqual([...hazardItemMounts(energy).keys()].sort(), ["mo_dfdf554", "mo_dfdf555"]);
   } finally { release(energy); }
+});
+
+test("speed races trap karts in the carriers' water mines only (神秘之门 3, 能量之源泉 2, 巨型齿轮 none)", async () => {
+  const { library, formats } = await pipeline();
+  const libraryModule = await import("../generated/library.js") as any;
+  const ops = {
+    originalAsset: (archive: unknown, path: string) => uniqueOriginalCoinAsset(archive as never, path),
+    decodeModel: formats.y9, loadModel: formats.c5, decodeAudio: libraryModule.Q9,
+    routeAudio: libraryModule.S9, setGain: libraryModule.he,
+  };
+  const expected: Record<string, string[]> = {
+    factory_I04: ["mo_dfdf548+", "mo_dfdf549+", "mo_dfdf550"],
+    brodi_I02: ["mo_dfdf554", "mo_dfdf555"],
+    factory_I02: [],
+  };
+  for (const [trackId, names] of Object.entries(expected)) {
+    const map = await loadMap(trackId);
+    try {
+      const traps = await loadHazardTraps(library as never, map as never, undefined, ops as never);
+      assert.deepEqual(traps?.source.hazards.map(hazard => hazard.name).sort() ?? [], names, trackId);
+      if (!traps) continue;
+      try {
+        assert.ok(traps.source.hazards.every(hazard => hazard.kind === "waterMine" && hazard.radius === 2));
+        assert.ok(traps.presenter, "the bubble's looks load");
+      } finally { traps.dispose(); }
+    } finally { release(map); }
+  }
+  const item = await loadMap("factory_I04", "item");
+  try {
+    assert.equal(await loadHazardTraps(library as never, item as never, undefined, ops as never), undefined,
+      "item races trap through the item race controller");
+  } finally { release(item); }
 });
 
 test("item races show hazard items through the presenter, not as scenery", async () => {

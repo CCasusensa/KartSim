@@ -1,6 +1,9 @@
 import { beginRaceLoad } from "../resources/resource-manager";
-import { vI } from "../generated/library.js";
+import { c5, y9 } from "../generated/formats.js";
+import { he, Q9, S9, vI } from "../generated/library.js";
 import { LicenseItemRace } from "../license/license-item-race";
+import { loadHazardTraps, type HazardTraps } from "../item/hazard-traps";
+import { uniqueOriginalCoinAsset } from "../vehicle/track-coin-source";
 import { licenseSceneNames } from "../license/license-mission";
 import { itemRaceVehicleSpec } from "../physics/item-race-tuning";
 import { LicenseScenes } from "../license/license-scenes";
@@ -11,6 +14,17 @@ import { kartAlignedPetOwner } from "../world/flying-pet-mount";
 import { AutopilotPrank, isAutopilotKart, loadAutopilotPrompts } from "../ui/autopilot-prank";
 import type { StoryRaceRequest } from "../story/story-race";
 import { racePlaylistReady } from "./race-bgm-loading";
+
+/** The item presenter's model and sound ops (the multiplayer race's itemPresenterOps). */
+const hazardTrapOps = {
+  originalAsset: (archive: unknown, path: string) => uniqueOriginalCoinAsset(archive as never, path),
+  decodeModel: (bytes: Uint8Array) => y9(bytes),
+  decodeAudio: Q9,
+  loadModel: (data: unknown, archive: unknown, path: string, identity: unknown, options: unknown) =>
+    c5(data as never, archive as never, path, identity as never, options as never),
+  routeAudio: S9,
+  setGain: he,
+} as never;
 
 /**
  * Construct every owner needed by a solo race before the application publishes it.
@@ -256,6 +270,7 @@ async function buildLoadedSoloRace(
         raceOptions.speed === 4);
     let track: any, rain: any, rainAudio: any, snow: any;
     let licenseItems: LicenseItemRace | undefined;
+    let hazardTraps: HazardTraps | undefined;
     let wrongWay: WrongWayWarning | undefined;
     let autopilot: AutopilotPrank | undefined;
     let gameplayUi: any, action2D: any, result: any, trackInfoCard: any;
@@ -330,6 +345,13 @@ async function buildLoadedSoloRace(
         });
       }
       map.licenseModel = undefined;
+      // The carriers' water mines catch the kart (not in a 驾照 item step, which is an item race).
+      if (!licenseItemStep && map.hazardSceneryObjects) {
+        hazardTraps = await loadHazardTraps(host.getLibrary(), map, audioContext, hazardTrapOps).catch(error => {
+          host.hud.showDebugText(`赛道水雷未能载入：${error instanceof Error ? error.message : String(error)}`, "error");
+          return undefined;
+        });
+      }
       // Story races also load retire@zz (未完成) for a failed mission.
       action2D = ops.createAction2D(await ops.loadAction2D(host.getLibrary(), Boolean(selection.story)));
       if (selection.story) {
@@ -523,6 +545,7 @@ async function buildLoadedSoloRace(
     } catch (error) {
       disposeNewBgm();
       licenseItems?.dispose();
+      hazardTraps?.dispose();
       wrongWay?.dispose();
       autopilot?.dispose();
       flyingPet?.dispose();
@@ -571,6 +594,7 @@ async function buildLoadedSoloRace(
       nextLinkedCharacterPresentation: linkedPresentation,
       nextFlyingPet: flyingPet, nextGhosts: ghosts, rankColors,
       nextLicenseItems: licenseItems,
+      nextHazardTraps: hazardTraps,
       nextWrongWay: wrongWay,
       nextAutopilot: autopilot,
       selectedVehicle: kart, generation,

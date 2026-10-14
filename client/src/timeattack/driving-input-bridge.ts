@@ -1,6 +1,7 @@
 /** Routes keyboard, touch, and gamepad actions into the time-attack vehicle. */
 
 import { activeLicenseItems } from "../license/license-item-race";
+import { activeHazardTraps } from "../item/hazard-traps";
 
 export interface DrivingCommand {
   kind: string;
@@ -113,6 +114,8 @@ export function drainTimeAttackDrivingInput(bridge: DrivingInputBridgeHost,
   // 驾照考试 item steps: Ctrl, Alt and Z are item keys (道具赛), not the nitro.
   const transitions = items
     ? items.routeInput(all, nowMs, phase === dependencies.racingPhase) : all;
+  // A track water mine's bubble (race-hazard-traps.ts): left/right presses break it sooner.
+  if (!items) activeHazardTraps()?.escapeInput(all, phase === dependencies.racingPhase);
   if (transitions.some(transition => transition.sourceKind === "gamepad" &&
     transition.down && transition.action === dependencies.forwardAction)) {
     host.resumeGamepadAutoForward();

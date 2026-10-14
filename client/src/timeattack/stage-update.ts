@@ -2,6 +2,7 @@ import { updateStoryChase, type ChaseStage } from "../story/story-chase";
 import { updateLicenseMission, type LicenseMissionStage } from "../license/license-mission";
 import { updateLicenseTimer, type LicenseTimerStage } from "../license/license-race";
 import { licenseItemsOf } from "../license/license-item-race";
+import { hazardTrapsOf, presentRaceHazardTraps, trapDrawnState } from "./race-hazard-traps";
 import { observeOf } from "./replay-observe";
 import { vehicleRoadDust } from "../vehicle/road-dust-effect";
 import { sampleWrongWay, wrongWayOf } from "../ui/wrong-way-warning";
@@ -120,8 +121,11 @@ export function updateTimeAttackStage(
       host.session.lifecycle.phase >= dependencies.racingPhase);
     autopilot.setGo(host.session.lifecycle.startAtMs || undefined);
   }
+  // A water mine's bubble lifts the drawn kart (the item race's firedkart motion); physics stays put.
+  const hazardTraps = hazardTrapsOf(host.session);
+  const liftedState = hazardTraps ? trapDrawnState(hazardTraps, host.getPhysics(), effectiveNowMs) : undefined;
   let animationState = host.kartView.update(
-    host.getPhysics().state,
+    liftedState ?? host.getPhysics().state,
     Math.trunc(host.presentationClockMs) >>> 0,
     host.getPhysics().consumeKartAnimationInput(),
   );
@@ -334,6 +338,9 @@ export function updateTimeAttackStage(
   // 驾照考试 item steps: the boxes, targets and item effects follow the track scene.
   licenseItemsOf(host.session)?.present(host.camera, Number(dependencies.worldAxis),
     Number(dependencies.depthAxis));
+  // The carriers' water mines (their trap field follows the track scene) and the bubble's looks.
+  if (hazardTraps) presentRaceHazardTraps(hazardTraps, effectiveNowMs, host.camera,
+    Number(dependencies.worldAxis), Number(dependencies.depthAxis), host.getPhysics().body);
   host.updateDevToolsTrackObjects(host.session.lifecycle.effectiveTime(rawNowMs),
     dependencies.worldAxis, dependencies.depthAxis);
   host.workProfiler?.mark("track-render", dependencies.nowMs());

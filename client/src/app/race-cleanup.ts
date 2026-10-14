@@ -15,6 +15,7 @@ interface RaceSession {
   ghosts: Array<{ view: Disposable }>;
   /** 驾照考试 item steps' item race. */
   licenseItems?: Disposable;
+  hazardTraps?: Disposable;
   /** 逆向提示. */
   wrongWay?: Disposable;
   /** 创世 9 自动版. */
@@ -116,6 +117,10 @@ export function releaseRaceForReady(
   if (session.licenseItems) {
     session.licenseItems.dispose();
     session.licenseItems = undefined;
+  }
+  if (session.hazardTraps) {
+    session.hazardTraps.dispose();
+    session.hazardTraps = undefined;
   }
   if (session.wrongWay) {
     session.wrongWay.dispose();

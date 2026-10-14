@@ -1,4 +1,5 @@
 import { observeOf, updateObserverCamera } from "./replay-observe";
+import { trapCameraLift } from "./race-hazard-traps";
 
 export interface RaceCameraDependencies {
   versionTag(tag: string): string;
@@ -67,10 +68,12 @@ export class RaceCameraCoordinator {
     const routeSurface = track.currentRouteSurface(vehicle);
     const body = vehicle.body;
     const shake = this.cameraShake.update(timestampMs, routeSurface);
+    // The camera follows a water bubble's lift of the drawn kart (race-hazard-traps.ts).
+    const lift = trapCameraLift(session, body, timestampMs);
     const shakenPosition = {
-      x: Math.fround(body.position.x + shake.x),
-      y: Math.fround(body.position.y + shake.y),
-      z: Math.fround(body.position.z + shake.z),
+      x: Math.fround(body.position.x + shake.x + (lift?.x ?? 0)),
+      y: Math.fround(body.position.y + shake.y + (lift?.y ?? 0)),
+      z: Math.fround(body.position.z + shake.z + (lift?.z ?? 0)),
     };
     this.cameraWave.update(timestampMs, routeSurface, body, shakenPosition);
     // 驾照考试 item steps: a spinning or launched kart keeps the camera on the road (道具赛).

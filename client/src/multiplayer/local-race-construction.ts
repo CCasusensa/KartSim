@@ -121,6 +121,24 @@ export function initializeLocalRace(
       owner.resetState.phase === 0 && !owner.warpNext.blocksDriving(),
   );
   attachItemRaceFields(owner, assets, ops);
+  attachHazardTraps(owner, assets, localPlayerId, ops);
+}
+
+/**
+ * Speed races: the water mines the hazard carriers hold trap the local kart
+ * (item/hazard-traps.ts); the trap presenter joins the track group.
+ */
+function attachHazardTraps(owner: any, assets: any, localPlayerId: string,
+  ops: LocalRaceConstructionOps): void {
+  const traps = assets.hazardTraps;
+  if (!traps || isItemRace(assets.drivingMode)) return;
+  owner.track.group.add(traps.object);
+  traps.attach(owner.coordinator, {
+    physics: owner.physics,
+    playerId: localPlayerId,
+    canTrigger: () => owner.lifecycle.state === ops.racingState &&
+      owner.resetState.phase === 0 && !owner.warpNext.blocksDriving(),
+  });
 }
 
 /**

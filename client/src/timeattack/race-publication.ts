@@ -71,6 +71,8 @@ export interface SoloRaceResources {
   nextGhosts: GhostResource[];
   /** 驾照考试 item steps: the item race (license-item-race.ts). */
   nextLicenseItems?: SceneResource;
+  /** The carriers' water mines that catch the kart (item/hazard-traps.ts). */
+  nextHazardTraps?: SceneResource;
   /** 逆向提示 (ui/wrong-way-warning.ts), when it loaded. */
   nextWrongWay?: RaceDisposable;
   /** 创世 9 自动版 (ui/autopilot-prank.ts). */
@@ -93,6 +95,7 @@ export interface SoloRaceSession {
   kartEffects?: RaceDisposable;
   ghosts: GhostResource[];
   licenseItems?: SceneResource;
+  hazardTraps?: SceneResource;
   wrongWay?: RaceDisposable;
   autopilot?: RaceDisposable;
   balloonDecoration?: RaceDisposable;
@@ -192,7 +195,7 @@ export async function publishSoloRace(
     nextTrackEventAudio, nextTrackDummyAudio, nextLinkedCharacterPresentation,
     nextFlyingPet, nextGhosts, rankColors, selectedVehicle,
     particleModificationBanner, particleModificationBannerRequest, outlineBatch, nextLicenseItems,
-    nextWrongWay, nextAutopilot,
+    nextHazardTraps, nextWrongWay, nextAutopilot,
   } = resources;
   const session = host.session;
   const audio = host.audio;
@@ -213,6 +216,10 @@ export async function publishSoloRace(
   if (session.licenseItems) {
     session.licenseItems.dispose();
     session.licenseItems = undefined;
+  }
+  if (session.hazardTraps) {
+    session.hazardTraps.dispose();
+    session.hazardTraps = undefined;
   }
   if (session.wrongWay) {
     session.wrongWay.dispose();
@@ -316,6 +323,10 @@ export async function publishSoloRace(
   if (nextLicenseItems) {
     session.licenseItems = nextLicenseItems;
     host.scene.add(nextLicenseItems.object);
+  }
+  if (nextHazardTraps) {
+    session.hazardTraps = nextHazardTraps;
+    host.scene.add(nextHazardTraps.object);
   }
   if (nextWrongWay) session.wrongWay = nextWrongWay;
   if (nextAutopilot) session.autopilot = nextAutopilot;

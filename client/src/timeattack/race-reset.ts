@@ -1,4 +1,5 @@
 import { licenseItemsOf } from "../license/license-item-race";
+import { attachRaceHazardTraps } from "./race-hazard-traps";
 import type { TimeAttackAction } from "./lifecycle";
 
 interface Resettable {
@@ -190,6 +191,8 @@ export function restartTimeAttackRace(
   host.session.coordinator = stage.createCoordinator(admission, track, physics);
   // 驾照考试 item steps: fresh items and targets, the boxes paired with the new coordinator.
   licenseItemsOf(host.session)?.restart(host.session.coordinator as never);
+  // The carriers' water mines pair with the new coordinator; a bubble of the last start ends.
+  attachRaceHazardTraps(host as never);
   host.getPhysics().setRaceMotionLocked(true);
   host.audio.bgm?.restart();
   stage.ui?.trackInfoCard?.setBgmName(host.audio.bgm?.currentRaceName ?? "");

@@ -12,7 +12,8 @@ import { HAZARD_ITEM_IDX, type ItemHazardKind } from "./item-hazards";
  * penguins, tomb_I09's pumpkin ghost) also shows the item it carries, the way
  * the item race presenter shows it (`trackHazards`): the item's Set model, or
  * the `object@model` Set model of the same folder, standing at the anchor.
- * There is still no trap. A bare hazard (a banana or mine lying on the road,
+ * Carried water mines also trap karts (hazard-traps.ts); bananas and mines
+ * only show. A bare hazard (a banana or mine lying on the road,
  * only a hidden marker mesh) stays item-race only: it would look like a trap
  * that does nothing.
  */

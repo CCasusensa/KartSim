@@ -86,7 +86,8 @@ export function itemGameRoots(movingObjects: any[]): { roots: any[]; matrixOnly:
 /**
  * Speed races and time attack keep the item hazards' movables as scenery
  * (`item-hazard-scenery-admitted`): factory_I04's propeller robots fly their
- * route and carry their water mine (hazard-scenery-items.ts), without a trap.
+ * route and carry their water mine (hazard-scenery-items.ts), which traps karts
+ * (item/hazard-traps.ts).
  */
 export function hazardSceneryObjects(model: any, course: { records: any[] }): any[] {
   if (model.root.kind !== "track") return [];
@@ -384,6 +385,8 @@ export async function loadTrackMap(
     lteCoinSource,
     // 驾照考试 item steps read the course's item boxes and target dummies.
     ...(licenseCourse ? { licenseModel: model } : {}),
+    // Speed races and time attack: the carriers' water mines trap karts (item/hazard-traps.ts).
+    ...(sceneryObjects.length ? { hazardSceneryObjects: sceneryObjects } : {}),
     ...(itemSources ? {
       itemCatalog: itemSources.catalog,
       itemCubeSource: itemSources.cubes,

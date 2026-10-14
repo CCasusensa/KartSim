@@ -2,6 +2,7 @@
 import {
   itemReverseDrivingEffect, type ItemCommand, type ItemDirectionKey, type ItemInputRouter,
 } from "../input/item-input";
+import { pressTrapEscape } from "../item/hazard-traps";
 
 export interface RaceSessionCommand { kind: string; [key: string]: unknown }
 export interface RaceSessionAction { kind: string; [key: string]: unknown }
@@ -15,6 +16,8 @@ interface ItemRacePhysics {
     readonly steeringInverted: boolean;
     /** Forward/back swapped (newDevil 恶魔阿哥, drrMine R博士). */
     readonly forwardBackSwapped?: boolean;
+    /** Running effects (a speed race's track water mine bubble, item/hazard-traps.ts). */
+    readonly active?: ReadonlySet<string>;
     escapePress(): boolean;
     /** Arrow keys while held (the talisman 符咒 QTE). */
     directionPress?(direction: ItemDirectionKey): boolean;
@@ -130,7 +133,12 @@ function cancelItemInput(host: RaceSessionUpdateHost): void {
 function routeItemInput<T extends { action: number; down: boolean }>(host: RaceSessionUpdateHost,
   transitions: T[], dependencies: RaceSessionUpdateDependencies): T[] {
   const local = host.runtime.local;
-  if (!itemRace(host) || !local.itemInput) return transitions;
+  if (!itemRace(host) || !local.itemInput) {
+    // Speed races: a track water mine's bubble (item/hazard-traps.ts) breaks sooner on left/right.
+    pressTrapEscape(local.physics.itemEffects, transitions,
+      local.lifecycle.state === dependencies.states.Racing);
+    return transitions;
+  }
   return local.itemInput.route(transitions, {
     racing: local.lifecycle.state === dependencies.states.Racing,
     command: command => sendItemCommand(host, command),
