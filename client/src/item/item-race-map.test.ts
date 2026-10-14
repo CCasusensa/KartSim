@@ -294,6 +294,35 @@ test("speed races hang 巨型齿轮's bananas and 能量之源泉's water mines 
   } finally { release(energy); }
 });
 
+test("巨型齿轮's propeller robots keep dropping with their bananas after the first loop", async () => {
+  // Their position keys start at -32 ms; read unsigned, the loop ran once and
+  // the robots hung at the top for the rest of the race.
+  const gears = await loadMap("factory_I02");
+  try {
+    const robots = new Map<string, Object3D>();
+    (gears.scene as Group).traverse(object => {
+      if (/^#mo_banana0[478]\+$/.test(object.name)) robots.set(object.name.slice(1), object);
+    });
+    const mounts = hazardItemMounts(gears);
+    assert.equal(robots.size, 3);
+    const camera = new PerspectiveCamera(60, 16 / 9, 1, 100000);
+    gears.renderScene.update(1000, camera, 1600, 900);
+    for (const [name, robot] of robots) {
+      const heights: number[] = [], items: number[] = [];
+      // A minute into the race: one 4032 ms loop (-32..4000).
+      for (let time = 61_000; time <= 65_032; time += 100) {
+        gears.renderScene.update(time, camera, 1600, 900);
+        (gears.scene as Group).updateMatrixWorld(true);
+        heights.push(robot.matrix.elements[14]!);
+        items.push(mounts.get(name)!.getWorldPosition(new Vector3()).y);
+      }
+      // Client z: 72.48 at the top, 67.07 down by the road.
+      assert.ok(Math.max(...heights) > 72.4 && Math.min(...heights) < 67.1, `${name} ${Math.min(...heights)}..${Math.max(...heights)}`);
+      assert.ok(Math.max(...items) - Math.min(...items) > 5.3, `${name} banana follows`);
+    }
+  } finally { release(gears); }
+});
+
 test("speed races trap karts in the carriers' water mines only (神秘之门 3, 能量之源泉 2, 巨型齿轮 none)", async () => {
   const { library, formats } = await pipeline();
   const libraryModule = await import("../generated/library.js") as any;

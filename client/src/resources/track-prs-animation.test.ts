@@ -158,3 +158,27 @@ test("PRS play、模式覆盖、stop 冻结和 reset 时钟与发行版一致", 
   assert.deepEqual(sampleTrackPrs(currentProperty, currentRuntime,
     9999, fallback()), original.PW(oldProperty, oldRuntime, 9999, fallback()));
 });
+
+test("PRS 首个 key 在 0 之前（-32 ms）时照样循环，不在第一圈后停在末帧", () => {
+  // factory_I02 的螺旋桨机器人：position 从 -32 ms 起，4000 ms 一圈，中间降下来。
+  // 发行版按无符号读成 4294967264，循环区间变成 2^32 ms，跑完一圈就停在末帧。
+  const prs: ParsedTrackPrs = { kind: "prs", base: { cycleMode: 0, frequency: 1,
+    phaseWord: 0, startTimeWord: 0, stopTimeWord: 4000 },
+  firstLastCache: [-32 >>> 0, 4000, 0, 0, 0, 0],
+  position: { type: 1, records: [vectorKey(-32 >>> 0, [0, 0, 72]),
+    vectorKey(0, [0, 0, 72]), vectorKey(2000, [0, 0, 67]),
+    vectorKey(4000, [0, 0, 72])] } };
+  const runtime = createPrsRuntime();
+  playPrs(prs, runtime, 10_000, 0);
+  const height = (time: number) =>
+    sampleTrackPrs(prs, runtime, time, fallback()).position[2]!;
+  // One loop is 4032 ms (-32..4000); the low point comes back every loop.
+  for (const loop of [0, 1, 15, 100]) {
+    const start = 10_000 + loop * 4032;
+    assert.equal(height(start + 32), 72, `loop ${loop} start`);
+    assert.equal(height(start + 32 + 2000), 67, `loop ${loop} low`);
+    assert.equal(height(start + 32 + 1000), 69.5, `loop ${loop} half way`);
+  }
+  // The frame before 0 interpolates between the -32 and 0 keys.
+  assert.equal(height(10_000 + 4032 + 16), 72);
+});

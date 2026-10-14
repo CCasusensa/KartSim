@@ -77,6 +77,18 @@ function recordView(record: Uint8Array): DataView {
   return new DataView(record.buffer, record.byteOffset, record.byteLength);
 }
 
+/**
+ * A key's time is a signed millisecond count: exporters put a key one frame
+ * before 0 (factory_I02's propeller robots start at -32 ms, and the file's
+ * firstLastCache stores -32 too). Read unsigned, as the release does, that
+ * key became 4294967264 and stretched the loop range to 2^32 ms, so the
+ * animation ran once and froze on its last key (the robots never came down
+ * again). Not release behaviour.
+ */
+function keyTime(view: DataView): number {
+  return view.getInt32(0, true);
+}
+
 function floatWord(value: number): number {
   floatWordView.setFloat32(0, value, true);
   return floatWordView.getUint32(0, true);
@@ -101,7 +113,7 @@ function parsedVec3(track: PrsKeyTrack) {
   const cache = cacheFor(track);
   return cache.vec3 ??= track.records.map(record => {
     const view = recordView(record);
-    return { time: view.getUint32(0, true), value: [
+    return { time: keyTime(view), value: [
       view.getFloat32(4, true), view.getFloat32(8, true),
       view.getFloat32(12, true) ] };
   });
@@ -111,7 +123,7 @@ function parsedQuaternion(track: PrsKeyTrack) {
   const cache = cacheFor(track);
   return cache.rotation ??= track.records.map(record => {
     const view = recordView(record);
-    return { time: view.getUint32(0, true), value: [
+    return { time: keyTime(view), value: [
       view.getFloat32(4, true), view.getFloat32(8, true),
       view.getFloat32(12, true), view.getFloat32(16, true) ] };
   });
@@ -121,7 +133,7 @@ function parsedScalar(track: PrsKeyTrack) {
   const cache = cacheFor(track);
   return cache.scalar ??= track.records.map(record => {
     const view = recordView(record);
-    return { time: view.getUint32(0, true), value: view.getFloat32(4, true),
+    return { time: keyTime(view), value: view.getFloat32(4, true),
       incoming: track.type === 0 ? view.getFloat32(8, true) : 0,
       outgoing: track.type === 0 ? view.getFloat32(12, true) : 0 };
   });
@@ -134,11 +146,11 @@ function trackRange(track: PrsKeyTrack | PrsCompositeRotation,
   const records = "records" in track ? track.records
     : (track.axes ?? track.components ?? []).flatMap(axis => axis.records);
   if (records.length === 0) {
-    emptyRange.start = property.firstLastCache[cacheIndex]!;
-    emptyRange.stop = property.firstLastCache[cacheIndex + 1]!;
+    emptyRange.start = property.firstLastCache[cacheIndex]! | 0;
+    emptyRange.stop = property.firstLastCache[cacheIndex + 1]! | 0;
     return emptyRange;
   }
-  const times = records.map(record => recordView(record).getUint32(0, true));
+  const times = records.map(record => keyTime(recordView(record)));
   return cache.range = { start: Math.min(...times), stop: Math.max(...times) };
 }
 
@@ -264,7 +276,8 @@ function mapPrsTime(base: ParsedTrackPrs["base"], runtime: PrsRuntime,
   const span = unsignedFloat(f32(f32((stop - start) >>> 0) * frequency));
   if (span === 0) return elapsed;
   const cycleMode = runtime.cycleModeOverride ?? base.cycleMode;
-  if (cycleMode === 0) return ((elapsed % span) + start) >>> 0;
+  // Signed: a loop that starts before 0 maps its first frames below 0.
+  if (cycleMode === 0) return (elapsed % span + start) | 0;
   if (cycleMode === 1) {
     const cycle = Math.floor(elapsed / span) >>> 0;
     if (cycle !== runtime.previousCycle)
@@ -289,7 +302,7 @@ function compileTrack(property: ParsedTrackPrs): CompiledPrs {
     const values = new Float32Array(track.records.length * 3);
     track.records.forEach((record, index) => {
       const view = recordView(record);
-      times[index] = view.getUint32(0, true);
+      times[index] = keyTime(view);
       values[index * 3] = view.getFloat32(4, true);
       values[index * 3 + 1] = view.getFloat32(8, true);
       values[index * 3 + 2] = view.getFloat32(12, true);
@@ -304,7 +317,7 @@ function compileTrack(property: ParsedTrackPrs): CompiledPrs {
     const incoming = new Float32Array(count), outgoing = new Float32Array(count);
     track.records.forEach((record, index) => {
       const view = recordView(record);
-      times[index] = view.getUint32(0, true);
+      times[index] = keyTime(view);
       values[index] = view.getFloat32(4, true);
       if (track.type === 0) {
         incoming[index] = view.getFloat32(8, true);
@@ -323,7 +336,7 @@ function compileTrack(property: ParsedTrackPrs): CompiledPrs {
       const values = new Float32Array(rotation.records.length * 4);
       rotation.records.forEach((record, index) => {
         const view = recordView(record);
-        times[index] = view.getUint32(0, true);
+        times[index] = keyTime(view);
         values[index * 4] = view.getFloat32(4, true);
         values[index * 4 + 1] = view.getFloat32(8, true);
         values[index * 4 + 2] = view.getFloat32(12, true);
