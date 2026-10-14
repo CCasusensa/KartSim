@@ -19,6 +19,7 @@ import { CITY_MAP, CITY_TRACK_ID, registerCityTrack } from "./city-track";
 import { cityWaterLevel, type CityWaterMap } from "./city-water";
 import { groundHeightAt } from "./city-ground";
 import { applyCityVehicleScale, CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
+import { applyCityKerbs, loadCityKerbs } from "./city-kerbs";
 import { setTetherUnit } from "../vehicle/tether-motion";
 import { beginCityLoading, firstCityFrame, type CityLoadingHandle } from "./city-loading";
 import { CityFuelController } from "./city-fuel-controller";
@@ -207,6 +208,8 @@ export class CitySession {
       });
       loading.stage("正在准备城市、车辆和界面…");
       this.loadingResources = true;
+      // The kerbs karts climb (city-kerbs.ts), fetched while the city loads.
+      const kerbs = loadCityKerbs().catch((error: unknown) => { console.warn("卡丁城路缘数据未能载入", error); return undefined; });
       const stage = await loader.prepare(room, race, this.abort.signal, connection);
       this.loadingResources = false;
       if (host.disposed || this.disposed || this.abort.signal.aborted) {
@@ -221,6 +224,10 @@ export class CitySession {
       stage.bindClock(this.clockMapping);
       stage.updateRoom(room);
       this.installCity(snapshot);
+      const kerbBytes = await kerbs;
+      if (kerbBytes) {
+        try { applyCityKerbs(stage.runtime.local.track.surface, kerbBytes); } catch (error) { console.warn("卡丁城路缘数据不可用", error); }
+      }
       this.teleportLocal(snapshot.you.spawn);
       this.fuel?.greet();
       host.lobby?.hide?.();

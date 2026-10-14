@@ -150,3 +150,21 @@
 - **车库**只能坐在自己车的驾驶座上打开，否则 `city-equipment` 返回 `NOT_IN_OWN_KART`。换车后车辆的 `equipment` 与油箱一起换成新车的（广播 `city-vehicle`）。
 - **离开城市**（`city-leave`、断线、换线路）：他开着的别人的车停在原地；他自己的车随他收回，广播 `city-vehicle-gone`，车上的人被放到车旁（`reason:"recalled"`）；他用过的油箱都保存一次。
 - 浏览器：H 或 F1 打开卡丁城操作说明（第一次进城自动打开，见 `CITY-QUESTS.md` §6），E 上下车，L 锁车，M 打开卡丁城地图（标出自己、自己的车、加油站、其他成员和送货目标的“?”；可以缩放平移，点击地图自动导航，HUD 小地图上画出绿色路线，路网与寻路全在浏览器里，见 `design/open-world/PLAN.md` “导航”），步行时 WASD/方向键走、按住 Shift 跑（原版角色只有走路动作 f11，跑步用同一套动作加快 1.9 倍播放，2.4 m/s），R 回到最近的路上。步行和坐后座时用跟随镜头，隐藏速度表与油表。代码在 `client/src/city/`：`city-onfoot.ts`、`city-foot-motion.ts`、`city-walker.ts`、`city-map-window.ts`。
+
+## 8. 马路沿
+
+城市里卡丁车缩到普通赛道的 50%，车身碰撞盒（`track-collision.ts`，范围是车身位置以上 `0.3·rawHeight`～`1.7·rawHeight`）离地只剩 0.15 m，罪恶都市 15–17 cm 的路缘立面就成了墙：车开不上人行道，还会记一次碰撞（送货的“小心驾驶”和载客满意度都会因此扣分）。
+
+浏览器进城时给城市碰撞面标出“马路沿”（`client/src/city/city-kerbs.ts`），车身碰撞盒穿过这些面（`StaticTrackSurface.obbIgnored`，只有卡丁城设置，比赛赛道不受影响）。车轮射线仍然看得到路沿顶面，车靠悬挂自己开上去；步行的人、镜头、复位用的射线也照旧把它当实体。马路沿只认低矮台阶的立面：
+
+- 立面陡（|法线 y| < 0.5），本身高度不超过 0.3 m；
+- 一侧紧贴顶边有能站上去的地面（法线 y ≥ 0.65，高差 ≤ 6 cm），另一侧的地面低 2 cm～0.3 m；
+- 从低的一侧离顶边 12 cm 高处横扫过去碰不到墙（台阶上没立着护栏、墙或柱子）。
+
+更高的墙、矮墙、护栏照旧挡车、照旧算碰撞。找一遍要几秒，由 `client/tools/city/build-city-kerbs.mjs` 离线算好写进 `client/src/city/city-kerbs.bin`（约 2.4 万个面，25 KB），文件头记着碰撞三角形个数和抽样校验和，对不上浏览器就不用并在控制台提示；城市碰撞改了要重新生成（`--check` 只比较）：
+
+```bash
+node --max-old-space-size=12000 --import ./src/physics/node-raw-test-hook.mjs --import tsx tools/city/build-city-kerbs.mjs
+```
+
+用原生物理离线回归：NPC 站位前 49 处路缘，原来 2 处开得上去，现在除了被护栏、矮墙、路灯挡住和测试起点无效的，其余都能以 30 km/h 直接开上去；随机 80 面落地高墙，标记前后挡车的结果完全一致。

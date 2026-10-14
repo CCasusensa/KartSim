@@ -109,6 +109,13 @@ export class StaticTrackSurface {
   readonly rayCandidates = new Set<number>();
   readonly obbCandidates: number[] = [];
   readonly obbVisited = new Set<number>();
+  /**
+   * Triangles the kart's collision box passes through (1 = ignored), while
+   * rays still see them: 卡丁城's kerb faces, so half-size karts climb a
+   * kerb on their wheels instead of hitting it (city-kerbs.ts). Races leave
+   * it unset.
+   */
+  obbIgnored?: Uint8Array;
   readonly obbClientBounds = [0, 0, 0, 0, 0, 0];
   bestTriangle: IndexedTrackTriangle | undefined;
   readonly hit: StaticTrackHit = {
@@ -234,7 +241,7 @@ export class StaticTrackSurface {
         const occupants = this.cells.get(cellKey(x, y));
         if (!occupants) continue;
         for (const index of occupants) {
-          if (visited.has(index)) continue;
+          if (visited.has(index) || this.obbIgnored?.[index]) continue;
           if (p3553) {
             const triangle = this.triangles[index]!;
             if (max3(triangle.a.y, triangle.b.y, triangle.c.y) <
