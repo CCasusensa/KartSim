@@ -5,7 +5,7 @@
  * race camera.
  */
 import { Vector3, type PerspectiveCamera } from "three";
-import { MY_ROOM_BALLOON_MS, MyRoomRiderLabels } from "../ui/my-room-labels";
+import { MY_ROOM_BALLOON_MS, MyRoomRiderLabels, balloonStageHeight } from "../ui/my-room-labels";
 import { CITY_VEHICLE_SCALE } from "./city-vehicle-scale";
 
 /** My Room's 1.9 m over a full-size rider, at the city's kart size. */
@@ -34,6 +34,12 @@ export class CityLabels {
 
   say(id: string, text: string, now: number): void {
     this.balloons.set(id, { text, until: now + MY_ROOM_BALLOON_MS + 1000 });
+  }
+
+  /** How high (px on a 900-px-high stage) the balloon up over `id` stands above its name tag; 0 without one. */
+  balloonHeight(id: string, now: number): number {
+    const balloon = this.balloons.get(id);
+    return balloon && balloon.until - now > 1000 ? balloonStageHeight(balloon.text) : 0;
   }
 
   draw(now: number): void {

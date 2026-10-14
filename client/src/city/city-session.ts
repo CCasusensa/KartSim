@@ -338,6 +338,7 @@ export class CitySession {
       },
       npcFeet: id => this.npcs?.feetOf(id),
       say: (npcId, text) => this.labels?.say(`npc-task:${npcId}`, text, performance.now()),
+      balloonHeight: (npcId, now) => this.labels?.balloonHeight(`npc-task:${npcId}`, now) ?? 0,
       isDriving: () => !this.onFoot || this.onFoot.seat === "driver",
       notice: text => stage.chat?.notice?.(text),
       playerName: () => this.host.accountNickname ?? "我",

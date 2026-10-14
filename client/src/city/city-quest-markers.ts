@@ -2,8 +2,8 @@
  * The floating quest marks of 卡丁城 (server-go/CITY-QUESTS.md): a gold "!"
  * over a task-point NPC with a quest to give, a gold "?" over the NPC a quest
  * under way can be finished at, a gold "★" over each collection stop still
- * to reach. The NPCs' marks bob just above their name tags
- * and are drawn on their own canvas over the race view (like the name tags),
+ * to reach. The NPCs' marks bob just above their name tags (above the talk
+ * balloon while one is up) and are drawn on their own canvas over the race view (like the name tags),
  * sized by distance and hidden behind the camera or beyond MARK_RANGE.
  */
 import { Vector3, type PerspectiveCamera } from "three";
@@ -38,8 +38,12 @@ export class CityQuestMarkers {
     this.context = this.canvas.getContext("2d")!;
   }
 
-  /** Draws `marks` (world feet positions) for `camera` at time `now` (ms). */
-  draw(camera: PerspectiveCamera, marks: ReadonlyArray<{ mark: QuestMark; x: number; y: number; z: number; tagless?: boolean }>,
+  /**
+   * Draws `marks` (world feet positions) for `camera` at time `now` (ms);
+   * `balloon` is the height (stage px) of a talk balloon over the name tag.
+   */
+  draw(camera: PerspectiveCamera,
+    marks: ReadonlyArray<{ mark: QuestMark; x: number; y: number; z: number; tagless?: boolean; balloon?: number }>,
     now: number): void {
     if (this.disposed) return;
     const width = this.root.clientWidth, height = this.root.clientHeight;
@@ -58,8 +62,8 @@ export class CityQuestMarkers {
     const scale = height / 900;
     const bob = Math.sin(now / 320) * 4;
     for (const mark of marks) {
-      // Over an NPC the mark floats above its name tag; a collection stop has none.
-      const lift = ((mark.tagless ? 0 : TAG_TOP + 3) + bob) * scale;
+      // Over an NPC the mark floats above its name tag and balloon; a collection stop has none.
+      const lift = ((mark.tagless ? 0 : TAG_TOP + 3 + (mark.balloon ?? 0)) + bob) * scale;
       this.point.set(mark.x, mark.y + (mark.tagless ? STOP_HEIGHT : HEAD_HEIGHT), mark.z);
       const toward = this.point.clone().sub(eye);
       const distance = toward.length();

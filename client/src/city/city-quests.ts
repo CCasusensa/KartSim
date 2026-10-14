@@ -45,6 +45,8 @@ export interface CityQuestHost {
   npcFeet(id: string): Vec3 | undefined;
   /** A talk balloon over a task-point NPC. */
   say(npcId: string, text: string): void;
+  /** How high (stage px) the talk balloon up over a task-point NPC stands; 0 without one. */
+  balloonHeight?(npcId: string, now: number): number;
   /** The local member sits at the wheel (a passenger quest needs it). */
   isDriving(): boolean;
   notice(text: string): void;
@@ -514,17 +516,18 @@ export class CityQuests {
       this.hud.style.top = active?.quest.kind === "time" ? "104px" : "48px";
     }
     // The marks over the NPCs' heads and over the collection stops.
-    const marks: Array<{ mark: QuestMark; tagless?: boolean } & Vec3> = [];
+    const marks: Array<{ mark: QuestMark; tagless?: boolean; balloon?: number } & Vec3> = [];
+    const balloon = (npcId: string) => this.host.balloonHeight?.(npcId, now) ?? 0;
     if (active) {
       for (const mark of questMarks(active.quest, active.progress)) {
-        if (mark.npc) marks.push({ mark: mark.mark, ...(this.host.npcFeet(mark.npc) ?? npcWorld(mark.npc)) });
+        if (mark.npc) marks.push({ mark: mark.mark, balloon: balloon(mark.npc), ...(this.host.npcFeet(mark.npc) ?? npcWorld(mark.npc)) });
         else marks.push({ mark: mark.mark, tagless: true, ...designToWorld(mark.x, mark.y ?? 10, mark.z) });
       }
     } else {
       for (const id of Object.keys(QUEST_NPCS)) {
         if (!questsOf(id).length) continue;
         const feet = this.host.npcFeet(id);
-        if (feet) marks.push({ mark: "!", ...feet });
+        if (feet) marks.push({ mark: "!", balloon: balloon(id), ...feet });
       }
     }
     this.markers.draw(this.host.camera(), this.windowOpen ? [] : marks, now);

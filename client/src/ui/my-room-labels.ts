@@ -35,6 +35,11 @@ export function balloonLayout(lines: number, scale: number): { width: number; he
   return { width, height, text: { x: 10 * scale, y: top + 5 * scale, width: 120 * scale, height: lines * 19 * scale } };
 }
 
+/** How high (px on a 900-px-high stage) a balloon saying `text` stands over its name tag. */
+export function balloonStageHeight(text: string): number {
+  return balloonLayout(wrapLobbyChatBubble(text).length, 1).height + 2;
+}
+
 export class MyRoomRiderLabels {
   readonly canvas = document.createElement("canvas");
   private readonly context: CanvasRenderingContext2D;
