@@ -45,6 +45,8 @@ export interface ReadyHomeController extends ReadyFlowController {
   homeAccountRelease?: () => void;
   accountPanel?: AccountPanelHandle;
   multiplayer?: unknown;
+  /** The lobby's resources are being read before it is created (ready-multiplayer.ts). */
+  multiplayerOpening?: boolean;
   activeHouse?: unknown;
   openMultiplayer(channel?: string, gameplay?: string): Promise<void>;
 }
@@ -139,9 +141,12 @@ function navigationPending(controller: ReadyHomeController): boolean {
 export function closeReadyHomeWhenCovered(controller: ReadyHomeController): void {
   const view = controller.activeHome;
   if (!view) return;
-  const started = performance.now();
+  let started = performance.now();
   const tick = (): void => {
     if (controller.activeHome !== view || controller.disposed) return;
+    // A first visit downloads the lobby's resources before it exists; the
+    // wait for the page to draw starts once they are in.
+    if (controller.multiplayerOpening) started = performance.now();
     const elapsed = performance.now() - started;
     if (homeCovered(controller) || elapsed > COVER_TIMEOUT_MS) {
       closeReadyHome(controller);
