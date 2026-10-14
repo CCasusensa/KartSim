@@ -1,7 +1,10 @@
 // The verified release modules and handwritten systems share one startup path.
+import { reloadIfOutdatedEntry } from "./app/boot-support";
 import { installLocalMultiplayerConfig } from "./multiplayer/local-config";
 import { installStartupLoadingSkin } from "./ui/startup-loading-skin";
 
+// A page from a stale cache reloads into the current build while the game is still loading.
+void reloadIfOutdatedEntry();
 installLocalMultiplayerConfig();
 installStartupLoadingSkin();
 

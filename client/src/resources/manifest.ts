@@ -82,7 +82,8 @@ export async function loadResourceManifest(
   fetcher: ResourceFetch = browserFetch,
   url = `/__${expectedVersion}/resources`,
 ): Promise<ResourceManifest> {
-  const response = await fetcher(url, { cache: "no-store" });
+  // Asked of the server every time (an update shows at once); unchanged, it answers 304 from the HTTP cache.
+  const response = await fetcher(url, { cache: "no-cache" });
   if (response.status !== 200) {
     throw new Error(`资源清单读取失败：HTTP ${response.status}。`);
   }

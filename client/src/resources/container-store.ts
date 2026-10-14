@@ -106,6 +106,8 @@ export interface ContainerStoreOptions {
    * off for the session.
    */
   readonly rangeReads?: boolean;
+  /** Disk for the blocks range reads keep in OPFS (default KEPT_BLOCK_BYTES). */
+  readonly keptBlockBytes?: number;
 }
 
 /**
@@ -121,6 +123,31 @@ const RANGE_MERGE_GAP = 4;
 const RANGE_CACHE_BYTES = 96 * 1024 * 1024;
 /** Containers this small download whole on the first read (one request, kept in OPFS). */
 const WHOLE_CONTAINER_BYTES = 1024 * 1024;
+/**
+ * The blocks range reads fetch are kept in OPFS too, so the next visit (and
+ * the reload after an update) reads them from disk: one file per request,
+ * in this subdirectory, named `<container>.<sha256[:16]>.<first>-<last>.<written>`.
+ * A container of another version keeps none of its old blocks.
+ */
+const KEPT_BLOCK_DIRECTORY = "blocks";
+/** Disk for kept blocks (the startup reads are about 40 MiB, a race about 4 MiB of its track); the oldest written go first. */
+const KEPT_BLOCK_BYTES = 256 * 1024 * 1024;
+const KEPT_RUN_NAME = /^(.+)\.([\da-f]{16}|-)\.(\d+)-(\d+)\.([\da-z]+)$/;
+
+/** Blocks first..last of a container, kept in one OPFS file. */
+interface KeptRun {
+  readonly name: string;
+  readonly key: string;
+  readonly first: number;
+  readonly last: number;
+  readonly bytes: number;
+  readonly written: number;
+  file?: Promise<Blob>;
+}
+
+const versionTag = (file: ContainerSpec) => file.sha256.slice(0, 16) || "-";
+const runBytes = (file: ContainerSpec, first: number, last: number) =>
+  Math.min(file.size, (last + 1) * RANGE_BLOCK) - first * RANGE_BLOCK;
 
 /** The server sent the whole container for a Range request. */
 class RangeUnsupportedError extends Error {}
@@ -182,6 +209,14 @@ export class ContainerStore {
   private cachedBlockBytes = 0;
   private readonly planned = new Map<string, { file: ContainerSpec; blocks: Map<number, Deferred<Uint8Array>> }>();
   private flushTimer?: ReturnType<typeof setTimeout>;
+  /** The blocks kept in OPFS by container (listed once), their total size and the writes in flight. */
+  private keptRuns?: Promise<Map<string, KeptRun[]>>;
+  private keptIndex?: Map<string, KeptRun[]>;
+  private keptBytes = 0;
+  private readonly keptLimit: number;
+  private readonly keptWrites = new Set<Promise<void>>();
+  /** Containers whose kept blocks this visit read or wrote: the last to go beyond the limit. */
+  private readonly keptUsed = new Set<string>();
   /** Range requests in flight and their bytes requested and received (the "partial" progress). */
   private rangeRequests = 0;
   private rangeRequested = 0;
@@ -196,6 +231,7 @@ export class ContainerStore {
     this.onProgress = options.onProgress;
     this.fallbackWriter = options.fallbackWriter;
     this.rangeReads = options.rangeReads ?? true;
+    this.keptLimit = options.keptBlockBytes ?? KEPT_BLOCK_BYTES;
     this.byName = new Map(options.manifest.files.map(file => [file.name.toLowerCase(), file]));
   }
 
@@ -222,15 +258,18 @@ export class ContainerStore {
 
   /**
    * A cached container is read from OPFS. Of one that is not, a large one
-   * fetches only the blocks the read needs (HTTP Range) and stays uncached
-   * (the resource manager downloads containers whole); a small one, or a
-   * read of half a container or more, downloads the container whole first.
+   * fetches only the blocks the read needs (HTTP Range; the blocks are kept
+   * in OPFS for the next visit) and stays uncached (the resource manager
+   * downloads containers whole); a small one, or a read of half a
+   * container or more, downloads the container whole first.
    */
   async readRange(name: string, start: number, end: number): Promise<ArrayBuffer> {
     const file = this.spec(name);
     safeRange(start, end, file.size);
     const log = (globalThis as { __KART_READ_LOG__?: unknown }).__KART_READ_LOG__;
     if (Array.isArray(log)) log.push([file.name, start, end, performance.now()]);
+    // The kept blocks are listed (and the useless ones removed) with the first read.
+    if (!this.keptRuns && this.rangeReads && !this.localDirectory) void this.kept();
     if (this.readsByRange(file, start, end) && !(await this.isComplete(file))) {
       for (let attempt = 0; ; attempt++) {
         try {
@@ -370,6 +409,7 @@ export class ContainerStore {
       if (!this.complete.has(key)) {
         this.complete.add(key);
         this.dropBlocks(key);
+        this.dropKept(key);
       }
       this.progress("ready", file, file.size);
       return blob;
@@ -435,7 +475,7 @@ export class ContainerStore {
     return out.buffer;
   }
 
-  /** A block of a container: cached, in flight, or planned for the next request batch. */
+  /** A block of a container: in memory, in flight, kept in OPFS, or planned for the next request batch. */
   private block(file: ContainerSpec, key: string, index: number): Promise<Uint8Array> {
     const id = `${key}#${index}`;
     const known = this.blocks.get(id);
@@ -447,14 +487,53 @@ export class ContainerStore {
       }
       return known;
     }
+    const wanted = deferred<Uint8Array>();
+    this.blocks.set(id, wanted.promise);
+    // Listed once; the reads that wait for the list still plan together (microtasks before the flush).
+    if (this.keptIndex) this.keptOrPlanned(file, key, index, wanted, this.keptIndex);
+    else void this.kept().then(runs => this.keptOrPlanned(file, key, index, wanted, runs));
+    return wanted.promise;
+  }
+
+  private keptOrPlanned(file: ContainerSpec, key: string, index: number, wanted: Deferred<Uint8Array>,
+    runs: Map<string, KeptRun[]>): void {
+    const run = runs.get(key)?.find(item => item.first <= index && index <= item.last);
+    if (!run) return this.plan(file, key, index, wanted);
+    this.keptUsed.add(key);
+    this.readKept(file, run, index).then(block => {
+      wanted.resolve(block);
+      this.keepInMemory(key, index, block.length);
+    }, () => {
+      // Gone or damaged (cleared by the browser, a write cut short): fetch it again.
+      this.dropRun(run);
+      this.plan(file, key, index, wanted);
+    });
+  }
+
+  private plan(file: ContainerSpec, key: string, index: number, wanted: Deferred<Uint8Array>): void {
     let plan = this.planned.get(key);
     if (!plan) this.planned.set(key, plan = { file, blocks: new Map() });
-    const wanted = deferred<Uint8Array>();
     plan.blocks.set(index, wanted);
-    this.blocks.set(id, wanted.promise);
     // A macrotask gathers the reads a decoder starts together (a stage's panels and textures).
     this.flushTimer ??= setTimeout(() => this.requestPlanned(), 0);
-    return wanted.promise;
+  }
+
+  /** Counts a block in the memory cache; the least recently used go beyond RANGE_CACHE_BYTES. */
+  private keepInMemory(key: string, index: number, length: number): void {
+    const id = `${key}#${index}`;
+    // A container that finished downloading meanwhile keeps no blocks.
+    if (this.blocks.has(id) && !this.complete.has(key)) {
+      this.blockBytes.set(id, length);
+      this.cachedBlockBytes += length;
+    } else {
+      this.blocks.delete(id);
+    }
+    for (const [id, size] of this.blockBytes) {
+      if (this.cachedBlockBytes <= RANGE_CACHE_BYTES) break;
+      this.blockBytes.delete(id);
+      this.blocks.delete(id);
+      this.cachedBlockBytes -= size;
+    }
   }
 
   private requestPlanned(): void {
@@ -479,6 +558,7 @@ export class ContainerStore {
     const start = first * RANGE_BLOCK;
     try {
       const bytes = await this.fetchRange(file, start, Math.min(file.size, (last + 1) * RANGE_BLOCK));
+      this.track(this.keepRun(file, key, first, last, bytes));
       for (let index = first; index <= last; index++) {
         const id = `${key}#${index}`;
         const offset = (index - first) * RANGE_BLOCK;
@@ -487,19 +567,7 @@ export class ContainerStore {
         if (request) request.resolve(block);
         else if (!this.blocks.has(id)) this.blocks.set(id, Promise.resolve(block));
         else continue;
-        // A container that finished downloading meanwhile keeps no blocks.
-        if (this.blocks.has(id) && !this.complete.has(key)) {
-          this.blockBytes.set(id, block.length);
-          this.cachedBlockBytes += block.length;
-        } else {
-          this.blocks.delete(id);
-        }
-      }
-      for (const [id, size] of this.blockBytes) {
-        if (this.cachedBlockBytes <= RANGE_CACHE_BYTES) break;
-        this.blockBytes.delete(id);
-        this.blocks.delete(id);
-        this.cachedBlockBytes -= size;
+        this.keepInMemory(key, index, block.length);
       }
     } catch (error) {
       for (let index = first; index <= last; index++) {
@@ -519,6 +587,132 @@ export class ContainerStore {
       this.blocks.delete(id);
       this.cachedBlockBytes -= size;
     }
+  }
+
+  private async keptDirectory(): Promise<DirectoryHandle> {
+    return (await this.directory()).getDirectoryHandle(KEPT_BLOCK_DIRECTORY, { create: true });
+  }
+
+  /**
+   * The runs of blocks kept in OPFS, listed on the first block read. Runs
+   * of a container's other version, of containers no longer listed and of
+   * containers now whole in OPFS are removed.
+   */
+  private kept(): Promise<Map<string, KeptRun[]>> {
+    return this.keptRuns ??= (async () => {
+      const runs = new Map<string, KeptRun[]>();
+      try {
+        const directory = await this.keptDirectory();
+        const stale: string[] = [];
+        for await (const name of directory.keys?.() ?? []) {
+          const match = KEPT_RUN_NAME.exec(name);
+          const file = match ? this.byName.get(match[1]!.toLowerCase()) : undefined;
+          const first = Number(match?.[3]), last = Number(match?.[4]);
+          if (!match || !file || match[2] !== versionTag(file) || !(first <= last) ||
+              last * RANGE_BLOCK >= file.size) {
+            stale.push(name);
+            continue;
+          }
+          const key = file.name.toLowerCase();
+          let list = runs.get(key);
+          if (!list) runs.set(key, list = []);
+          list.push({ name, key, first, last, bytes: runBytes(file, first, last), written: parseInt(match[5]!, 36) });
+          this.keptBytes += list.at(-1)!.bytes;
+        }
+        for (const name of stale) this.track(Promise.resolve(directory.removeEntry?.(name)));
+      } catch {
+        // No OPFS listing: blocks come from the network as before.
+      }
+      this.keptIndex = runs;
+      for (const key of runs.keys()) {
+        this.track(this.isComplete(this.byName.get(key)!).then(complete => { if (complete) this.dropKept(key); }));
+      }
+      this.trimKept();
+      return runs;
+    })();
+  }
+
+  private async readKept(file: ContainerSpec, run: KeptRun, index: number): Promise<Uint8Array> {
+    run.file ??= this.keptDirectory().then(directory => directory.getFileHandle(run.name)).then(handle => handle.getFile());
+    const blob = await run.file;
+    if (blob.size !== runBytes(file, run.first, run.last)) throw new Error(`${run.name} 长度不符。`);
+    const offset = (index - run.first) * RANGE_BLOCK;
+    return new Uint8Array(await blob.slice(offset, Math.min(blob.size, offset + RANGE_BLOCK)).arrayBuffer());
+  }
+
+  /** Writes the blocks of one Range response to OPFS (best effort: a failed write only costs a request later). */
+  private async keepRun(file: ContainerSpec, key: string, first: number, last: number, bytes: Uint8Array): Promise<void> {
+    if (this.keptLimit <= 0 || bytes.length !== runBytes(file, first, last)) return;
+    const runs = await this.kept();
+    if (this.complete.has(key)) return;
+    const written = Date.now();
+    const name = `${file.name}.${versionTag(file)}.${first}-${last}.${written.toString(36)}`;
+    let directory: DirectoryHandle | undefined;
+    try {
+      directory = await this.keptDirectory();
+      const handle = await directory.getFileHandle(name, { create: true });
+      if (!handle.createWritable) throw new Error("no createWritable");
+      const writable = await handle.createWritable();
+      try {
+        await writable.write(bytes);
+        await writable.close();
+      } catch (error) {
+        await writable.abort().catch(() => {});
+        throw error;
+      }
+    } catch {
+      await directory?.removeEntry?.(name).catch(() => {});
+      return;
+    }
+    let list = runs.get(key);
+    if (!list) runs.set(key, list = []);
+    list.push({ name, key, first, last, bytes: bytes.length, written });
+    this.keptBytes += bytes.length;
+    this.keptUsed.add(key);
+    // Finished downloading whole while this was written.
+    if (this.complete.has(key)) this.dropKept(key);
+    this.trimKept();
+  }
+
+  private dropRun(run: KeptRun): void {
+    const list = this.keptIndex?.get(run.key);
+    const at = list?.indexOf(run) ?? -1;
+    if (at < 0) return;
+    list!.splice(at, 1);
+    if (!list!.length) this.keptIndex!.delete(run.key);
+    this.keptBytes -= run.bytes;
+    this.track(this.keptDirectory().then(directory => directory.removeEntry?.(run.name)));
+  }
+
+  /** A container now whole in OPFS needs none of its kept blocks. */
+  private dropKept(key: string): void {
+    for (const run of [...this.keptIndex?.get(key) ?? []]) this.dropRun(run);
+  }
+
+  /**
+   * Beyond the limit runs go until a quarter of the limit is free: first
+   * those of containers this visit has not read (a track raced long ago),
+   * oldest written first; the startup's, read on every visit, go last.
+   */
+  private trimKept(limit = this.keptLimit): void {
+    if (!this.keptIndex || this.keptBytes <= limit) return;
+    const used = (run: KeptRun) => this.keptUsed.has(run.key) ? 1 : 0;
+    const order = [...this.keptIndex.values()].flat().sort((a, b) => used(a) - used(b) || a.written - b.written);
+    for (const run of order) {
+      if (this.keptBytes <= limit * 0.75) break;
+      this.dropRun(run);
+    }
+  }
+
+  private track(work: Promise<unknown>): void {
+    const done = work.then(() => {}, () => {});
+    this.keptWrites.add(done);
+    void done.then(() => this.keptWrites.delete(done));
+  }
+
+  /** Resolves when the kept-block writes and removals started so far are done. */
+  async keptBlocksSettled(): Promise<void> {
+    while (this.keptWrites.size) await Promise.allSettled([...this.keptWrites]);
   }
 
   private async fetchRange(file: ContainerSpec, start: number, end: number): Promise<Uint8Array> {
@@ -681,6 +875,12 @@ export class ContainerStore {
     if (typeof quota !== "number" || typeof usage !== "number" ||
         !Number.isFinite(quota) || !Number.isFinite(usage)) {
       throw new Error("浏览器未提供有效存储配额，无法确认容器可写入 OPFS。");
+    }
+    if (Math.max(0, quota - usage) < requiredBytes && this.keptBytes > 0) {
+      // Whole containers come before kept blocks: free their space and look again.
+      this.trimKept(0);
+      await this.keptBlocksSettled();
+      return this.checkSpace(requiredBytes);
     }
     if (Math.max(0, quota - usage) < requiredBytes) {
       throw new Error(`OPFS 空间不足：需要 ${requiredBytes} 字节，可用 ${Math.max(0, quota - usage)} 字节。`);

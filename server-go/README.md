@@ -725,7 +725,26 @@ server {
     gzip_comp_level 5;
     gzip_types text/css application/javascript application/json application/wasm;
 
-    # 资源清单是没有扩展名的 JSON，每次进入游戏都不经缓存读取（约 330 KB，压缩后约 100 KB）。
+    # 页面与 service worker 每次都向服务器确认，更新后立即生效（缺了这几行，浏览器会按启发式缓存先打开旧版页面，
+    # 进首页后才发现新版本再刷新一次）；/assets/ 下的文件名带内容哈希，长期缓存，更新时只下载变了的文件。
+    location = / {
+        add_header Cache-Control "no-cache";
+    }
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+    location = /editor.html {
+        add_header Cache-Control "no-cache";
+    }
+    location = /sw.js {
+        add_header Cache-Control "no-cache";
+    }
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # 资源清单是没有扩展名的 JSON。它和档案索引（__p3553/archive-index，约 6 MB）每次进入游戏都向服务器确认，
+    # 没变时 304、不重新下载（静态文件默认带 ETag/Last-Modified，不要关掉）。
     location ~ ^/__p[0-9]+/resources$ {
         default_type application/json;
     }

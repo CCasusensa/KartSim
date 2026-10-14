@@ -137,7 +137,8 @@ export async function loadArchiveIndex(
   fetcher: ResourceFetch = browserFetch,
   url = `/__${manifest.version}/archive-index`,
 ): Promise<ArchiveIndex> {
-  const response = await fetcher(url, { cache: "no-store" });
+  // About 6 MB: revalidated on every start (ETag/Last-Modified), downloaded again only when it changed.
+  const response = await fetcher(url, { cache: "no-cache" });
   if (response.status !== 200 || !response.body) {
     throw new Error(`档案索引读取失败：HTTP ${response.status}。`);
   }

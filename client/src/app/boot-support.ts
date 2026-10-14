@@ -134,6 +134,39 @@ export function mountGameViewport(root: HTMLElement,
   };
 }
 
+/**
+ * At startup, before the game loads: when the server's page names another
+ * entry script than this page (a cache kept an old index.html, served
+ * without `Cache-Control: no-cache`), reload at once instead of starting
+ * the old build, which the update watcher below would reload again on the
+ * home screen. Only in the first `deadlineMs` of the page (still loading,
+ * nothing typed yet) and once per new script, with the watcher's marker.
+ */
+export async function reloadIfOutdatedEntry(deadlineMs = 3_000): Promise<boolean> {
+  const currentScript = document.querySelector<HTMLScriptElement>(
+    'script[type="module"][src]')?.src;
+  if (!currentScript) return false;
+  try {
+    const url = new URL("/", window.location.href);
+    url.searchParams.set("kart-update-check", String(Date.now()));
+    const response = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+    if (!response.ok || !response.headers.get("content-type")?.includes("text/html"))
+      return false;
+    const nextScriptPath = new DOMParser()
+      .parseFromString(await response.text(), "text/html")
+      .querySelector('script[type="module"][src]')?.getAttribute("src");
+    const nextScript = nextScriptPath ? new URL(nextScriptPath, response.url).href : undefined;
+    if (!nextScript || nextScript === currentScript || performance.now() > deadlineMs) return false;
+    const marker = `kart-frontend-reload:${nextScript}`;
+    if (sessionStorage.getItem(marker)) return false;
+    sessionStorage.setItem(marker, "1");
+    window.location.reload();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Reloads only when a new versioned entry script is detected. */
 export function watchFrontendVersion(canReload: () => boolean): () => void {
   const currentScript = document.querySelector<HTMLScriptElement>(
