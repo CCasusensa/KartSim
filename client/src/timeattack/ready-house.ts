@@ -27,6 +27,7 @@ import { loadTrackCard } from "../ui/track-picker-window-assets";
 import { p2 } from "../generated/formats.js";
 import { createMyRoomMusic, type MyRoomBgmOwner, type MyRoomMusic,
   type MyRoomMusicLibrary } from "../myroom/my-room-music";
+import { tellPlayer } from "../ui/game-popups";
 
 /** The release GarageDialog ("我的物品") opened from the room menu. */
 interface HouseGarageView { show(): void; dispose(): void }
@@ -268,8 +269,8 @@ async function equipFromHouseGarage(controller: ReadyHouseController,
     if (!controller.disposed && controller.host.shell.current === "Ready" &&
         controller.activeTimeAttackReady) await openReadyHouse(controller);
   } catch (error) {
-    controller.host.hud.showDebugText(
-      `装备道具失败：${error instanceof Error ? error.message : String(error)}`, "error");
+    tellPlayer(controller.host.hud,
+      `装备道具失败：${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -397,8 +398,8 @@ export async function openReadyHouse(controller: ReadyHouseController, visit?: s
       throw error;
     }
   } catch (error) {
-    controller.host.hud.showDebugText(
-      `我的小屋：${error instanceof Error ? error.message : String(error)}`, "error");
+    tellPlayer(controller.host.hud,
+      `我的小屋：${error instanceof Error ? error.message : String(error)}`);
   } finally {
     if (!controller.activeHouse && controller.host.shell.modal === "house")
       closeReadyHouse(controller);

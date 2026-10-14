@@ -1,6 +1,7 @@
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { C9, E9, Ft, G1, T, V0, ct, f5, m9, p2, s2, st } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
+import { showGameToast } from "./game-popups";
 import { scrollbarGeometry } from "./scrollbar";
 import { loadRiderSchoolArt, type RiderSchoolArt } from "./rider-school-art";
 
@@ -506,8 +507,6 @@ export class MainMenuView {
   private currentPage: MainMenuPage = "home";
   /** The single-play category shown; none is the overview (the five mode cards and the banner). */
   private category: SingleCategory | undefined;
-  private notice?: string;
-  private noticeTimer = 0;
   private story?: StoryMenuChapter[];
   private storyRow = 0;
   /** The 回放 pages' cards; undefined while a page loads. */
@@ -558,7 +557,6 @@ export class MainMenuView {
     if (this.disposed) return;
     this.disposed = true;
     window.clearInterval(this.bannerTimer);
-    window.clearTimeout(this.noticeTimer);
     window.clearTimeout(this.storyBlinkTimer);
     this.observer?.disconnect();
     this.buttons.dispose();
@@ -579,7 +577,6 @@ export class MainMenuView {
     if (page === this.currentPage) return;
     this.currentPage = page;
     this.category = undefined;
-    this.notice = undefined;
     this.element.setAttribute("aria-label", page === "single" ? "单人游戏" : "主菜单");
     this.render();
   }
@@ -673,15 +670,10 @@ export class MainMenuView {
     this.render();
   };
 
-  /** A short centred message, for modes the Web build does not run yet. */
+  /** A short notice in the game's look (ui/game-popups.ts), for modes the Web build does not run yet. */
   showNotice(message: string): void {
-    this.notice = message;
-    window.clearTimeout(this.noticeTimer);
-    this.noticeTimer = window.setTimeout(() => {
-      this.notice = undefined;
-      this.render();
-    }, NOTICE_MS);
-    this.render();
+    if (this.disposed) return;
+    showGameToast(message, NOTICE_MS, { root: this.root });
   }
 
   showBanner(index: number): void {
@@ -717,7 +709,6 @@ export class MainMenuView {
     }
     if (this.currentPage === "single" && this.category === "cat_riderSchool") this.drawRiderSchool();
     if (this.currentPage === "single" && this.options.onCustomGame) this.drawCustomGameButton();
-    if (this.notice) this.drawNotice(this.notice);
     this.buttons.update(this.regions);
   }
 
@@ -1252,24 +1243,7 @@ export class MainMenuView {
       activate: () => { this.options.onActivate?.(); this.options.onCustomGame?.(); } });
   }
 
-  private drawNotice(message: string): void {
-    const context = this.context;
-    context.save();
-    context.font = `20px "${FONT_FAMILY}"`;
-    const width = context.measureText(message).width + 64;
-    const box = { x: (STAGE.width - width) / 2, y: VISIBLE_HEIGHT / 2 - 30, width, height: 60 };
-    context.fillStyle = "rgba(8,20,40,.88)";
-    context.strokeStyle = "rgba(255,255,255,.35)";
-    context.lineWidth = 2;
-    context.beginPath();
-    context.roundRect(box.x, box.y, box.width, box.height, 10);
-    context.fill();
-    context.stroke();
-    context.restore();
-    m9(context, message, box, { family: FONT_FAMILY, size: 20, kind: "label",
-      color: "white", align: "center", verticalAlign: "center", stroke: 0,
-      strokeColor: "black" });
-  }
+
 
   private text(node: MainMenuNode): string | undefined {
     const override = this.licenseText(attribute(node, "name") ?? "");

@@ -145,17 +145,33 @@ export function nodesUnder(definition: Node, name: string): WeakSet<Node> {
 /** Closing punctuation never starts a line; it hangs at the end of the previous one. */
 const HANGING = new Set([..."，。、；：？！）》」』】,.;:?!)%"]);
 
+/** Latin words and numbers ("house_town.rho", "503", "Lv.2") wrap as one piece. */
+const WORD = /[A-Za-z0-9_.\-/:%#+@&]+|./gsu;
+
 /** Lines of text wrapped to a width ("|" and "\n" break lines). */
 export function wrapText(context: CanvasRenderingContext2D, text: string, width: number): string[] {
   const lines: string[] = [];
   for (const paragraph of text.split(/\||\n/)) {
     let current = "";
-    for (const character of paragraph) {
-      if (current && !HANGING.has(character) && context.measureText(current + character).width > width) {
-        lines.push(current);
-        current = "";
+    for (const piece of paragraph.match(WORD) ?? []) {
+      const fits = (value: string) => context.measureText(value).width <= width;
+      if (!current || HANGING.has(piece) || fits(current + piece)) {
+        current += piece;
+        continue;
       }
-      current += character;
+      if (piece.length > 1 && !fits(piece)) {
+        // A word longer than the line breaks where it must.
+        for (const character of piece) {
+          if (current && !fits(current + character)) {
+            lines.push(current);
+            current = "";
+          }
+          current += character;
+        }
+        continue;
+      }
+      lines.push(current);
+      current = piece.trimStart();
     }
     lines.push(current);
   }

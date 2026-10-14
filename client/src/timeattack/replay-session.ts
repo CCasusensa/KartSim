@@ -10,6 +10,7 @@ import type { ReadyOptions, ReadySelection } from "./ready-flow";
 import type { ReadyHomeController } from "./ready-home";
 import { storyGhostSources } from "./ready-story";
 import { ReplayClock, type ObserveState } from "./replay-observe";
+import { tellPlayer } from "../ui/game-popups";
 
 export interface ReplaySessionRequest {
   trackId: string;
@@ -72,7 +73,7 @@ export async function startReplaySession(controller: ReadyHomeController, reques
     });
     if (host.shell.current === "Ready") { observe.console.dispose(); observe.console = undefined; }
   } catch (error) {
-    host.hud.showDebugText(`回放操作台：${error instanceof Error ? error.message : String(error)}`, "error");
+    tellPlayer(host.hud, `回放操作台：${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

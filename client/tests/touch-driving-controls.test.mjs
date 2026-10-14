@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parse } from "@babel/parser";
-import { TouchDrivingControls, savedAutoForward, savedNitroSeamlessMode } from "../src/input/touch-driving-controls.ts";
-import { TouchLayoutEditor } from "../src/input/touch-layout-editor.ts";
+import {
+  TouchDrivingControls, savedAutoForward, savedNitroSeamlessMode, simMenuDefinition, menuEntryNode,
+  registerTouchMenuSection, SIM_MENU,
+} from "../src/input/touch-driving-controls.ts";
 import { actionBindings, DEFAULT_KEY_MAP, keyboardActionsForCode } from "../src/input/action-bindings.ts";
 import { DrivingAction } from "../src/input/driving-input.ts";
 
@@ -16,11 +18,14 @@ function sourceOf(name) {
   return release.slice(node.start, node.end);
 }
 const keyLabel = code => code === undefined ? "" : `K${code}`;
+// The release controls with the release layout editor (it lived in the release <dialog>).
+const OriginalLayout = new Function(`${["zT", "r60", "$T", "WT", "HT", "s60", "Ay", "o60", "a60", "_c"]
+  .map(sourceOf).join("\n")}; return r60;`)();
 const OriginalTouch = new Function("l2", "ut", "Br", "SP", "xl", "r60",
   `${["i60", "Mi", "BF", "l60", "u60", "h60"]
     .map(sourceOf).join("\n")}; return l60;`)(
   DrivingAction, actionBindings, DEFAULT_KEY_MAP, keyLabel,
-  keyboardActionsForCode, TouchLayoutEditor);
+  keyboardActionsForCode, OriginalLayout);
 const originalSettings = new Function(`${["Mi", "BF", "u60", "h60"]
   .map(sourceOf).join("\n")}; return { auto: u60, nitro: h60 };`)();
 
@@ -187,8 +192,8 @@ function runTouch(Controls, readable) {
     controls.setRaceState(true, false, false);
     controls.onToggle();
     controls.showScreenHelp("测试提示。");
+    const text = html => html.replace(/<[^>]+>/g, "");
     const snapshot = {
-      html: controls.element.innerHTML,
       events,
       autoForward: controls.autoForward,
       nitroSeamless: controls.nitroSeamless,
@@ -201,17 +206,20 @@ function runTouch(Controls, readable) {
       autoForwardAllowed: controls.autoForwardAllowed,
       autoForwardSuspended: controls.autoForwardSuspended,
       padHidden: controls.pad.hidden,
-      screenHelpHidden: controls.screenHelp.hidden,
-      screenMessage: controls.screenMessage.textContent,
       menuExpanded: controls.menuButton.attributes["aria-expanded"],
-      toggle: controls.toggle.textContent,
-      autoHtml: controls.autoForwardToggle.innerHTML,
-      nitroHtml: controls.nitroSeamlessToggle.innerHTML,
       forwardClasses: [...controls.buttons.get(DrivingAction.Forward).classNames],
       forwardAttributes: { ...controls.buttons.get(DrivingAction.Forward).attributes },
       buttonLabels: [...controls.buttons].map(([action, button]) =>
         [action, button.title, button.attributes["aria-label"], button.dataset.actionName]),
       storage: [...storage],
+      // The release dialog's DOM buttons are now the menu window's TextButtons: same texts, same order.
+      menuTexts: readable
+        ? controls.menuEntries().map(entry => entry.text)
+        : [controls.toggle, controls.autoForwardToggle, controls.nitroSeamlessToggle,
+          controls.pause, controls.screen].filter(button => !button.hidden)
+          .map(button => text(button.innerHTML ?? "") || button.textContent)
+          .concat("调整按键"),
+      screenHelp: readable ? controls.screenHelpMessage : controls.screenMessage.textContent,
     };
     controls.dispose();
     return { ...snapshot, disposed: controls.element.removed };
@@ -226,4 +234,133 @@ function runTouch(Controls, readable) {
 
 test("touch driving menu, key labels, LTE dodge and auto forward match release", () => {
   assert.deepEqual(runTouch(TouchDrivingControls, true), runTouch(OriginalTouch, false));
+});
+
+const attr = (entry, name) => entry.attributes.find(item => item.name === name)?.value;
+function walk(entry, visit) {
+  visit(entry);
+  entry.children.forEach(child => walk(child, visit));
+}
+
+test("SIM menu is a release CaptionDialog with touch-sized TextButtons", () => {
+  const groups = [
+    { title: "驾驶设置", entries: ["toggle", "auto-forward", "nitro-seamless", "pause", "screen", "layout"]
+      .map(name => ({ name })) },
+    { title: "影子记录", entries: ["a", "b", "c", "d", "e"].map(name => ({ name })), hint: "提示" },
+  ];
+  const definition = simMenuDefinition(groups);
+  // The release race menu's dim Panel (stage_/speedIndiGame retryPopup_*btn).
+  assert.equal(definition.name, "Panel");
+  assert.equal(attr(definition, "color"), "100 0 0 0");
+  const dialog = definition.children[0];
+  assert.equal(attr(dialog, "frame"), "CaptionDialog");
+  assert.equal(attr(dialog, "caption"), "模拟器菜单");
+  const [width, height] = attr(dialog, "windowRect").split(" ").slice(2).map(Number);
+  assert.ok(width <= 1600 - 40 && height <= 900 - 40, `${width}×${height} fits the stage`);
+  const nodes = [];
+  walk(definition, entry => nodes.push(entry));
+  const buttons = nodes.filter(entry => entry.name === "TextButton");
+  assert.deepEqual(buttons.map(entry => attr(entry, "name")),
+    [...groups.flatMap(group => group.entries.map(entry => menuEntryNode(entry.name))), "menuClose"]);
+  for (const button of buttons) {
+    const [, , w, h] = attr(button, "leftTopWH").split(" ").map(Number);
+    assert.ok(w >= 220 && h >= 64, `${attr(button, "name")} is touch-sized`);
+  }
+  assert.equal(attr(buttons.at(-1), "frame"), "DefaultFocusedButton");
+  assert.equal(nodes.filter(entry => attr(entry, "frame") === "CaptionWindowGrey").length, 2);
+  assert.ok(nodes.some(entry => attr(entry, "name") === "menuGroupHint1"));
+  assert.ok(!nodes.some(entry => attr(entry, "name") === "menuGroupHint0"));
+  // Three buttons a row: the fourth sits under the first.
+  const cell = name => attr(buttons.find(entry => attr(entry, "name") === menuEntryNode(name)), "leftTopWH")
+    .split(" ").map(Number);
+  assert.equal(cell("pause")[0], cell("toggle")[0]);
+  assert.equal(cell("layout")[0], cell("nitro-seamless")[0]);
+  assert.equal(cell("pause")[1] - cell("toggle")[1], SIM_MENU.button.height + SIM_MENU.button.gap);
+});
+
+test("SIM menu buttons run the menu actions and show registered sections", () => {
+  class Element {
+    hidden = false;
+    dataset = {};
+    attributes = {};
+    children = [];
+    style = { setProperty() {}, removeProperty() {} };
+    classList = { add() {}, remove() {}, toggle() {}, contains: () => false };
+    querySelector(selector) {
+      this.queries ??= new Map();
+      if (!this.queries.has(selector)) {
+        const child = new Element();
+        child.parentElement = this;
+        this.queries.set(selector, child);
+      }
+      return this.queries.get(selector);
+    }
+    querySelectorAll() { return []; }
+    addEventListener() {}
+    append(...children) { for (const child of children) { child.parentElement = this; this.children.push(child); } }
+    insertBefore(child) { this.append(child); }
+    contains(child) { return this.children.includes(child); }
+    setAttribute(key, value) { this.attributes[key] = value; }
+    removeAttribute(key) { delete this.attributes[key]; }
+    focus() {}
+    remove() {}
+  }
+  const document = { createElement: () => new Element(), body: new Element(), hidden: false,
+    fullscreenElement: null, fullscreenEnabled: false, activeElement: null, addEventListener() {},
+    removeEventListener() {} };
+  const globals = { document, window: { matchMedia: () => ({ matches: false, addEventListener() {} }),
+    addEventListener() {} }, navigator: { maxTouchPoints: 2 }, localStorage: { getItem: () => null,
+    setItem() {} } };
+  const previous = Object.fromEntries(Object.keys(globals).map(name =>
+    [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
+  for (const [name, value] of Object.entries(globals))
+    Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });
+  try {
+    const root = new Element();
+    root.ownerDocument = document;
+    const events = [];
+    const controls = new TouchDrivingControls(root, () => {}, () => events.push("pause"), () => {},
+      mode => events.push(["nitro", mode]), { keyLabel: () => "", library: () => undefined });
+    controls.setRaceState(true, false);
+    const ghost = new Element();
+    registerTouchMenuSection(ghost, { title: "影子记录", hint: "提示",
+      menuEntries: () => [{ name: "ghost-export", text: "导出 KSV", action: () => events.push("export") }] });
+    controls.ghostMenuSlot.append(ghost);
+    controls.openMenu();
+    assert.equal(controls.menuOpen, true);
+    assert.equal(controls.menuButton.attributes["aria-expanded"], "true");
+    assert.equal(controls.pad.hidden, true);
+    assert.deepEqual(controls.menuGroups.map(group => group.title), ["驾驶设置", "影子记录"]);
+    const state = name => controls.menuNodeState({ name: "TextButton", attributes: [{ name: "name", value: name }],
+      children: [] });
+    assert.equal(state("simMenu").text, "模拟器菜单");
+    assert.equal(state(menuEntryNode("auto-forward")).text, "自动前进：关");
+    state(menuEntryNode("auto-forward")).action();
+    assert.equal(state(menuEntryNode("auto-forward")).text, "自动前进：开");
+    state(menuEntryNode("nitro-seamless")).action();
+    assert.deepEqual(events.pop(), ["nitro", "auto"]);
+    assert.equal(state(menuEntryNode("nitro-seamless")).text, "氮气无缝：自动");
+    state(menuEntryNode("ghost-export")).action();
+    assert.equal(events.pop(), "export");
+    assert.equal(typeof state("menuGroupHint1").paint, "function");
+    // 暂停 closes the menu first, as the release dialog did.
+    state(menuEntryNode("pause")).action();
+    assert.deepEqual(events, ["pause"]);
+    assert.equal(controls.menuOpen, false);
+    controls.openMenu();
+    state("menuClose").action();
+    assert.equal(controls.menuOpen, false);
+    // Leaving the slot takes the section out of the menu.
+    ghost.parentElement.children.splice(0);
+    controls.openMenu();
+    assert.deepEqual(controls.menuGroups.map(group => group.title), ["驾驶设置"]);
+    assert.equal(state(menuEntryNode("ghost-export")).visible, false);
+    controls.dispose();
+    assert.equal(controls.menuOpen, false);
+  } finally {
+    for (const [name, descriptor] of Object.entries(previous)) {
+      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+      else delete globalThis[name];
+    }
+  }
 });

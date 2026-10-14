@@ -13,6 +13,7 @@ import { openMyRoomExpedition, type ExpeditionTracks, type MyRoomExpeditionWindo
 import type { ExpeditionApi } from "../myroom/expedition-api";
 import type { BmlLibrary } from "./bml-canvas";
 import type { MyRoomEnvironment } from "./my-room-catalog";
+import { showGameBanner, type GameBanner } from "./game-popups";
 import { askRoomPassword, openFindRiderDialog } from "./my-room-dialogs";
 import { openMyRoomEmblems, type MyRoomEmblemDialog } from "./my-room-emblems";
 import { MY_ROOM_FONT_FAMILY, MyRoomHud, loadMyRoomHudAssets, type MyRoomHudLibrary,
@@ -76,8 +77,6 @@ const styles = `
 .ks-myroom{position:absolute;inset:0 0 7.333333%;z-index:2;display:block;box-sizing:border-box;background:#102b49;color:#f4f8ff;font:16px/1.5 system-ui,sans-serif;}
 .ks-myroom *{box-sizing:border-box}.ks-myroom[hidden]{display:none}
 .ks-myroom-shell,.ks-myroom-scene{position:absolute;inset:0;overflow:hidden;background:#152b4a}
-.ks-myroom-status{position:absolute;z-index:4;left:50%;top:22%;transform:translateX(-50%);max-width:80%;margin:0;padding:6px 12px;border-radius:6px;background:#102b49e6;color:#ffb9b9;font-size:14px;pointer-events:none}
-.ks-myroom-status[hidden]{display:none}
 `;
 
 /** Release texts of the room notices (stage_myRoom stage_stringBag and etc_/baseStringBag). */
@@ -138,7 +137,8 @@ export class MyRoomView {
   readonly element = node("section", "ks-myroom");
   readonly shell = node("div", "ks-myroom-shell");
   readonly scene = node("div", "ks-myroom-scene");
-  readonly status = node("p", "ks-myroom-status");
+  /** The status line (重新连接…, 加载失败…) as a game notice plate. */
+  private status?: GameBanner;
   private profile: LocalProfile;
   private readonly previousFocus = document.activeElement instanceof HTMLElement
     ? document.activeElement : undefined;
@@ -177,9 +177,7 @@ export class MyRoomView {
     const style = node("style");
     style.textContent = styles;
     this.scene.setAttribute("aria-label", "原版小屋三维场景");
-    this.status.hidden = true;
-    this.status.setAttribute("role", "alert");
-    this.shell.append(this.scene, this.status);
+    this.shell.append(this.scene);
     this.element.append(style, this.shell);
     options.root.append(this.element);
   }
@@ -254,6 +252,7 @@ export class MyRoomView {
     this.hud?.dispose();
     this.sceneView?.dispose();
     this.labels?.dispose();
+    this.setStatus(undefined);
     this.element.remove();
     this.previousFocus?.isConnected && this.previousFocus.focus();
   }
@@ -790,7 +789,10 @@ export class MyRoomView {
   }
 
   private setStatus(message: string | undefined): void {
-    this.status.textContent = message ?? "";
-    this.status.hidden = !message;
+    if (!message || this.disposed) {
+      this.status?.close();
+      this.status = undefined;
+    } else if (this.status) this.status.set(message);
+    else this.status = showGameBanner(message, { top: 214 });
   }
 }

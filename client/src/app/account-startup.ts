@@ -23,6 +23,7 @@ import { saveLocalRiderNickname, type BrowserStorage } from "../multiplayer/acco
 import type {
   RiderCatalog, RiderProfile, RiderRegistrationDependencies, StartupHost, StartupLibrary,
 } from "./startup-resources";
+import { tellPlayer } from "../ui/game-popups";
 
 /** Application fields the account code reads and updates. */
 export interface AccountStartupHost {
@@ -303,7 +304,7 @@ export async function repairAccountEquipment(host: AccountStartupHost,
   try {
     saveLiveProfile?.(next);
   } catch (error) {
-    host.hud.showDebugText(`装备修正未保存：${String(error)}`, "error");
+    tellPlayer(host.hud, `装备修正未保存：${String(error)}`);
   }
   if (selectionFor(host, catalog, next.equipment)) {
     showAccountToast(pageDocument(host), "部分装备已到期，已换回默认装备。");
@@ -338,7 +339,7 @@ export async function registerAccountRider(host: AccountStartupHost,
   if (session.summary()?.onboarded) {
     // Already registered (for example the ghost menu's nickname reset): keep the account name.
     if (account) rememberNickname(host, account.nickname);
-    host.hud.showDebugText("账号昵称请在大厅点击头像，在账号面板中修改。");
+    tellPlayer(host.hud, "账号昵称请在大厅点击头像，在账号面板中修改。", "info");
     return;
   }
   const library = host.rhoLibrary;

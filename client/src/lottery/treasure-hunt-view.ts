@@ -15,13 +15,13 @@
 import type { ShopNode, ShopRect } from "../shop/shop-original";
 import { attr, screenRect, ShopLayout } from "../shop/shop-original";
 import { imageVar } from "../shop/shop-assets";
-import { BmlTree, element, place, setText } from "../shop/shop-widgets";
+import { BmlTree, createNodeElement, element, place, setText } from "../shop/shop-widgets";
 import { lotteryErrorMessage, type DrawResult, type HuntSlot, type LotteryDraw,
   type TreasureHuntState } from "./lottery-api";
 import { findIn, isLotteryLibrary, loadLotteryStage, loadStageArt, prune, TREASURE_ROOTS,
   type LotteryStage } from "./lottery-layout";
 import { chanceText, fillString, itemLine, itemsLine, stopMessage } from "./lottery-model";
-import { LOTTERY_ICON_IMAGES, LotteryPictures, LotteryShell, nameLabel, RARITY_EFFECTS,
+import { LOTTERY_ICON_IMAGES, LOTTERY_ICON_ROOTS, LotteryPictures, LotteryShell, nameLabel, RARITY_EFFECTS,
   type LotteryScreenOptions } from "./lottery-shell";
 import { loadLayoutArt } from "../shop/shop-assets";
 
@@ -35,7 +35,11 @@ const AUTO_PAUSE_MS = 1_600;
 /** Avoid retrying forever when the account already owns the entire pool. */
 const MAX_DUPLICATE_ROUNDS = 20;
 const SKIP_KEY = "kartsim.treasureHunt.skipAnimation";
-const ICON_ROOTS = ["stage_/treasureHunt", "stage_/mqShop", "stage_/mainMenu", "stage_/common"];
+/** 活动当前未开放 over the board: a plate in the release BlackEdit frame (the game toast's), white outlined text. */
+const CLOSED_NOTE: ShopNode = { name: "Label", text: "", children: [], attributes: [
+  { name: "name", value: "closedNote" }, { name: "frame", value: "BlackEdit" }, { name: "text", value: "活动当前未开放" },
+  { name: "textRender", value: "outline24" }, { name: "textColor", value: "white" }, { name: "textAlign", value: "center" },
+] };
 
 /** Effect art drawn instead of the release's 3D scenes. */
 const EFFECT_IMAGES = [
@@ -65,8 +69,7 @@ const STYLES = `
 .ks-hunt-check[aria-pressed=true]{background-image:var(${imageVar("newgacha_check_02")})!important}
 .ks-hunt-check{background-image:var(${imageVar("newgacha_check_01")})!important;background-position:left center!important}
 .ks-lottery[data-skip-animation=true] :is(.ks-hunt-cell-glow,.ks-hunt-cell-pic,.ks-hunt-single-glow,.ks-hunt-fixed-ring){animation:none}
-.ks-hunt-closed{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:18px 40px;border-radius:12px;
-  background:rgba(0,0,0,.7);color:#fff;font-size:30px;pointer-events:none}
+.ks-hunt-closed{left:50%;top:50%;width:380px;height:76px;transform:translate(-50%,-50%);z-index:30}
 `;
 
 function storedSkip(): boolean {
@@ -129,7 +132,7 @@ export class TreasureHuntView {
   private stopRequested = false;
   private skip = storedSkip();
   private popupDone?: () => void;
-  private readonly closedNote = element("div", "ks-hunt-closed", "活动当前未开放");
+  private readonly closedNote = createNodeElement(CLOSED_NOTE);
 
   constructor(readonly options: LotteryScreenOptions, private readonly stage: LotteryStage) {
     this.shell = new LotteryShell(options, "寻宝活动", () => this.relayout(), () => this.close());
@@ -138,6 +141,8 @@ export class TreasureHuntView {
     this.tree = new BmlTree(new ShopLayout(this.layoutWindow, screenRect(this.shell.screen)));
     const style = element("style");
     style.textContent = STYLES;
+    this.closedNote.classList.add("ks-hunt-closed");
+    this.closedNote.setAttribute("role", "status");
     this.closedNote.hidden = true;
     this.shell.stage.prepend(style, this.tree.element);
     this.shell.stage.append(this.closedNote);
@@ -615,9 +620,9 @@ export async function openTreasureHunt(options: LotteryScreenOptions): Promise<{
   const stage = await loadLotteryStage(library, TREASURE_ROOTS, "stage_window@zz");
   const view = new TreasureHuntView(options, stage);
   view.shell.mount();
-  void loadStageArt(library, TREASURE_ROOTS, [view.layoutWindow], EFFECT_IMAGES)
+  void loadStageArt(library, TREASURE_ROOTS, [view.layoutWindow, CLOSED_NOTE], EFFECT_IMAGES)
     .then(art => { if (!view.shell.disposed) view.shell.applyArt(art); }).catch(() => undefined);
-  void loadLayoutArt(library, ICON_ROOTS, LOTTERY_ICON_IMAGES)
+  void loadLayoutArt(library, LOTTERY_ICON_ROOTS, LOTTERY_ICON_IMAGES)
     .then(art => { if (!view.shell.disposed) view.shell.applyArt(art); }).catch(() => undefined);
   void view.load();
   return { close: () => view.dispose() };

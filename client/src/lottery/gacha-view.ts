@@ -14,25 +14,30 @@
 import { imageVar, loadLayoutArt, type ShopArt } from "../shop/shop-assets";
 import type { ShopNode, ShopRect } from "../shop/shop-original";
 import { screenRect, ShopLayout } from "../shop/shop-original";
-import { BmlTree, element, setText } from "../shop/shop-widgets";
+import { BmlTree, createNodeElement, element, setText } from "../shop/shop-widgets";
 import { lotteryErrorMessage, type DrawResult, type GachaDetail, type GachaEntry,
   type LotteryItem } from "./lottery-api";
 import { findIn, GACHA_ROOTS, isLotteryLibrary, loadLotteryStage, loadStageArt, patch, prune,
   type LotteryStage } from "./lottery-layout";
 import { fillString, grantedItems, itemLine, itemsLine, periodLine, stopMessage } from "./lottery-model";
-import { dialogButton, LOTTERY_ICON_IMAGES, LotteryPictures, LotteryShell,
+import { LOTTERY_ICON_IMAGES, LOTTERY_ICON_ROOTS, LotteryPictures, LotteryShell,
   type LotteryScreenOptions } from "./lottery-shell";
+import { openGachaPicker } from "./lottery-windows";
 
 /** The most uses of one 精品道具场 request (the server's bound). */
 const MAX_USES = 10;
 /** Drawn items kept in the right list. */
 const HISTORY = 60;
-const ICON_ROOTS = ["stage_/treasureHunt", "stage_/mqShop", "stage_/mainMenu", "stage_/common"];
 const ARROW_ROOTS = ["stage_/shuffleGacha"];
 const ARROW_IMAGES = [1, 2, 3, 4].flatMap(state => [`왼쪽화살_0${state}`, `오른화살_0${state}`]);
 const BACKGROUNDS = [["통합가챠BG_1920", 1920, 1080], ["통합가챠BG_1600", 1600, 900], ["통합가챠BG_1400", 1400, 1050]] as const;
 /** The num sprite of the use buttons (CharPanel fontStr 0123456789, 16×28 glyphs). */
 const GLYPH = { width: 16, height: 28 };
+/** 选择扭蛋 under the name: a release TextButton (the monocoque blue DefaultFocusedButton). */
+const SELECT_BUTTON: ShopNode = { name: "TextButton", text: "", children: [], attributes: [
+  { name: "name", value: "selectGacha" }, { name: "text", value: "选择扭蛋" }, { name: "frame", value: "DefaultFocusedButton" },
+  { name: "textRender", value: "bold16" }, { name: "windowSize", value: "136 36" },
+] };
 
 const STYLES = `
 .ks-gacha-bg{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%);
@@ -51,17 +56,9 @@ const STYLES = `
 .ks-gacha-summary div[data-notice]{color:#ffd84a}
 .ks-gacha-arrow{position:absolute;width:30px;height:110px;border:0;background:center/contain no-repeat;pointer-events:auto;cursor:pointer}
 .ks-gacha-arrow:hover{filter:brightness(1.25)}
-.ks-gacha-select{position:absolute;height:34px;padding:0 16px;border:0;border-radius:17px;pointer-events:auto;cursor:pointer;
-  background:rgba(20,40,80,.8);box-shadow:inset 0 0 0 2px #4aa3ff;color:#fff;font:inherit;font-size:16px}
-.ks-gacha-select:hover{background:rgba(40,80,150,.9)}
+.ks-gacha-select{pointer-events:auto}
 .ks-gacha-key{position:absolute;color:#cfe3ff;font-size:16px;text-align:center;pointer-events:none;white-space:nowrap}
 .ks-gacha-mileage-pic{position:absolute;left:104px;top:40px;width:100px;height:100px}
-.ks-gacha-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.ks-gacha-pick{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:10px;padding:8px;border:0;border-radius:8px;
-  background:#fff;box-shadow:inset 0 0 0 1px #c3cfdd;text-align:left;font:inherit;color:#1d3150;cursor:pointer}
-.ks-gacha-pick:hover,.ks-gacha-pick[aria-current=true]{box-shadow:inset 0 0 0 2px #2f7fe0}
-.ks-gacha-pick-pic{position:relative;width:64px;height:64px;border-radius:6px;background:linear-gradient(#2b4f7d,#18304f)}
-.ks-gacha-pick small{display:block;font-weight:400;color:#5c6b82;font-size:13px}
 .ks-gacha-get{position:absolute;color:#fff;font-size:22px;text-align:center;pointer-events:none;
   text-shadow:0 0 3px #000,1px 1px 0 #000,-1px -1px 0 #000;animation:ks-gacha-get .5s ease-out both}
 @keyframes ks-gacha-get{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
@@ -98,7 +95,7 @@ export class GachaView {
   private readonly got = element("div", "ks-gacha-get");
   private readonly prev = element("button", "ks-gacha-arrow");
   private readonly next = element("button", "ks-gacha-arrow");
-  private readonly select = element("button", "ks-gacha-select", "选择扭蛋");
+  private readonly select = createNodeElement(SELECT_BUTTON);
   private readonly oneDigits = element("div", "ks-gacha-digits");
   private readonly multiDigits = element("div", "ks-gacha-digits");
   private entries: GachaEntry[] = [];
@@ -170,7 +167,9 @@ export class GachaView {
       panel.style.removeProperty("--i0");
       panel.replaceChildren(digits);
     }
-    this.prev.type = this.next.type = this.select.type = "button";
+    this.prev.type = this.next.type = "button";
+    this.select.classList.add("ks-gacha-select");
+    this.select.setAttribute("aria-label", "选择扭蛋");
     this.prev.setAttribute("aria-label", "上一个扭蛋");
     this.next.setAttribute("aria-label", "下一个扭蛋");
     this.prev.style.backgroundImage = `var(${imageVar("왼쪽화살_01")})`;
@@ -200,7 +199,7 @@ export class GachaView {
     if (name) {
       at(this.prev, name, -40, -5, 30, 110);
       at(this.next, name, name.width + 10, -5, 30, 110);
-      at(this.select, name, name.width / 2 - 60, name.height + 26, 120, 34);
+      at(this.select, name, name.width / 2 - 68, name.height + 24, 136, 36);
     }
     const useful = this.rect("itemUseful");
     if (useful) at(this.key, useful, 0, -34, useful.width, 26);
@@ -258,29 +257,16 @@ export class GachaView {
     void this.show(next.itemId);
   }
 
+  /** 选择扭蛋: the release gacha cards (lottery-windows openGachaPicker), ten a page. */
   private async pick(): Promise<void> {
-    if (this.busy || this.entries.length === 0) return;
-    const cleanups: Array<() => void> = [];
-    const chosen = await this.shell.dialog<number | undefined>("选择扭蛋", (body, foot, done) => {
-      const grid = element("div", "ks-gacha-picker");
-      for (const entry of this.entries) {
-        const option = element("button", "ks-gacha-pick");
-        option.type = "button";
-        if (entry.itemId === this.current) option.setAttribute("aria-current", "true");
-        const pic = element("div", "ks-gacha-pick-pic");
-        cleanups.push(this.pictures.draw(pic, { category: 24, itemId: entry.itemId, name: entry.name }));
-        const label = element("div", undefined, entry.name);
-        label.append(element("small", undefined, entry.owned > 0 ? `持有 ${entry.owned} 个` :
-          entry.open ? "可兑换" : "未开放"));
-        option.append(pic, label);
-        option.addEventListener("click", () => done(entry.itemId));
-        grid.append(option);
-      }
-      body.append(grid);
-      foot.append(dialogButton("关闭", () => done(undefined), "secondary"));
-    }, undefined);
-    for (const cleanup of cleanups) cleanup();
-    if (chosen !== undefined && chosen !== this.current) await this.show(chosen);
+    if (this.busy || this.entries.length === 0 || this.shell.dialogOpen) return;
+    let repaint = () => {};
+    const canvas = this.pictures.canvas(() => repaint());
+    const chosen = await this.shell.popup(context => openGachaPicker({
+      ...context, entries: this.entries, current: this.current, picture: canvas.picture,
+      subscribe: render => { repaint = render; },
+    }), undefined).finally(() => canvas.dispose());
+    if (chosen !== undefined && chosen !== this.current && !this.shell.disposed) await this.show(chosen);
   }
 
   private render(detail: GachaDetail): void {
@@ -536,8 +522,9 @@ export async function openGacha(options: LotteryScreenOptions, itemId?: number):
   view.setBackground();
   const apply = (pending: Promise<ShopArt>) => void pending
     .then(art => { if (!view.shell.disposed) view.shell.applyArt(art); }).catch(() => undefined);
-  apply(loadStageArt(library, GACHA_ROOTS, [view.layoutWindow], [...BACKGROUNDS.map(([name]) => name), "num", "labelbox_2"]));
-  apply(loadLayoutArt(library, ICON_ROOTS, LOTTERY_ICON_IMAGES));
+  apply(loadStageArt(library, GACHA_ROOTS, [view.layoutWindow, SELECT_BUTTON],
+    [...BACKGROUNDS.map(([name]) => name), "num", "labelbox_2"]));
+  apply(loadLayoutArt(library, LOTTERY_ICON_ROOTS, LOTTERY_ICON_IMAGES));
   apply(loadLayoutArt(library, ARROW_ROOTS, ARROW_IMAGES));
   void view.load();
   return { close: () => view.dispose() };

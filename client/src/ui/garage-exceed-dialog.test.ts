@@ -1,163 +1,207 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import test from "node:test";
-import { parse } from "@babel/parser";
 
-import { GarageExceedTypeDialog,
+import { attribute, node, nodeName, type Node } from "./bml-kit";
+import { GarageExceedTypeDialog, type GarageExceedChoice,
   type GarageExceedDialogDependencies } from "./garage-exceed-dialog";
+import type { GarageReleaseWindowOptions } from "./garage-release-window";
 
-const release = readFileSync(
-  new URL("../../../recovered/formatted/assets/GarageXView-DSeU5AUN.js", import.meta.url),
-  "utf8",
-);
-const view = parse(release, { sourceType: "module" }).program.body.find(node =>
-  node.type === "ClassDeclaration" && node.id?.name === "Tn");
-assert.ok(view && view.type === "ClassDeclaration");
-const source = release.slice(view.start!, view.end!);
+const flush = () => new Promise<void>(resolve => setImmediate(resolve));
 
-class ElementStub {
-  className = "";
-  textContent = "";
-  type = "";
-  src = "";
-  alt = "";
-  disabled = false;
-  removed = false;
-  isConnected = true;
-  attrs: Record<string, string> = {};
-  children: ElementStub[] = [];
-  classes = new Set<string>();
-  onclick?: () => void;
-  listeners = new Map<string, (event: KeyboardEvent) => void>();
-  classList = {
-    add: (...names: string[]) => names.forEach(name => this.classes.add(name)),
-    toggle: (name: string, active: boolean) => active
-      ? this.classes.add(name) : this.classes.delete(name),
-  };
-  constructor(readonly name: string, readonly owner: { activeElement?: ElementStub },
-    readonly events: unknown[]) {}
-  append(...children: ElementStub[]) { this.children.push(...children); }
-  setAttribute(name: string, value: string) { this.attrs[name] = value; }
-  querySelectorAll(name: string): ElementStub[] {
-    return this.children.flatMap(child => [
-      ...(child.name === name ? [child] : []), ...child.querySelectorAll(name),
-    ]);
-  }
-  addEventListener(name: string, callback: (event: KeyboardEvent) => void) {
-    this.listeners.set(name, callback);
-  }
-  dispatchEvent(event: KeyboardEvent): boolean {
-    this.listeners.get(event.type)?.(event);
-    return true;
-  }
-  focus() { this.owner.activeElement = this; this.events.push(["focus", this.name]); }
-  remove() { this.removed = true; }
-  snapshot(): unknown {
-    return { name: this.name, className: this.className, text: this.textContent,
-      type: this.type, src: this.src, alt: this.alt, disabled: this.disabled,
-      removed: this.removed, attrs: { ...this.attrs }, classes: [...this.classes],
-      children: this.children.map(child => child.snapshot()) };
-  }
+function find(definition: Node, name: string): Node {
+  // The release close button is added by the window loader (setCloseButton).
+  if (name === "closeButton") return node("ImageButton", { name });
+  const walk = (entry: Node): Node | undefined => nodeName(entry) === name ? entry
+    : entry.children.map(walk).find(Boolean);
+  const found = walk(definition);
+  assert.ok(found, name);
+  return found;
 }
 
-function fixture(released: boolean) {
+function fixture(options: { failOpen?: boolean; current?: number } = {}) {
   const events: unknown[] = [];
-  const documentStub: { activeElement?: ElementStub; createElement(name: string): ElementStub } = {
-    createElement(name) { return new ElementStub(name, documentStub, events); },
+  let opened: GarageReleaseWindowOptions | undefined;
+  let deliver: (() => void) | undefined;
+  let answer: ((value: boolean) => void) | undefined;
+  let signal: AbortSignal | undefined;
+  const window = {
+    element: {} as HTMLElement,
+    hovered: undefined as unknown,
+    disposed: false,
+    render() { events.push("render"); },
+    focus(name?: string) { events.push(["focus", name]); },
+    dispose() { this.disposed = true; events.push("window-dispose"); },
   };
-  documentStub.activeElement = documentStub.createElement("previous-focus");
-  let resolveStyles: ((styles: { actionStyles: Map<string, unknown> }) => void) | undefined;
-  const styleAction = (_button: HTMLButtonElement, style: unknown, kind: string) => {
-    events.push(["style", kind, style]);
-  };
-  const loadStyles = (_library: unknown) => {
-    events.push("load-styles");
-    return new Promise<{ actionStyles: Map<string, unknown> }>(resolve => {
-      resolveStyles = resolve;
-    });
-  };
-  const resolveChoice: GarageExceedDialogDependencies["resolveChoice"] = choice =>
-    choice === "random" ? 3 : choice;
   const dependencies: GarageExceedDialogDependencies = {
-    styleAction, loadStyles, resolveChoice,
+    styleAction() { events.push("styled"); },
+    loadStyles: async () => { events.push("styles"); },
+    resolveChoice: (choice: GarageExceedChoice) => {
+      events.push(["resolve", choice]);
+      return choice === "random" ? 3 : choice;
+    },
+    openWindow: async windowOptions => {
+      opened = windowOptions;
+      if (options.failOpen) throw new Error("missing texture");
+      await new Promise<void>(resolve => { deliver = resolve; });
+      return window;
+    },
+    confirm: (title, message, confirmOptions) => {
+      events.push(["confirm", title, message]);
+      signal = confirmOptions.signal;
+      return new Promise(resolve => { answer = resolve; });
+    },
   };
-  const Original = new Function("Ye", "he", "Ts", "ua", "document", "HTMLElement",
-    `${source}; return Tn;`)([2, 3, 4], styleAction, loadStyles,
-      resolveChoice, documentStub, ElementStub,
-    ) as new (surface: HTMLElement, assets: unknown, library: unknown,
-      current: unknown, onClose: (choice?: number) => void) => GarageExceedTypeDialog;
-  const surface = documentStub.createElement("surface");
-  const assets = { exceedTypes: new Map([
-    [2, { textureType: 12, accelLevel: 3, timeLevel: 4 }],
-    [3, { textureType: 13, accelLevel: 5, timeLevel: 6 }],
-  ]), urls: new Map([["icon_exceedB_12", "S.png"],
-    ["icon_exceedB_13", "B.png"]]) };
-  const onClose = (choice?: number) => { events.push(["close", choice]); };
-  const previousDocument = globalThis.document;
-  const previousElement = globalThis.HTMLElement;
-  globalThis.document = documentStub as unknown as Document;
-  globalThis.HTMLElement = ElementStub as unknown as typeof HTMLElement;
-  let dialog: GarageExceedTypeDialog;
-  try {
-    dialog = released
-      ? new Original(surface as unknown as HTMLElement, assets, "library",
-          { title: "测试车辆", type: 2 }, onClose)
-      : new GarageExceedTypeDialog(surface as unknown as HTMLElement, assets,
-          "library", { title: "测试车辆", type: 2 }, onClose, dependencies);
-  } finally {
-    globalThis.document = previousDocument;
-    globalThis.HTMLElement = previousElement;
-  }
-  const withDocument = <T>(run: () => T): T => {
-    const old = globalThis.document;
-    globalThis.document = documentStub as unknown as Document;
-    try { return run(); } finally { globalThis.document = old; }
+  const assets = {
+    exceedTypes: new Map([
+      [2, { textureType: 2, accelLevel: 3, timeLevel: 1 }],
+      [3, { textureType: 3, accelLevel: 2, timeLevel: 2 }],
+      [4, { textureType: 4, accelLevel: 1, timeLevel: 3 }],
+      [8, { textureType: 8, accelLevel: 3, timeLevel: 2 }],
+    ]),
+    urls: new Map<string, string>(),
   };
-  const panel = dialog.panel as unknown as ElementStub;
-  const choiceButtons = panel.children[2]!.children;
-  const snapshot = () => ({ events: structuredClone(events),
-    surface: surface.snapshot(), selected: dialog.selected,
-    disposed: dialog.disposed, active: documentStub.activeElement?.name });
-  const settleStyles = async () => {
-    resolveStyles!({ actionStyles: new Map([["okButton", "ok-style"],
-      ["cancelButton", "cancel-style"]]) });
-    await new Promise<void>(resolve => setImmediate(resolve));
+  const dialog = new GarageExceedTypeDialog({} as HTMLElement, assets, "library",
+    { title: "棉花糖 迅", type: options.current ?? 4 }, choice => events.push(["close", choice]), dependencies);
+  const state = (name: string) => opened!.state(find(opened!.definition, name));
+  const ready = async () => {
+    await flush();
+    deliver?.();
+    await flush();
   };
-  return { dialog, panel, choiceButtons, snapshot, settleStyles, withDocument };
+  return { dialog, events, window, state, ready, opened: () => opened!,
+    answer: (value: boolean) => answer!(value), signal: () => signal };
 }
 
-test("Exceed Type choices, native labels and confirmation match Tn", async () => {
-  for (const index of [0, 3]) {
-    const run = async (released: boolean) => {
-      const f = fixture(released);
-      const initial = f.snapshot();
-      await f.settleStyles();
-      f.withDocument(() => {
-        f.choiceButtons[index]!.onclick?.();
-        (f.dialog.action as unknown as ElementStub).onclick?.();
-      });
-      const confirmation = f.snapshot();
-      const shade = f.panel.children.at(-1)!;
-      const buttons = shade.children[0]!.querySelectorAll("button");
-      f.withDocument(() => {
-        buttons[1]!.onclick?.();
-        (f.dialog.action as unknown as ElementStub).onclick?.();
-      });
-      const secondShade = f.panel.children.at(-1)!;
-      secondShade.children[0]!.querySelectorAll("button")[0]!.onclick?.();
-      return { initial, confirmation, final: f.snapshot() };
-    };
-    assert.deepEqual(await run(false), await run(true), String(index));
+test("the chooser is the release exceedTypeChange board with the four type cards", async () => {
+  const f = fixture({ current: 8 });
+  await f.ready();
+  const options = f.opened();
+  assert.deepEqual(options.roots, ["dialog2_/exceedTypeChange", "dialog2_/kart12SkillTuning", "stage_/common"]);
+  assert.equal(options.closeButtonFolder, "dialog2_/exceedTypeChange");
+  const caption = find(options.definition, "exceedTypeChoice");
+  assert.equal(attribute(caption, "frame"), "CaptionDialog");
+  assert.equal(attribute(caption, "windowRect"), "0 0 564 535");
+  assert.equal(attribute(caption, "setCloseButton"), "closeButton");
+  assert.equal(attribute(caption.children[0]!, "image"), "tuning_changeExceedPopupBg2");
+  assert.deepEqual([0, 1, 2, 3].map(index => attribute(find(options.definition, `choiceIcon${index}`), "texture")),
+    ["icon_exceedB_2", "icon_exceedB_3", "icon_exceedB_4", "icon_exceedB_5"]);
+  assert.equal(attribute(find(options.definition, "choice0"), "texture"), "tuning_selectperform_slotBg_s");
+  assert.equal(attribute(find(options.definition, "okButton"), "name"), "okButton");
+  // The current type's icon (a special type) is in the layout too.
+  assert.equal(attribute(find(options.definition, "currentType8"), "texture"), "icon_exceedB_8");
+  assert.deepEqual(f.state("kartName"), { text: "棉花糖 迅" });
+  assert.deepEqual(f.state("choiceName3"), { text: "随机" });
+  assert.deepEqual(f.state("currentType8"), { visible: true });
+  assert.deepEqual(f.state("accelCurrent3"), { visible: true });
+  assert.deepEqual(f.state("timeCurrent2"), { visible: true });
+  assert.deepEqual(f.state("accelNew0"), { visible: true });
+  assert.equal(f.state("okButton").disabled, true);
+  assert.deepEqual(f.state("choosePrompt"), { visible: true });
+  assert.deepEqual(f.state("compare"), { visible: false });
+  assert.deepEqual(f.events.slice(-2), ["render", ["focus", "cancelButton"]]);
+  assert.equal(f.events.includes("styles"), false);
+});
+
+test("a chosen type shows its icon, gauges and the hover / selected card looks", async () => {
+  const f = fixture();
+  await f.ready();
+  const card = find(f.opened().definition, "choice0");
+  (f.opened().state(card).action as () => void)();
+  assert.equal(f.dialog.selected, 2);
+  assert.equal(f.opened().state(card).checked, true);
+  assert.deepEqual(f.state("choiceEffect0"), { visible: true });
+  assert.deepEqual(f.state("choiceHover0"), { visible: true });
+  assert.deepEqual(f.state("choiceHover1"), { visible: false });
+  f.opened().state(find(f.opened().definition, "choice1"));
+  f.window.hovered = find(f.opened().definition, "choice1");
+  assert.deepEqual(f.state("choiceHover1"), { visible: true });
+  assert.deepEqual(f.state("newType2"), { visible: true });
+  assert.deepEqual(f.state("newType4"), { visible: false });
+  assert.deepEqual(f.state("currentType4"), { visible: true });
+  assert.deepEqual(f.state("accelNew3"), { visible: true });
+  assert.deepEqual(f.state("timeNew1"), { visible: true });
+  assert.deepEqual(f.state("accelRandom"), { visible: false });
+  assert.equal(f.state("okButton").disabled, false);
+  assert.deepEqual(f.state("compare"), { visible: true });
+});
+
+test("确定 asks in the message box; 取消 returns to the choices, 确定 changes the type", async () => {
+  const f = fixture();
+  await f.ready();
+  (f.state("choice1").action as () => void)();
+  (f.state("okButton").action as () => void)();
+  assert.deepEqual(f.events.at(-1), ["confirm", "变更超负荷类型", "确定将当前车辆的超负荷类型变更为 B 吗？"]);
+  assert.equal(f.dialog.confirming, true);
+  assert.equal(f.state("okButton").disabled, true);
+  assert.equal(f.state("cancelButton").disabled, true);
+  // Escape belongs to the question while it is up.
+  f.opened().onCancel();
+  assert.equal(f.dialog.disposed, false);
+  f.answer(false);
+  await flush();
+  assert.equal(f.dialog.confirming, false);
+  assert.deepEqual(f.events.at(-1), ["focus", "cancelButton"]);
+  (f.state("okButton").action as () => void)();
+  f.answer(true);
+  await flush();
+  assert.deepEqual(f.events.slice(-3), [["resolve", 3], "window-dispose", ["close", 3]]);
+  assert.equal(f.dialog.disposed, true);
+});
+
+test("随机 asks with its own text and resolves the choice only when confirmed", async () => {
+  const f = fixture();
+  await f.ready();
+  (f.state("choice3").action as () => void)();
+  assert.deepEqual(f.state("accelRandom"), { visible: true });
+  assert.deepEqual(f.state("timeNew0"), { visible: true });
+  assert.deepEqual(f.state("newType5"), { visible: true });
+  (f.state("okButton").action as () => void)();
+  assert.deepEqual(f.events.at(-1), ["confirm", "变更超负荷类型", "将随机变更超负荷类型。|确定继续吗？"]);
+  f.answer(true);
+  await flush();
+  assert.deepEqual(f.events.slice(-3), [["resolve", "random"], "window-dispose", ["close", 3]]);
+});
+
+test("取消, the close button and Escape close without a type; disposal is idempotent", async () => {
+  for (const close of ["cancelButton", "closeButton", "escape"]) {
+    const f = fixture();
+    await f.ready();
+    if (close === "escape") f.opened().onCancel();
+    else (f.state(close).action as () => void)();
+    f.dialog.dispose();
+    assert.deepEqual(f.events.filter(event => Array.isArray(event) && event[0] === "close"), [["close", undefined]]);
+    assert.equal(f.window.disposed, true, close);
   }
 });
 
-test("Exceed Type Escape, cancel and repeated disposal match Tn", () => {
-  const run = (released: boolean) => {
-    const f = fixture(released);
-    f.withDocument(() => f.dialog.overlay.dispatchEvent({ type: "keydown", key: "Escape",
-      preventDefault: () => {} } as KeyboardEvent));
-    f.dialog.dispose();
-    return f.snapshot();
-  };
-  assert.deepEqual(run(false), run(true));
+test("closing during the question aborts it; closing before the window loads disposes it", async () => {
+  const asking = fixture();
+  await asking.ready();
+  (asking.state("choice0").action as () => void)();
+  (asking.state("okButton").action as () => void)();
+  asking.dialog.dispose();
+  assert.equal(asking.signal()?.aborted, true);
+  asking.answer(true);
+  await flush();
+  assert.equal(asking.events.some(event => Array.isArray(event) && event[0] === "resolve"), false);
+
+  const early = fixture();
+  early.dialog.dispose();
+  await early.ready();
+  assert.equal(early.window.disposed, true);
+  assert.equal(early.dialog.window, undefined);
+  assert.deepEqual(early.events.filter(event => Array.isArray(event) && event[0] === "close"),
+    [["close", undefined]]);
+});
+
+test("a window that cannot open closes the dialog so the garage is usable again", async () => {
+  const error = console.error;
+  console.error = () => {};
+  try {
+    const f = fixture({ failOpen: true });
+    await flush();
+    await flush();
+    assert.equal(f.dialog.disposed, true);
+    assert.deepEqual(f.events, [["close", undefined]]);
+  } finally { console.error = error; }
 });

@@ -3,6 +3,7 @@ import { activeBrowserSession } from "../account/account-runtime";
 import { ClubApi } from "../club/club-api";
 import { ClubScreen, type ClubLibrary } from "../club/club-screen";
 import type { ReadyFlowController } from "./ready-flow";
+import { tellPlayer } from "../ui/game-popups";
 
 /**
  * 俱乐部 from the taskbar: the release club pages (我的俱乐部, 俱乐部目录,
@@ -20,7 +21,7 @@ export async function openReadyClub(controller: ReadyClubController): Promise<vo
   const session = activeBrowserSession();
   const library = host.getLibrary() as Partial<ClubLibrary> | undefined;
   if (!session || typeof library?.canonicalCandidates !== "function") {
-    host.hud.showDebugText("俱乐部：请先登录。", "error");
+    tellPlayer(host.hud, "俱乐部：请先登录。");
     return;
   }
   controller.clubOpening = true;
@@ -37,7 +38,7 @@ export async function openReadyClub(controller: ReadyClubController): Promise<vo
     if (controller.disposed) screen.dispose();
     else controller.activeClub = screen;
   } catch (error) {
-    host.hud.showDebugText(`俱乐部：${error instanceof Error ? error.message : String(error)}`, "error");
+    tellPlayer(host.hud, `俱乐部：${error instanceof Error ? error.message : String(error)}`);
   } finally {
     controller.clubOpening = false;
   }

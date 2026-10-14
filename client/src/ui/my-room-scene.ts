@@ -11,6 +11,7 @@ import { S4 } from "../generated/world.js";
 import type { GarageCatalogEntry } from "../resources/garage-catalog";
 import type { Equipment, LocalProfile } from "./local-profile";
 import type { MyRoomEnvironment, MyRoomResourceLibrary } from "./my-room-catalog";
+import { showGameBanner, type GameBanner } from "./game-popups";
 
 type RoomFile = MyRoomResourceLibrary["files"][number];
 
@@ -692,6 +693,8 @@ export class MyRoomSceneView {
   private lastFrameTime = 0;
   private followingPlayer = false;
   private disposed = false;
+  /** A load failure, shown until the scene goes away. */
+  private errorBanner?: GameBanner;
   private readonly resizeObserver?: ResizeObserver;
 
   private readonly showcase?: MyRoomShowcasePose;
@@ -708,8 +711,9 @@ export class MyRoomSceneView {
     this.canvas.style.touchAction = "none";
     // Ready's detached rider is native Z-up; its imported kart is already Y-up.
     this.characterGroundRoot.rotation.x = -Math.PI / 2;
+    // Read by assistive tech only; an error shows as a game notice plate (setStatus).
     this.status.setAttribute("role", "status");
-    this.status.style.cssText = "position:absolute;left:12px;top:76px;z-index:2;padding:6px 10px;max-width:calc(100% - 24px);border-radius:6px;background:#102b49d9;color:#fff;font:13px/1.4 system-ui,sans-serif;pointer-events:none";
+    this.status.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)";
     this.status.textContent = "等待载入原版小屋场景…";
     root.append(this.canvas, this.status);
     if (this.showcase) {
@@ -1152,6 +1156,8 @@ export class MyRoomSceneView {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.errorBanner?.close();
+    this.errorBanner = undefined;
     ++this.generation;
     ++this.subjectGeneration;
     ++this.displayGeneration;
@@ -1194,7 +1200,10 @@ export class MyRoomSceneView {
   private setStatus(message: string, error = false): void {
     this.status.textContent = message;
     this.status.setAttribute("role", error ? "alert" : "status");
-    this.status.hidden = !error;
+    if (error && !this.disposed) {
+      if (this.errorBanner) this.errorBanner.set(message);
+      else this.errorBanner = showGameBanner(message, { top: 214 });
+    }
   }
 
   private positionCamera(): void {

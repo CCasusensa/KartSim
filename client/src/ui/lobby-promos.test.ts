@@ -86,10 +86,18 @@ test("大厅首页：后台配置的轮播图和宣传板可点击跳转，没�
     const boards = element.querySelectorAll(".ks-lobby-board");
     assert.equal(element.querySelectorAll(".ks-lobby-dot").length, 4);
     assert.equal(carousel.getAttribute("role"), "img");
-    carousel.click();
-    boards[0]!.click();
+    // Without loaded game resources the game-style notice (ui/game-popups.ts) only logs its text.
+    const notices: string[] = [];
+    const info = console.info;
+    console.info = (message: unknown) => { notices.push(String(message)); };
+    try {
+      carousel.click();
+      boards[0]!.click();
+    } finally {
+      console.info = info;
+    }
     assert.deepEqual(opened, []);
-    assert.equal(element.querySelector(".ks-lobby-notice")!.text(), "敬请期待");
+    assert.deepEqual(notices, ["敬请期待"]);
     assert.deepEqual(boards.map(board => board.querySelector("span")!.text()), ["COMING SOON", "COMING SOON"]);
 
     view.setPromos({

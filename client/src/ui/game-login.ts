@@ -1,9 +1,12 @@
 import { te } from "../generated/library.js";
 import { LOGIN_FIELD_LABELS, LoginForm, type LoginField, type LoginFormRequests } from "../account/login-form";
 import type { AccountLoginOptions } from "../multiplayer/account-login-dialog";
-import { currentResourceManager } from "../resources/resource-manager";
 import { node, nodeName, paintText, prepare, type BmlLibrary, type Node, type NodeState,
   type WindowView } from "./bml-kit";
+import { gameWindowLibrary, popupLayer, showGameMessage as showPopupMessage, showGameStatus as showPopupStatus,
+  type GameStatus } from "./game-popups";
+
+export { gameWindowLibrary };
 
 /**
  * The account windows in the game's look, drawn by the release window
@@ -18,43 +21,6 @@ const TEXT = "rgb(42,55,80)";
 const WIDTH = 540;
 const ROW = { label: 130, edit: 330, height: 32, step: 44 };
 const RULES = "账号名 3–24 位字母、数字或下划线；游戏昵称 1–16 字；密码至少 8 位。";
-
-/** The resource library the windows read, once startup has loaded it. */
-export function gameWindowLibrary(): BmlLibrary | undefined {
-  const library = currentResourceManager()?.library as Partial<BmlLibrary> | undefined;
-  return typeof library?.canonicalCandidates === "function" ? library as BmlLibrary : undefined;
-}
-
-/**
- * A layer over everything (the startup loading screen is z-index 7): it
- * dims the whole page, and its stage covers exactly the game area, which
- * the release windows take as their 1600×900 stage.
- */
-function overlayHost(root: HTMLElement): { element: HTMLElement; dispose(): void } {
-  const doc = root.ownerDocument;
-  const layer = doc.createElement("div");
-  layer.dataset.uiLayer = "account";
-  Object.assign(layer.style, { position: "fixed", inset: "0", zIndex: "8", background: "rgba(0,0,0,.45)" });
-  const element = doc.createElement("div");
-  element.style.position = "absolute";
-  layer.append(element);
-  const place = () => {
-    const rect = root.getBoundingClientRect();
-    Object.assign(element.style, { left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`,
-      height: `${rect.height}px` });
-  };
-  place();
-  const view = doc.defaultView;
-  view?.addEventListener("resize", place);
-  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(place) : undefined;
-  observer?.observe(root);
-  doc.body.append(layer);
-  return { element, dispose: () => {
-    view?.removeEventListener("resize", place);
-    observer?.disconnect();
-    layer.remove();
-  } };
-}
 
 async function loadWindow(library: BmlLibrary, root: HTMLElement, definition: Node, label: string,
   state: (entry: Node) => NodeState, onCancel?: () => void): Promise<WindowView> {
@@ -113,7 +79,7 @@ export function loginWindowDefinition(form: LoginForm, text: LoginWindowText): N
   const twoButtons = form.canRegister;
   children.push(
     node("Window", { leftTopWH: `0 0 ${WIDTH - 50} 1`, frame: "HSection", align: "hcenter;bottom", adjust: "0 63" }),
-    node("TextButton", { name: "submitButton", leftTopWH: "0 0 150 38", align: "hcenter;bottom",
+    node("TextButton", { name: "okButton", leftTopWH: "0 0 150 38", align: "hcenter;bottom",
       adjust: twoButtons ? "-84 12" : "0 12", textRender: "bold16" }),
   );
   if (twoButtons) {
@@ -135,7 +101,7 @@ export function loginWindowDefinition(form: LoginForm, text: LoginWindowText): N
 export async function openGameLogin(library: BmlLibrary, root: HTMLElement, options: AccountLoginOptions,
   requests: LoginFormRequests): Promise<unknown> {
   const form = new LoginForm(options, requests);
-  const host = overlayHost(root);
+  const host = popupLayer(root, { dim: true, zIndex: 8 });
   let view: WindowView | undefined;
   let finish!: (account: unknown) => void;
   const done = new Promise<unknown>(resolve => { finish = resolve; });
@@ -163,7 +129,7 @@ export async function openGameLogin(library: BmlLibrary, root: HTMLElement, opti
       }, form.busy), textColor: "rgb(30,110,210)" };
       case "error": return paintText(form.busy ? (register ? "正在注册…" : "正在登录…") : form.error, {
         size: 13, color: form.busy ? TEXT : "rgb(205,45,35)", bold: !form.busy, middle: true });
-      case "submitButton": return button(register ? "注册并登录" : "登录", () => void submit(), form.busy);
+      case "okButton": return button(register ? "注册并登录" : "登录", () => void submit(), form.busy);
       case "modeButton": return button(register ? "已有账号，去登录"
         : options.invite === "required" || options.invite === undefined ? "用邀请码注册" : "注册新账号", () => {
         form.toggleMode();
@@ -202,43 +168,10 @@ export async function openGameLogin(library: BmlLibrary, root: HTMLElement, opti
   }
 }
 
-function messageDefinition(title: string, withButton: boolean): Node {
-  return node("Panel", { windowRect: "fullscreen" }, [
-    node("CaptionWindow", { name: "messageDialog", windowRect: `0 0 480 ${withButton ? 230 : 170}`,
-      frame: "CaptionDialog", caption: title, captionPos: "0 1", align: "center", textRender: "bold" }, [
-      node("Label", { name: "messageText", windowSize: "440 96", adjust: "0 16", align: "hcenter" }),
-      ...withButton ? [
-        node("Window", { leftTopWH: "0 0 430 1", frame: "HSection", align: "hcenter;bottom", adjust: "0 63" }),
-        node("TextButton", { name: "okButton", leftTopWH: "0 0 150 38", align: "hcenter;bottom", adjust: "0 12",
-          textRender: "bold16" }),
-      ] : [],
-    ]),
-  ]);
-}
-
 /** A message with one button (重试, 重新登录…); resolves when it is chosen. */
 export async function showGameMessage(library: BmlLibrary, root: HTMLElement, title: string, text: string,
   buttonText: string): Promise<void> {
-  const host = overlayHost(root);
-  let chosen!: () => void;
-  const done = new Promise<void>(resolve => { chosen = resolve; });
-  let view: WindowView | undefined;
-  try {
-    view = await loadWindow(library, host.element, messageDefinition(title, true), title, entry => {
-      switch (nodeName(entry)) {
-        case "messageDialog": return { text: title };
-        case "messageText": return paintText(text, { size: 14, color: TEXT, align: "center", middle: true, lineGap: 6 });
-        case "okButton": return button(buttonText, () => chosen());
-      }
-      return {};
-    });
-    view.show();
-    view.focus("okButton");
-    await done;
-  } finally {
-    view?.dispose();
-    host.dispose();
-  }
+  await showPopupMessage(title, text, { library, root, yes: buttonText, dim: true });
 }
 
 /**
@@ -246,40 +179,6 @@ export async function showGameMessage(library: BmlLibrary, root: HTMLElement, ti
  * past a moment, so quick steps do not flash a window.
  */
 export function showGameStatus(library: BmlLibrary, root: HTMLElement, title: string, text: string,
-  delayMs = 300): { close(): void; set(text: string): void } {
-  let message = text;
-  let closed = false;
-  let view: WindowView | undefined;
-  let host: ReturnType<typeof overlayHost> | undefined;
-  const timer = setTimeout(() => {
-    if (closed) return;
-    host = overlayHost(root);
-    void loadWindow(library, host.element, messageDefinition(title, false), title, entry => {
-      switch (nodeName(entry)) {
-        case "messageDialog": return { text: title };
-        case "messageText": return paintText(message, { size: 14, color: TEXT, align: "center", middle: true });
-      }
-      return {};
-    }).then(loaded => {
-      if (closed) {
-        loaded.dispose();
-        return;
-      }
-      view = loaded;
-      view.show();
-    }).catch(error => console.warn("账号状态窗口打开失败", error));
-  }, delayMs);
-  return {
-    close: () => {
-      if (closed) return;
-      closed = true;
-      clearTimeout(timer);
-      view?.dispose();
-      host?.dispose();
-    },
-    set: value => {
-      message = value;
-      view?.render();
-    },
-  };
+  delayMs = 300): GameStatus {
+  return showPopupStatus(title, text, { library, root, delayMs, dim: true });
 }

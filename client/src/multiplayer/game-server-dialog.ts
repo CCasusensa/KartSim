@@ -1,5 +1,9 @@
 /** Game server picker shown before entering the lobby when several servers are open. */
 
+import { te } from "../generated/library.js";
+import { node, nodeName, paintText, prepare, type BmlLibrary, type Node, type NodeState,
+  type WindowView } from "../ui/bml-kit";
+import { gameRoot, gameWindowLibrary, popupLayer, trapPopupKeys } from "../ui/game-popups";
 import type { GameServer, GameServerOption } from "./game-servers";
 
 export interface GameServerPickerDependencies {
@@ -35,6 +39,8 @@ export function showGameServerPicker(dependencies: GameServerPickerDependencies,
   root: HTMLElement, options: GameServerOption[], selected: string,
   signal?: AbortSignal): Promise<GameServer> {
   if (signal?.aborted) return Promise.reject(new Error("ACCOUNT_CANCELLED"));
+  const library = gameWindowLibrary();
+  if (library) return gameServerWindow(library, gameRoot(root.ownerDocument), options, selected, signal);
   return new Promise<GameServer>((resolve, reject) => {
     const overlay = dependencies.createElement("div");
     const form = dependencies.createElement("form") as HTMLFormElement;
@@ -137,5 +143,145 @@ export function showGameServerPicker(dependencies: GameServerPickerDependencies,
     overlay.append(form);
     root.ownerDocument.body.append(overlay);
     firstStop().focus();
+  });
+}
+
+const ROOTS = ["stage_/common"];
+const TEXT = "rgb(42,55,80)";
+const WIDTH = 500;
+const ROWS = 6;
+const ROW = { top: 46, height: 50, step: 54 };
+
+function serverWindowDefinition(rows: number, paged: boolean): Node {
+  const children: Node[] = [
+    node("Label", { name: "serverInfo", leftTopWH: `0 12 ${WIDTH - 90} 26`, align: "hcenter" }),
+  ];
+  for (let index = 0; index < rows; index++) {
+    const y = ROW.top + index * ROW.step;
+    children.push(node("Window", { name: `serverRow${index}`, leftTopWH: `0 ${y} ${WIDTH - 90} ${ROW.height}`,
+      align: "hcenter", frame: "InnerFrame" }, [
+      node("PlaneCheckButton", { name: `serverCheck${index}`, leftTopWH: `12 ${(ROW.height - 16) / 2} 16 16` }),
+      node("TextButton", { name: `serverPick${index}`, leftTopWH: `0 0 ${WIDTH - 90} ${ROW.height}`, frame: "NoFrame" }),
+    ]));
+  }
+  let y = ROW.top + rows * ROW.step;
+  if (paged) {
+    children.push(
+      node("TextButton", { name: "serverPrevious", leftTopWH: `${WIDTH / 2 - 135} ${y} 80 26`, textRender: "bold14" }),
+      node("Label", { name: "serverPage", leftTopWH: `${WIDTH / 2 - 75} ${y} 100 26` }),
+      node("TextButton", { name: "serverNext", leftTopWH: `${WIDTH / 2 + 25} ${y} 80 26`, textRender: "bold14" }),
+    );
+    y += 32;
+  }
+  children.push(
+    node("Label", { name: "serverError", leftTopWH: `0 ${y} ${WIDTH - 90} 22`, align: "hcenter" }),
+    node("Window", { leftTopWH: `0 0 ${WIDTH - 56} 1`, frame: "HSection", align: "hcenter;bottom", adjust: "0 63" }),
+    node("TextButton", { name: "okButton", leftTopWH: "0 0 132 42", align: "hcenter;bottom", adjust: "-70 6",
+      textRender: "bold16" }),
+    node("TextButton", { name: "cancelButton", leftTopWH: "0 0 132 42", align: "hcenter;bottom", adjust: "70 6",
+      textRender: "bold16" }),
+  );
+  return node("Panel", { windowRect: "fullscreen" }, [
+    node("CaptionWindow", { name: "serverDialog", windowRect: `0 0 ${WIDTH} ${y + 28 + 118}`, frame: "CaptionDialog",
+      caption: "选择游戏服务器", captionPos: "0 1", align: "center", textRender: "bold" }, children),
+  ]);
+}
+
+/** The picker in the game's look: CaptionDialog, a check row a server, 进入服务器 / 返回. */
+function gameServerWindow(library: BmlLibrary, root: HTMLElement, options: GameServerOption[], selected: string,
+  signal?: AbortSignal): Promise<GameServer> {
+  return new Promise<GameServer>((resolve, reject) => {
+    const layer = popupLayer(root);
+    const paged = options.length > ROWS;
+    const rows = Math.min(ROWS, options.length);
+    let choice = options.find(option => !option.unavailable && option.server.nodeId === selected)?.server.nodeId;
+    let page = Math.floor(Math.max(0, options.findIndex(option => option.server.nodeId === choice)) / ROWS);
+    const pages = Math.ceil(options.length / ROWS);
+    let error = "";
+    let view: WindowView | undefined;
+    let releaseKeys: (() => void) | undefined;
+    let done = false;
+    const finish = (server?: GameServer) => {
+      if (done) return;
+      done = true;
+      signal?.removeEventListener("abort", cancel);
+      releaseKeys?.();
+      view?.dispose();
+      layer.dispose();
+      if (server) resolve(server);
+      else reject(new Error("ACCOUNT_CANCELLED"));
+    };
+    const cancel = () => finish();
+    const enter = () => {
+      const server = options.find(option => !option.unavailable && option.server.nodeId === choice)?.server;
+      if (server) finish(server);
+      else {
+        error = "请选择一个游戏服务器。";
+        view?.render();
+      }
+    };
+    const pick = (option: GameServerOption) => {
+      if (option.unavailable) return;
+      choice = option.server.nodeId;
+      error = "";
+      view?.render();
+    };
+    signal?.addEventListener("abort", cancel, { once: true });
+    const state = (entry: Node): NodeState => {
+      const name = nodeName(entry);
+      const row = /^server(?:Row|Check|Pick)(\d+)$/.exec(name);
+      if (row) {
+        const option = options[page * ROWS + Number(row[1])];
+        if (!option) return { visible: false };
+        if (name.startsWith("serverRow")) return {};
+        const chosen = option.server.nodeId === choice;
+        if (name.startsWith("serverCheck")) return { checked: chosen, disabled: !!option.unavailable,
+          label: option.server.name, ...option.unavailable ? {} : { action: () => pick(option) } };
+        return { text: "", label: `${option.server.name} ${gameServerSummary(option)}`, checked: chosen,
+          disabled: !!option.unavailable, ...option.unavailable ? {} : { action: () => pick(option) },
+          paint: (context: CanvasRenderingContext2D, rect: { x: number; y: number; width: number; height: number }) => {
+            const color = option.unavailable ? "rgb(150,156,168)" : TEXT;
+            const text = { x: rect.x + 38, width: rect.width - 50 };
+            paintText(option.server.name, { size: 15, bold: true, color: chosen ? "rgb(30,110,210)" : color })
+              .paint(context, { ...text, y: rect.y + 6, height: 18 });
+            paintText(gameServerSummary(option), { size: 13, color })
+              .paint(context, { ...text, y: rect.y + 27, height: 16 });
+          } };
+      }
+      switch (name) {
+        case "serverDialog": return { text: "选择游戏服务器" };
+        case "serverInfo": return paintText("想一起玩的玩家请选择同一个服务器。", { size: 14, bold: true, color: TEXT,
+          middle: true });
+        case "serverPrevious": return { text: "上一页", label: "上一页", disabled: page === 0,
+          action: () => { page--; view?.render(); } };
+        case "serverNext": return { text: "下一页", label: "下一页", disabled: page >= pages - 1,
+          action: () => { page++; view?.render(); } };
+        case "serverPage": return paintText(`${page + 1} / ${pages}`, { size: 14, bold: true, color: TEXT,
+          align: "center", middle: true });
+        case "serverError": return paintText(error, { size: 13, bold: true, color: "rgb(205,45,35)", middle: true });
+        case "okButton": return { text: "进入服务器", label: "进入服务器", action: enter };
+        case "cancelButton": return { text: "返回", label: "返回", action: cancel };
+      }
+      return {};
+    };
+    void (te.load({ library, root: layer.element, definition: prepare(library, serverWindowDefinition(rows, paged), ROOTS),
+      roots: ROOTS, smoothImages: true, modal: true, label: "选择游戏服务器", onCancel: cancel, onConfirm: enter,
+      state } as never) as Promise<WindowView>).then(loaded => {
+      if (done) {
+        loaded.dispose();
+        return;
+      }
+      view = loaded;
+      // Escape goes back and Enter enters, before the window's Escape-to-pause sees them.
+      releaseKeys = trapPopupKeys(loaded.element, { cancel, confirm: enter });
+      view.show();
+      view.focus("okButton");
+    }).catch(failure => {
+      if (done) return;
+      done = true;
+      signal?.removeEventListener("abort", cancel);
+      layer.dispose();
+      reject(failure);
+    });
   });
 }

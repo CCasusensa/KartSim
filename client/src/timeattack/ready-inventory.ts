@@ -8,6 +8,7 @@ import {
 } from "../ui/item-inventory";
 import type { ReadyOptions, ReadySelection } from "./ready-flow";
 import type { ReadyGarageController } from "./ready-garage";
+import { tellPlayer } from "../ui/game-popups";
 
 /**
  * Apply an item chosen in My Items through the same Ready reload and profile-save
@@ -81,9 +82,8 @@ export async function equipReadyInventoryItem(
   try {
     host.saveProfile();
   } catch (error) {
-    host.hud.showDebugText(
-      `本次装备已应用，但未保存：${error instanceof Error ? error.message : String(error)}`,
-      "error");
+    tellPlayer(host.hud,
+      `本次装备已应用，但未保存：${error instanceof Error ? error.message : String(error)}`);
   }
   return nextProfile;
 }

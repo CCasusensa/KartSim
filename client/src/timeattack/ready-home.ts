@@ -23,6 +23,7 @@ import { claimProEmblem, leaveLicense, openLicenseStep, refreshLicenseMenu, star
 import type { ReadyShopController } from "./ready-shop";
 import { openReadyLottery, type LotteryScreen, type ReadyLotteryController } from "./ready-lottery";
 import { openShopUnlessRacing } from "./ready-shop-guard";
+import { tellPlayer } from "../ui/game-popups";
 
 /**
  * The lobby home and the release 单人游戏 page shown over Ready. Ready's own
@@ -337,8 +338,8 @@ export async function openReadyHome(controller: ReadyHomeController,
         element.removeEventListener("click", onNavigation, true);
     }
   } catch (error) {
-    host.hud.showDebugText(
-      `主菜单：${error instanceof Error ? error.message : String(error)}`, "error");
+    tellPlayer(host.hud,
+      `主菜单：${error instanceof Error ? error.message : String(error)}`);
   } finally {
     controller.homeOpening = false;
   }

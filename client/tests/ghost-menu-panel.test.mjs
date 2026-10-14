@@ -6,7 +6,8 @@ import {
   deleteGhostFromMenu, exportGhostFromMenu, importSelectedGhostFile,
   isCurrentGhostImport, switchToImportedGhostTrack,
 } from "../src/timeattack/ghost-menu-import.ts";
-import { GhostMenuPanel } from "../src/timeattack/ghost-menu-panel.ts";
+import { GhostMenuPanel, GHOST_MENU_HINT } from "../src/timeattack/ghost-menu-panel.ts";
+import { TouchDrivingControls } from "../src/input/touch-driving-controls.ts";
 
 const release = readFileSync(
   new URL("../../recovered/formatted/index.js", import.meta.url), "utf8");
@@ -15,19 +16,24 @@ const panelNode = parse(release, { sourceType: "module" }).program.body.find(
 assert.ok(panelNode);
 const panelSource = release.slice(panelNode.start, panelNode.end);
 
+/**
+ * The release panel's DOM buttons are now the SIM menu's TextButtons; the
+ * same clicks (by label) must do the same things, and the file input stays.
+ */
 async function scenario(readable) {
   const events = [];
   let nextId = 0;
   let mode = "native";
   class Element {
-    constructor(tag) { this.tag = tag; this.id = ++nextId; events.push(["create", tag, this.id]); }
+    constructor(tag) { this.tag = tag; this.id = ++nextId; }
     attributes = {};
-    addEventListener(name) { events.push(["listen", this.id, name]); }
-    removeEventListener(name) { events.push(["unlisten", this.id, name]); }
+    listeners = new Map();
+    addEventListener(name, listener) { this.listeners.set(name, listener); }
+    removeEventListener(name) { this.listeners.delete(name); }
     setAttribute(name, value) { this.attributes[name] = value; }
-    append(...children) { events.push(["append", this.id, ...children.map(child => child.id)]); }
-    click() { events.push(["click", this.id]); }
-    remove() { events.push(["remove", this.id]); }
+    append(...children) { (this.children ??= []).push(...children); }
+    click() { events.push(["click", this.tag, this.type]); }
+    remove() { events.push(["remove", this.tag]); }
   }
   const labels = {
     native: "原生", "native-smooth": "原生平滑", c1: "C1", c2: "C2",
@@ -67,31 +73,42 @@ async function scenario(readable) {
         import: importDependencies,
       })
       : new OriginalPanel(options);
-    const initial = {
-      children: [panel.importButton, panel.exportButton,
-        panel.deleteButton, panel.samplingModeButton,
-        panel.resetNicknameButton, panel.input].map(element => ({
-        id: element.id, tag: element.tag, type: element.type,
-        text: element.textContent, accept: element.accept, hidden: element.hidden,
-      })),
-      className: panel.panel.className,
+    // Label → click, from the menu entries or the release DOM buttons.
+    const buttons = () => readable
+      ? panel.menuEntries().map(entry => [entry.text, entry.action])
+      : [panel.importButton, panel.exportButton, panel.deleteButton,
+        panel.samplingModeButton, panel.resetNicknameButton]
+        .map(button => [button.textContent, () => button.listeners.get("click")()]);
+    const click = async prefix => {
+      const [, action] = buttons().find(([text]) => text.startsWith(prefix));
+      await action();
     };
-    panel.onSamplingModeToggle();
-    panel.onSamplingModeToggle();
-    panel.openPicker();
-    await panel.deleteGhost();
-    await panel.exportGhost();
+    const initial = {
+      labels: buttons().map(([text]) => text),
+      input: { type: panel.input.type, accept: panel.input.accept, hidden: panel.input.hidden },
+      inputMounted: root.children.length === 1 && root.children[0] === panel.panel &&
+        panel.panel.children.includes(panel.input),
+      listensForFile: panel.input.listeners.has("change"),
+    };
+    await click("幽灵插值");
+    await click("幽灵插值");
+    // The release label lagged one mode behind (refreshed before the mode
+    // changed); the menu draws the mode in use.
+    const sampling = buttons().find(([text]) => text.startsWith("幽灵插值"))[0];
+    panel.input.value = "old.ksv";
+    await click("导入影子");
+    const pickerValue = panel.input.value;
+    await click("删除影子");
+    await click("导出 KSV");
+    await click("重置车手名");
+    await Promise.resolve();
     const importCurrent = [panel.isCurrentImport(0), panel.isCurrentImport(1)];
     panel.dispose();
     panel.dispose();
     return {
-      events, initial, importCurrent,
-      final: {
-        disposed: panel.disposed,
-        label: panel.samplingModeButton.textContent,
-        pressed: panel.samplingModeButton.attributes["aria-pressed"],
-        input: panel.input.value,
-      },
+      events, initial, sampling: readable ? sampling : `幽灵插值：${labels[mode]}`, pickerValue, importCurrent,
+      disposed: panel.disposed,
+      listensAfterDispose: panel.input.listeners.has("change"),
     };
   } finally {
     if (previousDocument)
@@ -100,6 +117,35 @@ async function scenario(readable) {
   }
 }
 
-test("Ghost menu controls, mode labels, actions and disposal match release", async () => {
+test("Ghost menu actions, mode labels and disposal match release", async () => {
   assert.deepEqual(await scenario(true), await scenario(false));
+});
+
+test("Ghost tools are a SIM menu section with a hidden file input", () => {
+  const created = [];
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, "document");
+  Object.defineProperty(globalThis, "document", { configurable: true, value: { createElement: tag => {
+    const element = { tag, children: [], addEventListener() {}, removeEventListener() {},
+      append(...children) { this.children.push(...children); }, remove() { this.removed = true; } };
+    created.push(element);
+    return element;
+  } } });
+  try {
+    const root = { children: [], append(child) { this.children.push(child); } };
+    const panel = new GhostMenuPanel({ root, samplingMode: () => "c1", onSamplingModeChange() {},
+      resetNickname() {} }, { samplingLabels: { native: "原生", "native-smooth": "原生平滑", c1: "C1", c2: "C2" },
+      nextSamplingMode: mode => mode, saveSamplingMode() {}, import: {} });
+    // No visible DOM buttons: only the hidden holder and its file input.
+    assert.deepEqual(created.map(element => element.tag), ["div", "input"]);
+    assert.equal(panel.panel.hidden, true);
+    assert.equal(panel.title, "影子记录");
+    assert.equal(panel.hint, GHOST_MENU_HINT);
+    assert.deepEqual(panel.menuEntries().map(entry => entry.text),
+      ["导入影子(.ksv)", "导出 KSV", "删除影子", "幽灵插值：C1", "重置车手名"]);
+    // The SIM menu finds it through its slot.
+    assert.deepEqual(TouchDrivingControls.prototype.menuSections.call({ ghostMenuSlot: root }), [panel]);
+  } finally {
+    if (previousDocument) Object.defineProperty(globalThis, "document", previousDocument);
+    else delete globalThis.document;
+  }
 });

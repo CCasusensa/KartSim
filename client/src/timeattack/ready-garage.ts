@@ -2,6 +2,7 @@ import { ensureFeatureResources } from "../ui/resource-panel";
 import { garageViewCatalog } from "../account/garage-ownership";
 import type { ReadyOptions, ReadySelection } from "./ready-flow";
 import { garageStuffSupport } from "./garage-stuff";
+import { tellPlayer } from "../ui/game-popups";
 
 interface GarageChoice {
   kart: { path: string; itemId: number; systemKey: string; title: string };
@@ -184,7 +185,7 @@ export async function selectReadyGarage(controller: ReadyGarageController,
   try {
     host.saveProfile();
   } catch (error) {
-    host.hud.showDebugText(`本次装备选择未保存：${String(error)}`, "error");
+    tellPlayer(host.hud, `本次装备选择未保存：${String(error)}`);
   }
 }
 
@@ -293,7 +294,7 @@ export function applyImmediateReadyGarageSelection(controller: ReadyGarageContro
   try {
     host.saveProfile();
   } catch (error) {
-    host.hud.showDebugText(`本次车库变更未保存：${String(error)}`, "error");
+    tellPlayer(host.hud, `本次车库变更未保存：${String(error)}`);
   }
 }
 

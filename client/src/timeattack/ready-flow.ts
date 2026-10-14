@@ -11,6 +11,7 @@ import { goReadyHome, openReadyHome, preloadReadyHome, syncReadyHome,
   type ReadyHomeController } from "./ready-home";
 import { startDuelRace, type ReadyDuelController } from "./ready-duel";
 import type { DuelRaceRequest } from "../ui/ready-missions";
+import { tellPlayer } from "../ui/game-popups";
 
 /** The selection carried from the Ready screen into a single-player race. */
 export interface ReadySelection {
@@ -280,8 +281,8 @@ export async function enterTimeAttackReady(
           library: library as unknown as MessengerWindowOptions["library"], root: host.root,
           onHover: () => host.getInterfaceAudio()?.playHover(),
           onActivate: () => host.getInterfaceAudio()?.playClick(),
-        }).catch(error => host.hud.showDebugText(
-          `好友聊天系统：${error instanceof Error ? error.message : String(error)}`, "error"));
+        }).catch(error => tellPlayer(host.hud,
+          `好友聊天系统：${error instanceof Error ? error.message : String(error)}`));
       },
       onClub: () => { void openReadyClub(controller as unknown as ReadyClubController); },
       onRewardBox: () => { void openReadyRewardBox(controller as ReadyMenusController); },
@@ -317,12 +318,10 @@ export async function enterTimeAttackReady(
       // 赛道对决 (TIMEATTACK.md): the practice window's 开始对决.
       onDuel: (options: ReadyOptions, duel: DuelRaceRequest) => {
         void startDuelRace(controller as ReadyDuelController, selection, options, duel).catch(error =>
-          host.hud.showDebugText(`赛道对决：${error instanceof Error ? error.message : String(error)}`, "error"));
+          tellPlayer(host.hud, `赛道对决：${error instanceof Error ? error.message : String(error)}`));
       },
-      onNotice: (text: string) => {
-        if (controller.activeWindowNotice) controller.activeWindowNotice.show(text, "info", undefined, 2600);
-        else host.hud.showDebugText(text, "info");
-      },
+      // The track picker's WindowNotice takes a rectangle and a painter, not a line of text.
+      onNotice: (text: string) => tellPlayer(host.hud, text, "info"),
       // The window's close button returns to the 单人游戏 page it opened from.
       onExit: () => {
         void openReadyHome(controller as unknown as ReadyHomeController, "single");
@@ -508,7 +507,7 @@ export async function startRaceFromReady(
     await host.startRace(resolvedSelection);
   } catch (error) {
     if (!controller.disposed) {
-      host.hud.showDebugText(error instanceof Error ? error.message : String(error), "error");
+      tellPlayer(host.hud, error instanceof Error ? error.message : String(error));
     }
   } finally {
     if (!controller.disposed) {

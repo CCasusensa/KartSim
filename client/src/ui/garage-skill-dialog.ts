@@ -1,235 +1,223 @@
-import type { GaragePreviewRect } from "./garage-transform-preview";
+import { attribute, clone, formatSb, loadBml, mapTree, node, nodeName, withAttributes, type Node,
+  type NodeState, type Rect } from "./bml-kit";
 import type { XunGarageProgression } from "./garage-progression-panel";
 import type { GarageSkillSelectionState } from "./garage-progression-session";
+import { garageWindowLibrary, openGarageReleaseWindow, paintColorText, type GarageReleaseWindow,
+  type OpenGarageReleaseWindow } from "./garage-release-window";
 
-export interface GarageSkillDialogAssets {
-  rects: Map<string, GaragePreviewRect>;
-  urls: Map<string, string>;
-  headingStyle: { fontSize: number; color: string };
-  cardIcon: GaragePreviewRect;
-  cardName: GaragePreviewRect;
-  cardTag: GaragePreviewRect;
-  cards: Map<number, GaragePreviewRect>;
-  actionStyles: Map<string, unknown>;
-}
+/**
+ * 性能槽N 性能选择 drawn by the release window renderer on the original
+ * dialog2_kart12SkillTuning.rho kart12SkillTuning@zz layout: the
+ * tuning_selectperformPopupBg_s board with its tuningPopup_x_ close button,
+ * the 竞速 / 道具 tab images (tuning_selectperformPopup_tab_), the three
+ * 性能研究 lines with their marks, the nine speedSkillTuningCard cards
+ * (slotBg_s, hover/selected slotBg_c, the selected glow, the
+ * tuning_slotNum_0N tag of the slot wearing it, the dim face and
+ * 已装至其他性能槽中 when another slot wears it), the two tuning_dot1 help
+ * lines and the release TextButtons. The board's three white boxes (the
+ * release's material counts, nothing is spent here) carry the rules of
+ * the local version instead; the material buttons, the spanner change
+ * button, the line locks and the 道具 page are left out.
+ */
+
+const FOLDER = "dialog2_/kart12SkillTuning";
+const ROOTS = [FOLDER, "stage_/common"];
+
+/** kart12SkillTuning_stringBag (cn). */
+export const SKILL_STRINGS = {
+  caption: "[color:255 22 225 255]性能槽%d[/color]性能选择",
+  speed: "竞速",
+  item: "道具",
+  alreadyUse: "已装至其他性能槽中",
+  cancel: "取消",
+};
+
+/** The board's white boxes (tuning_selectperformPopupBg_s pixels 16–248, 257–488, 497–729 × 93–120). */
+const GUIDES: Array<[string, string]> = [
+  ["16 93 233 28", "竞速：九选三，不可重复"],
+  ["257 93 232 28", "本次仅更换当前性能槽"],
+  ["497 93 233 28", "本地不消耗材料"],
+];
+const TEXT = "255 42 55 80";
+const HELP = "rgba(179, 195, 228, 1)";
+const GREEN = "255 62 255 14";
+
+/** Release nodes the local picker leaves out (material counts and buttons, locks, the spanner button). */
+const LEFT_OUT = new Set(["buyStudyDataBtn", "buyDeepStudyDataBtn", "buyEthisSpannerBtn", "haveStudyData",
+  "haveDeepStudyData", "haveEthisSpannerData", "tuningChangeBtn", "skillLineLock", "unlockBtn", "unlockTuning"]);
+const MATERIAL_ICONS = new Set(["icon_ethisTuning_1", "icon_ethisTuning_2", "icon_ethisSpanner"]);
+
+export interface GarageSkillLayout { window: Node; card: Node }
 
 export interface GarageSkillDialogDependencies {
   createState(progression: XunGarageProgression, row: number): GarageSkillSelectionState;
-  loadAssets(library: unknown): Promise<GarageSkillDialogAssets>;
-  styleAction(button: HTMLButtonElement, style: unknown,
-    kind: "primary" | "secondary"): void;
   availablePoints(progression: XunGarageProgression): number;
   skills: readonly { id: number; label: string }[];
+  /** Left from the HTML dialog; the generated wiring still passes them. */
+  loadAssets?(library: unknown): Promise<unknown>;
+  styleAction?(button: HTMLButtonElement, style: unknown, kind: "primary" | "secondary"): void;
+  /** kart12SkillTuning@zz and speedSkillTuningCard from the library. */
+  loadLayout?(library: unknown): Promise<GarageSkillLayout>;
+  /** The release window (te.load in a popup layer over the game area). */
+  openWindow?: OpenGarageReleaseWindow;
+}
+
+export async function loadGarageSkillLayout(library: unknown): Promise<GarageSkillLayout> {
+  const files = garageWindowLibrary(library);
+  const [window, card] = await Promise.all([loadBml(files, FOLDER, "kart12SkillTuning@zz"),
+    loadBml(files, FOLDER, "speedSkillTuningCard")]);
+  return { window, card };
+}
+
+/** The card template for skill `id`, its nodes named card<id>:<release name> (the face itself card<id>). */
+function skillCard(template: Node, id: number, equippedSlot: number | undefined): Node {
+  const rename = (entry: Node, root: boolean): Node => {
+    const name = nodeName(entry);
+    const changes: Record<string, string | undefined> = {
+      name: root ? `card${id}:root` : name ? `card${id}:${name}` : `card${id}`,
+    };
+    if (name === "skillIcon") changes.texture = `tuning_icon_${id}`;
+    if (name === "curSkillSlotTag") changes.texture = `tuning_slotNum_0${equippedSlot ?? 1}`;
+    // 已装至其他性能槽中 is wider than the card at 14 px and ran into the next card's name.
+    if (name === "alreadyUse") changes.textRender = "outline12";
+    return { ...withAttributes(entry, changes), children: entry.children.map(child => rename(child, false)) };
+  };
+  return rename(clone(template), true);
+}
+
+/**
+ * The release layout made into the local picker (see the file comment);
+ * `equipped` maps a skill to the slot wearing it.
+ */
+export function skillSelectionDefinition(layout: GarageSkillLayout, equipped: (id: number) => number | undefined):
+  Node {
+  const container = layout.window.children.find(entry => nodeName(entry) === "container");
+  if (!container) throw new Error("技能窗口缺少 container。");
+  const adapted = mapTree(container, entry => {
+    const children = entry.children.filter(child => !LEFT_OUT.has(nodeName(child)) &&
+      child.name !== "Play1SPanel" && !MATERIAL_ICONS.has(attribute(child, "texture") ?? "") &&
+      !(child.name === "TabPage" && nodeName(child) === "itemPage"));
+    const name = nodeName(entry);
+    if (name === "skillTuning_bg")
+      return { ...withAttributes(entry, { image: "tuning_selectperformPopupBg_s" }), children };
+    if (entry.name === "ImageButton" && (name === "speedPage" || name === "itemPage"))
+      return { ...withAttributes(entry, { name: name === "speedPage" ? "speedTab" : "itemTab",
+        autoLoadNoDisable: undefined,
+        texture: `tuning_selectperformPopup_tab_${name === "speedPage" ? 3 : 1}` }), children };
+    if (entry.name === "ColorLabel" && attribute(entry, "text") === "#sb(helpDesc)")
+      return { ...withAttributes(entry, { name: "helpDesc", windowSize: undefined, adjust: undefined,
+        align: undefined, leftTopWH: "236 589 490 44" }), children };
+    if (entry.name === "Container" && /^[1-9]$/.test(name))
+      return { ...entry, children: [...children, skillCard(layout.card, Number(name), equipped(Number(name)))] };
+    return { ...entry, children };
+  });
+  const guides = GUIDES.map(([rect], index) => node("Label", { name: `guide${index + 1}`, leftTopWH: rect,
+    textAlign: "center", textRender: "bold14", textColor: TEXT }));
+  return node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
+    { ...withAttributes(adapted, { adjust: "0 -33" }), children: [...adapted.children, ...guides] },
+  ]);
 }
 
 /** Editable, accessible XUN skill picker backed by an uncommitted selection state. */
 export class GarageSkillSelectionDialog {
-  readonly element = document.createElement("div");
-  readonly panel = document.createElement("div");
-  readonly status = document.createElement("div");
-  readonly accept = document.createElement("button");
-  readonly cancel = document.createElement("button");
-  readonly choices = new Map<number, HTMLButtonElement>();
-  readonly previousFocus = document.activeElement instanceof HTMLElement
+  readonly previousFocus = typeof HTMLElement !== "undefined" && document.activeElement instanceof HTMLElement
     ? document.activeElement : undefined;
   readonly state: GarageSkillSelectionState;
-  assets?: GarageSkillDialogAssets;
+  window?: GarageReleaseWindow;
   disposed = false;
+  /** The card faces as the renderer hands them to state(), for the hover look. */
+  readonly cards = new Map<number, unknown>();
 
-  constructor(surface: HTMLElement, library: unknown, progression: XunGarageProgression,
+  constructor(_surface: HTMLElement, readonly library: unknown, progression: XunGarageProgression,
     readonly row: number, readonly onClose: (value?: XunGarageProgression) => void,
     readonly dependencies: GarageSkillDialogDependencies) {
     if (!Number.isInteger(row) || row < 0 || row > 2)
       throw new Error("无效的技能栏。");
     this.state = dependencies.createState(progression, row);
-    this.element.className = "garage-skill-selection";
-    this.panel.className = "garage-skill-selection-panel";
-    this.panel.setAttribute("role", "dialog");
-    this.panel.setAttribute("aria-label", "迅竞速技能选择");
-    this.panel.setAttribute("aria-modal", "true");
-    this.status.className = "garage-skill-selection-status";
-    this.status.setAttribute("role", "status");
-    this.status.textContent = "正在加载原版技能卡片…";
-    this.accept.type = this.cancel.type = "button";
-    this.accept.textContent = "变更";
-    this.accept.disabled = true;
-    this.cancel.textContent = "取消";
-    this.accept.onclick = () => {
-      if (this.assets && this.state.changed) this.close(true);
-    };
-    this.cancel.onclick = () => this.close(false);
-    this.place(this.accept, { x: 225, y: 655, width: 146, height: 42 });
-    this.place(this.cancel, { x: 380, y: 655, width: 146, height: 42 });
-    this.panel.append(this.status);
-    this.element.append(this.panel);
-    surface.append(this.element);
-    this.cancel.focus();
-    this.element.addEventListener("keydown", event => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        this.close(false);
-      }
-      if (event.key === "Tab") {
-        event.preventDefault();
-        const buttons = [...this.panel.querySelectorAll<HTMLButtonElement>("button:not(:disabled)")];
-        const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
-        buttons[(index + (event.shiftKey ? buttons.length - 1 : 1)) % buttons.length]?.focus();
-      }
-    });
-    void this.load(library);
+    void this.open();
   }
 
-  place(element: HTMLElement, rect: GaragePreviewRect): void {
-    Object.assign(element.style, {
-      position: "absolute", left: `${rect.x}px`, top: `${rect.y}px`,
-      width: `${rect.width}px`, height: `${rect.height}px`,
-    });
-    this.panel.append(element);
-  }
-
-  async load(library: unknown): Promise<void> {
+  async open(): Promise<void> {
     try {
-      const assets = await this.dependencies.loadAssets(library);
+      const layout = await (this.dependencies.loadLayout ?? loadGarageSkillLayout)(this.library);
       if (this.disposed) return;
-      this.assets = assets;
-      this.build(assets);
-      this.refresh();
-      this.choices.get(this.state.value.skills[this.row]!.id)?.focus();
-    } catch (error) {
-      this.assets = undefined;
-      this.accept.disabled = true;
-      if (!this.disposed)
-        this.status.textContent = `技能资源加载失败，请取消后重试：${error instanceof Error ? error.message : error}`;
-    }
-  }
-
-  build(assets: GarageSkillDialogAssets): void {
-    const rect = (name: string) => assets.rects.get(name)!;
-    const container = rect("/container");
-    Object.assign(this.panel.style, {
-      width: `${container.width}px`, height: `${container.height}px`,
-      left: `${(1600 - container.width) / 2}px`,
-      top: `${(834 - container.height) / 2}px`,
-      backgroundImage: `url("${assets.urls.get("tuning_selectperformPopupBg_s")}")`,
-    });
-    const heading = document.createElement("strong");
-    heading.className = "garage-skill-selection-heading";
-    heading.style.fontSize = `${assets.headingStyle.fontSize}px`;
-    heading.style.color = assets.headingStyle.color;
-    const slot = document.createElement("span");
-    slot.textContent = `性能槽${this.row + 1}`;
-    const title = document.createElement("span");
-    title.textContent = "性能选择";
-    heading.append(slot, title);
-    this.place(heading, rect("/container/skillTuningCaption"));
-    this.buildModeTabs(assets);
-    const guidance = document.createElement("div");
-    guidance.className = "garage-skill-selection-local";
-    guidance.textContent = "竞速：九选三，不可重复 · 本次仅更换当前性能槽 · 本地不消耗材料";
-    this.place(guidance, { x: 15, y: 88, width: 718, height: 35 });
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "garage-native-button";
-    close.setAttribute("aria-label", "关闭技能选择");
-    for (let state = 1; state <= 4; state++)
-      close.style.setProperty(`--button-${state}`,
-        `url("${assets.urls.get(`tuningPopup_x_${state}`)}")`);
-    close.onclick = () => this.close(false);
-    this.place(close, rect("/container/closeButton"));
-    for (let index = 0; index < 3; index++) {
-      const line = rect(`/container/skillTuning/speedPage/skillLine${index + 1}`);
-      const marker = document.createElement("img");
-      marker.src = assets.urls.get(`tuning_selectperform_mark${index + 1}`)!;
-      marker.alt = `第${index + 1}栏`;
-      this.place(marker, { x: line.x + 100, y: line.y + 53, width: 76, height: 76 });
-    }
-    for (const skill of this.dependencies.skills) {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "garage-skill-card";
-      card.setAttribute("aria-label", skill.label);
-      card.style.setProperty("--card-normal",
-        `url("${assets.urls.get("tuning_selectperform_slotBg_s")}")`);
-      card.style.setProperty("--card-selected",
-        `url("${assets.urls.get("tuning_selectperform_slotBg_c")}")`);
-      const icon = document.createElement("img");
-      icon.src = assets.urls.get(`tuning_icon_${skill.id}`)!;
-      icon.alt = "";
-      const name = document.createElement("span");
-      name.textContent = skill.label;
-      for (const [element, bounds] of [
-        [icon, assets.cardIcon], [name, assets.cardName],
-      ] as Array<[HTMLElement, GaragePreviewRect]>) {
-        Object.assign(element.style, {
-          position: "absolute", left: `${bounds.x}px`, top: `${bounds.y}px`,
-          width: `${bounds.width}px`, height: `${bounds.height}px`,
-        });
-        card.append(element);
-      }
-      const equipped = this.state.equippedSlot(skill.id);
-      if (equipped) {
-        const marker = document.createElement("img");
-        marker.src = assets.urls.get(`tuning_slotNum_0${equipped}`)!;
-        marker.alt = `性能槽${equipped}已装备`;
-        Object.assign(marker.style, {
-          position: "absolute", left: `${assets.cardTag.x}px`,
-          top: `${assets.cardTag.y}px`, width: `${assets.cardTag.width}px`,
-          height: `${assets.cardTag.height}px`,
-        });
-        card.append(marker);
-        card.title = `性能槽${equipped}已装备${equipped === this.row + 1
-          ? "（当前槽）" : "，不可重复选择"}`;
-      }
-      const selectedEffect = document.createElement("img");
-      selectedEffect.className = "garage-skill-card-selected-effect";
-      selectedEffect.src = assets.urls.get("tuning_selectperform_slotBg_c_effect")!;
-      selectedEffect.alt = "";
-      Object.assign(selectedEffect.style, {
-        position: "absolute", inset: "0", width: "116px", height: "116px",
+      const definition = skillSelectionDefinition(layout, id => this.state.equippedSlot(id));
+      const window = await (this.dependencies.openWindow ?? openGarageReleaseWindow)({
+        library: this.library, definition, roots: ROOTS, label: "迅竞速技能选择",
+        onCancel: () => this.close(false), state: entry => this.nodeState(entry),
       });
-      card.append(selectedEffect, name);
-      card.disabled = this.state.isOccupied(skill.id);
-      card.onclick = () => {
-        if (this.assets && !this.disposed) {
-          this.state.choose(skill.id);
-          this.refresh();
+      if (this.disposed) {
+        window.dispose();
+        return;
+      }
+      this.window = window;
+      window.render();
+      window.focus(`card${this.state.id}`);
+    } catch (error) {
+      console.error("技能选择窗口打开失败", error);
+      this.close(false);
+    }
+  }
+
+  skillLabel(id: number): string {
+    return this.dependencies.skills.find(skill => skill.id === id)?.label ?? `技能${id}`;
+  }
+
+  /** The two help lines: points given back, points free after 变更. */
+  statusText(): string {
+    const points = (value: number) => `[color:${GREEN}]${value}[/color]`;
+    return `本次返还 ${points(this.state.refunded)} 点强化点数，确认后可用 ${points(
+      this.dependencies.availablePoints(this.state.value))} 点强化点数。|关闭或取消不修改。`;
+  }
+
+  /** What each node of the window shows. */
+  nodeState(entry: Node): NodeState {
+    const name = nodeName(entry);
+    const card = /^card(\d)(?::(.+))?$/.exec(name);
+    if (card) {
+      const id = Number(card[1]);
+      const selected = this.state.id === id;
+      const occupied = this.state.isOccupied(id);
+      switch (card[2]) {
+        case undefined:
+          this.cards.set(id, entry);
+          return { label: occupied ? `${this.skillLabel(id)}（${SKILL_STRINGS.alreadyUse}）` : this.skillLabel(id),
+            checked: selected, disabled: occupied, action: () => this.choose(id) };
+        case "selectPerform_1": {
+          const face = this.cards.get(id);
+          return { visible: !occupied && (selected || (face !== undefined && this.window?.hovered === face)) };
         }
-      };
-      this.choices.set(skill.id, card);
-      this.place(card, assets.cards.get(skill.id)!);
+        case "selectPerform_2": return { visible: selected };
+        case "noneSkill_2": return { visible: occupied };
+        case "curSkillSlotTag": return { visible: this.state.equippedSlot(id) !== undefined };
+        case "skillName": return { visible: !occupied, text: this.skillLabel(id) };
+        case "alreadyUse": return { visible: occupied, text: SKILL_STRINGS.alreadyUse };
+      }
+      return {};
     }
-    this.place(this.accept, rect("/container/okButton"));
-    this.place(this.cancel, rect("/container/cancelButton"));
-    this.dependencies.styleAction(this.accept, assets.actionStyles.get("okButton"), "primary");
-    this.dependencies.styleAction(this.cancel, assets.actionStyles.get("cancelButton"), "secondary");
+    const guide = /^guide(\d)$/.exec(name);
+    if (guide) return { text: GUIDES[Number(guide[1]) - 1]![1] };
+    switch (name) {
+      case "skillTuningCaption": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
+        paintColorText(context, formatSb(SKILL_STRINGS.caption, this.row + 1), rect,
+          { size: 20, color: "white", align: "center", middle: true, outline: "rgba(3, 38, 64, 0.9)" }) };
+      case "speedTab": return { text: SKILL_STRINGS.speed, textColor: "white", label: "竞速技能（当前）" };
+      case "itemTab": return { text: SKILL_STRINGS.item, label: "道具技能（未开放）" };
+      case "helpDesc": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
+        paintColorText(context, this.statusText(), rect, { size: 14, color: HELP, lineGap: 6 }) };
+      case "okButton": return { text: "变更", label: "变更", disabled: !this.state.changed,
+        action: () => { if (this.state.changed) this.close(true); } };
+      case "cancelButton": return { text: SKILL_STRINGS.cancel, label: SKILL_STRINGS.cancel,
+        action: () => this.close(false) };
+      case "closeButton": return { label: "关闭技能选择", action: () => this.close(false) };
+    }
+    return {};
   }
 
-  buildModeTabs(assets: GarageSkillDialogAssets): void {
-    for (const [name, label, current] of [
-      ["speedPage", "竞速", true], ["itemPage", "道具", false],
-    ] as Array<[string, string, boolean]>) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "garage-skill-mode-tab";
-      button.textContent = label;
-      button.setAttribute("aria-label", current ? "竞速技能（当前）" : "道具技能（未开放）");
-      button.setAttribute("aria-pressed", String(current));
-      button.disabled = !current;
-      button.title = current ? "当前仅支持计时赛竞速技能" : "道具赛技能不在本次实现范围";
-      button.style.backgroundImage = `url("${assets.urls.get(
-        `tuning_selectperformPopup_tab_${current ? 3 : 1}`)}")`;
-      this.place(button, assets.rects.get(`/container/skillTuning/gameType/${name}`)!);
-    }
-  }
-
-  refresh(): void {
-    const value = this.state.value;
-    this.choices.forEach((button, id) =>
-      button.setAttribute("aria-pressed", String(value.skills[this.row]!.id === id)));
-    this.accept.disabled = !this.state.changed;
-    this.status.textContent = `本次返还 ${this.state.refunded} 点强化点数，确认后可用 ${this.dependencies.availablePoints(value)} 点强化点数。
-关闭或取消不修改。`;
+  choose(id: number): void {
+    if (this.disposed || this.state.isOccupied(id)) return;
+    this.state.choose(id);
+    this.window?.render();
   }
 
   close(accept: boolean): void {
@@ -244,7 +232,7 @@ export class GarageSkillSelectionDialog {
     if (this.disposed) return;
     this.disposed = true;
     this.state.settle(false);
-    this.assets = undefined;
-    this.element.remove();
+    this.window?.dispose();
+    this.window = undefined;
   }
 }

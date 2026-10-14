@@ -1,3 +1,8 @@
+import { te } from "../generated/library.js";
+import { clipToStage, node, nodeName, paintText, prepare, type BmlLibrary, type Node as BmlNode,
+  type NodeState, type WindowView } from "../ui/bml-kit";
+import { gameRoot, gameWindowLibrary, popupLayer, type PopupLayer } from "../ui/game-popups";
+
 export const TOUCH_LAYOUT_STORAGE_KEY = "kartsim.touch-layout";
 
 export interface TouchButtonPlacement {
@@ -17,21 +22,54 @@ const arrowStep: Record<string, readonly [number, number]> = {
   ArrowDown: [0, 4],
 };
 
-const editorMarkup = `
-      <div class="touch-layout-panel">
-        <div class="touch-layout-actions">
-          <button type="button" data-layout="save">保存</button>
-          <button type="button" data-layout="cancel">取消</button>
-          <button type="button" data-layout="reset">恢复默认</button>
-        </div>
-        <p role="status"></p>
-      </div>
-      <button type="button" class="touch-layout-resize-handle" aria-label="调整按键大小">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-          <path d="M4 9V4h5M15 20h5v-5M4 4l6 6M20 20l-6-6"/>
-        </svg>
-      </button>`;
+/** The drag handle that resizes the selected key (it follows the key's bottom-right corner). */
+const resizeHandleMarkup = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M4 9V4h5M15 20h5v-5M4 4l6 6M20 20l-6-6"/>
+      </svg>`;
+
+const ROOTS = ["stage_/common"];
+const TEXT = "rgb(42,55,80)";
+const ERROR_TEXT = "rgb(205,45,35)";
+/**
+ * The 调整按键 panel in 1600×900 stage units, at the top centre (the keys
+ * sit at the bottom corners and the SIM key at the top left).
+ */
+export const LAYOUT_PANEL = { x: 450, y: 90, width: 700, height: 262 } as const;
+/** Touch-sized: 80 units stay about 35 px tall on a phone (stage scaled to ~0.43). */
+const PANEL_BUTTON = { width: 200, height: 80, gap: 18 } as const;
+export const LAYOUT_PANEL_HINT = "拖动按键调整位置，拖动按键右下角的方块调整大小。";
+
+/**
+ * The panel tree: a release CaptionDialog (gui_/monocoque frame.bml) with
+ * a hint line, a status line, the HSection divider and touch-sized
+ * TextButtons 保存 (the blue DefaultFocusedButton face) / 取消 / 恢复默认,
+ * laid out like the release dialogs' button strip
+ * (dialog2_customMessageBox).
+ */
+export function layoutPanelDefinition(): BmlNode {
+  const { width, height, gap } = PANEL_BUTTON;
+  const strip = width * 3 + gap * 2;
+  const button = (name: string, index: number, frame?: string) => node("TextButton", {
+    name, leftTopWH: `0 0 ${width} ${height}`, align: "hcenter;bottom",
+    adjust: `${-strip / 2 + width / 2 + index * (width + gap)} 12`, textRender: "bold26",
+    ...frame ? { frame } : {},
+  });
+  return node("Container", { windowRect: "fullscreen" }, [
+    node("CaptionWindow", { name: "layoutPanel", frame: "CaptionDialog", caption: "调整按键", captionPos: "0 1",
+      textRender: "bold",
+      leftTopWH: `${LAYOUT_PANEL.x} ${LAYOUT_PANEL.y} ${LAYOUT_PANEL.width} ${LAYOUT_PANEL.height}` }, [
+      node("Label", { name: "layoutHint", leftTopWH: `20 12 ${LAYOUT_PANEL.width - 76} 32` }),
+      node("Label", { name: "layoutStatus", leftTopWH: `20 46 ${LAYOUT_PANEL.width - 76} 28` }),
+      node("Window", { leftTopWH: `0 0 ${LAYOUT_PANEL.width - 60} 1`, frame: "HSection", align: "hcenter;bottom",
+        adjust: `0 ${height + 24}` }),
+      button("layoutSave", 0, "DefaultFocusedButton"),
+      button("layoutCancel", 1),
+      button("layoutReset", 2),
+    ]),
+  ]);
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -129,12 +167,26 @@ interface ResizeState {
   startY: number;
 }
 
-/** Lets players move and resize each touch control; saves only after confirmation. */
+export interface TouchLayoutEditorOptions {
+  /** The window library (defaults to the game's loaded resources). */
+  library?(): BmlLibrary | undefined;
+  /** The game area the panel's 1600×900 stage covers (defaults to #app). */
+  stage?(): HTMLElement;
+}
+
+/**
+ * Lets players move and resize each touch control; saves only after
+ * confirmation. While editing, a dimmed layer holds the keys and the
+ * resize handle, and the 调整按键 panel is a release window: non-modal and
+ * clipped to its frame, so the keys around it stay draggable.
+ */
 export class TouchLayoutEditor {
   readonly editor = document.createElement("div");
   readonly listeners = new AbortController();
   readonly resizeHandle: HTMLButtonElement;
-  readonly message: HTMLElement;
+  /** The panel's status line (save failure, 已恢复默认). */
+  message = "";
+  messageIsError = false;
   readonly parent: HTMLElement;
   readonly nextSibling: Node | null;
   readonly externalButtons: Array<{
@@ -149,12 +201,16 @@ export class TouchLayoutEditor {
   previousFocus: HTMLElement | null = null;
   drag: DragState | undefined;
   resize: ResizeState | undefined;
+  panelView: WindowView | undefined;
+  panelLayer: PopupLayer | undefined;
+  panelGeneration = 0;
 
   constructor(
-    readonly menu: HTMLDialogElement,
+    readonly host: HTMLElement,
     readonly pad: HTMLElement,
     readonly buttons: Map<TouchButtonId, HTMLButtonElement>,
     readonly onEditingChange: () => void,
+    readonly options: TouchLayoutEditorOptions = {},
   ) {
     this.parent = pad.parentElement!;
     this.nextSibling = pad.nextSibling;
@@ -168,10 +224,21 @@ export class TouchLayoutEditor {
     this.selected = buttons.keys().next().value!;
     this.editor.className = "touch-layout-editor";
     this.editor.hidden = true;
-    this.editor.innerHTML = editorMarkup;
-    this.resizeHandle = this.editor.querySelector(".touch-layout-resize-handle")!;
-    this.message = this.editor.querySelector("[role='status']")!;
-    menu.append(this.editor);
+    // Over the whole page, dimmed like the release dialogs' Panel (color 100 0 0 0).
+    Object.assign(this.editor.style, { position: "fixed", inset: "0", background: "rgba(0, 0, 0, 0.39)",
+      pointerEvents: "auto", touchAction: "none" });
+    this.resizeHandle = document.createElement("button");
+    this.resizeHandle.type = "button";
+    this.resizeHandle.className = "touch-layout-resize-handle";
+    this.resizeHandle.setAttribute("aria-label", "调整按键大小");
+    this.resizeHandle.innerHTML = resizeHandleMarkup;
+    // A small square grip in the release blue on the selected key's corner.
+    Object.assign(this.resizeHandle.style, { position: "fixed", zIndex: "4", width: "30px", height: "30px",
+      border: "2px solid white", borderRadius: "0", background: "rgb(24, 112, 220)", color: "white",
+      boxShadow: "0 1px 4px rgba(0, 0, 0, 0.6)", transform: "translate(calc(-50% + 3px), calc(-50% + 3px))",
+      cursor: "nwse-resize", touchAction: "none" });
+    this.editor.append(this.resizeHandle);
+    host.append(this.editor);
     for (const [id, button] of buttons) {
       button.addEventListener("pointerdown", event => this.startDrag(event, id),
         { signal: this.listeners.signal });
@@ -191,15 +258,16 @@ export class TouchLayoutEditor {
     this.previousFocus = document.activeElement as HTMLElement | null;
     this.draft = { ...this.saved };
     this.editing = true;
-    this.message.textContent = "";
-    this.menu.classList.add("is-editing");
+    this.setMessage("");
     this.editor.hidden = false;
     this.editor.append(this.pad);
     this.externalButtons.forEach(({ button }) => this.editor.append(button));
     this.pad.hidden = false;
+    for (const button of this.buttons.values()) button.style.cursor = "move";
     this.onEditingChange();
     this.selectButton(this.selected);
     this.buttons.get(this.selected)!.focus({ preventScroll: true });
+    this.openPanel();
   }
 
   cancel(): void {
@@ -211,19 +279,73 @@ export class TouchLayoutEditor {
 
   dispose(): void {
     this.cancel();
+    this.closePanel();
     this.listeners.abort();
     this.editor.remove();
+  }
+
+  setMessage(message: string, error = false): void {
+    this.message = message;
+    this.messageIsError = error;
+    this.panelView?.render();
+  }
+
+  /** The panel window's node states. */
+  panelState(entry: BmlNode): NodeState {
+    const button = (text: string, action: () => void): NodeState => ({ text, label: text, action });
+    switch (nodeName(entry)) {
+      case "layoutPanel": return { text: "调整按键" };
+      case "layoutHint": return paintText(LAYOUT_PANEL_HINT, { size: 20, bold: true, color: TEXT, align: "center",
+        middle: true });
+      case "layoutStatus": return paintText(this.message, { size: 18, bold: this.messageIsError,
+        color: this.messageIsError ? ERROR_TEXT : TEXT, align: "center", middle: true });
+      case "layoutSave": return button("保存", () => this.save());
+      case "layoutCancel": return button("取消", () => this.cancel());
+      case "layoutReset": return button("恢复默认", () => this.reset());
+    }
+    return {};
+  }
+
+  private openPanel(): void {
+    const library = (this.options.library ?? gameWindowLibrary)();
+    if (!library) return;
+    const generation = ++this.panelGeneration;
+    // Non-modal: the layer lets the pointer through except over the panel itself.
+    const layer = popupLayer((this.options.stage ?? gameRoot)(), { modal: false, zIndex: 10_002 });
+    this.panelLayer = layer;
+    void (te.load({
+      library, root: layer.element, definition: prepare(library, layoutPanelDefinition(), ROOTS), roots: ROOTS,
+      smoothImages: true, modal: false, label: "调整按键",
+      onCancel: () => this.cancel(),
+      state: (entry: BmlNode) => this.panelState(entry),
+    } as never) as Promise<WindowView>).then(view => {
+      if (generation !== this.panelGeneration || !this.editing) {
+        view.dispose();
+        return;
+      }
+      this.panelView = view;
+      view.element.style.pointerEvents = "auto";
+      clipToStage(view.element, [LAYOUT_PANEL]);
+      // Keys pressed on the panel stay in the editor, as on its keys.
+      view.element.addEventListener("keydown", event => event.stopPropagation());
+      view.show();
+    }).catch(error => {
+      if (generation === this.panelGeneration) this.closePanel();
+      console.warn("调整按键窗口打开失败", error);
+    });
+  }
+
+  private closePanel(): void {
+    this.panelGeneration++;
+    this.panelView?.dispose();
+    this.panelView = undefined;
+    this.panelLayer?.dispose();
+    this.panelLayer = undefined;
   }
 
   private bindEditor(): void {
     const options = { signal: this.listeners.signal };
     this.resizeHandle.addEventListener("pointerdown", event => this.startResize(event), options);
-    this.editor.querySelector<HTMLButtonElement>("[data-layout='save']")!
-      .addEventListener("click", () => this.save(), options);
-    this.editor.querySelector<HTMLButtonElement>("[data-layout='cancel']")!
-      .addEventListener("click", () => this.cancel(), options);
-    this.editor.querySelector<HTMLButtonElement>("[data-layout='reset']")!
-      .addEventListener("click", () => this.reset(), options);
     this.editor.addEventListener("pointermove", event => {
       this.moveDrag(event);
       this.moveResize(event);
@@ -238,6 +360,12 @@ export class TouchLayoutEditor {
     this.editor.addEventListener("keydown", event => {
       this.moveWithKeyboard(event);
       this.resizeWithKeyboard(event);
+      if (event.key === "Escape" && this.editing) {
+        event.preventDefault();
+        this.cancel();
+      }
+      // The page under the editor does not act on its keys (the release dialog stopped them too).
+      event.stopPropagation();
     }, options);
   }
 
@@ -255,7 +383,7 @@ export class TouchLayoutEditor {
     try {
       localStorage.setItem(TOUCH_LAYOUT_STORAGE_KEY, JSON.stringify(this.draft));
     } catch {
-      this.message.textContent = "无法保存按键布局，请检查浏览器的本地存储设置后重试。";
+      this.setMessage("无法保存按键布局，请检查浏览器的本地存储设置后重试。", true);
       return;
     }
     this.saved = { ...this.draft };
@@ -267,7 +395,7 @@ export class TouchLayoutEditor {
     this.draft = {};
     this.apply(this.draft);
     this.selectButton(this.selected);
-    this.message.textContent = "已恢复默认，保存后生效。";
+    this.setMessage("已恢复默认，保存后生效。");
   }
 
   finish(): void {
@@ -278,8 +406,9 @@ export class TouchLayoutEditor {
     this.parent.insertBefore(this.pad, this.nextSibling);
     this.externalButtons.forEach(({ button, parent, nextSibling }) =>
       parent.insertBefore(button, nextSibling));
+    for (const button of this.buttons.values()) button.style.removeProperty("cursor");
     this.editor.hidden = true;
-    this.menu.classList.remove("is-editing");
+    this.closePanel();
     this.onEditingChange();
     this.previousFocus?.focus();
   }

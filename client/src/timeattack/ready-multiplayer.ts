@@ -15,6 +15,7 @@ import { closeReadyLottery } from "./ready-lottery";
 import { closeReadyShop } from "./ready-shop";
 import { openShopUnlessRacing, type GuardedShopController } from "./ready-shop-guard";
 import { beginCityLoading } from "../city/city-loading";
+import { tellPlayer } from "../ui/game-popups";
 
 interface Profile {
   favoriteTracks: unknown[];
@@ -128,7 +129,7 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
   const cityLoading = gameplay === "city" ? beginCityLoading({
     get disposed() { return controller.disposed; },
     options: { library, root: host.root,
-      status: (message, error) => { if (error) host.hud.showDebugText(message, "error"); } },
+      status: (message, error) => { if (error) tellPlayer(host.hud, message); } },
   }) : undefined;
   try {
     if (cityLoading) await cityLoading.ready;
@@ -203,7 +204,7 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
         controller.activeSettings?.setRoomSpeed(speed, version);
       },
       status: (message: string, error: boolean) => {
-        if (error) host.hud.showDebugText(message, "error");
+        if (error) tellPlayer(host.hud, message);
       },
       // The status line is easy to miss: a failed city entry gets a window, with
       // 资源下载 on the 卡丁城 group when its resources may be the cause, or
@@ -311,8 +312,8 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
         controller.activeTimeAttackReady?.unfreeze();
         controller.activeTimeAttackReady?.show();
       }
-      if (!cancelled) host.hud.showDebugText(
-        `多人游戏：${error instanceof Error ? error.message : String(error)}`, "error");
+      if (!cancelled) tellPlayer(host.hud,
+        `多人游戏：${error instanceof Error ? error.message : String(error)}`);
     }
   } finally {
     controller.multiplayerOpening = false;
@@ -373,6 +374,6 @@ export function applyReadyMultiplayerGarage(controller: ReadyMultiplayerControll
   try {
     host.saveProfile();
   } catch (error) {
-    host.hud.showDebugText(`本次装备选择未保存：${String(error)}`, "error");
+    tellPlayer(host.hud, `本次装备选择未保存：${String(error)}`);
   }
 }

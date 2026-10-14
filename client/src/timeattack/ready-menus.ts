@@ -11,6 +11,7 @@ import { QuestScreen } from "../menus/quest-screen";
 import { RewardBoxScreen } from "../menus/reward-box-screen";
 import type { BmlLibrary } from "../ui/bml-kit";
 import type { ReadyFlowController } from "./ready-flow";
+import { tellPlayer } from "../ui/game-popups";
 
 /**
  * The taskbar menus over whatever page is showing: 奖励箱, 任务 and
@@ -30,7 +31,7 @@ function context(controller: ReadyMenusController, title: string) {
   const session = activeBrowserSession();
   const library = host.getLibrary() as Partial<BmlLibrary> | undefined;
   if (!session || typeof library?.canonicalCandidates !== "function") {
-    host.hud.showDebugText(`${title}：请先登录。`, "error");
+    tellPlayer(host.hud, `${title}：请先登录。`);
     return undefined;
   }
   return { host, session, library: library as BmlLibrary, api: new MenusApi(session) };
@@ -52,7 +53,7 @@ async function openModal(controller: ReadyMenusController, title: string,
     if (controller.disposed) menu.dispose();
     else controller.activeMenu = menu;
   } catch (error) {
-    controller.host.hud.showDebugText(`${title}：${error instanceof Error ? error.message : String(error)}`, "error");
+    tellPlayer(controller.host.hud, `${title}：${error instanceof Error ? error.message : String(error)}`);
   } finally {
     controller.menuOpening = false;
   }
@@ -128,7 +129,7 @@ export async function openReadyFindRider(controller: ReadyMenusController): Prom
       },
     });
   } catch (error) {
-    ready.host.hud.showDebugText(`查找车手：${error instanceof Error ? error.message : String(error)}`, "error");
+    tellPlayer(ready.host.hud, `查找车手：${error instanceof Error ? error.message : String(error)}`);
   } finally {
     controller.menuOpening = false;
   }
@@ -163,7 +164,7 @@ export function ensureReadyNoticer(controller: ReadyMenusController): Noticer | 
 export function toggleReadyNoticer(controller: ReadyMenusController): void {
   const noticer = ensureReadyNoticer(controller);
   if (!noticer) {
-    controller.host.hud.showDebugText("迷你提示窗：请先登录。", "error");
+    tellPlayer(controller.host.hud, "迷你提示窗：请先登录。");
     return;
   }
   void noticer.toggle();
@@ -175,7 +176,7 @@ export function toggleReadyChat(controller: ReadyMenusController): void {
   const library = controller.host.getLibrary() as Partial<BmlLibrary> | undefined;
   if (typeof library?.canonicalCandidates !== "function") return;
   if (!activeBrowserSession()) {
-    controller.host.hud.showDebugText("聊天：请先登录。", "error");
+    tellPlayer(controller.host.hud, "聊天：请先登录。");
     return;
   }
   controller.activeChat ??= new GlobalChat({
@@ -184,8 +185,8 @@ export function toggleReadyChat(controller: ReadyMenusController): void {
     nickname: () => activeBrowserSession()?.summary()?.account.nickname,
     onActivate: () => controller.host.getInterfaceAudio()?.playClick(),
   });
-  void controller.activeChat.toggle().catch(error => controller.host.hud.showDebugText(
-    `聊天：${error instanceof Error ? error.message : String(error)}`, "error"));
+  void controller.activeChat.toggle().catch(error => tellPlayer(controller.host.hud,
+    `聊天：${error instanceof Error ? error.message : String(error)}`));
 }
 
 /** The taskbar was hidden (a race) or shown again. */

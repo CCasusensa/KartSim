@@ -126,7 +126,9 @@ export class RaceChatOverlay {
       select.className = "multiplayer-race-chat-channel";
       select.setAttribute("aria-label", "聊天频道");
       select.hidden = true;
-      select.style.cssText = "position:absolute;left:15px;bottom:7%;width:88px;height:24px;box-sizing:border-box;pointer-events:auto;background:#173550;color:#fff2a8;border:1px solid #87a6bf;border-radius:3px;font:inherit;font-size:14px;cursor:pointer;";
+      // A switch beside the input, like the chat box's own fields: a click or a
+      // key steps to the next scope instead of opening the browser's option list.
+      select.style.cssText = "position:absolute;left:15px;bottom:7%;width:88px;height:24px;box-sizing:border-box;pointer-events:auto;background:#173550;color:#fff2a8;border:1px solid #87a6bf;border-radius:3px;font:inherit;font-size:14px;cursor:pointer;appearance:none;-webkit-appearance:none;text-align:center;text-align-last:center;";
       for (const channel of connection.chatChannels) {
         const option = document.createElement("option");
         option.value = channel.id;
@@ -136,6 +138,7 @@ export class RaceChatOverlay {
       select.value = connection.chatChannels[0]!.id;
       select.addEventListener("change", this.onChannelChange);
       select.addEventListener("keydown", this.onChannelKeyDown);
+      select.addEventListener("mousedown", this.onChannelPointer);
       this.input.style.left = "112px";
       this.input.style.width = "calc(100% - 128px)";
       this.updateChannelHint();
@@ -328,8 +331,27 @@ export class RaceChatOverlay {
     if (event.key === "Escape" || event.code === "Escape") {
       event.preventDefault();
       this.close();
+    } else if ([" ", "Enter", "ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(event.key)) {
+      event.preventDefault();
+      this.stepChannel(event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 1);
     }
   };
+
+  /** The scope switch never opens the browser's own option list. */
+  readonly onChannelPointer = (event: MouseEvent): void => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    this.stepChannel(1);
+  };
+
+  private stepChannel(step: number): void {
+    const select = this.channelSelect;
+    const channels = this.connection.chatChannels ?? [];
+    if (!select || channels.length < 2) return;
+    const index = Math.max(0, channels.findIndex(channel => channel.id === select.value));
+    select.value = channels[(index + step + channels.length) % channels.length]!.id;
+    this.onChannelChange();
+  }
 
   readonly onInputKeyDown = (event: KeyboardEvent): void => {
     if (event.code === "Escape") {
@@ -377,6 +399,7 @@ export class RaceChatOverlay {
     this.input.removeEventListener("keydown", this.onInputKeyDown);
     this.channelSelect?.removeEventListener("change", this.onChannelChange);
     this.channelSelect?.removeEventListener("keydown", this.onChannelKeyDown);
+    this.channelSelect?.removeEventListener("mousedown", this.onChannelPointer);
     this.dependencies.releaseFont(this.font);
     this.element.remove();
   }

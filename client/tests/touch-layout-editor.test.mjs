@@ -5,6 +5,7 @@ import { parse } from "@babel/parser";
 import {
   TouchLayoutEditor, parseTouchLayout, normalizeTouchPlacement,
   resizeTouchButton, touchButtonPosition, applyTouchPlacement,
+  layoutPanelDefinition, LAYOUT_PANEL,
 } from "../src/input/touch-layout-editor.ts";
 
 const release = readFileSync(new URL("../../recovered/formatted/index.js", import.meta.url), "utf8");
@@ -45,7 +46,7 @@ test("touch layout parsing, bounds and CSS positioning match release", () => {
     assert.equal(touchButtonPosition(fraction, size), original.position(fraction, size));
 });
 
-function runLayout(Layout) {
+function runLayout(Layout, readable) {
   const saved = new Map([["kartsim.touch-layout", JSON.stringify({
     left: { x: .1, y: .2, size: 70 },
   })]]);
@@ -136,6 +137,7 @@ function runLayout(Layout) {
     layout.moveWithKeyboard({ key: "ArrowRight", target: left,
       preventDefault() { events.push("key prevent"); } });
     layout.reset();
+    const messages = [readable ? layout.message : layout.message.textContent];
     layout.cancel();
     const afterCancel = { ...layout.draft };
     layout.start();
@@ -156,8 +158,11 @@ function runLayout(Layout) {
       editing: layout.isEditing,
       editorHidden: layout.editor.hidden,
       padHidden: pad.hidden,
-      message: layout.message.textContent,
-      resize: styleSnapshot(layout.resizeHandle),
+      // The panel's status line: a DOM paragraph in the release, now the window's label text.
+      messages: readable ? [...messages, layout.message] : [...messages, layout.message.textContent],
+      resize: { left: layout.resizeHandle.style.left, top: layout.resizeHandle.style.top },
+      resizeLabel: layout.resizeHandle.attributes["aria-label"],
+      // The release dialog's "is-editing" class is gone once editing ends; the new host never gets one.
       menuClasses: [...menu.classNames],
       leftClasses: [...left.classNames],
       leftStyle: styleSnapshot(left),
@@ -177,5 +182,24 @@ function runLayout(Layout) {
 }
 
 test("touch layout edit, drag, resize, cancel and save match release", () => {
-  assert.deepEqual(runLayout(TouchLayoutEditor), runLayout(original.Layout));
+  assert.deepEqual(runLayout(TouchLayoutEditor, true), runLayout(original.Layout, false));
+});
+
+test("touch layout panel is a release CaptionDialog with 保存 / 取消 / 恢复默认", () => {
+  const attr = (entry, name) => entry.attributes.find(item => item.name === name)?.value;
+  const nodes = [];
+  const walk = entry => { nodes.push(entry); entry.children.forEach(walk); };
+  walk(layoutPanelDefinition());
+  const panel = nodes.find(entry => attr(entry, "name") === "layoutPanel");
+  assert.equal(attr(panel, "frame"), "CaptionDialog");
+  assert.equal(attr(panel, "leftTopWH"),
+    `${LAYOUT_PANEL.x} ${LAYOUT_PANEL.y} ${LAYOUT_PANEL.width} ${LAYOUT_PANEL.height}`);
+  const buttons = nodes.filter(entry => entry.name === "TextButton");
+  assert.deepEqual(buttons.map(entry => attr(entry, "name")), ["layoutSave", "layoutCancel", "layoutReset"]);
+  assert.equal(attr(buttons[0], "frame"), "DefaultFocusedButton");
+  for (const button of buttons) assert.ok(Number(attr(button, "leftTopWH").split(" ")[3]) >= 60);
+  // Side by side, centred under the panel's divider.
+  const offsets = buttons.map(button => Number(attr(button, "adjust").split(" ")[0]));
+  assert.equal(offsets[0], -offsets[2]);
+  assert.equal(offsets[1], 0);
 });

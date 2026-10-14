@@ -1,5 +1,6 @@
 import { connectedServerLabel, measureGameServerLatency } from "../multiplayer/server-latency";
 import { formatDiagnosticsLines } from "./engine-diagnostics";
+import { gameWindowLibrary, showGameMessage } from "./game-popups";
 import { PerformanceCounter } from "./performance-counter";
 
 const PANEL_REFRESH_MS = 250;
@@ -127,6 +128,8 @@ export class HudOverlay {
   copyEngineButton: HTMLButtonElement;
   netStats: HTMLElement;
   callbacks: HudCallbacks;
+  /** The 运行已停止 message box while the runtime is halted. */
+  haltMessage?: AbortController;
   pauseOverlay: HTMLElement;
   loadingView: HTMLElement;
   loadingLabel: HTMLElement;
@@ -308,11 +311,26 @@ export class HudOverlay {
     }
   }
 
+  /** The halted runtime: the game's message box, or the plain overlay before resources load. */
   setPaused(paused: boolean): void {
     if (paused === false && this.performanceCounter?.isRaceActive()) {
       this.performanceCounter.skipNextFrame();
     }
-    this.pauseOverlay.classList.toggle("is-visible", paused);
+    const library = paused ? gameWindowLibrary() : undefined;
+    if (!paused) {
+      this.haltMessage?.abort();
+      this.haltMessage = undefined;
+    } else if (library && !this.haltMessage) {
+      const abort = new AbortController();
+      this.haltMessage = abort;
+      void showGameMessage("运行已停止", "游戏运行出错，已经停止。|请返回大厅后重新开始。",
+        { library, yes: "返回大厅", signal: abort.signal }).then(chosen => {
+        if (this.haltMessage !== abort) return;
+        this.haltMessage = undefined;
+        if (chosen) this.callbacks.returnToReady();
+      }, () => this.pauseOverlay.classList.add("is-visible"));
+    }
+    this.pauseOverlay.classList.toggle("is-visible", paused && !library);
   }
 
   showDebugText(message: string, kind = "info"): void {

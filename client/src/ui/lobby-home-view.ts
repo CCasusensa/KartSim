@@ -3,6 +3,10 @@ import { LobbyTopBar, type LobbyAccountInfo, type LobbyExperience,
   type LobbyWallet } from "./lobby-top-bar";
 import type { LobbyTopBarArt } from "./lobby-top-bar-assets";
 import { openLobbyLink, type LobbyBanner, type LobbyBoard, type LobbyPromos } from "./lobby-promos";
+import { te } from "../generated/library.js";
+import { node as bmlNode, nodeName, paintText, prepare, type Node, type NodeState, type Rect,
+  type WindowView } from "./bml-kit";
+import { gameWindowLibrary, popupLayer, showGameToast, trapPopupKeys } from "./game-popups";
 import { coverCrop } from "./main-menu-view";
 import type { MyRoomEnvironment } from "./my-room-catalog";
 import {
@@ -71,6 +75,36 @@ export interface LobbyEvent {
 
 export const DEFAULT_QUICK_ENTRIES = ["city", "speedIndi", "speedIndiInfinit", "timeAttack", "mapEditor"];
 export const MAX_QUICK_ENTRIES = 5;
+
+const SETTINGS_ROOTS = ["stage_/common"];
+const SETTINGS = { width: 480, top: 46, step: 32, columns: 2 };
+
+/** 快速进入设置: the hint, then the modes in two columns of check rows. */
+function quickSettingsDefinition(): Node {
+  const rows = Math.ceil(QUICK_ENTRIES.length / SETTINGS.columns);
+  const column = (SETTINGS.width - 70) / SETTINGS.columns;
+  const children: Node[] = [bmlNode("Label", { name: "quickHint", leftTopWH: `24 12 ${SETTINGS.width - 90} 26` })];
+  QUICK_ENTRIES.forEach((_entry, index) => {
+    const x = 24 + Math.floor(index / rows) * column;
+    const y = SETTINGS.top + (index % rows) * SETTINGS.step;
+    children.push(
+      bmlNode("PlaneCheckButton", { name: `quickCheck${index}`, leftTopWH: `${x} ${y + 7} 16 16` }),
+      bmlNode("TextButton", { name: `quickPick${index}`, leftTopWH: `${x} ${y} ${column - 10} 30`, frame: "NoFrame" }),
+    );
+  });
+  const bottom = SETTINGS.top + rows * SETTINGS.step + 10;
+  children.push(
+    bmlNode("Window", { leftTopWH: `0 0 ${SETTINGS.width - 60} 1`, frame: "HSection", align: "hcenter;bottom", adjust: "0 63" }),
+    bmlNode("TextButton", { name: "okButton", leftTopWH: "0 0 132 42", align: "hcenter;bottom", adjust: "-70 6",
+      textRender: "bold16" }),
+    bmlNode("TextButton", { name: "cancelButton", leftTopWH: "0 0 132 42", align: "hcenter;bottom", adjust: "70 6",
+      textRender: "bold16" }),
+  );
+  return bmlNode("Panel", { windowRect: "fullscreen" }, [
+    bmlNode("CaptionWindow", { name: "quickDialog", windowRect: `0 0 ${SETTINGS.width} ${bottom + 118}`,
+      frame: "CaptionDialog", caption: "快速进入设置", captionPos: "0 1", align: "center", textRender: "bold" }, children),
+  ]);
+}
 const QUICK_ENTRY_KEY = "kartsim.lobbyQuickEntries";
 
 interface EntryStorage { getItem(key: string): string | null; setItem(key: string, value: string): void }
@@ -207,25 +241,7 @@ const STYLES = `
 .ks-lobby-event{display:flex;flex-direction:column;align-items:center;gap:.3cqh;font-size:1.55cqh;
   text-shadow:0 .12cqh .2cqh #000,0 0 .3cqh #000}
 .ks-lobby-event canvas{width:8.4cqh;height:8.2cqh;display:block}
-.ks-lobby-notice{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);padding:1.6cqh 3cqh;
-  border-radius:.8cqh;background:rgba(8,20,40,.9);border:.15cqh solid rgba(255,255,255,.35);
-  font-size:2.3cqh;white-space:nowrap;pointer-events:none}
-.ks-lobby-notice[hidden]{display:none}
-.ks-lobby-settings{position:absolute;left:2.2cqw;top:calc(33cqh + 4.4cqh);width:31cqh;padding:1.4cqh;z-index:2;
-  border-radius:.6cqh;background:rgba(14,28,56,.96);border:.15cqh solid rgba(120,170,240,.6);
-  box-shadow:0 .6cqh 1.8cqh rgba(0,0,0,.45);font-size:1.8cqh}
-.ks-lobby-settings[hidden]{display:none}
-.ks-lobby-settings h2{margin:0 0 .4cqh;font-size:2cqh}
-.ks-lobby-settings p{margin:0 0 1cqh;font-size:1.45cqh;color:#a9bddf;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
-.ks-lobby-settings label{display:flex;align-items:center;gap:1cqh;padding:.45cqh .3cqh;border-radius:.3cqh;cursor:pointer}
-.ks-lobby-settings label:hover{background:rgba(255,255,255,.08)}
-.ks-lobby-settings input{width:1.9cqh;height:1.9cqh;margin:0;accent-color:#2a9df4}
-.ks-lobby-settings label[data-disabled]{color:rgba(255,255,255,.4);cursor:default}
-.ks-lobby-settings-actions{display:flex;justify-content:flex-end;gap:1cqh;margin-top:1.2cqh}
-.ks-lobby-settings-actions button{padding:.6cqh 1.4cqh;border-radius:.35cqh;
-  background:rgba(255,255,255,.12);font-size:1.7cqh}
-.ks-lobby-settings-actions button:last-child{background:#1f8fff}
-.ks-lobby-shop :is(.ks-lobby-shade,.ks-lobby-quick,.ks-lobby-promo,.ks-lobby-notice,.ks-lobby-settings){display:none!important}
+.ks-lobby-shop :is(.ks-lobby-shade,.ks-lobby-quick,.ks-lobby-promo){display:none!important}
 `;
 
 function installStyles(): void {
@@ -264,10 +280,10 @@ export class LobbyHomeView {
   private readonly fallback = element("canvas");
   private readonly entryList = element("ul", "ks-lobby-entries");
   private readonly gear = element("button", "ks-lobby-gear");
-  private readonly settings = element("div", "ks-lobby-settings");
+  /** 快速进入设置, a game window while open. */
+  private settings?: { close(restoreFocus?: boolean): void };
   private readonly carousel = element("canvas");
   private readonly dots = element("div", "ks-lobby-dots");
-  private readonly notice = element("div", "ks-lobby-notice");
   private readonly observer?: ResizeObserver;
   /** The status bar across the top. */
   readonly topBar: LobbyTopBar;
@@ -284,7 +300,6 @@ export class LobbyHomeView {
   private bannerTimer = 0;
   /** The blue and purple promotion boards. */
   private readonly boards: PromoBoard[] = [];
-  private noticeTimer = 0;
   private snapshotTimer = 0;
   private readyFrame = 0;
   private disposed = false;
@@ -313,12 +328,7 @@ export class LobbyHomeView {
     if (options.topBarExtra)
       (this.topBar.element.querySelector(".ks-lobby-wallet") ?? this.topBar.element).append(options.topBarExtra);
     node.append(this.sceneRoot, element("div", "ks-lobby-shade"), this.topBar.element,
-      this.buildQuickEntries(), this.buildPromo(), this.notice, this.settings);
-    this.notice.hidden = true;
-    this.notice.setAttribute("role", "status");
-    this.settings.hidden = true;
-    this.settings.setAttribute("role", "dialog");
-    this.settings.setAttribute("aria-label", "快速进入设置");
+      this.buildQuickEntries(), this.buildPromo());
     node.addEventListener("keydown", this.onKeyDown);
     root.append(node);
     if (typeof ResizeObserver !== "undefined") {
@@ -383,7 +393,6 @@ export class LobbyHomeView {
     this.shopVisits++;
     this.element.classList.add("ks-lobby-shop");
     this.closeSettings(false);
-    this.notice.hidden = true;
     this.setSubjectVisible(false);
     let restored = false;
     return () => {
@@ -425,12 +434,10 @@ export class LobbyHomeView {
     }
   }
 
+  /** A short notice in the game's look (ui/game-popups.ts). */
   showNotice(message: string): void {
     if (this.disposed) return;
-    this.notice.textContent = message;
-    this.notice.hidden = false;
-    window.clearTimeout(this.noticeTimer);
-    this.noticeTimer = window.setTimeout(() => { this.notice.hidden = true; }, NOTICE_MS);
+    showGameToast(message, NOTICE_MS, { root: this.root });
   }
 
   showBanner(index: number): void {
@@ -465,7 +472,6 @@ export class LobbyHomeView {
     this.captureBackdrop();
     this.disposed = true;
     window.clearInterval(this.bannerTimer);
-    window.clearTimeout(this.noticeTimer);
     window.clearTimeout(this.snapshotTimer);
     cancelAnimationFrame(this.readyFrame);
     this.observer?.disconnect();
@@ -503,7 +509,7 @@ export class LobbyHomeView {
     this.bindSound(this.gear);
     this.gear.addEventListener("click", () => {
       this.options.onActivate?.();
-      if (this.settings.hidden) this.openSettings(); else this.closeSettings();
+      if (!this.settings) this.openSettings(); else this.closeSettings();
     });
     head.append(this.gear);
     nav.append(head, this.entryList);
@@ -552,68 +558,92 @@ export class LobbyHomeView {
     this.options.onEntry(entry);
   }
 
+  /**
+   * 快速进入设置 in the game's look (CaptionDialog, a check box a mode in two
+   * columns, 完成 / 恢复默认); Escape closes it unchanged.
+   */
   private openSettings(): void {
+    const library = gameWindowLibrary();
+    if (!library || this.disposed) return;
     const chosen = new Set(this.entries);
-    const heading = element("h2", undefined, "快速进入设置");
-    const hint = element("p", undefined, `选择显示在大厅左侧的模式（最多 ${MAX_QUICK_ENTRIES} 个）`);
-    const list = element("div");
-    const sync = (): void => {
-      list.querySelectorAll("label").forEach(label => {
-        const input = label.querySelector("input")!;
-        const disabled = !input.checked && chosen.size >= MAX_QUICK_ENTRIES;
-        input.disabled = disabled;
-        label.toggleAttribute("data-disabled", disabled);
-      });
+    const layer = popupLayer(this.root);
+    let view: WindowView | undefined;
+    let closed = false;
+    let releaseKeys: (() => void) | undefined;
+    const close = (restoreFocus = true) => {
+      if (closed) return;
+      closed = true;
+      releaseKeys?.();
+      view?.dispose();
+      layer.dispose();
+      if (this.settings === handle) this.settings = undefined;
+      this.gear.setAttribute("aria-expanded", "false");
+      if (restoreFocus) this.gear.focus({ preventScroll: true });
     };
-    for (const entry of QUICK_ENTRIES) {
-      const label = element("label");
-      const input = element("input");
-      input.type = "checkbox";
-      input.checked = chosen.has(entry.id);
-      input.addEventListener("change", () => {
-        if (input.checked) chosen.add(entry.id);
-        else if (chosen.size > 1) chosen.delete(entry.id);
-        else input.checked = true;
-        sync();
-      });
-      label.append(input, element("span", undefined,
-        entry.kind === "unavailable" ? `${entry.title}（暂未开放）` : entry.title));
-      list.append(label);
-    }
-    const actions = element("div", "ks-lobby-settings-actions");
-    const reset = element("button", undefined, "恢复默认");
-    reset.type = "button";
-    reset.addEventListener("click", () => {
-      chosen.clear();
-      DEFAULT_QUICK_ENTRIES.forEach(id => chosen.add(id));
-      list.querySelectorAll("input").forEach((input, index) => {
-        input.checked = chosen.has(QUICK_ENTRIES[index]!.id);
-      });
-      sync();
-    });
-    const done = element("button", undefined, "完成");
-    done.type = "button";
-    done.addEventListener("click", () => {
-      // Keep the catalogue order so the list reads the same each time.
-      this.entries = QUICK_ENTRIES.map(entry => entry.id).filter(id => chosen.has(id));
-      saveQuickEntries(this.entries);
-      this.renderEntries();
-      this.closeSettings();
-    });
-    for (const button of [reset, done]) this.bindSound(button);
-    actions.append(reset, done);
-    this.settings.replaceChildren(heading, hint, list, actions);
-    sync();
-    this.settings.hidden = false;
+    const handle = { close };
+    const toggle = (id: string) => {
+      this.options.onActivate?.();
+      if (chosen.has(id)) {
+        if (chosen.size > 1) chosen.delete(id);
+      } else if (chosen.size < MAX_QUICK_ENTRIES) chosen.add(id);
+      view?.render();
+    };
+    const state = (entry: Node): NodeState => {
+      const name = nodeName(entry);
+      const item = /^quick(Check|Pick)(\d+)$/.exec(name);
+      if (item) {
+        const quick = QUICK_ENTRIES[Number(item[2])]!;
+        const checked = chosen.has(quick.id);
+        const disabled = !checked && chosen.size >= MAX_QUICK_ENTRIES;
+        const title = quick.kind === "unavailable" ? `${quick.title}（暂未开放）` : quick.title;
+        if (item[1] === "Check") return { checked, disabled, label: title, ...disabled ? {} : { action: () => toggle(quick.id) } };
+        return { text: "", label: title, checked, disabled, ...disabled ? {} : { action: () => toggle(quick.id) },
+          paint: (context: CanvasRenderingContext2D, rect: Rect) => paintText(title, { size: 15, bold: true, middle: true,
+            color: disabled ? "rgb(150,156,168)" : checked ? "rgb(30,110,210)" : "rgb(42,55,80)" })
+            .paint(context, { ...rect, x: rect.x + 24, width: rect.width - 24 }) };
+      }
+      switch (name) {
+        case "quickDialog": return { text: "快速进入设置" };
+        case "quickHint": return paintText(`选择显示在大厅左侧的模式（最多 ${MAX_QUICK_ENTRIES} 个）`, { size: 14, bold: true,
+          color: "rgb(42,55,80)", middle: true });
+        case "okButton": return { text: "完成", label: "完成", action: () => {
+          this.options.onActivate?.();
+          // Keep the catalogue order so the list reads the same each time.
+          this.entries = QUICK_ENTRIES.map(quick => quick.id).filter(id => chosen.has(id));
+          saveQuickEntries(this.entries);
+          this.renderEntries();
+          close();
+        } };
+        case "cancelButton": return { text: "恢复默认", label: "恢复默认", action: () => {
+          this.options.onActivate?.();
+          chosen.clear();
+          DEFAULT_QUICK_ENTRIES.forEach(id => chosen.add(id));
+          view?.render();
+        } };
+      }
+      return {};
+    };
+    this.settings = handle;
     this.gear.setAttribute("aria-expanded", "true");
-    list.querySelector("input")?.focus({ preventScroll: true });
+    void (te.load({ library, root: layer.element, definition: prepare(library, quickSettingsDefinition(), SETTINGS_ROOTS),
+      roots: SETTINGS_ROOTS, smoothImages: true, modal: true, label: "快速进入设置", onCancel: () => close(), state } as never) as
+      Promise<WindowView>).then(loaded => {
+      if (closed) {
+        loaded.dispose();
+        return;
+      }
+      view = loaded;
+      releaseKeys = trapPopupKeys(loaded.element, { cancel: () => close() });
+      view.show();
+      view.focus("okButton");
+    }).catch(error => {
+      console.warn("快速进入设置窗口打开失败", error);
+      close(false);
+    });
   }
 
   private closeSettings(restoreFocus = true): void {
-    if (this.settings.hidden) return;
-    this.settings.hidden = true;
-    this.gear.setAttribute("aria-expanded", "false");
-    if (restoreFocus) this.gear.focus({ preventScroll: true });
+    this.settings?.close(restoreFocus);
   }
 
   private buildPromo(): HTMLElement {
@@ -820,12 +850,6 @@ export class LobbyHomeView {
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === "Escape" && !this.settings.hidden) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.closeSettings();
-      return;
-    }
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
     const buttons = [...this.entryList.querySelectorAll<HTMLButtonElement>(".ks-lobby-entry")];
     const current = buttons.indexOf(document.activeElement as HTMLButtonElement);

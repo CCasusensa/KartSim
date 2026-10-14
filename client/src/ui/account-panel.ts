@@ -1,14 +1,19 @@
 /**
  * The account panel opened from the lobby rider (ECONOMY.md 7.8): username,
  * nickname with rename, level and experience, the three balances, race
- * statistics, the registration date and logout. Styled like the release
- * multiplayer account dialogs.
+ * statistics, the registration date and logout. It is a game window
+ * (CaptionDialog, DefaultEdit, TextButtons) once the resources are loaded;
+ * a plain overlay stands in before that (and in tests).
  */
+import { te } from "../generated/library.js";
 import type { AccountSummary } from "../account/account-session";
 import { validateNickname } from "../account/account-api";
 import {
   accountErrorMessages, accountOverlayStyle, accountPanelStyle, styleAccountButtons,
 } from "../multiplayer/account-ui-support";
+import { node, nodeName, paintText, prepare, type BmlLibrary, type Node, type NodeState,
+  type WindowView } from "./bml-kit";
+import { gameRoot, gameWindowLibrary, popupLayer, trapPopupKeys } from "./game-popups";
 
 export interface AccountPanelSession {
   summary(): AccountSummary | undefined;
@@ -80,7 +85,22 @@ function errorText(error: unknown): string {
   return accountErrorMessages[code] ?? code;
 }
 
+/** What 修改昵称 answers: the text under the field and whether it worked. */
+async function renameAccount(session: AccountPanelSession, value: string): Promise<{ ok: boolean; text: string }> {
+  const problem = validateNickname(value);
+  if (problem) return { ok: false, text: problem };
+  if (value === session.summary()?.account.nickname) return { ok: false, text: "昵称没有变化。" };
+  try {
+    await session.updateNickname(value);
+    return { ok: true, text: "昵称已修改。" };
+  } catch (error) {
+    return { ok: false, text: errorText(error) };
+  }
+}
+
 export function openAccountPanel(options: AccountPanelOptions): AccountPanelHandle {
+  const library = gameWindowLibrary();
+  if (library) return openGameAccountPanel(library, options);
   const { document, session } = options;
   const create = <T extends HTMLElement>(tag: string, text?: string): T => {
     const node = document.createElement(tag) as T;
@@ -194,4 +214,149 @@ export function openAccountPanel(options: AccountPanelOptions): AccountPanelHand
   document.body.append(overlay);
   close.focus();
   return { element: overlay, close: finish };
+}
+
+const ROOTS = ["stage_/common"];
+const TEXT = "rgb(42,55,80)";
+const LABEL = "rgb(72,106,163)";
+const WIDTH = 540;
+const ROW = { top: 14, step: 30, label: 104, value: 136 };
+
+function accountWindowDefinition(rows: number): Node {
+  const children: Node[] = [];
+  for (let index = 0; index < rows; index++) {
+    const y = ROW.top + index * ROW.step;
+    children.push(
+      node("Label", { name: `rowLabel${index}`, leftTopWH: `20 ${y} ${ROW.label} 24` }),
+      node("Label", { name: `rowValue${index}`, leftTopWH: `${ROW.value} ${y} ${WIDTH - ROW.value - 70} 24` }),
+    );
+  }
+  let y = ROW.top + rows * ROW.step + 6;
+  children.push(
+    node("Window", { leftTopWH: `0 ${y - 4} ${WIDTH - 60} 1`, frame: "HSection", align: "hcenter" }),
+    node("Label", { name: "nicknameLabel", leftTopWH: `20 ${y + 10} ${ROW.label} 30` }),
+    node("Edit", { name: "nickname", leftTopWH: `${ROW.value} ${y + 10} 220 30`, frame: "DefaultEdit", textRender: "bold16" }),
+    node("TextButton", { name: "renameButton", leftTopWH: `${ROW.value + 230} ${y + 9} 100 32`, textRender: "bold15" }),
+  );
+  y += 48;
+  children.push(
+    node("Label", { name: "message", leftTopWH: `${ROW.value} ${y} ${WIDTH - ROW.value - 70} 22` }),
+    node("Window", { leftTopWH: `0 0 ${WIDTH - 60} 1`, frame: "HSection", align: "hcenter;bottom", adjust: "0 63" }),
+    node("TextButton", { name: "okButton", leftTopWH: "0 0 132 42", align: "hcenter;bottom", adjust: "-70 6",
+      textRender: "bold16" }),
+    node("TextButton", { name: "logoutButton", leftTopWH: "0 0 132 42", align: "hcenter;bottom", adjust: "70 6",
+      textRender: "bold16" }),
+  );
+  return node("Panel", { windowRect: "fullscreen" }, [
+    node("CaptionWindow", { name: "accountDialog", windowRect: `0 0 ${WIDTH} ${y + 30 + 118}`, frame: "CaptionDialog",
+      caption: "账号信息", captionPos: "0 1", align: "center", textRender: "bold" }, children),
+  ]);
+}
+
+/** The account panel as a game window over the game area. */
+function openGameAccountPanel(library: BmlLibrary, options: AccountPanelOptions): AccountPanelHandle {
+  const { session } = options;
+  const root = gameRoot(options.document as unknown as Document);
+  const layer = popupLayer(root);
+  let view: WindowView | undefined;
+  let closed = false;
+  let busy = false;
+  let nickname = session.summary()?.account.nickname ?? "";
+  let editedName = false;
+  let message = { text: "", error: false };
+  const render = () => {
+    if (!editedName) nickname = session.summary()?.account.nickname ?? nickname;
+    view?.render();
+  };
+  const unsubscribe = session.subscribe(render);
+  let releaseKeys: (() => void) | undefined;
+  const finish = () => {
+    if (closed) return;
+    closed = true;
+    unsubscribe();
+    releaseKeys?.();
+    view?.dispose();
+    layer.dispose();
+    options.onClose?.();
+  };
+  const rename = async () => {
+    if (busy) return;
+    options.onActivate?.();
+    busy = true;
+    message = { text: "", error: false };
+    view?.render();
+    const result = await renameAccount(session, nickname);
+    busy = false;
+    if (result.ok) editedName = false;
+    message = { text: result.text, error: !result.ok };
+    if (!closed) render();
+  };
+  const logout = async () => {
+    options.onActivate?.();
+    const blocked = options.logoutBlocked?.();
+    if (blocked) {
+      message = { text: blocked, error: true };
+      view?.render();
+      return;
+    }
+    finish();
+    await options.onLogout();
+  };
+  const rowCount = accountPanelRows(session.summary() ?? summaryPlaceholder()).length;
+  const state = (entry: Node): NodeState => {
+    const name = nodeName(entry);
+    const row = /^row(Label|Value)(\d+)$/.exec(name);
+    if (row) {
+      const summary = session.summary();
+      const pair = summary ? accountPanelRows(summary)[Number(row[2])] : undefined;
+      if (!pair) return { visible: false };
+      return row[1] === "Label"
+        ? paintText(pair[0], { size: 15, bold: true, color: LABEL, align: "right", middle: true })
+        : paintText(pair[1], { size: 15, bold: true, color: TEXT, middle: true });
+    }
+    switch (name) {
+      case "accountDialog": return { text: "账号信息" };
+      case "nicknameLabel": return paintText("游戏昵称", { size: 15, bold: true, color: LABEL, align: "right",
+        middle: true });
+      case "nickname": return { label: "游戏昵称（1–16 字）", disabled: busy, input: { value: nickname, maxLength: 16,
+        submit: () => void rename(), change: (value: string) => {
+          nickname = value;
+          editedName = true;
+        } } };
+      case "renameButton": return { text: "修改昵称", label: "修改昵称", disabled: busy, action: () => void rename() };
+      case "message": return paintText(busy ? "正在修改…" : message.text, { size: 13, bold: true, middle: true,
+        color: message.error ? "rgb(205,45,35)" : "rgb(40,150,60)" });
+      case "okButton": return { text: "关闭", label: "关闭", action: () => {
+        options.onActivate?.();
+        finish();
+      } };
+      case "logoutButton": return { text: "退出登录", label: "退出登录", action: () => void logout() };
+    }
+    return {};
+  };
+  void (te.load({ library, root: layer.element, definition: prepare(library, accountWindowDefinition(rowCount), ROOTS),
+    roots: ROOTS, smoothImages: true, modal: true, label: "账号信息", onCancel: finish, state } as never) as
+    Promise<WindowView>).then(loaded => {
+    if (closed) {
+      loaded.dispose();
+      return;
+    }
+    view = loaded;
+    // Escape closes; Enter in the nickname field renames.
+    releaseKeys = trapPopupKeys(loaded.element, { cancel: finish, confirm: () => {
+      if (loaded.element.ownerDocument.activeElement instanceof HTMLInputElement) void rename();
+    } });
+    view.show();
+    view.focus("okButton");
+  }).catch(error => {
+    console.warn("账号信息窗口打开失败", error);
+    finish();
+  });
+  return { element: layer.element, close: finish };
+}
+
+function summaryPlaceholder(): AccountSummary {
+  return { account: { username: "", nickname: "", createdAt: 0 }, progress: { level: 1, exp: 0, levelExp: 0,
+    nextLevelExp: null }, wallet: { coupon: 0, lucci: 0, koin: 0 }, stats: { races: 0, wins: 0, podiums: 0,
+    points: 0 } } as unknown as AccountSummary;
 }

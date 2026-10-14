@@ -3,6 +3,7 @@ import { closeReadyClub, type ReadyClubController } from "./ready-club";
 import { closeReadyMenus } from "./ready-menus";
 import { closeReadyLottery } from "./ready-lottery";
 import { closeReadyShop } from "./ready-shop";
+import { tellPlayer } from "../ui/game-popups";
 interface Disposable { dispose(): void }
 
 export interface FavoriteTrack { themeId: string; trackId: string }
@@ -160,7 +161,7 @@ export function changeReadyFavoriteTrack(host: ReadyControllerStateHost,
   try {
     host.host.saveProfile();
   } catch (error) {
-    host.host.hud.showDebugText(`本次地图收藏变更未保存：${String(error)}`, "error");
+    tellPlayer(host.host.hud, `本次地图收藏变更未保存：${String(error)}`);
   }
 }
 
@@ -170,6 +171,6 @@ export function changeReadyFavoriteItems(host: ReadyControllerStateHost,
   try {
     host.host.saveProfile();
   } catch (error) {
-    host.host.hud.showDebugText(`本次道具星标变更未保存：${String(error)}`, "error");
+    tellPlayer(host.host.hud, `本次道具星标变更未保存：${String(error)}`);
   }
 }

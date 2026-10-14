@@ -1,5 +1,6 @@
 import { settingsResourceEntry } from "../ui/resource-panel";
 import type { ReadyOptions } from "./ready-flow";
+import { tellPlayer } from "../ui/game-popups";
 
 interface GameOptions {
   mainMenuBgmPath: string;
@@ -122,7 +123,7 @@ export async function openReadySettings(controller: ReadySettingsController,
       controller.host.getReadyOptions().version ?? deps.defaultVersion);
     controller.activeSettings = view;
   } catch (error) {
-    controller.host.hud.showDebugText(`设置窗口：${String(error)}`, "error");
+    tellPlayer(controller.host.hud, `设置窗口：${String(error)}`);
     if (controller.host.shell.modal === "settings")
       controller.host.shell.closeModal("settings");
   } finally {
@@ -194,7 +195,7 @@ export function saveReadyGameOptions(controller: ReadySettingsController,
   try {
     persist(controller.host.getGameOptions());
   } catch (error) {
-    controller.host.hud.showDebugText(`本次游戏设置未保存：${String(error)}`, "error");
+    tellPlayer(controller.host.hud, `本次游戏设置未保存：${String(error)}`);
   }
 }
 

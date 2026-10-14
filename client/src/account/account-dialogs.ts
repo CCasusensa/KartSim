@@ -1,11 +1,13 @@
 /**
- * Small blocking overlays for the account flow, styled like the release
- * multiplayer account dialogs: a status line, an error with 重试, and a
- * message with one button.
+ * Small popups of the account flow: a status line, a message with one
+ * button, a question and a short notice. They are the game's own windows
+ * (ui/game-popups.ts) once startup has loaded the resources; only before
+ * that (or in tests) a plain overlay stands in.
  */
 import {
   accountOverlayStyle, accountPanelStyle, styleAccountButtons,
 } from "../multiplayer/account-ui-support";
+import { confirmGame, gameRoot, gameWindowLibrary, showGameMessage, showGameStatus, showGameToast } from "../ui/game-popups";
 
 export interface OverlayDocument {
   body: HTMLElement;
@@ -35,6 +37,8 @@ function overlay(document: OverlayDocument, title: string, message: string) {
 /** A blocking status line; `close` removes it. */
 export function showAccountStatus(document: OverlayDocument, title: string,
   message: string): { close(): void; set(message: string): void } {
+  const library = gameWindowLibrary();
+  if (library) return showGameStatus(title, message, { library, root: gameRoot(document as Document), delayMs: 0 });
   const view = overlay(document, title, message);
   view.panel.setAttribute("role", "status");
   return { close: () => view.element.remove(), set: value => { view.text.textContent = value; } };
@@ -43,6 +47,9 @@ export function showAccountStatus(document: OverlayDocument, title: string,
 /** A blocking message with one button; resolves when it is pressed. */
 export function showAccountMessage(document: OverlayDocument, title: string,
   message: string, buttonText = "重试"): Promise<void> {
+  const library = gameWindowLibrary();
+  if (library) return showGameMessage(title, message, { library, root: gameRoot(document as Document),
+    yes: buttonText }).then(() => undefined);
   const view = overlay(document, title, message);
   const button = document.createElement("button");
   button.type = "button";
@@ -61,6 +68,8 @@ export function showAccountMessage(document: OverlayDocument, title: string,
 /** A message with two choices; resolves true for the first. */
 export function confirmAccountAction(document: OverlayDocument, title: string,
   message: string, accept: string, cancel = "取消"): Promise<boolean> {
+  const library = gameWindowLibrary();
+  if (library) return confirmGame(title, message, accept, cancel, { library, root: gameRoot(document as Document) });
   const view = overlay(document, title, message);
   const yes = document.createElement("button");
   const no = document.createElement("button");
@@ -76,9 +85,14 @@ export function confirmAccountAction(document: OverlayDocument, title: string,
   });
 }
 
-/** A self-dismissing toast at the top of the page (level ups, rewards). */
+/** A self-dismissing notice near the top of the game area (level ups, rewards). */
 export function showAccountToast(document: OverlayDocument, message: string,
   durationMs = 4_000): void {
+  const library = gameWindowLibrary();
+  if (library) {
+    showGameToast(message, durationMs, { library, root: gameRoot(document as Document) });
+    return;
+  }
   const toast = document.createElement("div");
   toast.setAttribute("role", "status");
   toast.dataset.kartsimAccount = "toast";
