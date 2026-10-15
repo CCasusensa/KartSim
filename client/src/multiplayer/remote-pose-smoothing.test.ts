@@ -132,6 +132,14 @@ test("remote fleet draws a jittery high-speed peer without visible jumps", () =>
       newerSequence: (sequence, previous) => sequence > previous,
       resetVisible: () => true });
   fleet.bindClock({ offsetMs: 0 });
+  fleet.groundTrack = {
+    rayQuery(origin, movement) {
+      const fraction = -origin.y / movement.y;
+      if (!Number.isFinite(fraction) || fraction < 0 || fraction > 1) return undefined;
+      return { point: { x: origin.x + movement.x * fraction, y: 0,
+        z: origin.z + movement.z * fraction }, normal: { x: 0, y: 1, z: 0 } };
+    },
+  };
 
   const sampleAt = (elapsedMs: number, sequence: number): MotionPacket => {
     const theta = OMEGA * elapsedMs / 1000;

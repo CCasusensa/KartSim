@@ -10,6 +10,7 @@ import { MotionClockMapping, RemoteMotionPredictor,
   type RemoteMotionFrameOptions, type RemoteMotionSnapshot } from "../multiplayer/remote-motion";
 import { isNewerSequence } from "../multiplayer/motion";
 import { RemotePoseSmoother } from "../multiplayer/remote-pose-smoothing";
+import { constrainRemotePose } from "../multiplayer/remote-pose-grounding";
 import type { RailMatrix } from "../driving/rail-frame";
 import { VehicleMotionReceiver } from "../vehicle/remote-vehicle-motion";
 import { racePresenterInitializationDependencies } from "../generated/world.js";
@@ -254,7 +255,15 @@ export class CityFleet {
         if (!peer.motion) { peer.smoother.reset(); continue; }
         const reanchored = peer.motion.previousTick === undefined && peer.motion.snapshot !== undefined;
         peer.motion.update(tick, options);
-        peer.smoother.observe(peer.motion.copyPose(), tick, reanchored, options.locked || options.bypass);
+        const anchor = peer.motion.snapshot;
+        const track = this.host.track;
+        const size = peer.participant?.remoteParameters;
+        const scale = cityVisualScale(peer.visualScale);
+        const footprint = typeof size?.halfWidth === "number" && typeof size?.halfLength === "number"
+          ? { halfWidth: size.halfWidth * scale.x, halfLength: size.halfLength * scale.z } : undefined;
+        peer.smoother.observe(peer.motion.copyPose(), tick, reanchored, options.locked || options.bypass,
+          anchor && typeof track?.rayQuery === "function"
+            ? pose => constrainRemotePose(track, pose, anchor, footprint) : undefined);
       } catch (error) {
         console.warn("城市成员预测失败", peer.member.name, error);
         peer.motion = undefined;

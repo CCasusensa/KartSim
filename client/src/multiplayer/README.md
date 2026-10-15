@@ -85,6 +85,14 @@ bundle. It can be developed independently of the original minified code.
   jumping with it; collisions, rank and slipstream still read the raw
   prediction. Corrections over 8 m or 90° (resets, warps) snap at once. Used
   by the race `RemoteFleet` and the 卡丁城 `CityFleet`.
+- `remote-pose-grounding.ts`: constrains the smoothed pose to the road layer
+  selected by the latest received position, including slope and wheel-footprint
+  checks. Landing corrections are remembered by the smoother, so an old falling
+  prediction cannot keep the model underground after a correct packet arrives.
+  Jumps are not pulled down and gaps do not retain a previous floor height.
+  Both fleets use the local track's collision queries. Prediction also stops
+  after 600 ms without a fresh sample, allowing the normal 512 ms distant-peer
+  cadence while bounding stale motion.
 - `race-driving-scales.ts`: leader-gap catchup and charger multipliers plus
   slipstream charge, burst and cooldown state from the multiplayer race runtime.
 - `race-peer-cadence.ts`: peer motion recipient cadence, stale-contact scaling,

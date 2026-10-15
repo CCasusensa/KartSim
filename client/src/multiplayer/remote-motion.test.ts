@@ -31,14 +31,21 @@ function snapshot(changes: Partial<RemoteMotionSnapshot> = {}): RemoteMotionSnap
   };
 }
 
-function state(predictor: RemoteMotionPredictor) {
+function metadata(predictor: RemoteMotionPredictor) {
   return {
     snapshotTick: predictor.snapshotTick, previousTick: predictor.previousTick,
     eligible: predictor.eligible, futureTickInvalid: predictor.futureTickInvalid,
     snapshotAgeDisplay: predictor.snapshotAgeDisplay,
+    collision: predictor.collisionState(),
+  };
+}
+
+function state(predictor: RemoteMotionPredictor) {
+  return {
+    ...metadata(predictor),
     position: predictor.position, velocity: predictor.velocity,
     angular: predictor.angular, rotation: predictor.rotation,
-    collision: predictor.collisionState(), pose: predictor.copyPose(),
+    pose: predictor.copyPose(),
   };
 }
 
@@ -79,17 +86,24 @@ test("remote snapshot acceptance, eligibility and tick ordering match release", 
     [1_000, { bypass: false, locked: false }],
     [1_012, { bypass: true, locked: false }],
     [1_015, { bypass: false, locked: true }],
-    [6_050, { bypass: false, locked: false }],
   ] as const) {
     actual.update(now, options);
     released.update(now, options);
     assert.deepEqual(state(actual), state(released));
   }
+  actual.update(6_050, { bypass: false, locked: false });
+  released.update(6_050, { bypass: false, locked: false });
+  // Stale snapshots retain the released clock/eligibility behavior, but their
+  // poses now stop extrapolating at the age limit (covered by the horizon tests).
+  assert.deepEqual(metadata(actual), metadata(released));
   actual.clear(); released.clear();
-  assert.deepEqual(state(actual), state(released));
+  assert.deepEqual(metadata(actual), metadata(released));
+  assert.equal(actual.snapshot, undefined);
+  assert.equal(actual.copyPose(), undefined);
+  assert.equal(released.copyPose(), undefined);
 });
 
-test("remote force, torque and orientation prediction match release frames", () => {
+test("remote force, torque and orientation match release within the prediction window", () => {
   const actual = new RemoteMotionPredictor(2.5, structuredClone(inertia));
   const released = new original.Gi0(2.5, structuredClone(inertia));
   const first = snapshot({ quaternion: [0.9, 0.1, -0.1, 0.05] });

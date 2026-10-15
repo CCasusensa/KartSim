@@ -101,13 +101,17 @@ export class RemotePoseSmoother {
   /**
    * Called once per frame after the predictor advanced to `nowTick`.
    * `reanchored` says the predictor restarted from a new packet this frame;
-   * `passthrough` (locked or bypassed frames) draws the raw pose unchanged.
+   * `passthrough` skips blending. The optional road constraint is applied
+   * before remembering the displayed pose, so a corrected landing cannot
+   * carry an underground offset into the next packet's blend.
    */
   observe(raw: RawRemotePose | undefined, nowTick: number, reanchored: boolean,
-    passthrough = false): SmoothedRemotePose | undefined {
+    passthrough = false,
+    constrain?: (pose: SmoothedRemotePose) => SmoothedRemotePose): SmoothedRemotePose | undefined {
     if (!raw || passthrough) {
       this.reset();
       this.displayed = raw ? { position: raw.position, rotation: raw.rotation } : undefined;
+      if (this.displayed && constrain) this.displayed = constrain(this.displayed);
       return this.displayed;
     }
     const dt = this.lastTick === undefined ? 0 : Math.max(0, nowTick - this.lastTick);
@@ -145,6 +149,14 @@ export class RemotePoseSmoother {
           quaternionFromMatrix(raw.rotation)))),
       }
       : { position: raw.position, rotation: raw.rotation };
+    if (constrain) {
+      this.displayed = constrain(this.displayed);
+      if (this.remainingMs > 0) {
+        this.offset = sub(this.displayed.position, raw.position);
+        this.twist = normalize(multiply(quaternionFromMatrix(this.displayed.rotation),
+          conjugate(quaternionFromMatrix(raw.rotation))));
+      }
+    }
     this.last = { displayed: this.displayed, velocity: raw.velocity };
     return this.displayed;
   }

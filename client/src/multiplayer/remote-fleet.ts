@@ -1,6 +1,7 @@
 import { MotionClockMapping, RemoteMotionPredictor,
   type RemoteMotionFrameOptions, type RemoteMotionSnapshot } from "./remote-motion";
 import { RemotePoseSmoother } from "./remote-pose-smoothing";
+import { constrainRemotePose, type RemoteGroundTrack } from "./remote-pose-grounding";
 import type { RailMatrix } from "../driving/rail-frame";
 import { BRAWL_SLOTS, brawlAiIds } from "./lobby-brawl-mode";
 
@@ -128,6 +129,8 @@ export class RemoteFleet {
    * COLLISION_RANGE from it are left out of its collision tests.
    */
   collisionCenter?: () => { x: number; y: number; z: number };
+  /** The local track constrains drawn peers to their own road layer. */
+  groundTrack?: RemoteGroundTrack;
   offGiant?: () => void;
   giantFinished = false;
 
@@ -291,8 +294,16 @@ export class RemoteFleet {
         const reanchored = peer.motion.previousTick === undefined &&
           peer.motion.snapshot !== undefined;
         peer.motion.update(tick, options);
+        const anchor = peer.motion.snapshot;
+        const track = this.groundTrack;
+        const size = peer.parameters;
+        const scale = this.giants.get(playerId)?.visualScale() ?? peer.visualScale;
+        const footprint = typeof size.halfWidth === "number" && typeof size.halfLength === "number"
+          ? { halfWidth: size.halfWidth * (scale?.x ?? 1),
+            halfLength: size.halfLength * (scale?.z ?? 1) } : undefined;
         peer.smoother.observe(peer.motion.copyPose(), tick, reanchored,
-          options.locked || options.bypass);
+          options.locked || options.bypass, track && anchor
+            ? pose => constrainRemotePose(track, pose, anchor, footprint) : undefined);
         this.giants.get(playerId)?.updateVehicle(now, () => {});
       }
     } catch (error) {

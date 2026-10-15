@@ -108,6 +108,7 @@ export class ActiveRaceCoordinator {
         try { onError(error); }
         finally { this.dispose(); }
       }, this.cadence);
+      this.remotes.groundTrack = this.local.track;
       // 50人乱斗: only nearby karts are collision candidates (remote-fleet.ts).
       if (assets.drivingMode?.kind === "brawl") {
         this.remotes.collisionCenter = () => this.local.physics.body.position;

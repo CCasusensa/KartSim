@@ -28,6 +28,8 @@ export interface RemoteMotionFrameOptions {
 }
 
 const float = Math.fround;
+// Far peers legitimately send every 512ms; leave room for packet/frame latency.
+export const REMOTE_EXTRAPOLATION_LIMIT_MS = 600;
 const identity = (): RailMatrix => [
   { x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, { x: 0, y: 0, z: 1 },
 ];
@@ -169,7 +171,12 @@ export class RemoteMotionPredictor {
       this.position = [...snapshot.position];
       this.restoreRotation();
     } else {
-      let remainingMs = Math.min(nowTick - this.previousTick, 200);
+      // Bound the total age of a prediction, not just one render frame. During
+      // packet loss an old falling velocity/force must not integrate forever.
+      // Locked/bypassed time also ages the snapshot and cannot extend this limit.
+      let remainingMs = Math.min(200, Math.max(0,
+        Math.min(nowTick, this.snapshotTick + REMOTE_EXTRAPOLATION_LIMIT_MS) -
+          this.previousTick));
       while (remainingMs > 0) {
         const sliceMs = Math.min(remainingMs, 10);
         remainingMs -= sliceMs;
