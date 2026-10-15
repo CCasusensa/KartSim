@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 游戏里的自制地图：把地图工坊生成的赛道包挂进资源库，并让计时赛选图、
  * 多人竞速房选图和比赛载入都能找到它们。
@@ -67,7 +68,7 @@ export function customTrackMetadata(summary: CustomMapSummary): TrackMetadata {
     bgmTheme: summary.theme,
     choosable: true,
     blocked: false,
-    cnTitle: summary.source === "local" ? `[草稿] ${summary.name}` : summary.name,
+    cnTitle: summary.source === "local" ? tr("[草稿] {value}", { value: String(summary.name) }) : summary.name,
     speedPool: false,
     roadExtent: summary.roadExtent,
   };

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale.ts";
 import { rhoAdler32 } from "../codecs/common.ts";
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
@@ -4783,6 +4784,10 @@ const H6 = {
   };
 
 function iR(n) {
+  return tr(roomModeLabelSource(n));
+}
+
+function roomModeLabelSource(n) {
   const e = G2(n);
   if (e === "item") return itemRoomLabel(n.channelName); // item-mode(lobby)
   if (e === "brawl") return BRAWL_LABEL; // brawl(lobby)

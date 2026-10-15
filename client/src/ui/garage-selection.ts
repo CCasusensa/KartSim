@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import {
   canFavoriteItem, favoriteItemIdentity, favoriteItemKey, favoriteItemKeys,
   makeFavoriteItem, type FavoriteItem,
@@ -351,7 +352,7 @@ export function confirmGarageSelection<Item extends GarageCatalogItem>(
 ): void {
   const kart = host.selectedKart();
   const character = deps.findCharacter(host.options.catalog.characters,
-    host.draftProfile.equipment.itemIds[1]!, "人物");
+    host.draftProfile.equipment.itemIds[1]!, tr("人物"));
   host.options.onConfirm({ kart, character, equipment: host.draftProfile.equipment });
 }
 

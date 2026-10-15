@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { te } from "../generated/library.js";
 import type { KickVoteStatus } from "../multiplayer/lobby-kick-vote";
 import { FONT, node, nodeName, type BmlLibrary, type Node, type Rect, type WindowView } from "./bml-kit";
@@ -46,12 +47,12 @@ export function kickVoteBarFraction(status: KickVoteStatus, now: number): number
 }
 
 export function kickVoteRemainingText(status: KickVoteStatus, now: number): string {
-  return `剩余时间 ${Math.ceil(kickVoteRemainingMs(status, now) / 1000)}秒`;
+  return tr("剩余时间 {0}秒", { "0": Math.ceil(kickVoteRemainingMs(status, now) / 1000) });
 }
 
 /** The three lines of the question; the first names the target. */
 export function kickVoteTextLines(targetName: string): [string, string, string] {
-  return [`即将把 ${targetName} 踢出等待室。`, "是否踢出将依投票结果决定。", "您是否同意？"];
+  return [tr("即将把 {0} 踢出等待室。", { "0": targetName }), tr("是否踢出将依投票结果决定。"), tr("您是否同意？")];
 }
 
 export function kickVoteWindowDefinition(): Node {
@@ -59,15 +60,15 @@ export function kickVoteWindowDefinition(): Node {
     node("TextButton", { name, leftTopWH: `${left} 0 155 42`, text, textRender: "bold16", ...colors });
   return node("Container", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "voteWnd", frame: "CaptionDialog", leftTopWH: "0 0 520 430",
-      caption: "踢出投票", captionColor: "black", align: "center" }, [
+      caption: tr("踢出投票"), captionColor: "black", align: "center" }, [
       node("Panel", { name: "voteIcon", leftTopWH: "0 14 64 54", align: "hcenter" }),
       node("Panel", { name: "voteText", leftTopWH: "0 78 480 78", align: "hcenter" }),
       node("Panel", { name: "voteBoard", leftTopWH: "0 164 440 150", align: "hcenter" }),
       node("Window", { frame: "HSection", leftTopWH: "0 0 440 1", align: "hcenter;bottom", adjust: "0 64" }),
       node("Container", { leftTopWH: "0 0 330 42", align: "hcenter;bottom", adjust: "0 12" }, [
-        button("okButton", 0, "同意", { textColor: "white", overTextColor: "white",
+        button("okButton", 0, tr("同意"), { textColor: "white", overTextColor: "white",
           clickedTextColor: "255 24 55 104", disabledTextColor: "255 220 220 220" }),
-        button("cancelButton", 175, "反对", { textColor: "255 64 75 95", overTextColor: "255 106 120 147",
+        button("cancelButton", 175, tr("反对"), { textColor: "255 64 75 95", overTextColor: "255 106 120 147",
           clickedTextColor: "255 35 41 52", disabledTextColor: "255 131 131 131" }),
         node("Panel", { name: "okKey", leftTopWH: "101 11 48 20" }),
         node("Panel", { name: "cancelKey", leftTopWH: "284 11 38 20" }),
@@ -136,8 +137,7 @@ export function paintVoteText(context: CanvasRenderingContext2D, rect: Rect, tar
   const step = 25;
   const top = rect.y + (rect.height - lines.length * step) / 2 + step / 2;
   const middle = rect.x + rect.width / 2;
-  const lead = "即将把 ";
-  const tail = " 踢出等待室。";
+  const [lead = "", tail = ""] = tr("即将把 {0} 踢出等待室。").split("{0}");
   const widths = [lead, targetName, tail].map(part => context.measureText(part).width);
   let x = middle - (widths[0]! + widths[1]! + widths[2]!) / 2;
   context.textAlign = "left";
@@ -209,7 +209,7 @@ export function paintVoteBoard(context: CanvasRenderingContext2D, rect: Rect,
   context.textBaseline = "middle";
   context.textAlign = "center";
   context.fillStyle = "white";
-  const timeText = status ? kickVoteRemainingText(status, now) : "投票已结束";
+  const timeText = status ? kickVoteRemainingText(status, now) : tr("投票已结束");
   const textWidth = context.measureText(timeText).width;
   drawClock(context, x + width / 2 - textWidth / 2 - 14, y + headerHeight / 2, 7);
   context.fillText(timeText, x + width / 2 + 10, y + headerHeight / 2 + 1);
@@ -229,8 +229,8 @@ export function paintVoteBoard(context: CanvasRenderingContext2D, rect: Rect,
   context.stroke();
   const half = width / 2;
   const columns = [
-    { label: "同意", count: status?.yes ?? 0, color: ACCENT_CYAN, up: true },
-    { label: "反对", count: status?.no ?? 0, color: "white", up: false },
+    { label: tr("同意"), count: status?.yes ?? 0, color: ACCENT_CYAN, up: true },
+    { label: tr("反对"), count: status?.no ?? 0, color: "white", up: false },
   ];
   columns.forEach((column, index) => {
     const centre = x + half * index + half / 2;
@@ -290,7 +290,7 @@ export async function showKickVoteWindow(options: KickVoteWindowOptions,
   const answer = (approve: boolean) => { if (!window.busy) vote(approve); };
   window.view = await loadView({
     library: options.library, root: options.root, definition: kickVoteWindowDefinition(), roots: ROOTS,
-    preserveDisplayPixels: true, smoothImages: true, modal: true, label: "踢出投票",
+    preserveDisplayPixels: true, smoothImages: true, modal: true, label: tr("踢出投票"),
     onCancel: () => answer(false), onConfirm: () => answer(true),
     state: (entry: Node) => {
       switch (nodeName(entry)) {
@@ -299,8 +299,8 @@ export async function showKickVoteWindow(options: KickVoteWindowOptions,
           paintVoteText(context, rect, status()?.targetName ?? "") };
         case "voteBoard": return { paint: (context: CanvasRenderingContext2D, rect: Rect) =>
           paintVoteBoard(context, rect, status(), nowMs()) };
-        case "okButton": return { disabled: window.busy, label: "同意（Enter）", action: () => answer(true) };
-        case "cancelButton": return { disabled: window.busy, label: "反对（Esc）", action: () => answer(false) };
+        case "okButton": return { disabled: window.busy, label: tr("同意（Enter）"), action: () => answer(true) };
+        case "cancelButton": return { disabled: window.busy, label: tr("反对（Esc）"), action: () => answer(false) };
         case "okKey": return { paint: (context: CanvasRenderingContext2D, rect: Rect) =>
           paintKeyBadge(context, rect, "ENTER") };
         case "cancelKey": return { paint: (context: CanvasRenderingContext2D, rect: Rect) =>

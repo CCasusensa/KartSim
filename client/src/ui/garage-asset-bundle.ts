@@ -1,4 +1,4 @@
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 
 export interface GarageAssetNode {
   name: string;
@@ -173,20 +173,16 @@ export async function loadGarageAssetBundle(library: GarageAssetLibrary,
     }
   }
   for (const entry of stageStrings.children) {
-    const localized = entry.children.find(node =>
-      dependencies.attribute(node, "c") === resourceLocale()) ?? entry.children.find(node =>
-      dependencies.attribute(node, "c") === "cn");
+    const localized = resourceText(entry.children, dependencies.attribute);
     if (localized)
       strings.set(dependencies.attribute(entry, "n"),
-        dependencies.attribute(localized, "v") ?? "");
+        localized);
   }
   for (const entry of baseStrings.root.children) {
     const key = dependencies.xmlAttribute(entry, "n");
-    const localized = entry.children.find(node =>
-      dependencies.xmlAttribute(node, "c") === resourceLocale()) ?? entry.children.find(node =>
-      dependencies.xmlAttribute(node, "c") === "cn");
+    const localized = resourceText(entry.children, dependencies.xmlAttribute);
     if (key && localized && !strings.has(key))
-      strings.set(key, dependencies.xmlAttribute(localized, "v") ?? "");
+      strings.set(key, localized);
   }
 
   const textures = new Map<string, GarageAssetBitmap>();

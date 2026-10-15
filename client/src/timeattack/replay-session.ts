@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * OB 观看 (TIMEATTACK.md 4): plays a .ksv as a solo race whose only participant
  * is the watched ghost. The local kart is hidden and its input off
@@ -30,16 +31,16 @@ export interface ReplaySessionRequest {
 export async function startReplaySession(controller: ReadyHomeController, request: ReplaySessionRequest): Promise<void> {
   const host = controller.host;
   const library = host.getLibrary();
-  if (!library) throw new Error("缺少资源库。");
+  if (!library) throw new Error(tr("缺少资源库。"));
   const previous = host.getSelection();
-  if (!previous) throw new Error("请先在计时赛选好车辆和人物。");
+  if (!previous) throw new Error(tr("请先在计时赛选好车辆和人物。"));
   const previousOptions = host.getReadyOptions();
   const catalog = await library.timeAttackGarageCatalog();
   const mission = { kind: "Shadow", track: request.trackId, laps: 0, timeLimitMs: 0, speed: request.speed,
     rival: undefined } as unknown as StoryMission;
   const decoded = storyGhostSources(request.ksv, request.trackId, mission, catalog as never);
   const source = decoded.sources[0];
-  if (!source) throw new Error("录像里没有车手。");
+  if (!source) throw new Error(tr("录像里没有车手。"));
   source.equipment.playerName = request.riderName;
   const durationMs = Math.max(decoded.timeMs, request.recordMs, stampsDuration(source.record));
   const observe = createObserveState([{ name: request.riderName, kartName: request.kartName, record: source.record }],
@@ -62,7 +63,7 @@ export async function startReplaySession(controller: ReadyHomeController, reques
   if (controller.disposed) return;
   if (host.shell.current === "Ready") {
     restore();
-    throw new Error("录像未能开始播放。");
+    throw new Error(tr("录像未能开始播放。"));
   }
   try {
     observe.console = await ReplayConsole.open({
@@ -74,7 +75,7 @@ export async function startReplaySession(controller: ReadyHomeController, reques
     });
     if (host.shell.current === "Ready") { observe.console.dispose(); observe.console = undefined; }
   } catch (error) {
-    tellPlayer(host.hud, `回放操作台：${error instanceof Error ? error.message : String(error)}`);
+    tellPlayer(host.hud, tr("回放操作台：{error}", { error: error instanceof Error ? error.message : String(error) }));
   }
 }
 

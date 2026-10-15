@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import {
   addPreparationCancelButton, addPreparationComparisonValue,
   addPreparationLabel, createPreparationButton, decoratePreparationPageArrow,
@@ -30,8 +31,8 @@ export interface GaragePreparationRefreshAssets extends GaragePreparationControl
  * odds that rise after each failed try; local upgrades always succeed.
  */
 export const PREPARATION_TIPS = [
-  "强化一定会成功，放心升级吧~",
-  "最高可强化到 5 级，强化点数随等级增加，性能槽最多 3 个！",
+  tr("强化一定会成功，放心升级吧~"),
+  tr("最高可强化到 5 级，强化点数随等级增加，性能槽最多 3 个！"),
 ] as const;
 
 export type GaragePreparationRefreshHost =
@@ -57,17 +58,17 @@ export function refreshGaragePreparation(host: GaragePreparationRefreshHost,
   host.element.style.setProperty("--garage-upgrade-font",
     assets.fontFamily ? '"' + assets.fontFamily + '"' : "inherit");
   const caption = document.createElement("strong");
-  caption.textContent = "车辆强化";
+  caption.textContent = tr("车辆强化");
   caption.className = "garage-preparation-caption";
   placePreparationControl(host, caption, {
     x: assets.rect.x + 60, y: assets.rect.y + 3,
     width: assets.rect.width - 120, height: 30,
   });
-  addPreparationLabel(host, "强化车辆", "tuningTargetLabel", "target-caption");
+  addPreparationLabel(host, tr("强化车辆"), "tuningTargetLabel", "target-caption");
   addPreparationLabel(host, (item as GaragePreparationItem).title,
     "itemName", "vehicle-name");
-  addPreparationLabel(host, comparison.level.current + "级", "curLevel", "level-value");
-  addPreparationLabel(host, comparison.level.next + "级", "nextLevel", "level-value");
+  addPreparationLabel(host, comparison.level.current + tr("级"), "curLevel", "level-value");
+  addPreparationLabel(host, comparison.level.next + tr("级"), "nextLevel", "level-value");
   addPreparationComparisonValue(host, "curSlotNum", comparison.slots.current);
   addPreparationComparisonValue(host, "nextSlotNum", comparison.slots.next,
     comparison.slots.increment);
@@ -83,7 +84,7 @@ export function refreshGaragePreparation(host: GaragePreparationRefreshHost,
   placePreparationControl(host, methodPanel, preparationMethodPanelRect());
   const title = document.createElement("strong");
   title.className = "garage-upgrade-method-title";
-  title.textContent = "强化方式";
+  title.textContent = tr("强化方式");
   methodPanel.append(title);
   const divider = document.createElement("div");
   divider.className = "garage-upgrade-method-divider";
@@ -91,8 +92,8 @@ export function refreshGaragePreparation(host: GaragePreparationRefreshHost,
   const methods = document.createElement("div");
   methods.className = "garage-upgrade-method-buttons";
   methodPanel.append(methods);
-  for (const [method, label] of [["step", "逐级强化"],
-    ["max", "一键升满"]] as const) {
+  for (const [method, label] of [["step", tr("逐级强化")],
+    ["max", tr("一键升满")]] as const) {
     const selected = host.state.upgradeMethod === method;
     const button = document.createElement("button");
     button.type = "button";
@@ -110,13 +111,13 @@ export function refreshGaragePreparation(host: GaragePreparationRefreshHost,
   const help = document.createElement("div");
   help.className = "garage-upgrade-method-help";
   help.textContent = host.state.upgradeMethod === "step"
-    ? "逐级强化：点击升级后提升 1 级。\n强化完成后立即写入当前车辆。"
-    : "一键升满：点击升级后直接提升至 5 级。\n强化完成后立即写入当前车辆。";
+    ? tr("逐级强化：点击升级后提升 1 级。\n强化完成后立即写入当前车辆。")
+    : tr("一键升满：点击升级后直接提升至 5 级。\n强化完成后立即写入当前车辆。");
   methodPanel.append(help);
   if (assets.rects.has("kartListLabel"))
-    addPreparationLabel(host, "强化车辆", "kartListLabel", "list-caption");
+    addPreparationLabel(host, tr("强化车辆"), "kartListLabel", "list-caption");
   // kart12TuningLevelUp_stringBag kartCount: the list is the owned XUN karts.
-  addPreparationLabel(host, "持有车辆： " + host.state.candidates.length + "辆",
+  addPreparationLabel(host, tr("持有车辆： ") + host.state.candidates.length + tr("辆"),
     "kartCount", "count");
   addPreparationLabel(host, host.state.page + 1 + " / " + host.state.pages,
     "pageInfo", "fee");
@@ -136,7 +137,7 @@ export function refreshGaragePreparation(host: GaragePreparationRefreshHost,
   for (const arrow of assets.pageArrows) {
     const previous = arrow.name === "preItemList";
     const button = createPreparationButton(host,
-      previous ? "上一页强化车辆" : "下一页强化车辆",
+      previous ? tr("上一页强化车辆") : tr("下一页强化车辆"),
       rect(arrow.name), () => {
         host.state.turnPage(previous ? -1 : 1);
         refreshGaragePreparation(host, dependencies);
@@ -146,8 +147,8 @@ export function refreshGaragePreparation(host: GaragePreparationRefreshHost,
       dependencies);
   }
   const start = createPreparationButton(host,
-    value.level === 5 ? "车辆已满级" :
-      "开始本地 Lv." + target.level + " 强化",
+    value.level === 5 ? tr("车辆已满级") :
+      tr("开始本地 Lv.") + target.level + tr(" 强化"),
     rect("levelUpStart"), () => host.close(true), !host.state.canStart);
   start.className = "garage-native-button";
   start.textContent = "";
@@ -156,7 +157,7 @@ export function refreshGaragePreparation(host: GaragePreparationRefreshHost,
       'url("' + assets.urls.get("tuninglevel_btnStart_" + state) + '")');
   for (const card of preparationCards(host)) {
     const button = createPreparationButton(host,
-      "强化目标：" + card.item.title, card.rect, () => {
+      tr("强化目标：") + card.item.title, card.rect, () => {
         host.state.choose(card.item.itemId);
         refreshGaragePreparation(host, dependencies);
       });

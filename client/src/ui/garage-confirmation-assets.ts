@@ -1,8 +1,9 @@
+import { tr } from "../i18n/locale";
 /** Authored resources, native layout and wording for the garage confirmation window. */
 
 import type { ConfirmationRectangle, GarageConfirmationBlueprint,
   GarageConfirmationRequest } from "./garage-confirmation-dialog";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 
 export const garageConfirmationFontFamily = "KartSim Garage Dialog SourceHanSansCN";
 
@@ -93,10 +94,7 @@ function localizedStrings(root: ConfirmationNode,
   attribute: GarageConfirmationAssetDependencies["attribute"]): Map<string, string> {
   return new Map(root.children.map(child => {
     const key = attribute(child, "n") ?? "";
-    const language = child.children.find(entry => attribute(entry, "c") === resourceLocale()) ??
-      child.children.find(entry => attribute(entry, "c") === "cn") ??
-      child.children.find(entry => attribute(entry, "c") === "zz");
-    return [key, attribute(language ?? child, "v") ?? ""] as const;
+    return [key, resourceText(child.children, attribute) ?? tr(attribute(child, "v") ?? "")] as const;
   }).filter(([key]) => Boolean(key)));
 }
 
@@ -182,11 +180,11 @@ function localizedString(strings: Map<string, string>, key: string, fallback: st
 export function garageConfirmationPartEquipRequest(strings: Map<string, string>,
   partName: string): GarageConfirmationRequest {
   const message = localizedString(strings, "confirmUseParts",
-    "装备[%s]时，将消耗1个该部件，|且当前已装备的部件将消失。|确定装备吗？");
+    tr("装备[%s]时，将消耗1个该部件，|且当前已装备的部件将消失。|确定装备吗？"));
   return {
-    title: localizedString(strings, "plantTune", "装备强化部件"),
+    title: localizedString(strings, "plantTune", tr("装备强化部件")),
     message: message.replace("%s", partName).replaceAll("|", "\n"),
-    affirmative: "是", negative: "否", warning: true,
+    affirmative: tr("是"), negative: tr("否"), warning: true,
   };
 }
 

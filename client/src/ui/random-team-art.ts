@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { FONT, type Rect } from "./bml-kit";
 
 /**
@@ -81,8 +82,8 @@ export function paintRandomTeamToggle(context: CanvasRenderingContext2D, rect: R
   const textX = iconX + iconSize + 10;
   const middle = rect.y + rect.height / 2 + 1;
   context.fillStyle = state.disabled ? "rgb(190, 196, 206)" : "white";
-  context.fillText("队伍随机分配", textX, middle);
-  const labelWidth = context.measureText("队伍随机分配").width;
+  context.fillText(tr("队伍随机分配"), textX, middle);
+  const labelWidth = context.measureText(tr("队伍随机分配")).width;
   context.fillStyle = state.enabled ? ACCENT_CYAN : "rgb(170, 180, 195)";
   context.fillText(state.enabled ? "ON" : "OFF", textX + labelWidth + 8, middle);
   context.restore();
@@ -251,8 +252,8 @@ export function paintRandomTeamBanner(context: CanvasRenderingContext2D, rect: R
   context.lineWidth = 7;
   context.lineJoin = "round";
   context.strokeStyle = "rgba(0, 0, 0, 0.72)";
-  context.strokeText("队伍随机分配!", 0, height * 0.2);
+  context.strokeText(tr("队伍随机分配!"), 0, height * 0.2);
   context.fillStyle = "white";
-  context.fillText("队伍随机分配!", 0, height * 0.2);
+  context.fillText(tr("队伍随机分配!"), 0, height * 0.2);
   context.restore();
 }

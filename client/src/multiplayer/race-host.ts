@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The global lobby (server-go/GLOBAL_LOBBY.md): the lobby connection goes to
  * the data service, where every region's rooms are listed. When the host
@@ -99,12 +100,12 @@ function nodeOfferUrl(deps: NodeHostDependencies, origin: string | null): string
 /** Connect a new client to a node with the lobby's ticket for it. */
 async function connectNode(host: RaceHostLobby, client: NodeClient, assignment: NodeAssignment): Promise<void> {
   const deps = host.nodeDependencies!;
-  labelConnectedServer(client, `节点 ${assignment.name || assignment.nodeId}`);
+  labelConnectedServer(client, tr("节点 {value}", { value: String(assignment.name || assignment.nodeId) }));
   const welcome = await client.connect(nodeOfferUrl(deps, assignment.origin), host.accountNickname ?? "",
     host.options.version, host.options.currentEquipment?.() ?? host.options.initialEquipment,
     host.options.initial, !!host.options.raceLoader, assignment.ticket);
   if (welcome.type !== "welcome" || welcome.playerId !== host.playerId) {
-    throw new Error("比赛服务器身份未确认");
+    throw new Error(tr("比赛服务器身份未确认"));
   }
 }
 
@@ -147,15 +148,15 @@ export async function enterRaceHost(host: RaceHostLobby, assignment: NodeAssignm
   });
   // The room and race commands go to the node from here on.
   host.client = client;
-  host.options.status(`正在连接比赛服务器「${assignment.name}」…`);
+  host.options.status(tr("正在连接比赛服务器「{value}」…", { value: String(assignment.name) }));
   try {
     await connectNode(host, client, assignment);
-    if (host.raceClient === client) host.options.status(`比赛服务器：${assignment.name}`);
+    if (host.raceClient === client) host.options.status(tr("比赛服务器：{value}", { value: String(assignment.name) }));
   } catch (error) {
     if (host.raceClient !== client || host.disposed) return;
     restoreLobbyClient(host);
-    host.options.status(`无法连接比赛服务器「${assignment.name}」：${formatMultiplayerError(error)}。` +
-      "本局无法参加，其他玩家比赛结束后房间会恢复。", true);
+    host.options.status(tr("无法连接比赛服务器「{value}」：{value2}。", { value: String(assignment.name), value2: String(formatMultiplayerError(error)) }) +
+      tr("本局无法参加，其他玩家比赛结束后房间会恢复。"), true);
   }
 }
 
@@ -179,7 +180,7 @@ function raceLost(host: RaceHostLobby, roomId: string): void {
   void host.lobbyClient?.request({ type: "leave", roomId }).catch(() => {});
   host.receive({ type: "left", roomId, requestId: "race-lost" });
   host.options.status(kick ? cheatKickMessage(kick)
-    : "与比赛服务器的连接已断开，已退出本局比赛并回到多人大厅。", true);
+    : tr("与比赛服务器的连接已断开，已退出本局比赛并回到多人大厅。"), true);
 }
 
 /** The lobby connection closed: end the race and city connections too. */
@@ -308,8 +309,8 @@ export async function enterCityOnNode(host: RaceHostLobby & Omit<CityLobbyHost, 
       await enterCity(city);
       return;
     }
-    loading.stage("正在分配卡丁城服务器…");
-    host.options.status("正在分配卡丁城服务器…");
+    loading.stage(tr("正在分配卡丁城服务器…"));
+    host.options.status(tr("正在分配卡丁城服务器…"));
     const assignment = await lobby.request({ type: "city-host" }) as NodeAssignment;
     if (host.disposed || host.accountAbort?.signal.aborted) return;
     client = deps.createClient();
@@ -320,9 +321,9 @@ export async function enterCityOnNode(host: RaceHostLobby & Omit<CityLobbyHost, 
       leaveCityClient(host);
       const session = activeCitySession();
       if (session?.host === city) void session.cleanup();
-      host.options.status("与卡丁城服务器的连接已断开。", true);
+      host.options.status(tr("与卡丁城服务器的连接已断开。"), true);
     });
-    loading.stage(`正在连接卡丁城服务器「${assignment.name}」…`);
+    loading.stage(tr("正在连接卡丁城服务器「{value}」…", { value: String(assignment.name) }));
     await connectNode(host, client, assignment);
     if (host.disposed || host.accountAbort?.signal.aborted || host.cityClient !== client) return;
     host.client = client;
@@ -331,7 +332,7 @@ export async function enterCityOnNode(host: RaceHostLobby & Omit<CityLobbyHost, 
   } catch (error) {
     if (host.cityClient === client) leaveCityClient(host);
     if (!host.disposed && !host.accountAbort?.signal.aborted) {
-      host.options.status(`进入卡丁城失败：${formatMultiplayerError(error)}`, true);
+      host.options.status(tr("进入卡丁城失败：{value}", { value: String(formatMultiplayerError(error)) }), true);
       city.options.onCityFailed?.(formatMultiplayerError(error), false);
     }
   } finally {

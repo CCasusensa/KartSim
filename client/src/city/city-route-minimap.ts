@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The navigation route on the race HUD minimap: a green ribbon (dark green
  * rim, light green core) and a destination pin added to the minimap's map
@@ -149,7 +150,7 @@ export class CityRouteMinimap {
     if (!this.label) {
       this.label = document.createElement("canvas");
       this.label.className = "kartcity-navigation-label";
-      this.label.setAttribute("aria-label", "导航");
+      this.label.setAttribute("aria-label", tr("导航"));
       Object.assign(this.label.style, { position: "absolute", pointerEvents: "none", zIndex: "4" });
       root.append(this.label);
     }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { accountBanMessage } from "./account-ui-support";
 
 /**
@@ -102,10 +103,10 @@ export function formatMultiplayerError(error: unknown): string {
   const banned = accountBanMessage(error);
   if (banned) return banned;
   if (error instanceof Error) {
-    if (error.message === "ROADBLOCK_NEEDS_FIVE") return "挡人模式至少需要五名玩家。";
-    if (error.message === "TRACK_UNAVAILABLE") return "该赛道未开放当前玩法。";
-    if (error.message === "RUNNER_REQUIRED") return "只有本局跑者可以上报到达终点。";
+    if (error.message === "ROADBLOCK_NEEDS_FIVE") return tr("挡人模式至少需要五名玩家。");
+    if (error.message === "TRACK_UNAVAILABLE") return tr("该赛道未开放当前玩法。");
+    if (error.message === "RUNNER_REQUIRED") return tr("只有本局跑者可以上报到达终点。");
   }
   const code = error instanceof Error ? error.message : String(error);
-  return errorMessages[code] ?? code;
+  return tr(errorMessages[code] ?? code);
 }

@@ -1,10 +1,11 @@
+import { paintMainMenuCaption, paintStoryCardCaption } from "./main-menu-caption";
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { C9, E9, Ft, G1, T, V0, ct, f5, m9, p2, s2, st } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
 import { showGameToast } from "./game-popups";
 import { scrollbarGeometry } from "./scrollbar";
 import { loadRiderSchoolArt, type RiderSchoolArt } from "./rider-school-art";
-import { resourceLocale, tr } from "../i18n/locale";
+import { gameLocale, resourceText, tr } from "../i18n/locale";
 
 /**
  * The release MainMenuStage home, stage_mainMenu.rho/mq_window@cn.bml
@@ -64,6 +65,8 @@ export interface ReplayMenuEntry {
   trackId: string;
   trackTitle: string;
   riderName: string;
+  /** Optional UI marker, kept separate from the rider's canonical nickname. */
+  displayRiderName?: string;
   kartName: string;
   elapsedMs: number;
   recordedAt?: number;
@@ -96,8 +99,8 @@ export type LobbyEventId = "treasureHunt" | "gacha";
  * opens the 精品道具场).
  */
 const LOBBY_EVENTS: ReadonlyArray<{ id: LobbyEventId; label: string; image: string }> = [
-  { id: "treasureHunt", label: "寻宝活动", image: "event_thg_0" },
-  { id: "gacha", label: "精品道具", image: "limitedGacha_0" },
+  { id: "treasureHunt", label: tr("寻宝活动"), image: "event_thg_0" },
+  { id: "gacha", label: tr("精品道具"), image: "limitedGacha_0" },
 ];
 
 export type MainMenuPage = "home" | "single";
@@ -244,7 +247,7 @@ const BACKDROP = "백기사_신_로딩페이지_1600";
 const BANNERS = ["블랙샤크 신 로딩페이지_1600", "스토커 신 로딩페이지_1600",
   "웨이브 신 로딩페이지_1600", "공동묘지페리_로딩페이지_1600"];
 /** Keys the cn string bag lacks. */
-const FALLBACK_STRINGS: Record<string, string> = { event: "活动", kartPass: "跑跑通行证" };
+const FALLBACK_STRINGS: Record<string, string> = { event: tr("活动"), kartPass: tr("跑跑通行证") };
 const BANNER_INTERVAL_MS = 5_000;
 const SINGLE_PAGE = "singleplay_pop";
 /** Single-play categories in tab order; the first opens by default. */
@@ -257,15 +260,15 @@ const RIGHT_FILLED = new Set<string>(["cat_timeAttack", "cat_scenario", "cat_rid
 const REPLAY_CARD = { width: 750, height: 128, gap: 4, perPage: 4 };
 /** Labels for the release mode cards, whose names are baked into their art. */
 export const SINGLE_LABELS: Record<string, string> = {
-  cat_timeAttack: "计时赛", cat_riderSchool: "驾照考试", cat_scenario: "故事模式",
-  cat_trainingCenter: "车手学院", cat_replay: "回放",
-  timeAttack_train: "练习计时赛", timeAttack_ranking: "排位计时赛",
-  timeAttack_competitive: "竞争排位赛",
-  riderSchool_Level1: "新手驾照", riderSchool_Level2: "初级驾照", riderSchool_Level3: "L3驾照",
-  riderSchool_Level4: "L2驾照", riderSchool_Level5: "L1驾照", riderSchool_Level6: "PRO驾照",
-  trainingCenter_Level1: "基础驾驶技巧", trainingCenter_Level2: "高级驾驶技巧",
-  trainingCenter_Level3: "特殊驾驶技巧",
-  replay_my: "我的回放", replay_league: "联赛回放", replay_other: "其他回放",
+  cat_timeAttack: tr("计时赛"), cat_riderSchool: tr("驾照考试"), cat_scenario: tr("故事模式"),
+  cat_trainingCenter: tr("车手学院"), cat_replay: tr("回放"),
+  timeAttack_train: tr("练习计时赛"), timeAttack_ranking: tr("排位计时赛"),
+  timeAttack_competitive: tr("竞争排位赛"),
+  riderSchool_Level1: tr("新手驾照"), riderSchool_Level2: tr("初级驾照"), riderSchool_Level3: tr("L3驾照"),
+  riderSchool_Level4: tr("L2驾照"), riderSchool_Level5: tr("L1驾照"), riderSchool_Level6: tr("PRO驾照"),
+  trainingCenter_Level1: tr("基础驾驶技巧"), trainingCenter_Level2: tr("高级驾驶技巧"),
+  trainingCenter_Level3: tr("特殊驾驶技巧"),
+  replay_my: tr("我的回放"), replay_league: tr("联赛回放"), replay_other: tr("其他回放"),
 };
 const NOTICE_MS = 2_600;
 /** riderSchoolPage GridSelector "grid": one column of 750×74 step cards, 4 px apart. */
@@ -287,13 +290,11 @@ export function mainMenuColor(value: string | undefined, fallback = "white"): st
 }
 
 export function readMainMenuStrings(bag: MainMenuNode): Map<string, string> {
-  const strings = new Map<string, string>(Object.entries(FALLBACK_STRINGS));
+  const strings = new Map<string, string>(Object.entries(FALLBACK_STRINGS).map(([key, value]) => [key, tr(value)]));
   const visit = (node: MainMenuNode): void => {
     if (node.name === "k") {
       const key = attribute(node, "n");
-      const local = node.children.find(child => attribute(child, "c") === resourceLocale()) ??
-        node.children.find(child => attribute(child, "c") === "cn");
-      const value = local && attribute(local, "v");
+      const value = resourceText(node.children, attribute);
       if (key && value) strings.set(key, value);
       return;
     }
@@ -732,6 +733,7 @@ export class MainMenuView {
         (this.category === "cat_replay" && menu === "cats" && name === `replay_${this.replayTab}`);
       const state = selected ? 2 : action ? st(key, this.hovered, this.pressed) : 3;
       ct(this.context, textures[state]!, rect);
+      paintMainMenuCaption(this.context, rect, name, SINGLE_LABELS[name], selected);
       if (action) this.regions.push({ key, rect, label: this.label(node, name),
         activate: () => { this.options.onActivate?.(); action(); } });
     } else if (textures) {
@@ -777,7 +779,7 @@ export class MainMenuView {
           this.context.strokeRect(parent.x + 1, parent.y + 1, parent.width - 2, parent.height - 2);
           this.context.restore();
         }
-        this.regions.push({ key, rect: parent, label: `资格审核：${entry.title}`, activate: () => {
+        this.regions.push({ key, rect: parent, label: tr("资格审核：{0}", { "0": entry.title }), activate: () => {
           this.options.onActivate?.();
           this.options.onLicenseQualify!(entry.track);
         } });
@@ -845,7 +847,7 @@ export class MainMenuView {
       if (name === "next") return page < this.maxReplayPage(this.replayTab) ? () => this.turnReplayPage(1) : undefined;
     }
     // 竞争排位赛 (seasonal ranked, dialog2_timeAttackCompetitive) is not built yet.
-    if (name === "timeAttack_competitive") return () => this.showNotice("竞争排位赛暂未开放");
+    if (name === "timeAttack_competitive") return () => this.showNotice(tr("竞争排位赛暂未开放"));
     const license = /^riderSchool_Level([1-6])$/.exec(name);
     if (license) return () => this.selectLicense(Number(license[1]));
     if (this.category === "cat_riderSchool" && this.license) {
@@ -865,7 +867,7 @@ export class MainMenuView {
       }
     }
     if (SINGLE_LABELS[name])
-      return () => this.showNotice(`${SINGLE_LABELS[name]}暂未开放`);
+      return () => this.showNotice(tr("{0}暂未开放", { "0": SINGLE_LABELS[name]! }));
     return undefined;
   }
 
@@ -880,7 +882,7 @@ export class MainMenuView {
   /** Texts the license pages fill in. */
   private licenseText(name: string): string | undefined {
     if (this.currentPage !== "single" || this.category !== "cat_riderSchool") return undefined;
-    if (name === "rightTitleName") return this.assets.strings.get("license") ?? "驾照考试";
+    if (name === "rightTitleName") return this.assets.strings.get("license") ?? tr("驾照考试");
     const pro = this.license?.pro;
     if (!pro) return undefined;
     const row = /^proTrack(Name|Record)([0-2])$/.exec(name);
@@ -901,7 +903,7 @@ export class MainMenuView {
     const window = { x: title.x, y: title.y, width: 776, height: 634 };
     const area = { x: window.x, y: window.y + 48, width: 776, height: 586 };
     if (!this.license) {
-      this.drawStoryText("正在读取驾照信息…", area, 18, "rgb(42,55,80)", "center");
+      this.drawStoryText(tr("正在读取驾照信息…"), area, 18, "rgb(42,55,80)", "center");
       return;
     }
     const level = this.selectedLicense;
@@ -915,7 +917,7 @@ export class MainMenuView {
       }
       this.draw(pro.qualified ? art.pro2 : art.pro1, window);
       if (!pro.qualified)
-        this.drawStoryText("* 点击完成条件，即可用标准速度进行资格审核计时赛。",
+        this.drawStoryText(tr("* 点击完成条件，即可用标准速度进行资格审核计时赛。"),
           { x: area.x + 17, y: area.y + 495, width: 480, height: 20 }, 16, "rgb(42,55,80)", "left");
       if (pro.status)
         this.drawStoryText(pro.status, { x: area.x + 17, y: area.y + 455, width: 480, height: 24 }, 16,
@@ -1001,6 +1003,7 @@ export class MainMenuView {
         context.drawImage(states[0].image, box.x, box.y, box.width, box.height);
         context.restore();
       }
+      paintStoryCardCaption(context, box, chapter.title, chapter.open, chapter.name);
       // scenarioCard: chapterCompleted at the card's corner, chapterNew top right.
       if (chapter.cleared && art?.completed)
         context.drawImage(art.completed.image, box.x, box.y, art.completed.width,
@@ -1046,7 +1049,7 @@ export class MainMenuView {
     const context = this.context;
     const art = this.assets.replay;
     const label = (text: string, box: Rect, size: number, color: string, align: "left" | "center") =>
-      m9(context, tr(text), box, { family: FONT_FAMILY, size, kind: "label", color, align,
+      m9(context, text, box, { family: FONT_FAMILY, size, kind: "label", color, align,
         verticalAlign: "center", stroke: 0, strokeColor: "black" });
     const slot = (index: number): Rect => ({ x: rect.x - 1, y: rect.y + index * (REPLAY_CARD.height + REPLAY_CARD.gap),
       width: REPLAY_CARD.width, height: REPLAY_CARD.height });
@@ -1076,13 +1079,13 @@ export class MainMenuView {
       // The settings card: the track and settings, with 选择赛道 / 切换速度 / 切换模式.
       const box = slot(0);
       face(undefined, box);
-      label("其他回放　排位榜上其他车手的录像", { x: box.x, y: box.y, width: 722, height: 31 }, 20, "white", "center");
+      label(tr("其他回放　排位榜上其他车手的录像"), { x: box.x, y: box.y, width: 722, height: 31 }, 20, "white", "center");
       const header = this.replayHeader;
-      column(box, 18, [["赛道", header?.trackTitle ?? "—"], ["设置", header?.settings ?? "—"]]);
+      column(box, 18, [[tr("赛道"), header?.trackTitle ?? "—"], [tr("设置"), header?.settings ?? "—"]]);
       const buttons: Array<[string, string, (() => void) | undefined]> = [
-        ["replay-pick-track", "选择赛道", this.options.onReplayPickTrack],
-        ["replay-setting-speed", "切换速度", this.options.onReplaySetting && (() => this.options.onReplaySetting!("speed"))],
-        ["replay-setting-booster", "切换模式", this.options.onReplaySetting && (() => this.options.onReplaySetting!("booster"))],
+        ["replay-pick-track", tr("选择赛道"), this.options.onReplayPickTrack],
+        ["replay-setting-speed", tr("切换速度"), this.options.onReplaySetting && (() => this.options.onReplaySetting!("speed"))],
+        ["replay-setting-booster", tr("切换模式"), this.options.onReplaySetting && (() => this.options.onReplaySetting!("booster"))],
       ];
       buttons.forEach(([key, text, action], index) => {
         const button = { x: box.x + 430 + index * 104, y: box.y + 62, width: 96, height: 32 };
@@ -1104,12 +1107,12 @@ export class MainMenuView {
     const entries = this.replays[tab];
     const listRect = { x: rect.x, y: listTop, width: rect.width, height: 60 };
     if (!entries) {
-      label("读取中…", listRect, 16, "rgb(88,105,129)", "center");
+      label(tr("读取中…"), listRect, 16, "rgb(88,105,129)", "center");
       return;
     }
     if (entries.length === 0) {
-      const empty = tab === "my" ? "还没有回放记录。完成练习计时赛或排位计时赛后，这里会保存你的跑法。"
-        : tab === "league" ? "管理员还没有发布联赛回放。" : "这个赛道和设置的排位榜上还没有带录像的纪录。";
+      const empty = tab === "my" ? tr("还没有回放记录。完成练习计时赛或排位计时赛后，这里会保存你的跑法。")
+        : tab === "league" ? tr("管理员还没有发布联赛回放。") : tr("这个赛道和设置的排位榜上还没有带录像的纪录。");
       label(empty, listRect, 16, "rgb(88,105,129)", "center");
       return;
     }
@@ -1122,11 +1125,11 @@ export class MainMenuView {
       const removeKey = `replay-delete:${entry.key}`;
       face(key, box);
       label(entry.title, { x: box.x, y: box.y, width: 722, height: 31 }, 20, "white", "center");
-      column(box, 18, [["车手", entry.riderName], ["日期 / 时间", entry.dateText], ["赛道", entry.trackTitle]]);
-      column(box, 400, [["卡丁车", entry.kartName || "—"], ["记录", formatCardTime(entry.elapsedMs)], ["设置", entry.settings]]);
+      column(box, 18, [[tr("车手"), entry.displayRiderName ?? entry.riderName], [tr("日期 / 时间"), entry.dateText], [tr("赛道"), entry.trackTitle]]);
+      column(box, 400, [[tr("卡丁车"), entry.kartName || "—"], [tr("记录"), formatCardTime(entry.elapsedMs)], [tr("设置"), entry.settings]]);
       if (entry.note)
         label(entry.note, { x: box.x + 18, y: box.y + 106, width: 700, height: 18 }, 13, "rgb(88,105,129)", "left");
-      this.regions.push({ key, rect: box, label: `回放：${entry.title}`, activate: () => {
+      this.regions.push({ key, rect: box, label: tr("回放：{0}", { "0": entry.title }), activate: () => {
         this.options.onActivate?.();
         this.options.onReplay?.(entry);
       } });
@@ -1135,7 +1138,7 @@ export class MainMenuView {
         const state = art?.remove[st(removeKey, this.hovered, this.pressed)];
         if (state) context.drawImage(state.image, remove.x, remove.y, remove.width, remove.height);
         else label("×", remove, 18, this.hovered === removeKey ? "white" : "rgb(220,220,220)", "center");
-        this.regions.push({ key: removeKey, rect: remove, label: `删除回放：${entry.title}`, activate: () => {
+        this.regions.push({ key: removeKey, rect: remove, label: tr("删除回放：{0}", { "0": entry.title }), activate: () => {
           this.options.onActivate?.();
           this.options.onReplayDelete!(entry);
         } });
@@ -1188,24 +1191,33 @@ export class MainMenuView {
       verticalAlign: "center", stroke: 0, strokeColor: "black" });
     // story over its white storyShadow one pixel lower.
     context.save();
-    context.font = `14px "${FONT_FAMILY}"`;
-    const lines: string[] = [];
-    for (const paragraph of chapter.desc.split("\n")) {
-      let current = "";
-      for (const character of paragraph) {
-        if (current && context.measureText(current + character).width > label.width) {
-          lines.push(current);
-          current = "";
+    const localized = gameLocale() !== "zh-CN";
+    let fontSize = 14;
+    let lineStep = 21;
+    let lines: string[] = [];
+    do {
+      context.font = `${fontSize}px "${FONT_FAMILY}"`;
+      lines = [];
+      for (const paragraph of chapter.desc.split("\n")) {
+        let current = "";
+        for (const character of paragraph) {
+          if (current && context.measureText(current + character).width > label.width) {
+            lines.push(current);
+            current = "";
+          }
+          current += character;
         }
-        current += character;
+        lines.push(current);
       }
-      lines.push(current);
-    }
+      if (!localized || lines.length * lineStep <= 84 || fontSize <= 8) break;
+      fontSize--;
+      lineStep = fontSize + 3;
+    } while (true);
     context.restore();
-    lines.slice(0, 4).forEach((line, index) => {
+    (localized ? lines : lines.slice(0, 4)).forEach((line, index) => {
       for (const [dy, color] of [[1, "white"], [0, "rgb(42,55,80)"]] as const)
-        m9(context, line, { ...label, y: board.y + 39 + dy + index * 21, height: 21 }, {
-          family: FONT_FAMILY, size: 14, kind: "label", color, align: "left",
+        m9(context, line, { ...label, y: board.y + 39 + dy + index * lineStep, height: lineStep }, {
+          family: FONT_FAMILY, size: fontSize, kind: "label", color, align: "left",
           verticalAlign: "top", stroke: 0, strokeColor: "black" });
     });
     if (!chapter.open && art.lock) ct(context, art.lock, board);
@@ -1261,7 +1273,7 @@ export class MainMenuView {
     // licenseInfo1 serves the PRO qualification page (获得徽章) and the license pages, whose
     // button is 获得驾照: the CN text names the emblem on both (KR 라이센스 획득, TW 駕照獲得).
     if (key === "licenseInfo1" && this.category === "cat_riderSchool" && this.selectedLicense !== 6)
-      return tr(value?.replace("获得徽章", "获得驾照") ?? "");
+      return tr(value?.replace(tr("获得徽章"), tr("获得驾照")) ?? "");
     return value === undefined ? undefined : tr(value);
   }
 
@@ -1298,7 +1310,7 @@ export class MainMenuView {
       const key = `channel:${entry.channel}`;
       ct(this.context, entry.states[st(key, this.hovered, this.pressed)]!, box);
       this.regions.push({ key, rect: box, label: entry.channel === "speedTeamCombine"
-        ? "组队竞速频道" : "个人竞速频道", activate: () => {
+        ? tr("组队竞速频道") : tr("个人竞速频道"), activate: () => {
         this.options.onActivate?.();
         this.options.onChannel(entry.channel);
       } });
@@ -1338,7 +1350,7 @@ export class MainMenuView {
         : this.hovered === key ? "rgba(255,255,255,.9)" : "rgba(255,255,255,.45)";
       context.fill();
       this.regions.push({ key, rect: { x: x - 9, y: y - 9, width: 18, height: 18 },
-        label: `宣传图 ${index + 1}`, activate: () => this.showBanner(index) });
+        label: tr("宣传图 {0}", { "0": index + 1 }), activate: () => this.showBanner(index) });
     }
   }
 }

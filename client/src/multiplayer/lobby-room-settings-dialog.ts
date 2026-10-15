@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Edit an existing lobby room's name and optional password. */
 
 import type { LobbyDialogNode, LobbyDialogOptions, LobbyDialogSession,
@@ -29,7 +30,7 @@ export async function showLobbyRoomSettings<T extends LobbyDialogSession>(
     folder, "mq_dialog@zz");
   const template = raw.children.find(child =>
     dependencies.nodeName(child) === "방설정변경");
-  if (!template) throw new Error("缺少普通房间设置模板");
+  if (!template) throw new Error(tr("缺少普通房间设置模板"));
   const stripUnused = (node: LobbyDialogNode): LobbyDialogNode => ({
     ...node,
     children: node.children.filter(child => ![
@@ -49,17 +50,17 @@ export async function showLobbyRoomSettings<T extends LobbyDialogSession>(
   dialog.view = await dependencies.loadView({
     ...options, preserveDisplayPixels: true, smoothImages: true,
     definition, roots: [folder, "stage_/common"],
-    modal: true, label: "房间设置", onConfirm: commit,
+    modal: true, label: tr("房间设置"), onConfirm: commit,
     onCancel: () => { if (!dialog.busy) options.cancel(); },
     state: (node: LobbyDialogNode) => {
       switch (dependencies.nodeName(node)) {
         case "gameType": return {
           text: mode === "itemTeam" || mode === "itemIndi"
-            ? itemModeLabel(mode === "itemTeam")
-            : mode === "team" ? "组队竞速" : "个人竞速",
+            ? tr(itemModeLabel(mode === "itemTeam"))
+            : mode === "team" ? tr("组队竞速") : tr("个人竞速"),
         };
         case "roomName": return {
-          disabled: dialog.busy, label: "房间名称",
+          disabled: dialog.busy, label: tr("房间名称"),
           input: { value: roomName, maxLength: 18,
             change: (value: string) => {
               roomName = value;
@@ -68,7 +69,7 @@ export async function showLobbyRoomSettings<T extends LobbyDialogSession>(
         };
         case "roomPassword": return {
           disabled: dialog.busy || !passwordEnabled,
-          label: "房间密码",
+          label: tr("房间密码"),
           input: { value: password, password: true, maxLength: 12,
             change: (value: string) => {
               password = value;
@@ -76,7 +77,7 @@ export async function showLobbyRoomSettings<T extends LobbyDialogSession>(
             }, submit: commit },
         };
         case "isPassword": return {
-          disabled: dialog.busy, label: "设置房间密码",
+          disabled: dialog.busy, label: tr("设置房间密码"),
           checked: passwordEnabled,
           action: () => {
             if (!dialog.busy) {
@@ -88,10 +89,10 @@ export async function showLobbyRoomSettings<T extends LobbyDialogSession>(
         };
         case "change": return {
           disabled: dialog.busy || !roomName.trim(),
-          label: "确定", action: commit,
+          label: tr("确定"), action: commit,
         };
         case "cancel": return {
-          disabled: dialog.busy, label: "取消", action: options.cancel,
+          disabled: dialog.busy, label: tr("取消"), action: options.cancel,
         };
       }
       return {};

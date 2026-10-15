@@ -1,5 +1,5 @@
 import { addGraphicsPresentationOptions } from "./graphics-presentation-options";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 
 /** Binary XML node shape used by the settings BML definitions. */
 export interface SettingsWindowNode {
@@ -122,9 +122,7 @@ export function parseOfficialBgmChoices(
     throw Error("官服音乐列表无效。");
   const names = new Map(Array.from(strings.querySelectorAll("StringBag > k")).map(entry => [
     entry.getAttribute("n"),
-    (Array.from(entry.children).find(local => local.getAttribute("c") === resourceLocale()) ??
-      Array.from(entry.children).find(local => local.getAttribute("c") === "cn"))
-      ?.getAttribute("v"),
+    resourceText(Array.from(entry.children), (local, name) => local.getAttribute(name)),
   ]));
   return Array.from(bgmList.querySelectorAll("bgmList > bgm")).flatMap(entry => {
     const id = Number(entry.getAttribute("id"));
@@ -380,15 +378,12 @@ function mergeStrings(xml: string, dialogStrings: SettingsWindowNode,
     throw new Error("P3528 baseStringBag 不是有效 XML。");
   const strings = new Map<string | null | undefined, string | undefined>();
   for (const entry of Array.from(document.documentElement.children)) {
-    const locals = Array.from(entry.children);
-    const value = (locals.find(local => local.getAttribute("c") === resourceLocale()) ??
-      locals.find(local => local.getAttribute("c") === "cn"))?.getAttribute("v");
+    const value = resourceText(Array.from(entry.children), (local, name) => local.getAttribute(name));
     if (value != null) strings.set(entry.getAttribute("n"), value);
   }
   for (const entry of dialogStrings.children) {
-    const local = entry.children.find(child => attribute(child, "c") === resourceLocale()) ??
-      entry.children.find(child => attribute(child, "c") === "cn");
-    if (local) strings.set(attribute(entry, "n"), attribute(local, "v"));
+    const value = resourceText(entry.children, attribute);
+    if (value != null) strings.set(attribute(entry, "n"), value);
   }
   return strings;
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import { isPlayableGameplay } from "./gameplay-admission";
 import { currentEquipmentField } from "./lobby-actions";
@@ -64,7 +65,7 @@ export async function changeLobbyRoomInfo(host: LobbySettingsHost,
     if (!current()) return;
     const settings = response as RoomSettings;
     if (settings.type !== "room-settings" || settings.roomId !== room.roomId) {
-      throw new Error("房间设置响应不一致。");
+      throw new Error(tr("房间设置响应不一致。"));
     }
     const dialog = await loadDialog(host.dialogOptions(), roomSettingsMode(room), settings, update => {
       if (!current() || host.busy) return;
@@ -108,12 +109,12 @@ export async function createLobbyRoom(host: LobbySettingsHost,
   loadDialog: LoadCreateDialog): Promise<void> {
   const gameplay = host.gameplay;
   if (!isPlayableGameplay(gameplay)) {
-    host.options.status("未知的房间玩法。", true);
+    host.options.status(tr("未知的房间玩法。"), true);
     return;
   }
   const channel = host.channelName;
   if (!channel) {
-    host.options.status("请先选择比赛频道。");
+    host.options.status(tr("请先选择比赛频道。"));
     return;
   }
   await host.openDialog(() => loadDialog(host.dialogOptions(), gameplay,

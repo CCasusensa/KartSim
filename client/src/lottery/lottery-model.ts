@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Pure helpers of the lottery screens: item and pack lines, periods, the
  * original #sb strings with their %d / %s / [color] markup, and what a draw
@@ -9,9 +10,9 @@ import type { DrawResult, LotteryActivity, LotteryItem, LotteryPack } from "./lo
 
 /** "天蝎 迅", "测试气球 ×10", "测试角色（30天）", "酷币 ×5". */
 export function itemLine(item: Pick<LotteryItem, "name" | "count" | "days" | "currency">): string {
-  const name = item.name || "道具";
+  const name = item.name || tr("道具");
   const count = item.count > 1 || item.currency ? ` ×${formatAmount(item.count)}` : "";
-  const days = item.days > 0 ? `（${item.days}天）` : "";
+  const days = item.days > 0 ? tr("（{0}天）", { "0": item.days }) : "";
   return `${name}${count}${days}`;
 }
 
@@ -44,8 +45,8 @@ function day(ms: number): string {
 export function periodLine(activity: Pick<LotteryActivity, "start" | "end">): string {
   if (activity.start !== undefined && activity.end !== undefined)
     return `${day(activity.start)} ~ ${day(activity.end - 1000)}`;
-  if (activity.start !== undefined) return `${day(activity.start)}开始`;
-  if (activity.end !== undefined) return `${day(activity.end - 1000)}截止`;
+  if (activity.start !== undefined) return tr("{0}开始", { "0": day(activity.start) });
+  if (activity.end !== undefined) return tr("{0}截止", { "0": day(activity.end - 1000) });
   return "";
 }
 
@@ -78,17 +79,17 @@ export function holding(result: Pick<DrawResult, "holdings">, category: number, 
 export function stopMessage(result: Pick<DrawResult, "stopped" | "draws">): string | undefined {
   const stopped = result.stopped;
   if (!stopped) return undefined;
-  const name = stopped.item?.name ?? "道具";
+  const name = stopped.item?.name ?? tr("道具");
   switch (stopped.code) {
     case "INSUFFICIENT_ITEMS":
-      return result.draws.length > 0 ? `${name}不足，已停止。` : `${name}持有数量不足，无法使用。`;
+      return result.draws.length > 0 ? tr("{0}不足，已停止。", { "0": name }) : tr("{0}持有数量不足，无法使用。", { "0": name });
     case "ALREADY_OWNED":
       // The original 您已持有该道具，请重新尝试 (lotteryExceedTrialCount): nothing of that use was spent.
-      return `抽到了已永久持有的「${name}」，本次未消耗道具，请重新尝试。`;
+      return tr("抽到了已永久持有的「{0}」，本次未消耗道具，请重新尝试。", { "0": name });
     case "LOTTERY_EMPTY":
-      return "这个抽奖道具目前没有可抽取的奖励。";
+      return tr("这个抽奖道具目前没有可抽取的奖励。");
     default:
-      return `已停止（${stopped.code}）。`;
+      return tr("已停止（{0}）。", { "0": stopped.code });
   }
 }
 

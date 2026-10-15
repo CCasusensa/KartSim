@@ -1,4 +1,4 @@
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 
 export interface RiderNode {
   name: string;
@@ -135,10 +135,7 @@ export function riderNodeByName(node: RiderNode, name: string,
 export function riderString(node: RiderNode, name: string,
   attribute: RiderAssetDependencies["attribute"]): string {
   const entry = node.children.find(child => attribute(child, "n") === name);
-  const localized = entry?.children.find(child => attribute(child, "c") === resourceLocale())
-    ?? entry?.children.find(child => attribute(child, "c") === "cn")
-    ?? entry?.children.find(child => attribute(child, "c") === "kr");
-  const value = localized ? attribute(localized, "v") : undefined;
+  const value = entry && resourceText(entry.children, attribute);
   if (!value) throw new Error(`原车手注册串袋缺少 ${name}。`);
   return value;
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import type { LobbyRoom } from "./lobby-actions";
 
@@ -110,7 +111,7 @@ export async function confirmLeaveLobbyRoom(host: LobbyDialogHost, roomId: strin
   let resolve!: (accepted: boolean) => void;
   const answer = new Promise<boolean>(finish => { resolve = finish; });
   host.leaveConfirmation = { roomId, resolve };
-  await host.openDialog(() => confirm(host.dialogOptions(), "提示", "确定要离开队友退出房间吗", () => {
+  await host.openDialog(() => confirm(host.dialogOptions(), tr("提示"), tr("确定要离开队友退出房间吗"), () => {
     const pending = host.leaveConfirmation;
     host.leaveConfirmation = undefined;
     host.cancelDialog();
@@ -140,8 +141,8 @@ export function syncKickVoteDialog(host: LobbyDialogHost,
   host.voteDialogId = vote.voteId;
   void host.openDialog(() => confirm(
     { ...host.options, cancel: () => host.castKickVote(false) },
-    "踢人投票", `是否同意将 ${target.name} 移出房间？`,
-    () => host.castKickVote(true), { yes: "同意", no: "反对" }));
+    tr("踢人投票"), tr("是否同意将 {value} 移出房间？", { value: String(target.name) }),
+    () => host.castKickVote(true), { yes: tr("同意"), no: tr("反对") }));
 }
 
 export function castLobbyKickVote(host: LobbyDialogHost, approve: boolean): void {

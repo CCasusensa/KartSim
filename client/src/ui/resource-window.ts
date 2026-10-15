@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { C8, te } from "../generated/library.js";
 import type { DownloadJob, GroupStatus, ResourceManager } from "../resources/resource-manager";
 import type { ResourceGroup } from "../resources/resource-groups";
@@ -39,16 +40,16 @@ function percentOf(status: GroupStatus): string {
 
 /** A group's state in words: 已下载, 下载中 52%, 已下载 <1%, 未下载. */
 export function statusText(status: GroupStatus): string {
-  if (status.state === "complete") return "已下载";
-  if (status.queued) return `下载中 ${percentOf(status)}`;
-  return status.state === "partial" ? `已下载 ${percentOf(status)}` : "未下载";
+  if (status.state === "complete") return tr("已下载");
+  if (status.queued) return tr("下载中 {progress}", { progress: percentOf(status) });
+  return status.state === "partial" ? tr("已下载 {progress}", { progress: percentOf(status) }) : tr("未下载");
 }
 
 /** The short text in a row button's left box. */
 export function rowStatus(status: GroupStatus): string {
-  if (status.state === "complete") return "完成";
-  if (status.queued) return "下载中";
-  return status.state === "partial" ? percentOf(status) : "未下载";
+  if (status.state === "complete") return tr("完成");
+  if (status.queued) return tr("下载中");
+  return status.state === "partial" ? percentOf(status) : tr("未下载");
 }
 
 /** A row button image kept crisp at any width: left box, stretched middle, right cap. */
@@ -138,7 +139,7 @@ function drawGauge(context: CanvasRenderingContext2D, images: ImageCache, rect: 
 
 /** A TextButton's state: the renderer draws `text`; `label` names it for assistive tech. */
 export function button(text: string, action?: () => void, disabled = false): NodeState {
-  return { text, label: text, disabled: disabled || !action, ...(action && !disabled ? { action } : {}) };
+  return { text: tr(text), label: tr(text), disabled: disabled || !action, ...(action && !disabled ? { action } : {}) };
 }
 
 async function decorate(library: BmlLibrary, definition: Node): Promise<Node> {
@@ -154,7 +155,7 @@ export async function loadWindow(library: BmlLibrary, root: HTMLElement, definit
   // The renderer hands the state callback the very nodes of this tree.
   prepared?.(tree);
   return await te.load({
-    library, root, definition: tree, roots: ROOTS, smoothImages: true, modal: true, label, onCancel, state,
+    library, root, definition: tree, roots: ROOTS, smoothImages: true, modal: true, label: tr(label), onCancel, state,
   }) as WindowView;
 }
 
@@ -171,7 +172,7 @@ export function resourceWindowDefinition(groupCount: number): Node {
   ]));
   return node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
     node("CaptionWindow", { name: "resourceDialog", windowRect: "0 0 780 640", frame: "CaptionDialog",
-      caption: "资源下载", captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
+      caption: tr("资源下载"), captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
       // The grey list frame fills the column (no InnerFrame around it: its white band showed above and below),
       // top and bottom level with the detail panel.
       node("CaptionWindow", { name: "groupCaption", windowSize: "318 468", adjust: "0 7", frame: "CaptionWindowGrey" }, [
@@ -196,7 +197,7 @@ export function resourceWindowDefinition(groupCount: number): Node {
           node("CaptionWindow", { name: "statusCaption", windowSize: "344 86", adjust: "0 80",
             frame: "CaptionWindowRightSlot", align: "hcenter" }, [
             node("Label", { name: "statusCaptionText", windowSize: "200 20", adjust: "10 -21", textRender: "bold14",
-              textColor: "white", textAlign: "left|vcenter", text: "下载状态" }),
+              textColor: "white", textAlign: "left|vcenter", text: tr("下载状态") }),
             node("Label", { name: "statusText", windowSize: "75 17", adjust: "257 -19", textRender: "bold12",
               textColor: "white", textAlign: "center" }),
             node("Label", { name: "gauge", windowSize: "274 22", adjust: "0 10", align: "hcenter" }),
@@ -215,7 +216,7 @@ export function resourceWindowDefinition(groupCount: number): Node {
           node("Label", { name: "themePage", windowSize: "80 24", adjust: "171 408" }),
           node("TextButton", { name: "themeNext", windowSize: "70 24", adjust: "252 408", textRender: "bold12" }),
           node("Label", { name: "fileList", windowSize: "386 114", adjust: "0 256", align: "hcenter" }),
-          node("Label", { name: "detailTip", windowSize: "386 34", adjust: "0 388", align: "hcenter" }),
+          node("Label", { name: "detailTip", windowSize: "386 48", adjust: "0 380", align: "hcenter" }),
         ]),
       ]),
       node("Label", { name: "summary", windowSize: "520 24", adjust: "6 484" }),
@@ -320,7 +321,7 @@ export class ResourceWindow {
     const storage = this.root.ownerDocument.defaultView?.navigator.storage;
     void storage?.estimate?.().then(estimate => {
       if (typeof estimate.quota !== "number" || typeof estimate.usage !== "number") return;
-      this.spaceText = `浏览器可用空间 ${formatBytes(Math.max(0, estimate.quota - estimate.usage))}`;
+      this.spaceText = tr("浏览器可用空间 {size}", { size: formatBytes(Math.max(0, estimate.quota - estimate.usage)) });
       this.view?.render();
     }).catch(() => undefined);
   }
@@ -358,7 +359,7 @@ export class ResourceWindow {
       const middle = rect.y + rect.height / 2 + 1;
       drawLabel(context, rowStatus(status), rect.x + 37, middle, { bold: true, align: "center", size: 12 });
       // The selected look has an arrow at the right end: the size keeps clear of it.
-      drawLabel(context, group.title, rect.x + 78, middle, { width: rect.width - 78 - 8 - (width > 200 ? 76 : 0) });
+      drawLabel(context, tr(group.title), rect.x + 78, middle, { width: rect.width - 78 - 8 - (width > 200 ? 76 : 0) });
       if (width > 200) drawLabel(context, formatBytes(group.bytes), rect.x + rect.width - 22, middle,
         { size: 12, align: "right", color: "rgb(70,80,100)" });
     };
@@ -370,7 +371,7 @@ export class ResourceWindow {
     if (row !== undefined) {
       const group = this.manager.groups[row];
       if (/^groupRow\d+$/.test(name)) return { visible: !!group };
-      if (name === "groupBtn" && group) return { label: group.title, action: () => this.select(group.id),
+      if (name === "groupBtn" && group) return { label: tr(group.title), action: () => this.select(group.id),
         paint: this.rowPaint(entry, group, group.id === this.selected, ROW.width) };
       return {};
     }
@@ -378,7 +379,7 @@ export class ResourceWindow {
     if (cell !== undefined) {
       const theme = this.themes()[this.themePage * CELLS + cell];
       if (/^themeCell\d+$/.test(name)) return { visible: !!theme };
-      if (name === "themeBtn" && theme) return { label: theme.title, action: () => this.selectChild(theme.id),
+      if (name === "themeBtn" && theme) return { label: tr(theme.title), action: () => this.selectChild(theme.id),
         paint: this.rowPaint(entry, theme, theme.id === this.child, CELL.width) };
       return {};
     }
@@ -387,19 +388,19 @@ export class ResourceWindow {
     const themes = this.themes();
     const pages = Math.max(1, Math.ceil(themes.length / CELLS));
     switch (name) {
-      case "resourceDialog": return { text: "资源下载" };
-      case "closeButton": return { label: "关闭", action: () => this.close() };
+      case "resourceDialog": return { text: tr("资源下载") };
+      case "closeButton": return { label: tr("关闭"), action: () => this.close() };
       case "okButton": return button("关闭", () => this.close());
-      case "groupCaptionText": return { text: `资源分类（${this.manager.groups.length}）` };
+      case "groupCaptionText": return { text: tr("资源分类（{count}）", { count: this.manager.groups.length }) };
       case "detailTitle": return { text: this.titleOf(group) };
-      case "detailSize": return { text: group ? `共 ${formatBytes(group.bytes)} · ${group.containers.length} 个文件` : "" };
+      case "detailSize": return { text: group ? tr("共 {size} · {count} 个文件", { size: formatBytes(group.bytes), count: group.containers.length }) : "" };
       case "detailBack": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => {
         const frame = this.images.path(FRAME_TEXTURE);
         if (frame) drawGreyPanel(context, frame, rect);
       } };
-      case "detailDesc": return paintText(group?.description ?? "", { size: 13, color: "black", lineGap: 4 });
-      case "statusText": return { text: !status ? "" : status.state === "complete" ? "已下载"
-        : status.queued ? "下载中" : status.state === "partial" ? "部分下载" : "未下载" };
+      case "detailDesc": return paintText(group?.id.startsWith("track:") ? tr("{title}主题的赛道", { title: tr(group.title) }) : tr(group?.description ?? ""), { size: 13, color: "black", lineGap: 4 });
+      case "statusText": return { text: !status ? "" : status.state === "complete" ? tr("已下载")
+        : status.queued ? tr("下载中") : status.state === "partial" ? tr("部分下载") : tr("未下载") };
       case "gauge": return !group || !status ? {} : { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
         drawGauge(context, this.images, rect, status.totalBytes ? status.progressBytes / status.totalBytes : 1,
           `${formatBytes(status.progressBytes)} / ${formatBytes(status.totalBytes)}（${percentOf(status)}）`,
@@ -408,8 +409,8 @@ export class ResourceWindow {
         lineGap: 3 });
       case "primaryButton": return group && status ? this.primary(group, status) : { visible: false };
       case "secondaryButton": return group && status ? this.secondary(group, status) : { visible: false };
-      case "themeHeaderText": return { text: themes.length ? `按主题下载（${themes.length} 个）`
-        : `主要文件（共 ${group?.containers.length ?? 0} 个，按大小）` };
+      case "themeHeaderText": return { text: themes.length ? tr("按主题下载（{count} 个）", { count: themes.length })
+        : tr("主要文件（共 {count} 个，按大小）", { count: group?.containers.length ?? 0 }) };
       case "fileList": return themes.length || !group ? { visible: false } : { text: "",
         paint: (context: CanvasRenderingContext2D, rect: Rect) => this.paintFiles(context, rect, group) };
       case "themeGrid": return { visible: themes.length > 0 };
@@ -419,12 +420,12 @@ export class ResourceWindow {
         visible: themes.length > CELLS };
       case "themePage": return themes.length > CELLS ? paintText(`${this.themePage + 1} / ${pages}`, { size: 13,
         color: "black", align: "center", middle: true, bold: true }) : { visible: false };
-      case "detailTip": return themes.length ? { visible: false } : paintText(TIP, { size: 11, color: "rgb(70,80,100)",
-        lineGap: 6 });
+      case "detailTip": return themes.length ? { visible: false } : paintText(tr(TIP), { size: 11, color: "rgb(70,80,100)",
+        lineGap: 2 });
       case "summary": {
         const totals = this.manager.totals();
-        return paintText(`已下载 ${formatBytes(totals.cachedBytes)} / ${formatBytes(totals.totalBytes)}　${
-          this.spaceText}`, { size: 13, color: TEXT, bold: true, middle: true });
+        return paintText(tr("已下载 {downloaded} / {total}　{space}", { downloaded: formatBytes(totals.cachedBytes),
+          total: formatBytes(totals.totalBytes), space: this.spaceText }), { size: 13, color: TEXT, bold: true, middle: true });
       }
       case "downloadAll": return button("全部下载", () => this.downloadAll());
       case "pauseAll": return button("暂停全部", () => this.pauseAll(), !this.manager.activeJobs().length);
@@ -448,8 +449,8 @@ export class ResourceWindow {
       const middle = y + height / 2 + 1;
       const loading = flying.get(file.name);
       const cached = this.manager.isCached(file.name);
-      const state = cached ? "已下载" : loading
-        ? `下载中 ${Math.floor(loading.loadedBytes / Math.max(1, loading.totalBytes) * 100)}%` : "未下载";
+      const state = cached ? tr("已下载") : loading
+        ? tr("下载中 {progress}", { progress: `${Math.floor(loading.loadedBytes / Math.max(1, loading.totalBytes) * 100)}%` }) : tr("未下载");
       drawLabel(context, file.name, rect.x + 8, middle, { size: 12, width: rect.width - 150 });
       drawLabel(context, formatBytes(file.size), rect.x + rect.width - 82, middle,
         { size: 12, align: "right", color: "rgb(70,80,100)" });
@@ -465,20 +466,23 @@ export class ResourceWindow {
   private titleOf(group: ResourceGroup | undefined): string {
     if (!group) return "";
     const parent = this.manager.group(this.selected);
-    return parent && parent !== group ? `${parent.title} · ${group.title}` : group.title;
+    return parent && parent !== group ? `${tr(parent.title)} · ${tr(group.title)}` : tr(group.title);
   }
 
   private gaugeDetail(group: ResourceGroup | undefined): string {
     if (!group) return "";
     const names = new Set(group.containers);
     const flying = this.manager.inFlight().filter(item => names.has(item.name));
-    if (flying.length) return `正在下载：${flying.slice(0, 2).map(item =>
-      `${item.name} ${formatBytes(item.loadedBytes)}/${formatBytes(item.totalBytes)}`).join("，")}${
-      flying.length > 2 ? ` 等 ${flying.length} 个` : ""}`;
-    if (group.required) return "启动时优先下载，不能删除。";
+    if (flying.length) {
+      const files = flying.slice(0, 2).map(item =>
+        `${item.name} ${formatBytes(item.loadedBytes)}/${formatBytes(item.totalBytes)}`).join(", ");
+      return tr("正在下载：{files}", { files: flying.length > 2
+        ? tr("{files} 等 {count} 个", { files, count: flying.length }) : files });
+    }
+    if (group.required) return tr("启动时优先下载，不能删除。");
     const status = this.manager.status(group.id);
-    if (status.state === "complete") return "已全部下载，可删除以释放空间（之后用到时会重新下载）。";
-    return `还需下载 ${formatBytes(Math.max(0, status.totalBytes - status.cachedBytes))}。`;
+    if (status.state === "complete") return tr("已全部下载，可删除以释放空间（之后用到时会重新下载）。");
+    return tr("还需下载 {size}。", { size: formatBytes(Math.max(0, status.totalBytes - status.cachedBytes)) });
   }
 
   private primary(group: ResourceGroup, status: GroupStatus): NodeState {
@@ -504,8 +508,10 @@ export class ResourceWindow {
     this.options.onActivate?.();
     const freed = this.manager.removableBytes(group.id);
     const kept = this.manager.status(group.id).cachedBytes - freed;
-    const text = `删除“${this.titleOf(group)}”已下载的资源，释放 ${formatBytes(freed)}？|` +
-      `之后用到时会重新下载${kept > 0 ? `；首页也要用的 ${formatBytes(kept)} 会保留` : ""}。`;
+    const text = tr(kept > 0
+      ? "删除“{title}”已下载的资源，释放 {size}？|之后用到时会重新下载；首页也要用的 {kept} 会保留。"
+      : "删除“{title}”已下载的资源，释放 {size}？|之后用到时会重新下载。",
+    { title: this.titleOf(group), size: formatBytes(freed), kept: formatBytes(kept) });
     let view: WindowView | undefined;
     const close = () => {
       if (this.confirmView === view) this.confirmView = undefined;
@@ -527,7 +533,7 @@ export class ResourceWindow {
     };
     const definition = node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
       node("CaptionWindow", { name: "confirmDialog", windowRect: "0 0 440 200", frame: "CaptionDialog",
-        caption: "删除资源", captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
+        caption: tr("删除资源"), captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
         node("Label", { name: "confirmText", windowSize: "400 72", adjust: "0 18", align: "hcenter" }),
         node("TextButton", { name: "confirmOk", leftTopWH: "0 0 100 30", align: "hcenter;bottom", adjust: "-56 10",
           textRender: "bold14" }),
@@ -538,11 +544,11 @@ export class ResourceWindow {
     try {
       view = await loadWindow(this.library, this.root, definition, "删除资源", cancel, entry => {
         switch (nodeName(entry)) {
-          case "confirmDialog": return { text: "删除资源" };
+          case "confirmDialog": return { text: tr("删除资源") };
           case "confirmText": return paintText(text, { size: 14, color: TEXT, align: "center", middle: true,
             lineGap: 8 });
           case "confirmOk": return button("确定", remove);
-          case "closeButton": return { label: "取消", action: cancel };
+          case "closeButton": return { label: tr("取消"), action: cancel };
           case "confirmCancel": return button("取消", cancel);
         }
         return {};
@@ -563,12 +569,15 @@ export class ResourceWindow {
   private footer(): string {
     const jobs = this.manager.activeJobs();
     const failure = this.manager.lastFailure();
-    if (this.busy) return "正在删除…";
-    if (jobs.length) return `下载任务：${jobs.slice(0, 3).map((job: DownloadJob) =>
-      `${job.label} ${formatBytes(job.doneBytes())}/${formatBytes(job.totalBytes)}`).join("，")}${
-      jobs.length > 3 ? ` 等 ${jobs.length} 个` : ""}`;
-    if (failure) return `下载失败：${failure}`;
-    return "当前没有下载任务。";
+    if (this.busy) return tr("正在删除…");
+    if (jobs.length) {
+      const files = jobs.slice(0, 3).map((job: DownloadJob) =>
+        `${tr(job.label)} ${formatBytes(job.doneBytes())}/${formatBytes(job.totalBytes)}`).join(", ");
+      return tr("下载任务：{jobs}", { jobs: jobs.length > 3
+        ? tr("{files} 等 {count} 个", { files, count: jobs.length }) : files });
+    }
+    if (failure) return tr("下载失败：{error}", { error: failure });
+    return tr("当前没有下载任务。");
   }
 
   private turn(step: number): void {
@@ -603,7 +612,7 @@ export async function waitForResources(library: BmlLibrary, root: HTMLElement, m
   const skipped = new Promise<void>(resolve => { skip = resolve; });
   const definition = node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
     node("CaptionWindow", { name: "waitDialog", windowRect: "0 0 460 210", frame: "CaptionDialog",
-      caption: `正在下载${title}资源`, captionPos: "0 1", align: "center", setCloseButton: "closeButton",
+      caption: tr("正在下载{title}资源", { title: tr(title) }), captionPos: "0 1", align: "center", setCloseButton: "closeButton",
       textRender: "bold" }, [
       node("Label", { name: "waitText", windowSize: "420 44", adjust: "0 14", align: "hcenter" }),
       node("Label", { name: "gauge", windowSize: "274 22", adjust: "0 66", align: "hcenter" }),
@@ -612,16 +621,16 @@ export async function waitForResources(library: BmlLibrary, root: HTMLElement, m
   ]);
   let release: (() => void) | undefined;
   try {
-    view = await loadWindow(library, root, definition, `正在下载${title}资源`, () => skip(), entry => {
+    view = await loadWindow(library, root, definition, tr("正在下载{title}资源", { title: tr(title) }), () => skip(), entry => {
       const done = job.doneBytes();
       switch (nodeName(entry)) {
-        case "waitDialog": return { text: `正在下载${title}资源` };
-        case "waitText": return paintText(`首次进入${title}需要下载 ${formatBytes(job.totalBytes)}，` +
-          "也可以先进入，资源会在后台继续下载。", { size: 13, color: TEXT, align: "center", lineGap: 6 });
+        case "waitDialog": return { text: tr("正在下载{title}资源", { title: tr(title) }) };
+        case "waitText": return paintText(tr("首次进入{title}需要下载 {size}，也可以先进入，资源会在后台继续下载。",
+          { title: tr(title), size: formatBytes(job.totalBytes) }), { size: 13, color: TEXT, align: "center", lineGap: 6 });
         case "gauge": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => drawGauge(context,
           images, rect, job.totalBytes ? done / job.totalBytes : 1,
           `${formatBytes(done)} / ${formatBytes(job.totalBytes)}`, true) };
-        case "closeButton": return { label: "后台下载", action: () => skip() };
+        case "closeButton": return { label: tr("后台下载"), action: () => skip() };
         case "skipButton": return button("后台下载", () => skip());
       }
       return {};
@@ -682,10 +691,12 @@ export async function showResourceFailure(library: BmlLibrary, root: HTMLElement
     close();
     options.action!.run();
   });
-  const textHeight = failureTextHeight(options.message);
+  const title = tr(options.title);
+  const message = tr(options.message);
+  const textHeight = failureTextHeight(message);
   const definition = node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
     node("CaptionWindow", { name: "failureDialog", windowRect: `0 0 480 ${240 - FAILURE_TEXT.minHeight + textHeight}`,
-      frame: "CaptionDialog", caption: options.title, captionPos: "0 1", align: "center", setCloseButton: "closeButton",
+      frame: "CaptionDialog", caption: title, captionPos: "0 1", align: "center", setCloseButton: "closeButton",
       textRender: "bold" }, [
       node("Label", { name: "failureText", windowSize: `${FAILURE_TEXT.width} ${textHeight}`, adjust: "0 16",
         align: "hcenter" }),
@@ -695,13 +706,13 @@ export async function showResourceFailure(library: BmlLibrary, root: HTMLElement
         adjust: action ? "56 10" : "0 10", textRender: "bold14" }),
     ]),
   ]);
-  view = await loadWindow(library, root, definition, options.title, close, entry => {
+  view = await loadWindow(library, root, definition, title, close, entry => {
     switch (nodeName(entry)) {
-      case "failureDialog": return { text: options.title };
-      case "failureText": return paintText(options.message, { size: FAILURE_TEXT.size, color: TEXT, align: "center",
+      case "failureDialog": return { text: title };
+      case "failureText": return paintText(message, { size: FAILURE_TEXT.size, color: TEXT, align: "center",
         middle: true, lineGap: FAILURE_TEXT.lineGap });
       case "failureAction": return button(options.action!.label, action);
-      case "closeButton": return { label: "确定", action: close };
+      case "closeButton": return { label: tr("确定"), action: close };
       case "failureOk": return button("确定", close);
     }
     return {};

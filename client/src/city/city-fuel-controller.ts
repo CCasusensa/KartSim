@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城加油 in the city session (server-go/FUEL.md): keeps the tank the
  * node reports, draws the fuel HUD, stalls the kart while the tank is empty
@@ -71,7 +72,7 @@ export class CityFuelController {
   apply(fuel: CityFuel, reason = ""): void {
     const wasEmpty = this.gauge.fuel?.empty ?? false;
     this.gauge.apply(fuel);
-    if (fuel.empty && !wasEmpty && reason === "empty") this.host.notice("油箱空了，车已熄火！按 F 呼叫道路救援。");
+    if (fuel.empty && !wasEmpty && reason === "empty") this.host.notice(tr("油箱空了，车已熄火！按 F 呼叫道路救援。"));
   }
 
   /** A teleport (reset, tow) is not driving. */
@@ -100,9 +101,9 @@ export class CityFuelController {
     if (!pose) return;
     if (this.fuel.empty) {
       const station = stationAt(pose.x, pose.z);
-      this.host.notice(station ? `油箱是空的，车停在${station.name}，按 F 加油。` : "油箱是空的，按 F 呼叫道路救援。");
+      this.host.notice(station ? tr("油箱是空的，车停在{value0}，按 F 加油。", { value0: tr(station.name) }) : tr("油箱是空的，按 F 呼叫道路救援。"));
     } else if (this.gauge.ratio < 0.2) {
-      this.host.notice(`油量只剩 ${liters(this.fuel.fuelMl)} L，记得去加油站加油。`);
+      this.host.notice(tr("油量只剩 {value0} L，记得去加油站加油。", { value0: liters(this.fuel.fuelMl) }));
     }
   }
 
@@ -134,7 +135,7 @@ export class CityFuelController {
     const state: FuelHudState = {
       kartName: this.fuel.kartName, sizeClass: this.fuel.sizeClass, fuelMl: display, capacityMl: this.fuel.capacityMl,
       rangeMeters: this.gauge.rangeMeters, empty: this.fuel.empty, prompt: this.prompt,
-      ...(nearest && nearest.distance > 15 ? { nearest: { name: nearest.station.name, distance: nearest.distance, bearing } } : {}),
+      ...(nearest && nearest.distance > 15 ? { nearest: { name: tr(nearest.station.name), distance: nearest.distance, bearing } } : {}),
     };
     this.hud?.draw(state, now);
   }
@@ -147,8 +148,8 @@ export class CityFuelController {
     const prompt = this.prompt;
     if (prompt.kind === "refuel") void this.openRefuel(prompt.station);
     else if (prompt.kind === "rescue") void this.openRescue();
-    else if (prompt.kind === "slow-down") this.host.notice("请先停车再加油。");
-    else if (prompt.kind === "full") this.host.notice("油箱已经加满了。");
+    else if (prompt.kind === "slow-down") this.host.notice(tr("请先停车再加油。"));
+    else if (prompt.kind === "full") this.host.notice(tr("油箱已经加满了。"));
     else return;
     event.preventDefault();
   }
@@ -168,13 +169,13 @@ export class CityFuelController {
     this.opening = true;
     const show = this.host.showWindow?.refuel ?? showRefuelWindow;
     try {
-      const window = await show(this.options(), station.name, () => this.fuel, addMl => { void this.buy(addMl); },
+      const window = await show(this.options(), tr(station.name), () => this.fuel, addMl => { void this.buy(addMl); },
         () => this.closeWindow());
       if (this.disposed) { window.dispose(); return; }
       this.window = window;
     } catch (error) {
       console.warn("加油窗口未能打开", error);
-      this.host.notice("加油窗口未能打开。");
+      this.host.notice(tr("加油窗口未能打开。"));
     } finally {
       this.opening = false;
     }
@@ -189,13 +190,13 @@ export class CityFuelController {
       if (this.disposed) return;
       this.gauge.apply(reply.fuel);
       if (reply.stale) {
-        this.host.notice("油量已同步，请再确认一次加油量。");
+        this.host.notice(tr("油量已同步，请再确认一次加油量。"));
         window.setBusy(false);
         return;
       }
       this.closeWindow();
       this.host.sound?.("refuel");
-      this.host.notice(`加油成功：+${liters(reply.addedMl)} L，花费 ${reply.cost} 金币，余额 ${reply.fuel.lucci} 金币。`);
+      this.host.notice(tr("加油成功：+{value0} L，花费 {value1} 金币，余额 {value2} 金币。", { value0: liters(reply.addedMl), value1: reply.cost, value2: reply.fuel.lucci }));
     } catch (error) {
       if (this.disposed) return;
       this.host.sound?.("error");
@@ -211,7 +212,7 @@ export class CityFuelController {
     const destination = () => {
       const pose = this.host.pose();
       const nearest = pose ? nearestStation(pose.x, pose.z) : undefined;
-      return nearest ? { name: nearest.station.name, distance: nearest.distance } : undefined;
+      return nearest ? { name: tr(nearest.station.name), distance: nearest.distance } : undefined;
     };
     try {
       const window = await show(this.options(), () => this.fuel, destination, () => { void this.callRescue(); },
@@ -220,7 +221,7 @@ export class CityFuelController {
       this.window = window;
     } catch (error) {
       console.warn("救援窗口未能打开", error);
-      this.host.notice("救援窗口未能打开。");
+      this.host.notice(tr("救援窗口未能打开。"));
     } finally {
       this.opening = false;
     }
@@ -236,14 +237,14 @@ export class CityFuelController {
       this.gauge.apply(reply.fuel);
       this.closeWindow();
       if (reply.stale || !reply.pose) {
-        this.host.notice(reply.fuel.empty ? "救援没有完成，请再试一次。" : "油箱还有油，不需要救援。");
+        this.host.notice(reply.fuel.empty ? tr("救援没有完成，请再试一次。") : tr("油箱还有油，不需要救援。"));
         return;
       }
       this.host.teleport(reply.pose);
       this.gauge.jump();
       this.host.sound?.("rescue");
-      const paid = reply.free ? "金币不足，本次免费救援" : reply.cost > 0 ? `花费 ${reply.cost} 金币` : "本次免费";
-      this.host.notice(`救援车已把你拖到${reply.stationName ?? "加油站"}（${paid}），按 F 加油。`);
+      const paid = reply.free ? tr("金币不足，本次免费救援") : reply.cost > 0 ? tr("花费 {value0} 金币", { value0: reply.cost }) : tr("本次免费");
+      this.host.notice(tr("救援车已把你拖到{value0}（{value1}），按 F 加油。", { value0: tr(reply.stationName ?? "加油站"), value1: paid }));
     } catch (error) {
       if (this.disposed) return;
       this.host.sound?.("error");

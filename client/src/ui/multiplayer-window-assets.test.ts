@@ -52,6 +52,7 @@ test("多人窗口图片、调色、字体与字符串资源和发行版一致",
         return { querySelectorAll: () => [{
           getAttribute: (key: string) => key === "n" ? "base" : undefined,
           querySelector: () => ({ getAttribute: () => "简体中文" }),
+          querySelectorAll: () => [{ getAttribute: (key: string) => key === "c" ? "cn" : "简体中文" }],
         }] };
       }
     } as unknown as typeof DOMParser;

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Garage selector presentation and input shell. Equipment decisions live in garage-selection. */
 import { drawOwnershipBadge } from "./ownership-badge";
 
@@ -180,7 +181,7 @@ export function createGarageSelectionViewClass(ops: GarageSelectionViewOps) {
     static async load(options: any): Promise<any> {
       ops.validateKart(options.catalog.karts, options.selectedKartItemId,
         options.selectedKartSystemKey);
-      ops.validateCharacter(options.catalog.characters, options.selectedCharacterItemId, "人物");
+      ops.validateCharacter(options.catalog.characters, options.selectedCharacterItemId, tr("人物"));
       const assets = await ops.loadAssets(options.library);
       return new (this as any)(options, assets);
     }
@@ -299,7 +300,7 @@ export function createGarageSelectionViewClass(ops: GarageSelectionViewOps) {
       const cards = this.liveCards();
       const kart = this.selectedKart();
       const character = ops.validateCharacter(this.options.catalog.characters,
-        this.draftProfile.equipment.itemIds[1], "人物");
+        this.draftProfile.equipment.itemIds[1], tr("人物"));
       this.livePanels?.render(ops.performance.now(), GARAGE_WIDTH, GARAGE_HEIGHT, cards,
         this.rect("charKartPreview"), kart, character, this.draftProfile,
         undefined, true, this.renderPixelRatio, this.drawing);
@@ -569,10 +570,10 @@ export function createGarageSelectionViewClass(ops: GarageSelectionViewOps) {
         rect: { x: 0, y: 0, width: GARAGE_WIDTH, height: GARAGE_HEIGHT } });
       const frame = this.assets.frames.get("CaptionDialog");
       ops.drawFrame(this.context, frame, this.assets.frame01.image, rect);
-      ops.drawText(this.context, `${dialog.family.title} · 等级外观`,
+      ops.drawText(this.context, tr("{0} · 等级外观", { "0": dialog.family.title }),
         { x: rect.x + 24, y: rect.y + 10, width: rect.width - 48, height: 34 },
         20, "white", "center", "button");
-      ops.drawText(this.context, "仅切换模型外观；车辆身份与性能参数保持不变",
+      ops.drawText(this.context, tr("仅切换模型外观；车辆身份与性能参数保持不变"),
         { x: rect.x + 24, y: rect.y + 62, width: rect.width - 48, height: 30 },
         15, "rgb(210, 225, 241)", "center", "button");
       const names: Record<string, string> = { rookie: "Rookie", l3: "L3", l2: "L2", l1: "L1" };
@@ -601,8 +602,8 @@ export function createGarageSelectionViewClass(ops: GarageSelectionViewOps) {
     }
 
     text(key: string): string {
-      if (key === "legacyMuseum") return "经典测试";
-      if (key === "pet") return this.assets.strings.get(key) ?? "宠物";
+      if (key === "legacyMuseum") return tr("经典测试");
+      if (key === "pet") return this.assets.strings.get(key) ?? tr("宠物");
       const value = this.assets.strings.get(key);
       if (value === undefined)
         throw new Error(`P3528 GarageDialog 缺少 StringBag key：${key}。`);

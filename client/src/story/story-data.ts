@@ -1,3 +1,5 @@
+import { storyMenuText } from "./story-menu-text";
+
 /**
  * Release story mode (故事模式) data, zeta_cn_scenario.rho:
  * scenario.bml lists the chapters, each chapter folder holds
@@ -123,12 +125,13 @@ export function readStoryChapters(list: StoryNode): StoryChapter[] {
     if (node.name !== "Chapter" || attribute(node, "active") === "false") continue;
     const id = integer(attribute(node, "id"));
     const name = attribute(node, "name");
+    const subTitle = attribute(node, "subTitle");
     if (id === undefined || !name) continue;
     chapters.push({
       id, name,
-      title: attribute(node, "title") ?? name,
-      subTitle: attribute(node, "subTitle"),
-      desc: storyText(attribute(node, "desc")?.replace(/\n/g, "|")),
+      title: storyMenuText(attribute(node, "title") ?? name),
+      subTitle: subTitle === undefined ? undefined : storyMenuText(subTitle),
+      desc: storyMenuText(storyText(attribute(node, "desc")?.replace(/\n/g, "|"))),
       regular: attribute(node, "regularChapter") === "true",
       preClearChapterId: integer(attribute(node, "preClearChapterId")),
       showNew: attribute(node, "showNewIcon") === "true",
@@ -150,10 +153,10 @@ export function readStorySteps(list: StoryNode): StoryStep[] {
     const level = node.children.find(child => child.name === "Level");
     steps.push({
       id, readyStage,
-      title: attribute(node, "title") ?? `${id}`,
-      synopsis: storyText(attribute(node, "synopsis")),
-      howToClear: storyText(attribute(node, "howToClear")),
-      missionText: attribute(node, "missionText") ?? "",
+      title: storyMenuText(attribute(node, "title") ?? `${id}`),
+      synopsis: storyMenuText(storyText(attribute(node, "synopsis"))),
+      howToClear: storyMenuText(storyText(attribute(node, "howToClear"))),
+      missionText: storyMenuText(attribute(node, "missionText") ?? ""),
       visualScene: attribute(node, "visualScene"),
       preConditionIds: storyIdList(attribute(node, "preConditionId")),
       otherWayLockIds: storyIdList(attribute(node, "otherWayLockId")),

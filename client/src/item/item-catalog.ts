@@ -1,3 +1,4 @@
+import { resourceText } from "../i18n/locale";
 import { decodeBinaryXml } from "../codecs/binary-xml";
 import { parseResourceXml } from "../resources/xml-utf16-parser";
 import { parseItemBml, type ItemBml, type ItemState, type ItemXmlNode } from "./item-bml";
@@ -449,15 +450,17 @@ export const itemNoticeIcon = (idx: number): string => `item/itemStateNotice/ite
 export const animalSlotIcon = (iconId: number): string => `item/slot/animal${iconId}.png`;
 
 /** Read `<k n=…><m c='cn' v=…/></k>` rows of a StringBag. */
-export function stringBagTexts(root: ItemXmlNode, language = "cn"): Map<string, string> {
+export function stringBagTexts(root: ItemXmlNode, language?: string): Map<string, string> {
   if (root.name !== "StringBag") throw Error("道具说明必须是 StringBag。");
   const texts = new Map<string, string>();
   for (const key of root.children) {
     if (key.name !== "k") continue;
     const name = key.attributes.find(attribute => attribute.name === "n")?.value;
-    const message = key.children.find(child => child.name === "m" &&
-      child.attributes.some(attribute => attribute.name === "c" && attribute.value === language));
-    const value = message?.attributes.find(attribute => attribute.name === "v")?.value;
+    const attribute = (node: ItemXmlNode, key: string): string | undefined =>
+      node.attributes.find(entry => entry.name === key)?.value;
+    const value = language
+      ? attribute(key.children.find(child => attribute(child, "c") === language) ?? key, "v")
+      : resourceText(key.children, attribute);
     if (name && value) texts.set(name, value);
   }
   return texts;

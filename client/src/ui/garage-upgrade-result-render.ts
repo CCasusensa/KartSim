@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 
 export interface GarageUpgradeAnimationPanel {
@@ -110,9 +111,9 @@ export function renderGarageUpgradeResult(host: GarageUpgradeRenderHost, time: n
   host.accept.disabled = !phase.complete;
   if (host.classic) host.accept.hidden = !phase.complete;
   const phaseName = host.classic
-    ? phase.complete ? "升级结果" : "升级成功动画"
+    ? phase.complete ? tr("升级结果") : tr("升级成功动画")
     : dependencies.phaseLabels[phase.index];
-  const label = `${host.title} · ${phaseName}\n本地确定性 Lv.${host.summary.beforeLevel} → Lv.${host.summary.afterLevel} 测试，不消耗材料；确认后仅写入车库草稿。`;
+  const label = tr("{0} · {1}\n本地确定性 Lv.{2} → Lv.{3} 测试，不消耗材料；确认后仅写入车库草稿。", { "0": host.title, "1": phaseName ?? "", "2": host.summary.beforeLevel, "3": host.summary.afterLevel });
   if (host.label.textContent !== label) host.label.textContent = label;
 }
 

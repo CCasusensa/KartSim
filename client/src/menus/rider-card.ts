@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { C8, te } from "../generated/library.js";
 import { errorCode } from "../account/account-api";
 import { gradeName } from "../club/club-api";
@@ -36,23 +37,23 @@ export interface RiderCardOptions {
 
 function formatDate(ms: number): string {
   const date = new Date(ms + 8 * 60 * 60 * 1000);
-  return `${date.getUTCFullYear()}年${date.getUTCMonth() + 1}月${date.getUTCDate()}日`;
+  return tr("{0}年{1}月{2}日", { "0": date.getUTCFullYear(), "1": date.getUTCMonth() + 1, "2": date.getUTCDate() });
 }
 
 function friendError(error: unknown): string {
   switch (errorCode(error)) {
-    case "PLAYER_NOT_FOUND": return "无法找到该车手。";
-    case "FRIEND_REQUESTS_BLOCKED": return "对方车手已关闭好友请求功能。";
+    case "PLAYER_NOT_FOUND": return tr("无法找到该车手。");
+    case "FRIEND_REQUESTS_BLOCKED": return tr("对方车手已关闭好友请求功能。");
     case "FRIEND_LIMIT":
-    case "TARGET_FRIEND_LIMIT": return "对方或我的好友数量已达上限，无法添加好友。";
+    case "TARGET_FRIEND_LIMIT": return tr("对方或我的好友数量已达上限，无法添加好友。");
     case "ALREADY_FRIENDS":
-    case "REQUEST_PENDING": return "已发送好友申请或已经是好友了。";
-    case "REQUEST_LIMIT": return "已超过请求好友数量上限，无法再发送好友请求。";
-    case "REQUEST_COOLDOWN": return "对方已拒绝好友请求，|到次日上午6点前无法再次申请。";
-    case "CANNOT_ADD_SELF": return "不能将自己添加为好友。";
-    case "BLOCKED_TARGET": return "已屏蔽该车手。|请先在管理 → 屏蔽管理中解除屏蔽。";
-    case "RATE_LIMITED": return "操作过于频繁，请稍后再试。";
-    default: return "发生错误。|请重试。";
+    case "REQUEST_PENDING": return tr("已发送好友申请或已经是好友了。");
+    case "REQUEST_LIMIT": return tr("已超过请求好友数量上限，无法再发送好友请求。");
+    case "REQUEST_COOLDOWN": return tr("对方已拒绝好友请求，|到次日上午6点前无法再次申请。");
+    case "CANNOT_ADD_SELF": return tr("不能将自己添加为好友。");
+    case "BLOCKED_TARGET": return tr("已屏蔽该车手。|请先在管理 → 屏蔽管理中解除屏蔽。");
+    case "RATE_LIMITED": return tr("操作过于频繁，请稍后再试。");
+    default: return tr("发生错误。|请重试。");
   }
 }
 
@@ -103,7 +104,7 @@ export class RiderCardView {
     if (this.disposed) return;
     const view = await te.load({
       library, root: this.options.root, definition: prepared, roots: ROOTS, smoothImages: true, modal: true,
-      label: "车手信息", onCancel: () => this.options.onClose(), state: (entry: Node) => this.state(entry),
+      label: tr("车手信息"), onCancel: () => this.options.onClose(), state: (entry: Node) => this.state(entry),
     }) as WindowView;
     if (this.disposed) {
       view.dispose();
@@ -122,7 +123,7 @@ export class RiderCardView {
     this.message?.abort();
     const abort = new AbortController();
     this.message = abort;
-    void openMessengerMessage(this.options.library as never, this.options.root, "车手信息", text, {}, abort.signal)
+    void openMessengerMessage(this.options.library as never, this.options.root, tr("车手信息"), text, {}, abort.signal)
       .catch(() => false);
   }
 
@@ -130,8 +131,8 @@ export class RiderCardView {
     const { card } = this.options;
     switch (nodeName(entry)) {
       case "":
-        return entry.name === "CaptionWindow" ? { text: "车手信息" } : {};
-      case "exit": return { label: "关闭", action: () => this.options.onClose() };
+        return entry.name === "CaptionWindow" ? { text: tr("车手信息") } : {};
+      case "exit": return { label: tr("关闭"), action: () => this.options.onClose() };
       case "glove": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => {
         const path = gloveIconPath(card.glove);
         const image = path ? this.images.path(path) : undefined;
@@ -160,16 +161,16 @@ export class RiderCardView {
         this.paintRecord(context, rect) };
       case "userInfo1Right": return { paint: (context: CanvasRenderingContext2D, rect: Rect) =>
         this.paintClub(context, rect) };
-      case "intro": return { text: card.self ? this.strings.get("defaultIntro") ?? "" : "这名车手还没有填写自我介绍。" };
-      case "licenseInfo": return { label: "驾照", action: () => {
+      case "intro": return { text: card.self ? this.strings.get("defaultIntro") ?? "" : tr("这名车手还没有填写自我介绍。") };
+      case "licenseInfo": return { label: tr("驾照"), action: () => {
         const name = licenseName(card.license);
-        this.notice(name ? `${card.nickname} 的驾照：${name}驾照${card.proUntil > Date.now()
-          ? `|PRO驾照有效期至 ${formatDate(card.proUntil)}` : ""}` : this.strings.get("licenseWarning1") ?? "暂时没有获得驾照。");
+        this.notice(name ? tr("{0} 的驾照：{1}驾照{2}", { "0": card.nickname, "1": name, "2": card.proUntil > Date.now()
+          ? tr("|PRO驾照有效期至 {0}", { "0": formatDate(card.proUntil) }) : "" }) : this.strings.get("licenseWarning1") ?? tr("暂时没有获得驾照。"));
       } };
       case "addFriend": return card.self || !this.options.requestFriend ? { visible: false }
-        : { label: this.strings.get("registerFriend") ?? "申请好友", disabled: this.busy, action: () => void this.addFriend() };
+        : { label: this.strings.get("registerFriend") ?? tr("申请好友"), disabled: this.busy, action: () => void this.addFriend() };
       case "joinGarage": return !this.options.visitRoom ? { visible: false }
-        : { label: this.strings.get("gotoMyroom") ?? "访问小屋", action: () => this.options.visitRoom!(card.nickname) };
+        : { label: this.strings.get("gotoMyroom") ?? tr("访问小屋"), action: () => this.options.visitRoom!(card.nickname) };
     }
     return {};
   }
@@ -180,8 +181,8 @@ export class RiderCardView {
     this.view?.render();
     try {
       const result = await this.options.requestFriend(this.options.card.nickname);
-      this.notice(result.accepted ? `已和 ${this.options.card.nickname} 成为好友。`
-        : this.strings.get("requestFriendComplete") ?? "完成申请好友");
+      this.notice(result.accepted ? tr("已和 {0} 成为好友。", { "0": this.options.card.nickname })
+        : this.strings.get("requestFriendComplete") ?? tr("完成申请好友"));
     } catch (error) {
       this.notice(friendError(error));
     } finally {
@@ -193,17 +194,17 @@ export class RiderCardView {
   /** The race record and status (where the release shows the rider in 3D). */
   private paintRecord(context: CanvasRenderingContext2D, rect: Rect): void {
     const { card } = this.options;
-    const status = this.strings.get(PRESENCE[card.presence] ?? "offline") ?? "不在线";
+    const status = this.strings.get(PRESENCE[card.presence] ?? "offline") ?? tr("不在线");
     const winRate = card.stats.races ? `${(card.stats.wins / card.stats.races * 100).toFixed(1)}%` : "-";
     const rows: Array<[string, string]> = [
-      [this.strings.get("currentStatus") ?? "目前状态", status],
-      ["驾照", licenseName(card.license) ? `${licenseName(card.license)}驾照` : "暂无"],
-      ["俱乐部", card.club ? card.club.name : "未加入"],
-      ["注册时间", card.createdAt ? formatDate(card.createdAt) : "-"],
-      ["比赛场次", `${card.stats.races.toLocaleString("en-US")}场`],
-      ["胜利", `${card.stats.wins.toLocaleString("en-US")}场（胜率 ${winRate}）`],
-      ["前三名", `${card.stats.podiums.toLocaleString("en-US")}场`],
-      ["积分", card.stats.points.toLocaleString("en-US")],
+      [this.strings.get("currentStatus") ?? tr("目前状态"), status],
+      [tr("驾照"), licenseName(card.license) ? tr("{0}驾照", { "0": licenseName(card.license) }) : tr("暂无")],
+      [tr("俱乐部"), card.club ? card.club.name : tr("未加入")],
+      [tr("注册时间"), card.createdAt ? formatDate(card.createdAt) : "-"],
+      [tr("比赛场次"), tr("{0}场", { "0": card.stats.races.toLocaleString("en-US") })],
+      [tr("胜利"), tr("{0}场（胜率 {1}）", { "0": card.stats.wins.toLocaleString("en-US"), "1": winRate })],
+      [tr("前三名"), tr("{0}场", { "0": card.stats.podiums.toLocaleString("en-US") })],
+      [tr("积分"), card.stats.points.toLocaleString("en-US")],
     ];
     const left = rect.x + 40;
     const top = rect.y + 70;
@@ -237,9 +238,9 @@ export class RiderCardView {
     context.save();
     context.textAlign = "center";
     context.textBaseline = "top";
-    line("俱乐部", rect.y + 6, 18, "white");
+    line(tr("俱乐部"), rect.y + 6, 18, "white");
     if (!club) {
-      line("该车手尚未加入俱乐部。", rect.y + 200, 16, "rgb(207,221,240)");
+      line(tr("该车手尚未加入俱乐部。"), rect.y + 200, 16, "rgb(207,221,240)");
       context.restore();
       return;
     }
@@ -249,8 +250,8 @@ export class RiderCardView {
     if (mark) drawFitted(context, mark, { x: markRect.x + 25, y: markRect.y + 25, width: 100, height: 100 });
     if (frame) drawFitted(context, frame, markRect);
     line(club.name, rect.y + 222, 22, "white");
-    line(`俱乐部等级 Lv.${club.level}`, rect.y + 262, 16, "rgb(170,210,255)");
-    line(`会员等级：${gradeName(club.grade)}`, rect.y + 290, 16, "rgb(170,210,255)");
+    line(tr("俱乐部等级 Lv.{0}", { "0": club.level }), rect.y + 262, 16, "rgb(170,210,255)");
+    line(tr("会员等级：{0}", { "0": gradeName(club.grade) }), rect.y + 290, 16, "rgb(170,210,255)");
     context.restore();
   }
 }

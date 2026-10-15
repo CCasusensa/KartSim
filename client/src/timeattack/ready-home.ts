@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { openRankingWindow, type ReadyRankingController } from "./ready-ranking";
 import { bindLoadingBadge, createResourceButton } from "../ui/resource-panel";
 import { activeBrowserSession } from "../account/account-runtime";
@@ -76,7 +77,7 @@ function openHomeAccountPanel(controller: ReadyHomeController): void {
     document: host.root.ownerDocument as unknown as AccountPanelDocument,
     session,
     logoutBlocked: () => controller.multiplayer
-      ? "正在多人游戏中，请先离开房间和比赛再退出登录。" : undefined,
+      ? tr("正在多人游戏中，请先离开房间和比赛再退出登录。") : undefined,
     onLogout: () => logoutAccount(host.root),
     onClose: () => { controller.accountPanel = undefined; },
     onActivate: () => host.getInterfaceAudio()?.playClick(),
@@ -118,7 +119,7 @@ export function preloadReadyHome(controller: ReadyHomeController): void {
 
 function lobbyVisible(controller: ReadyHomeController): boolean {
   const lobby = controller.host.root.querySelector<HTMLElement>(
-    'div[aria-label="多人游戏大厅"]');
+    'div[data-ui-page="multiplayer-lobby"]');
   return !!lobby && !lobby.hidden;
 }
 
@@ -185,7 +186,7 @@ export async function openReadyHome(controller: ReadyHomeController,
     const refreshReplays = (tab: ReplayTab = view.single.currentReplayTab): void => {
       replays.replayTab = tab;
       view.setReplays(tab, undefined);
-      const failed = (error: unknown) => view.showNotice(`回放读取失败：${error instanceof Error ? error.message : String(error)}`);
+      const failed = (error: unknown) => view.showNotice(tr("回放读取失败：{error}", { error: error instanceof Error ? error.message : String(error) }));
       if (tab === "my") {
         void loadReplayMenu(controller, riderName()).then(entries => {
           if (controller.activeHome === view) view.setReplays("my", entries);
@@ -227,17 +228,17 @@ export async function openReadyHome(controller: ReadyHomeController,
         void loadStoryMenu(controller).then(chapters => {
           if (controller.activeHome === view) view.setStoryChapters(chapters);
         }).catch(error => view.showNotice(
-          `故事模式读取失败：${error instanceof Error ? error.message : String(error)}`));
+          tr("故事模式读取失败：{error}", { error: error instanceof Error ? error.message : String(error) })));
       },
       onStoryChapter: name => { void openStoryChapter(controller, name); },
       onReplay: entry => {
         void openReplayEntry(replays, entry).catch(error =>
-          controller.activeHome?.single.showNotice(`回放：${error instanceof Error ? error.message : String(error)}`));
+          controller.activeHome?.single.showNotice(tr("回放：{error}", { error: error instanceof Error ? error.message : String(error) })));
       },
       onReplayDelete: entry => {
         void deleteLocalReplay(replays, entry).then(deleted => {
           if (deleted && controller.activeHome === view) refreshReplays("my");
-        }).catch(error => view.showNotice(`删除回放：${error instanceof Error ? error.message : String(error)}`));
+        }).catch(error => view.showNotice(tr("删除回放：{error}", { error: error instanceof Error ? error.message : String(error) })));
       },
       onReplayTab: tab => refreshReplays(tab),
       onReplayPickTrack: () => {
@@ -344,7 +345,7 @@ export async function openReadyHome(controller: ReadyHomeController,
     }
   } catch (error) {
     tellPlayer(host.hud,
-      `主菜单：${error instanceof Error ? error.message : String(error)}`);
+      tr("主菜单：{error}", { error: error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.homeOpening = false;
   }

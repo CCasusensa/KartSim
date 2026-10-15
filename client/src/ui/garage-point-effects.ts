@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 
 export interface GarageSkillProgression {
@@ -98,7 +99,7 @@ export class GaragePointEffects {
     const gaugeRect = gauge && { ...gauge, x: gauge.x + 15 };
     const scene = sceneNode && this.dependencies.attribute(sceneNode, "scene");
     if (!sceneNode || !spriteRect || !gaugeRect || !scene) {
-      this.onError("加点动画定义缺失；强化点已保留。");
+      this.onError(tr("加点动画定义缺失；强化点已保留。"));
       return;
     }
     const rect = garageSkillEffectRect(gaugeRect, spriteRect, points);
@@ -116,7 +117,7 @@ export class GaragePointEffects {
       });
       const context = canvas.getContext("2d");
       if (!context) {
-        this.onError("加点动画画布不可用；强化点已保留。");
+        this.onError(tr("加点动画画布不可用；强化点已保留。"));
         return;
       }
       slot = { context, active: false };
@@ -135,7 +136,7 @@ export class GaragePointEffects {
         .catch(error => {
           this.clear(row);
           if (!this.disposed)
-            this.onError(`加点动画加载失败，强化点已保留：${error instanceof Error ? error.message : error}`);
+            this.onError(tr("加点动画加载失败，强化点已保留：{0}", { "0": error instanceof Error ? error.message : error }));
         });
     }
     Object.assign(slot.context.canvas.style, {

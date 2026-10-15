@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Creates the room view and binds its keyboard shortcuts and live resources. */
 
 interface RoomChat { sequence: number }
@@ -115,7 +116,7 @@ export async function loadLobbyRoom<T extends ConstructedLobbyRoom>(
         host.emotions),
       roots: ["stage_/mqReady", "stage_/common", "stage_/gameReady",
         "gui_/windowTemplate"],
-      label: "多人游戏房间",
+      label: tr("多人游戏房间"),
       backdrop: dependencies.drawBackdrop,
       state: (node: unknown) => (host as T & { state(node: unknown): unknown }).state(node),
       onActivate: actions.onActivate, onHover: actions.onHover,

@@ -1,3 +1,5 @@
+import { tr } from "../i18n/locale";
+import { localizeResultTexture } from "./result-art-localization";
 /** Multiplayer finish screen assembled from the game's original BML panels. */
 import {
   formatRaceReward, formatRaceRewardLines, parseRaceRewards, type RaceReward,
@@ -78,6 +80,7 @@ export interface ResultViewDependencies {
   loadView(options: {
     library: unknown; root: unknown; definition: ResultNode; roots: string[];
     smoothImages: boolean; preserveDisplayPixels: boolean; label: string;
+    projectTexture?(name: string, canvas: HTMLCanvasElement): HTMLCanvasElement;
     modulateTextures: boolean; state(node: ResultNode): Record<string, unknown>;
   }): Promise<ResultView>;
   smoothImages(): boolean;
@@ -286,7 +289,7 @@ export class MultiplayerResultView {
       roots: [folder, "stage_/common", "gui_/windowTemplate"],
       smoothImages: deps.smoothImages(),
       preserveDisplayPixels: deps.smoothImages(),
-      label: "比赛结果", modulateTextures: true,
+      label: tr("比赛结果"), modulateTextures: true, projectTexture: localizeResultTexture,
       state: node => screen.nodeState(node, race, localPlayerId, deps),
     });
     return screen;
@@ -331,7 +334,7 @@ export class MultiplayerResultView {
     if (part === "id")
       return { text: race.roster.find(player => player.playerId === result.playerId)!.name };
     if (part === "time") {
-      if (result.elapsedMs === null) return { text: "未完成" };
+      if (result.elapsedMs === null) return { text: tr("未完成") };
       const time = deps.formatTime(result.elapsedMs);
       return { text: `${time.min}:${time.sec}:${time.mil}` };
     }
@@ -356,7 +359,7 @@ export class MultiplayerResultView {
     const iconsLeft = TITLE_LIST_WIDTH - icons.length * TITLE_ICON_STEP;
     if (part === "titleCont" || part === "viewIcons") return { visible: true };
     if (part === "titleFrame") return { visible: true, offsetX: iconsLeft - TITLE_FRAME_WIDTH - 2 };
-    if (part === "title") return { visible: true, text: owned[focus]!.chinese };
+    if (part === "title") return { visible: true, text: tr(owned[focus]!.chinese) };
     const [, key, frame] = part.split("/");
     const at = icons.findIndex(title => title.key === key);
     const focused = owned[focus]!.key === key;

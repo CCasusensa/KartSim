@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { ensureFeatureResources } from "../ui/resource-panel";
 import { activeBrowserSession } from "../account/account-runtime";
 import { ClubApi } from "../club/club-api";
@@ -21,7 +22,7 @@ export async function openReadyClub(controller: ReadyClubController): Promise<vo
   const session = activeBrowserSession();
   const library = host.getLibrary() as Partial<ClubLibrary> | undefined;
   if (!session || typeof library?.canonicalCandidates !== "function") {
-    tellPlayer(host.hud, "俱乐部：请先登录。");
+    tellPlayer(host.hud, tr("俱乐部：请先登录。"));
     return;
   }
   controller.clubOpening = true;
@@ -38,7 +39,7 @@ export async function openReadyClub(controller: ReadyClubController): Promise<vo
     if (controller.disposed) screen.dispose();
     else controller.activeClub = screen;
   } catch (error) {
-    tellPlayer(host.hud, `俱乐部：${error instanceof Error ? error.message : String(error)}`);
+    tellPlayer(host.hud, tr("俱乐部：{0}", { "0": error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.clubOpening = false;
   }

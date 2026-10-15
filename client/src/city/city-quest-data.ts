@@ -1,3 +1,5 @@
+import { tr } from "../i18n/locale";
+import { cityContentName } from "../i18n/catalogs/city-content-names";
 /**
  * 卡丁城任务的数据（server-go/CITY-QUESTS.md）：city-quests.json，与节点内嵌的
  * 是同一份（client/tools/city/quests/build-city-quests.mjs 生成）。这里是界面
@@ -67,17 +69,22 @@ export const QUEST_NPCS = questData.npcs as unknown as Record<string, QuestNpc>;
 export const QUESTS = questData.quests as unknown as QuestDef[];
 export const QUEST_BY_ID = new Map(QUESTS.map(quest => [quest.id, quest]));
 
+/** Localized display labels; canonical quest objects and IDs remain untouched. */
+export function questTitle(quest: Pick<QuestDef, "title">): string { return cityContentName(quest.title); }
+export function questSynopsis(quest: Pick<QuestDef, "synopsis">): string { return cityContentName(quest.synopsis); }
+export function npcName(npc: Pick<QuestNpc, "name"> | undefined): string { return cityContentName(npc?.name ?? ""); }
+
 /** The NPC's name without its title ("导游 · 皮蛋" → "皮蛋"). */
 export function shortName(npc: QuestNpc | undefined): string {
-  const name = npc?.name ?? "";
+  const name = npcName(npc);
   const dot = name.lastIndexOf("·");
   return dot >= 0 ? name.slice(dot + 1).trim() : name;
 }
 
 /** "载客 · 限时": the quest's type and, when it has one, its limit. */
 export function questLabel(quest: QuestDef): string {
-  const type = QUEST_RULES.types[quest.type].label;
-  return quest.kind === "normal" ? type : `${type} · ${QUEST_RULES.kinds[quest.kind].label}`;
+  const type = tr(QUEST_RULES.types[quest.type].label);
+  return quest.kind === "normal" ? type : `${type} · ${tr(QUEST_RULES.kinds[quest.kind].label)}`;
 }
 
 /** The story-mode mission picture (stage_scenarioReady) for the quest's type. */
@@ -93,39 +100,39 @@ export function questMissionImage(quest: QuestDef): string {
 /** The mission card's 执行条件 line: what to do, where and how far. */
 export function questGoal(quest: QuestDef): string {
   const receiver = shortName(QUEST_NPCS[quest.receiver]);
-  const km = `约 ${(quest.distanceM / 1000).toFixed(1)} km`;
-  const back = quest.receiver === quest.giver ? "带回来" : `交给${receiver}`;
+  const km = tr("约 {value0} km", { value0: (quest.distanceM / 1000).toFixed(1) });
+  const back = quest.receiver === quest.giver ? tr("带回来") : tr("交给{value0}", { value0: receiver });
   switch (quest.type) {
-    case "passenger": return `载${shortName(QUEST_NPCS[quest.giver])}去找${receiver}（${km}）`;
-    case "collect": return `收集 ${quest.stops?.length ?? 0} 处${quest.item}，${back}（${km}）`;
-    case "search": return `在${quest.area?.name ?? "附近"}找到${quest.item}，${back}`;
-    default: return `${quest.item} → ${receiver}（${km}）`;
+    case "passenger": return tr("载{value0}去找{value1}（{value2}）", { value0: shortName(QUEST_NPCS[quest.giver]), value1: receiver, value2: km });
+    case "collect": return tr("收集 {value0} 处{value1}，{value2}（{value3}）", { value0: quest.stops?.length ?? 0, value1: cityContentName(quest.item), value2: back, value3: km });
+    case "search": return tr("在{value0}找到{value1}，{value2}", { value0: cityContentName(quest.area?.name ?? tr("附近")), value1: cityContentName(quest.item), value2: back });
+    default: return `${cityContentName(quest.item)} → ${receiver}（${km}）`;
   }
 }
 
 /** "限速 85 km/h" etc.: what the quest must keep to. */
 export function limitText(quest: QuestDef): string {
   switch (quest.kind) {
-    case "speed": return `全程车速不超过 ${quest.maxKmh} km/h（超速超过 ${QUEST_RULES.speedGraceMs / 1000} 秒即失败）`;
-    case "collision": return `碰撞不超过 ${quest.maxCollisions} 次`;
-    case "time": return `${formatDuration(quest.timeLimitMs ?? 0)} 内完成`;
-    default: return quest.type === "passenger" ? "开得平稳，乘客满意会给小费" : "没有特别要求";
+    case "speed": return tr("全程车速不超过 {value0} km/h（超速超过 {value1} 秒即失败）", { value0: quest.maxKmh ?? 0, value1: QUEST_RULES.speedGraceMs / 1000 });
+    case "collision": return tr("碰撞不超过 {value0} 次", { value0: quest.maxCollisions ?? 0 });
+    case "time": return tr("{value0} 内完成", { value0: formatDuration(quest.timeLimitMs ?? 0) });
+    default: return quest.type === "passenger" ? tr("开得平稳，乘客满意会给小费") : tr("没有特别要求");
   }
 }
 
 /** The same, short enough for the mission card's 执行条件 line. */
 export function limitShort(quest: QuestDef): string {
   switch (quest.kind) {
-    case "speed": return `限速 ${quest.maxKmh} km/h`;
-    case "collision": return `碰撞不超过 ${quest.maxCollisions} 次`;
-    case "time": return `限时 ${formatDuration(quest.timeLimitMs ?? 0)}`;
-    default: return quest.type === "passenger" ? "平稳驾驶有小费" : "没有特别要求";
+    case "speed": return tr("限速 {value0} km/h", { value0: quest.maxKmh ?? 0 });
+    case "collision": return tr("碰撞不超过 {value0} 次", { value0: quest.maxCollisions ?? 0 });
+    case "time": return tr("限时 {value0}", { value0: formatDuration(quest.timeLimitMs ?? 0) });
+    default: return quest.type === "passenger" ? tr("平稳驾驶有小费") : tr("没有特别要求");
   }
 }
 
 export function formatDuration(ms: number): string {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
-  return seconds >= 60 ? `${Math.floor(seconds / 60)} 分 ${String(seconds % 60).padStart(2, "0")} 秒` : `${seconds} 秒`;
+  return seconds >= 60 ? tr("{value0} 分 {value1} 秒", { value0: Math.floor(seconds / 60), value1: String(seconds % 60).padStart(2, "0") }) : tr("{value0} 秒", { value0: seconds });
 }
 
 /** The quest's combined reward multiplier (type × limit). */
@@ -136,30 +143,30 @@ export function questMultiplier(quest: QuestDef): number {
 export function rewardText(quest: QuestDef): string {
   const multiplier = questMultiplier(quest);
   const bonus = multiplier > 1 ? `（${questLabel(quest)} ×${multiplier}）` : "";
-  const tip = quest.type === "passenger" ? "，另有小费" : "";
-  return `金币 ${quest.lucci} · 经验 ${quest.exp}${bonus}${tip}`;
+  const tip = quest.type === "passenger" ? tr("，另有小费") : "";
+  return tr("金币 {value0} · 经验 {value1}{value2}{value3}", { value0: quest.lucci, value1: quest.exp, value2: bonus, value3: tip });
 }
 
 /** Why a quest failed, for the player. */
 export function failureText(quest: QuestDef | undefined, reason: string): string {
   if (quest?.type === "passenger") {
-    const who = quest.item;
+    const who = cityContentName(quest.item);
     switch (reason) {
-      case "SPEED": return `车速超过了 ${quest.maxKmh} km/h，${who}吓得要下车。`;
-      case "COLLISION": return `碰撞超过了 ${quest.maxCollisions} 次，${who}受不了了。`;
-      case "TIMEOUT": return `没能在规定时间内赶到，${who}已经来不及了。`;
-      case "UNHAPPY": return `${who}被颠得受不了，半路下车了。`;
-      case "EXITED": return `你下了车，${who}只好自己走了。`;
-      case "TELEPORT": return `离开了路线（传送或拖车），${who}没能跟着过去。`;
+      case "SPEED": return tr("车速超过了 {value0} km/h，{value1}吓得要下车。", { value0: quest.maxKmh ?? 0, value1: who });
+      case "COLLISION": return tr("碰撞超过了 {value0} 次，{value1}受不了了。", { value0: quest.maxCollisions ?? 0, value1: who });
+      case "TIMEOUT": return tr("没能在规定时间内赶到，{value0}已经来不及了。", { value0: who });
+      case "UNHAPPY": return tr("{value0}被颠得受不了，半路下车了。", { value0: who });
+      case "EXITED": return tr("你下了车，{value0}只好自己走了。", { value0: who });
+      case "TELEPORT": return tr("离开了路线（传送或拖车），{value0}没能跟着过去。", { value0: who });
     }
   }
-  const what = quest?.item ?? "货物";
+  const what = cityContentName(quest?.item ?? tr("货物"));
   switch (reason) {
-    case "SPEED": return `车速超过了 ${quest?.maxKmh ?? ""} km/h，${what}受损了。`;
-    case "COLLISION": return `碰撞超过了 ${quest?.maxCollisions ?? ""} 次，${what}摔坏了。`;
-    case "TIMEOUT": return `没能在规定时间内完成，${what}来不及了。`;
-    case "TELEPORT": return `离开了路线（传送或拖车），${what}没能跟着过去。`;
-    default: return "任务失败了。";
+    case "SPEED": return tr("车速超过了 {value0} km/h，{value1}受损了。", { value0: quest?.maxKmh ?? "", value1: what });
+    case "COLLISION": return tr("碰撞超过了 {value0} 次，{value1}摔坏了。", { value0: quest?.maxCollisions ?? "", value1: what });
+    case "TIMEOUT": return tr("没能在规定时间内完成，{value0}来不及了。", { value0: what });
+    case "TELEPORT": return tr("离开了路线（传送或拖车），{value0}没能跟着过去。", { value0: what });
+    default: return tr("任务失败了。");
   }
 }
 
@@ -170,28 +177,28 @@ export function successResult(quest: QuestDef, done: { elapsedMs: number; collis
   lucci: number; capped: boolean; walletLucci: number; level: number; satisfaction?: number; tip?: number;
   levelUps: ReadonlyArray<{ level: number; lucci: number; koin: number; coupon: number }> }) {
   const rows: ResultRow[] = [
-    { label: quest.type === "passenger" ? "送到" : "交给", value: QUEST_NPCS[quest.receiver]?.name ?? "" },
-    { label: "用时", value: formatDuration(done.elapsedMs) },
-    { label: "路程", value: `约 ${(quest.distanceM / 1000).toFixed(1)} km` },
+    { label: quest.type === "passenger" ? tr("送到") : tr("交给"), value: npcName(QUEST_NPCS[quest.receiver]) },
+    { label: tr("用时"), value: formatDuration(done.elapsedMs) },
+    { label: tr("路程"), value: tr("约 {value0} km", { value0: (quest.distanceM / 1000).toFixed(1) }) },
   ];
   if (quest.type === "collect")
-    rows.push({ label: "收集", value: `${quest.stops?.length ?? 0} / ${quest.stops?.length ?? 0} 处` });
-  if (quest.kind === "collision") rows.push({ label: "碰撞", value: `${done.collisions} / ${quest.maxCollisions} 次` });
+    rows.push({ label: tr("收集"), value: tr("{value0} / {value1} 处", { value0: quest.stops?.length ?? 0, value1: quest.stops?.length ?? 0 }) });
+  if (quest.kind === "collision") rows.push({ label: tr("碰撞"), value: tr("{value0} / {value1} 次", { value0: done.collisions, value1: quest.maxCollisions ?? 0 }) });
   if (quest.type === "passenger" && done.satisfaction !== undefined)
-    rows.push({ label: "乘客满意度", value: `${done.satisfaction}%`, color: moodColor(done.satisfaction) });
+    rows.push({ label: tr("乘客满意度"), value: `${done.satisfaction}%`, color: moodColor(done.satisfaction) });
   const multiplier = questMultiplier(quest);
-  if (multiplier > 1) rows.push({ label: "报酬倍率", value: `${questLabel(quest)} ×${multiplier}` });
-  if (done.tip) rows.push({ label: "小费", value: `+${done.tip}（含在金币里）`, color: "rgb(214, 120, 0)" });
-  rows.push({ label: "获得金币", value: `+${done.lucci}`, color: "rgb(214, 120, 0)" },
-    { label: "获得经验", value: `+${done.exp}`, color: "rgb(30, 110, 210)" });
+  if (multiplier > 1) rows.push({ label: tr("报酬倍率"), value: `${questLabel(quest)} ×${multiplier}` });
+  if (done.tip) rows.push({ label: tr("小费"), value: tr("+{value0}（含在金币里）", { value0: done.tip }), color: "rgb(214, 120, 0)" });
+  rows.push({ label: tr("获得金币"), value: `+${done.lucci}`, color: "rgb(214, 120, 0)" },
+    { label: tr("获得经验"), value: `+${done.exp}`, color: "rgb(30, 110, 210)" });
   for (const up of done.levelUps) {
-    const extra = [up.lucci ? `金币 ${up.lucci}` : "", up.koin ? `K币 ${up.koin}` : "", up.coupon ? `点券 ${up.coupon}` : ""]
+    const extra = [up.lucci ? tr("金币 {value0}", { value0: up.lucci }) : "", up.koin ? tr("K币 {value0}", { value0: up.koin }) : "", up.coupon ? tr("点券 {value0}", { value0: up.coupon }) : ""]
       .filter(Boolean).join("、");
-    rows.push({ label: `升到 ${up.level} 级`, value: extra ? `奖励 ${extra}` : "恭喜升级！", color: "rgb(214, 120, 0)" });
+    rows.push({ label: tr("升到 {value0} 级", { value0: up.level }), value: extra ? tr("奖励 {value0}", { value0: extra }) : tr("恭喜升级！"), color: "rgb(214, 120, 0)" });
   }
-  rows.push({ label: "现有金币", value: `${done.walletLucci}` });
-  return { success: true, heading: `「${quest.title}」完成！`, rows,
-    note: done.capped ? "今天的任务报酬已经领满了，这次没有金币和经验。明天 0 点后再来吧。" : undefined };
+  rows.push({ label: tr("现有金币"), value: `${done.walletLucci}` });
+  return { success: true, heading: tr("「{value0}」完成！", { value0: questTitle(quest) }), rows,
+    note: done.capped ? tr("今天的任务报酬已经领满了，这次没有金币和经验。明天 0 点后再来吧。") : undefined };
 }
 
 const REASONS: Record<string, string> = { SPEED: "超速", COLLISION: "碰撞过多", TIMEOUT: "超时",
@@ -200,15 +207,15 @@ const REASONS: Record<string, string> = { SPEED: "超速", COLLISION: "碰撞过
 /** Rows of the 任务失败 window. */
 export function failureResult(quest: QuestDef | undefined, reason: string, collisions: number) {
   const rows: ResultRow[] = [
-    { label: "失败原因", value: REASONS[reason] ?? "任务失败", color: "rgb(206, 40, 40)" },
+    { label: tr("失败原因"), value: tr(REASONS[reason] ?? "任务失败"), color: "rgb(206, 40, 40)" },
   ];
-  if (quest?.kind === "speed") rows.push({ label: "限速", value: `${quest.maxKmh} km/h` });
-  if (quest?.kind === "collision") rows.push({ label: "碰撞", value: `${collisions} / ${quest.maxCollisions} 次` });
-  if (quest?.kind === "time") rows.push({ label: "时限", value: formatDuration(quest.timeLimitMs ?? 0) });
-  rows.push({ label: "报酬", value: "无" });
-  const giver = quest ? shortName(QUEST_NPCS[quest.giver]) : "委托人";
-  return { success: false, heading: quest ? `「${quest.title}」失败` : "任务失败", rows,
-    note: `${failureText(quest, reason)}可以回到${giver}那里重新接这个任务。` };
+  if (quest?.kind === "speed") rows.push({ label: tr("限速"), value: `${quest.maxKmh} km/h` });
+  if (quest?.kind === "collision") rows.push({ label: tr("碰撞"), value: tr("{value0} / {value1} 次", { value0: collisions, value1: quest.maxCollisions ?? 0 }) });
+  if (quest?.kind === "time") rows.push({ label: tr("时限"), value: formatDuration(quest.timeLimitMs ?? 0) });
+  rows.push({ label: tr("报酬"), value: tr("无") });
+  const giver = quest ? shortName(QUEST_NPCS[quest.giver]) : tr("委托人");
+  return { success: false, heading: quest ? tr("「{value0}」失败", { value0: questTitle(quest) }) : tr("任务失败"), rows,
+    note: tr("{value0}可以回到{value1}那里重新接这个任务。", { value0: failureText(quest, reason), value1: giver }) };
 }
 
 /** A satisfaction's colour: green, yellow, then red. */
@@ -271,12 +278,12 @@ export interface QuestProgress { collected?: boolean[]; found?: boolean; signal?
 /** What the HUD line says about a quest under way, beyond where it goes. */
 export function progressText(quest: QuestDef, progress: QuestProgress): string {
   switch (quest.type) {
-    case "passenger": return `乘客满意度 ${progress.satisfaction ?? 100}%`;
+    case "passenger": return tr("乘客满意度 {value0}%", { value0: progress.satisfaction ?? 100 });
     case "collect": {
       const got = progress.collected?.filter(Boolean).length ?? 0;
-      return `${quest.item} ${got}/${quest.stops?.length ?? 0}`;
+      return `${cityContentName(quest.item)} ${got}/${quest.stops?.length ?? 0}`;
     }
-    case "search": return progress.found ? `已找到${quest.item}` : `信号 ${signalBars(progress.signal ?? 1)}`;
+    case "search": return progress.found ? tr("已找到{value0}", { value0: cityContentName(quest.item) }) : tr("信号 {value0}", { value0: signalBars(progress.signal ?? 1) });
     default: return "";
   }
 }
@@ -305,12 +312,12 @@ export function questMarks(quest: QuestDef, progress: QuestProgress): QuestMapMa
   const marks: QuestMapMark[] = [];
   if (quest.type === "collect")
     quest.stops?.forEach((stop, i) => {
-      if (!progress.collected?.[i]) marks.push({ mark: "★", x: stop.x, y: stop.y, z: stop.z, label: stop.name });
+      if (!progress.collected?.[i]) marks.push({ mark: "★", x: stop.x, y: stop.y, z: stop.z, label: cityContentName(stop.name) });
     });
   if (questReady(quest, progress)) {
     const receiver = QUEST_NPCS[quest.receiver]!;
-    const verb = quest.type === "passenger" ? "目的地" : quest.type === "delivery" ? "送货目标" : "交付";
-    marks.push({ mark: "?", x: receiver.x, z: receiver.z, label: `${verb} · ${receiver.name}`, npc: quest.receiver });
+    const verb = quest.type === "passenger" ? tr("目的地") : quest.type === "delivery" ? tr("送货目标") : tr("交付");
+    marks.push({ mark: "?", x: receiver.x, z: receiver.z, label: `${verb} · ${npcName(receiver)}`, npc: quest.receiver });
   }
   return marks;
 }
@@ -320,5 +327,5 @@ const DIRECTIONS = ["北", "东北", "东", "东南", "南", "西南", "西", "�
 /** Compass word from (x, z) towards (tx, tz) in design coordinates (x east, z south). */
 export function compass(x: number, z: number, tx: number, tz: number): string {
   const degrees = (Math.atan2(tx - x, -(tz - z)) * 180) / Math.PI;
-  return DIRECTIONS[Math.round((((degrees % 360) + 360) % 360) / 45) % 8]!;
+  return tr(DIRECTIONS[Math.round((((degrees % 360) + 360) % 360) / 45) % 8]!);
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import { isPlayableGameplay } from "./gameplay-admission";
 import type { ActiveRoom } from "./room-state";
@@ -102,12 +103,12 @@ export async function listLobbyRooms(host: LobbyControllerHost, channel: string,
   page: number, quiet = false, gameplay: Gameplay = host.gameplay): Promise<void> {
   if (!host.connected || host.state.room || host.disposed) return;
   if (!supportedGameplay(gameplay)) {
-    host.options.status("未知的房间玩法。", true);
+    host.options.status(tr("未知的房间玩法。"), true);
     return;
   }
   if (gameplay !== "ordinary" && host.options.version !== "p3553") {
-    host.options.status(gameplay === "item" ? "道具赛暂时仅开放 P3553 资源版本。"
-      : "娱乐模式暂时仅开放 P3553 资源版本。", true);
+    host.options.status(gameplay === "item" ? tr("道具赛暂时仅开放 P3553 资源版本。")
+      : tr("娱乐模式暂时仅开放 P3553 资源版本。"), true);
     return;
   }
   if (channel !== host.channelName || page !== host.page || gameplay !== host.gameplay) {
@@ -132,10 +133,10 @@ export async function listLobbyRooms(host: LobbyControllerHost, channel: string,
     host.rooms = list.rooms;
     host.lobby?.setRooms(channel, page, list.total, list.rooms, gameplay);
     if (!quiet) host.options.status(gameplay === "lte"
-      ? "LTE Web试玩：三张专用地图全部随机，Z/X左右躲闪；自动补氮气与香蕉事件尚未实现。"
+      ? tr("LTE Web试玩：三张专用地图全部随机，Z/X左右躲闪；自动补氮气与香蕉事件尚未实现。")
       : list.total
-        ? `找到 ${list.total} 个房间，点击房间即可加入。`
-        : `${gameplayNames[gameplay]}大厅暂无房间，可以创建房间邀请其他玩家加入。`);
+        ? tr("找到 {value} 个房间，点击房间即可加入。", { value: String(list.total) })
+        : tr("{value}大厅暂无房间，可以创建房间邀请其他玩家加入。", { value: String(tr(gameplayNames[gameplay])) }));
   } catch (error) {
     if (!host.disposed && selection === host.selection && !quiet) {
       host.options.status(formatMultiplayerError(error), true);
@@ -188,7 +189,7 @@ const UNOWNED_COMMAND_MESSAGES: Record<string, string> = {
 function commandErrorMessage(command: Record<string, unknown>, error: unknown): string {
   const code = error instanceof Error ? error.message : String(error);
   return code === "ITEM_NOT_OWNED" && UNOWNED_COMMAND_MESSAGES[String(command.type)]
-    || formatMultiplayerError(error);
+    ? tr(UNOWNED_COMMAND_MESSAGES[String(command.type)]!) : formatMultiplayerError(error);
 }
 
 /**
@@ -228,7 +229,7 @@ export async function mutateLobbyRoom(host: LobbyControllerHost,
   host.busy = true;
   host.render();
   let blockedMessage: string | undefined;
-  let blockedTitle = "无法开始比赛";
+  let blockedTitle = tr("无法开始比赛");
   let completed = false;
   try {
     const response = await requestWithOwnedEquipment(host, command);
@@ -246,7 +247,7 @@ export async function mutateLobbyRoom(host: LobbyControllerHost,
       } else if (command.type === "ready" && code === "ITEM_NOT_OWNED") {
         // The node un-readied this player; say why in the room, not only the status line.
         blockedMessage = message;
-        blockedTitle = "无法准备";
+        blockedTitle = tr("无法准备");
         host.options.status(message, true);
       } else {
         host.options.status(message, true);
@@ -314,7 +315,7 @@ export async function quickJoinLobbyRoom(host: LobbyControllerHost): Promise<voi
     !candidate.locked && !candidate.gaming && candidate.count < candidate.capacity);
   if (room) await host.join(room);
   else if (host.create) await host.create();
-  else host.options.status("本页没有可快速加入的公开房间，请翻页或创建房间。");
+  else host.options.status(tr("本页没有可快速加入的公开房间，请翻页或创建房间。"));
 }
 
 export async function switchLobbyTeam(host: LobbyControllerHost): Promise<void> {
@@ -340,6 +341,6 @@ export async function submitLobbyRoomSettings(host: LobbyControllerHost,
       revision: room.revision, ...settings }) &&
       !host.disposed && dialogGeneration === host.dialogGeneration) {
     host.cancelDialog();
-    host.options.status("房间设置已更新。");
+    host.options.status(tr("房间设置已更新。"));
   }
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Assets load after the dialog mounts so the cancel control remains usable. */
 export interface GaragePreparationLoadingHost<TAssets> {
   disposed: boolean;
@@ -22,7 +23,7 @@ export async function loadGaragePreparation<TAssets>(
     if (!host.disposed) {
       host.controls.replaceChildren();
       host.cancelButton();
-      host.status.textContent = "强化窗口加载失败，未修改草稿：" +
+      host.status.textContent = tr("强化窗口加载失败，未修改草稿：") +
         (error instanceof Error ? error.message : String(error));
     }
   }

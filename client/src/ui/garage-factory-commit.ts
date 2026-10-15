@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageFactoryConfiguration {
   active: boolean;
   abilities: number[];
@@ -98,7 +99,7 @@ export class GarageFactorySession {
       this.stored = storeFactoryRecord(this.stored, response.resultCode, response.record);
     } catch (error) {
       if (revision === this.pageRevision)
-        this.failure = error instanceof Error ? error.message : "改装请求失败。";
+        this.failure = error instanceof Error ? error.message : tr("改装请求失败。");
       throw error;
     } finally {
       this.inFlight = false;
@@ -181,7 +182,7 @@ export async function setGarageFactory(
     host.factorySessionVehicleKey = host.factoryVehicleKey(selected);
     session.select({ category: 3, itemId: selected.itemId, serial });
     const request = session.request(oldFactory ? (factory.active ? "activate" : "reset") : "install", 0, 0);
-    host.status.textContent = "自定义粒子效果已立即应用，正在确认本地记录……";
+    host.status.textContent = tr("自定义粒子效果已立即应用，正在确认本地记录……");
     host.updateControls();
     await request;
     if (host.disposed) return;

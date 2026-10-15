@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Room creation form state and template adaptation for all gameplay modes. */
 
 import type { LobbyDialogNode, LobbyDialogOptions, LobbyDialogSession,
@@ -45,7 +46,7 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
   const dialog = createDialog();
   const channels = dependencies.channelNames(gameplay);
   const channelValues = Object.values(channels);
-  let roomName = `${nickname}的房间`.slice(0, 18);
+  let roomName = tr("{value}的房间", { value: String(nickname) }).slice(0, 18);
   let password = "";
   let passwordEnabled = false;
   // 50人乱斗 rooms seat up to 50 (server-go/BRAWL.md), in steps of ten.
@@ -58,10 +59,10 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
     folder, "mq_dialog@zz");
   const template = raw.children.find(child =>
     dependencies.nodeName(child) === "방만들기");
-  if (!template) throw new Error("缺少普通建房模板");
+  if (!template) throw new Error(tr("缺少普通建房模板"));
   if (channel && !findNamedNode(template, "gameStyle",
     dependencies.nodeName)) {
-    throw new Error("缺少选择游戏下拉控件");
+    throw new Error(tr("缺少选择游戏下拉控件"));
   }
   const capacityTemplate = channel
     ? findNamedNode(template, "joinNum", dependencies.nodeName)
@@ -73,7 +74,7 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
       "warningGreenAuth", "checkGreenAuth"].includes(name)) return undefined;
     if (name === "gameStyle") {
       if (channel) {
-        if (!capacityTemplate) throw new Error("缺少人数下拉模板");
+        if (!capacityTemplate) throw new Error(tr("缺少人数下拉模板"));
         return dependencies.dropdown(node, capacityTemplate, channelValues);
       }
       return dependencies.clone(node, {
@@ -110,13 +111,13 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
   dialog.view = await dependencies.loadView({
     ...options, preserveDisplayPixels: true, smoothImages: true,
     definition, roots: [folder, "stage_/common"],
-    modal: true, label: "创建房间",
+    modal: true, label: tr("创建房间"),
     onCancel: () => { if (!dialog.busy) options.cancel(); },
     state: (node: LobbyDialogNode) => {
       const name = dependencies.nodeName(node);
       switch (name) {
         case "gameStyle": return channel ? {
-          disabled: dialog.busy, label: "选择游戏",
+          disabled: dialog.busy, label: tr("选择游戏"),
           select: {
             value: channels[channel], valueText: channels[channel],
             values: channelValues,
@@ -142,10 +143,10 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
             canvas.stroke();
             canvas.restore();
           },
-        } : { text: gameplay === "item" ? itemModeLabel(mode === "team")
-          : mode === "team" ? "组队竞速" : "个人竞速" };
+        } : { text: gameplay === "item" ? tr(itemModeLabel(mode === "team"))
+          : mode === "team" ? tr("组队竞速") : tr("个人竞速") };
         case "roomName": return {
-          disabled: dialog.busy, label: "房间名称",
+          disabled: dialog.busy, label: tr("房间名称"),
           input: { value: roomName, maxLength: 18,
             change: (value: string) => {
               roomName = value;
@@ -154,7 +155,7 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
         };
         case "roomPassword": return {
           disabled: dialog.busy || !passwordEnabled,
-          label: "房间密码",
+          label: tr("房间密码"),
           input: { value: password, password: true, maxLength: 12,
             change: (value: string) => {
               password = value;
@@ -162,7 +163,7 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
             } },
         };
         case "isPassword": return {
-          disabled: dialog.busy, label: "设置房间密码",
+          disabled: dialog.busy, label: tr("设置房间密码"),
           checked: passwordEnabled,
           action: () => {
             passwordEnabled = !passwordEnabled;
@@ -172,7 +173,7 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
         case "joinNum":
         case "joinTeamGame": return {
           visible: name === (mode === "team" ? "joinTeamGame" : "joinNum"),
-          disabled: dialog.busy, label: "房间人数",
+          disabled: dialog.busy, label: tr("房间人数"),
           select: { value: capacity,
             values: gameplay === "brawl" ? brawlCapacities
               : gameplay === "roadblock" ? ["5", "6", "7", "8"]
@@ -183,7 +184,7 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
         case "createRoom": return {
           disabled: dialog.busy || !roomName.trim() ||
             (passwordEnabled && !password),
-          label: "确定建房",
+          label: tr("确定建房"),
           action: () => {
             if (!dialog.busy && roomName.trim() &&
               (!passwordEnabled || password)) {
@@ -193,7 +194,7 @@ export async function showLobbyRoomCreationForm<T extends LobbyDialogSession>(
           },
         };
         case "cancelRoom": return {
-          disabled: dialog.busy, label: "取消",
+          disabled: dialog.busy, label: tr("取消"),
           action: () => { if (!dialog.busy) options.cancel(); },
         };
       }

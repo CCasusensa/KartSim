@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Prepare the released lobby room scene for rider slots and mode controls. */
 
 export interface RoomTemplateNode {
@@ -56,13 +57,13 @@ export function buildLobbyRoomTemplate(
   if (roadblock) {
     for (const part of ["runnerTag", "blockerTag", "runnerHandicap"]) {
       if (!riderCard.children.some(child => attribute(child, "name") === part)) {
-        throw new Error(`挡人房间缺少 ${part} 原件。`);
+        throw new Error(tr("挡人房间缺少 {value} 原件。", { value: String(part) }));
       }
     }
     const hasRoadblockTime = (node: RoomTemplateNode): boolean =>
       attribute(node, "name") === "roadBlockTime" ||
       node.children.some(hasRoadblockTime);
-    if (!hasRoadblockTime(root)) throw new Error("挡人房间缺少限制时间原件。");
+    if (!hasRoadblockTime(root)) throw new Error(tr("挡人房间缺少限制时间原件。"));
   }
 
   const slotParts = riderCard.children.filter(node =>
@@ -303,6 +304,6 @@ export function addLobbyEmotionWheel(root: RoomTemplateNode,
     "214 566 252 176", undefined, buttons), { color: "232 23 44 77" });
   return { ...root, children: [
     ...root.children, wheel,
-    element("TextButton", "roomEmotionToggle", "368 744 98 34", "表情"),
+    element("TextButton", "roomEmotionToggle", "368 744 98 34", tr("表情")),
   ] };
 }

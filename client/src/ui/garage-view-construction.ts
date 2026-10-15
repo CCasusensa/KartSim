@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 
 export interface GarageViewConstructionOptions {
@@ -109,13 +110,13 @@ export function initializeGarageView(
     options.environment, options.stageBinding);
   host.modelCache = dependencies.createModelCache(loadModel, (path, error) => {
     host.status.textContent =
-      `部件模型加载失败：${path}（${error instanceof Error ? error.message : String(error)}）`;
+      tr("部件模型加载失败：{0}（{1}）", { "0": path, "1": error instanceof Error ? error.message : String(error) });
   });
 
   host.element.className = "garage-x";
   host.element.dataset.uiLayer = "stage";
   host.element.setAttribute("role", "dialog");
-  host.element.setAttribute("aria-label", "车库");
+  host.element.setAttribute("aria-label", tr("车库"));
   host.element.hidden = true;
   host.surface.className = "garage-x-surface";
   if (assets.fontFamily)

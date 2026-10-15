@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The release replay stage over an OB 观看 race (TIMEATTACK.md 4), loaded from
  * its own layout rather than redrawn: stage_/replay mq_window@zz.bml (操作台
@@ -192,7 +193,7 @@ export class ReplayConsole {
     indexRows(prepared, "rankRow", this.rows);
     this.view = await te.load({
       library: this.options.library, root: this.options.root, definition: prepared, roots: ROOTS, smoothImages: true,
-      modal: false, label: "回放", onCancel: () => this.options.onExit(),
+      modal: false, label: tr("回放"), onCancel: () => this.options.onExit(),
       state: (entry: Node) => this.state(entry),
     }) as WindowView;
     if (this.disposed) { this.view.dispose(); return; }
@@ -209,7 +210,7 @@ export class ReplayConsole {
   private timeBarControl(): HTMLDivElement {
     const bar = document.createElement("div");
     bar.setAttribute("role", "slider");
-    bar.setAttribute("aria-label", "回放进度");
+    bar.setAttribute("aria-label", tr("回放进度"));
     Object.assign(bar.style, { position: "absolute", left: `${BAR.x / 16}%`, top: `${(BAR.y - 10) / 9}%`,
       width: `${BAR.width / 16}%`, height: `${24 / 9}%`, cursor: "pointer", pointerEvents: "auto", touchAction: "none",
       outline: "none" });
@@ -276,7 +277,7 @@ export class ReplayConsole {
 
   private cameraName(mode: ObserveCameraMode): string {
     const camera = OBSERVE_CAMERAS.find(entry => entry.mode === mode)!;
-    return this.strings.get(camera.sb) ?? camera.name;
+    return tr(this.strings.get(camera.sb) ?? camera.name);
   }
 
   private riderAt(row: number): number | undefined {
@@ -288,7 +289,7 @@ export class ReplayConsole {
     const { observe } = this.options;
     const clock = observe.clock;
     const natural = () => this.options.naturalMs();
-    const act = (label: string, run: () => void, disabled = false) => ({ label, disabled,
+    const act = (label: string, run: () => void, disabled = false) => ({ label: tr(label), disabled,
       action: () => { this.options.onActivate?.(); run(); this.render(); } });
     const row = this.rows.get(entry);
     if (row !== undefined) return this.rowState(entry, name, row);
@@ -304,7 +305,7 @@ export class ReplayConsole {
     if (rider && entry.name === "ImageButton") {
       const rank = Number(rider[1]);
       const name = observe.riders[observe.ranking[rank - 1] ?? -1]?.name ?? "";
-      return act(`第 ${rank} 名 ${name}`, () => selectObserveRank(observe, rank), watchedRank(observe) === rank);
+      return act(tr("第 {rank} 名 {name}", { rank, name }), () => selectObserveRank(observe, rank), watchedRank(observe) === rank);
     }
     const mode = clock.paused ? "pause" : clock.rate === 0.5 ? "play05" : clock.rate === 0.25 ? "play025" : "play1";
     switch (name) {

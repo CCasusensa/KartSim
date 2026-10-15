@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 import {
   preparationCards, preparationPreviewCard, selectedPreparationVehicle,
@@ -20,7 +21,7 @@ export function compareGarageUpgradeLevels(current: number, next: number):
   const slots = (level: number) => Math.min(level, 3);
   const points = (level: number) => level * (level + 1) / 2;
   return {
-    labels: { slotCount: "性能槽数量", tuningPoints: "强化点数" },
+    labels: { slotCount: tr("性能槽数量"), tuningPoints: tr("强化点数") },
     level: { current, next },
     slots: { current: slots(current), next: slots(next),
       increment: slots(next) - slots(current) },

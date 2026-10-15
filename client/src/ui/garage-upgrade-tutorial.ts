@@ -1,6 +1,6 @@
+import { tr, resourceText } from "../i18n/locale";
 import type { GarageAssetEntry, GarageAssetNode, GarageAssetRect } from
   "./garage-asset-bundle";
-import { resourceLocale } from "../i18n/locale";
 
 export interface GarageTutorialLibrary {
   exactCanonicalCandidates(path: string): GarageAssetEntry[];
@@ -50,9 +50,7 @@ export async function showGarageUpgradeTutorial(
   const field = dependencies.attribute;
   const captions = new Map(strings!.children.map(node => [
     field(node, "n"),
-    field(node.children.find(child => field(child, "c") === resourceLocale()) ??
-      node.children.find(child => field(child, "c") === "cn") ?? node,
-      "v") ?? "",
+    resourceText(node.children, field) ?? "",
   ]));
   const frameGroups = frameDefinition!.children.filter(node =>
     ["CaptionDialog", "DefaultFocusedButton"].includes(node.name));
@@ -98,7 +96,7 @@ export async function showGarageUpgradeTutorial(
     });
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
-    overlay.setAttribute("aria-label", captions.get("title") || "改装教程");
+    overlay.setAttribute("aria-label", captions.get("title") || tr("改装教程"));
     const canvas = document.createElement("canvas");
     canvas.width = 1600;
     canvas.height = 900;

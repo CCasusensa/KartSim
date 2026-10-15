@@ -1,3 +1,13 @@
+import { nativeMenusTranslations, nativeKoreanOverrides } from "./catalogs/native-menus";
+import { lobbyTranslations } from "./catalogs/lobby";
+import { taskbarTranslations } from "./catalogs/taskbar";
+import { resourcesSettingsTranslations } from "./catalogs/resources-settings";
+import { menuTranslations } from "./catalogs/menus";
+import { singlePlayerTranslations } from "./catalogs/single-player";
+import { cityTranslations } from "./catalogs/city";
+import { editorTranslations } from "./catalogs/editor";
+import { accountTranslations } from "./catalogs/account";
+
 export type GameLocale = "zh-CN" | "en" | "ko";
 
 const STORAGE_KEY = "kartsim.language";
@@ -15,8 +25,9 @@ export function gameLocale(): GameLocale {
   return "zh-CN";
 }
 
-export function resourceLocale(): "cn" | "en" | "kr" {
-  return { "zh-CN": "cn", en: "en", ko: "kr" }[gameLocale()] as "cn" | "en" | "kr";
+export function resourceLocale(): "cn" | "us" | "kr" {
+  // The original game's StringBag uses `us`, not `en`, for English.
+  return { "zh-CN": "cn", en: "us", ko: "kr" }[gameLocale()] as "cn" | "us" | "kr";
 }
 
 export function setGameLocale(locale: GameLocale): void {
@@ -26,6 +37,15 @@ export function setGameLocale(locale: GameLocale): void {
 }
 
 const translations: Record<string, readonly [string, string]> = {
+  ...accountTranslations,
+  ...lobbyTranslations,
+  ...taskbarTranslations,
+  ...resourcesSettingsTranslations,
+  ...nativeMenusTranslations,
+  ...menuTranslations,
+  ...editorTranslations,
+  ...cityTranslations,
+  ...singlePlayerTranslations,
   "语言": ["Language", "언어"], "中文": ["Chinese", "중국어"],
   "英文": ["English", "영어"], "韩文": ["Korean", "한국어"],
   "跑跑卡丁车 · 账号登录": ["KartRider · Sign in", "카트라이더 · 로그인"],
@@ -111,10 +131,29 @@ const translations: Record<string, readonly [string, string]> = {
 };
 
 /** Translate a known interface string, preserving unknown content and player text. */
-export function tr(source: string): string {
+export function tr(source: string, parameters?: Readonly<Record<string, string | number>>): string {
   const pair = translations[source];
-  return gameLocale() === "en" ? pair?.[0] ?? source
-    : gameLocale() === "ko" ? pair?.[1] ?? source : source;
+  const locale = gameLocale();
+  const text = locale === "en" ? pair?.[0] ?? source
+    : locale === "ko" ? pair?.[1] ?? source : source;
+  return parameters ? text.replace(/\{([^{}]+)\}/g, (placeholder, key: string) =>
+    Object.hasOwn(parameters, key) ? String(parameters[key]) : placeholder) : text;
+}
+
+/** Resource bags contain interface copy, never player input. Empty locale rows fall back. */
+export function resourceText<T>(entries: readonly T[], attribute: (entry: T, name: string) => string | null | undefined): string | undefined {
+  if (gameLocale() === "ko") {
+    const chinese = entries.find(entry => attribute(entry, "c") === "cn");
+    const source = chinese && attribute(chinese, "v");
+    // Regional resource rows occasionally describe different costs or rewards.
+    if (source && nativeKoreanOverrides[source]) return nativeKoreanOverrides[source];
+  }
+  const preferred = gameLocale() === "en" ? ["us", "en"] : [resourceLocale()];
+  for (const language of [...preferred, "cn", "us", "en", "kr", "tw", "zz"]) {
+    const value = entries.find(entry => attribute(entry, "c") === language && attribute(entry, "v")?.trim());
+    if (value) return tr(attribute(value, "v")!);
+  }
+  return undefined;
 }
 
 /** Keep the switch available on the loading and login screens as well as in game. */
@@ -143,7 +182,7 @@ export function installLanguagePicker(doc: Document = document): void {
   label.append(select);
   picker.append(label);
   const style = doc.createElement("style");
-  style.textContent = `.ks-language-picker{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:2147483647;color:#fff;background:rgba(8,19,37,.88);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 8px;font:13px/1.4 Arial,sans-serif;box-shadow:0 2px 8px #0006}.ks-language-picker label{display:flex;align-items:center;gap:7px}.ks-language-picker select{font:inherit;background:#fff;color:#172238;border:0;border-radius:4px;padding:3px 5px;max-width:130px}`;
+  style.textContent = `.ks-language-picker{position:fixed;top:max(52px,calc(env(safe-area-inset-top) + 52px));right:max(12px,env(safe-area-inset-right));z-index:2147483647;color:#fff;background:rgba(8,19,37,.88);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 8px;font:13px/1.4 Arial,sans-serif;box-shadow:0 2px 8px #0006}.ks-language-picker label{display:flex;align-items:center;gap:7px}.ks-language-picker select{font:inherit;background:#fff;color:#172238;border:0;border-radius:4px;padding:3px 5px;max-width:130px}`;
   doc.head.append(style);
   doc.body.append(picker);
 }

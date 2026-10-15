@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** The SelectTrackEx window: track cards, random cards, favorites and input. */
 
 import { ScrollbarController, type UiRectangle } from "./scrollbar";
@@ -246,12 +247,12 @@ function drawNineSlice(context: CanvasRenderingContext2D,
 
 function randomCardTitle(group: TrackPickerRandomGroup): string {
   const titles: Record<string, string> = {
-    hot1: "人气随机（极易）", hot2: "人气随机（简单）", hot3: "人气随机（普通）",
-    hot4: "人气随机（困难）", hot5: "人气随机（极难）",
-    all: "全部随机", speedAll: "竞速随机", clubSpeed: "专业竞速随机",
-    new: "新图随机", reverse: "反方向随机", crazy: "疯狂随机",
+    hot1: tr("人气随机（极易）"), hot2: tr("人气随机（简单）"), hot3: tr("人气随机（普通）"),
+    hot4: tr("人气随机（困难）"), hot5: tr("人气随机（极难）"),
+    all: tr("全部随机"), speedAll: tr("竞速随机"), clubSpeed: tr("专业竞速随机"),
+    new: tr("新图随机"), reverse: tr("反方向随机"), crazy: tr("疯狂随机"),
   };
-  if (group.cardToken === "speedAllRandom_TimeAttack@zz") return "竞速随机";
+  if (group.cardToken === "speedAllRandom_TimeAttack@zz") return tr("竞速随机");
   return titles[group.randomType] ?? (group.level === undefined
     ? group.randomType : `${group.randomType}:${group.level}`);
 }
@@ -418,7 +419,7 @@ export class TrackPickerWindow {
     this.canvas.tabIndex = 0;
     this.canvas.setAttribute("role", "dialog");
     this.canvas.setAttribute("aria-label",
-      this.assets.strings.get("selectTrackCaption") ?? "选择赛道");
+      this.assets.strings.get("selectTrackCaption") ?? tr("选择赛道"));
     this.search.className = "window-edit";
     Object.assign(this.search.style, {
       position: "absolute", boxSizing: "border-box", border: "0", outline: "0",
@@ -717,8 +718,8 @@ export class TrackPickerWindow {
   }
 
   drawButtons(dialog: UiRectangle): void {
-    this.drawTextButton("confirm", this.assets.strings.get("select") ?? "确认", dialog);
-    this.drawTextButton("cancel", this.assets.strings.get("cancel") ?? "取消", dialog);
+    this.drawTextButton("confirm", this.assets.strings.get("select") ?? tr("确认"), dialog);
+    this.drawTextButton("cancel", this.assets.strings.get("cancel") ?? tr("取消"), dialog);
     const close = this.node("selectTrackEx").children.find(node =>
       node.name === "ImageButton" && attribute(node, "name") === "cancel")!;
     const rectangle = this.windows.get(close)!;

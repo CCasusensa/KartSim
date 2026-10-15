@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The account panel opened from the lobby rider (ECONOMY.md 7.8): username,
  * nickname with rename, level and experience, the three balances, race
@@ -50,7 +51,7 @@ function formatNumber(value: number): string {
 
 /** "2026-10-07" in local time; "未知" without a date. */
 export function formatAccountDate(milliseconds: number): string {
-  if (!Number.isFinite(milliseconds) || milliseconds <= 0) return "未知";
+  if (!Number.isFinite(milliseconds) || milliseconds <= 0) return tr("未知");
   const date = new Date(milliseconds);
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -58,41 +59,41 @@ export function formatAccountDate(milliseconds: number): string {
 
 /** "1,234 / 5,000" inside the level, or the total at the top level. */
 export function formatAccountExperience(progress: AccountSummary["progress"]): string {
-  if (progress.nextLevelExp === null) return `${formatNumber(progress.exp)}（已满级）`;
+  if (progress.nextLevelExp === null) return tr("{value}（已满级）", { value: String(formatNumber(progress.exp)) });
   const span = Math.max(1, progress.nextLevelExp - progress.levelExp);
   const inLevel = Math.max(0, progress.exp - progress.levelExp);
-  return `${formatNumber(inLevel)} / ${formatNumber(span)}（累计 ${formatNumber(progress.exp)}）`;
+  return tr("{value} / {value2}（累计 {value3}）", { value: String(formatNumber(inLevel)), value2: String(formatNumber(span)), value3: String(formatNumber(progress.exp)) });
 }
 
 /** The panel rows as label/value pairs, in display order. */
 export function accountPanelRows(summary: AccountSummary): Array<[string, string]> {
   const { account, progress, wallet, stats } = summary;
   return [
-    ["账号名", account.username],
-    ["等级", `Lv.${progress.level}${progress.gloveName ? ` ${progress.gloveName}` : ""}`],
-    ["经验", formatAccountExperience(progress)],
-    ["点券", formatNumber(wallet.coupon)],
-    ["金币", formatNumber(wallet.lucci)],
-    ["K币", formatNumber(wallet.koin)],
-    ["战绩", `比赛 ${formatNumber(stats.races)} 场 · 冠军 ${formatNumber(stats.wins)} · ` +
-      `前三 ${formatNumber(stats.podiums)} · 积分 ${formatNumber(stats.points)}`],
-    ["注册时间", formatAccountDate(account.createdAt)],
+    [tr("账号名"), account.username],
+    [tr("等级"), `Lv.${progress.level}${progress.gloveName ? ` ${tr(progress.gloveName)}` : ""}`],
+    [tr("经验"), formatAccountExperience(progress)],
+    [tr("点券"), formatNumber(wallet.coupon)],
+    [tr("金币"), formatNumber(wallet.lucci)],
+    [tr("K币"), formatNumber(wallet.koin)],
+    [tr("战绩"), tr("比赛 {value} 场 · 冠军 {value2} · ", { value: String(formatNumber(stats.races)), value2: String(formatNumber(stats.wins)) }) +
+      tr("前三 {value} · 积分 {value2}", { value: String(formatNumber(stats.podiums)), value2: String(formatNumber(stats.points)) })],
+    [tr("注册时间"), formatAccountDate(account.createdAt)],
   ];
 }
 
 function errorText(error: unknown): string {
   const code = error instanceof Error ? error.message : String(error);
-  return accountErrorMessages[code] ?? code;
+  return accountErrorMessages[code] ? tr(accountErrorMessages[code]!) : code;
 }
 
 /** What 修改昵称 answers: the text under the field and whether it worked. */
 async function renameAccount(session: AccountPanelSession, value: string): Promise<{ ok: boolean; text: string }> {
   const problem = validateNickname(value);
-  if (problem) return { ok: false, text: problem };
-  if (value === session.summary()?.account.nickname) return { ok: false, text: "昵称没有变化。" };
+  if (problem) return { ok: false, text: tr(problem) };
+  if (value === session.summary()?.account.nickname) return { ok: false, text: tr("昵称没有变化。") };
   try {
     await session.updateNickname(value);
-    return { ok: true, text: "昵称已修改。" };
+    return { ok: true, text: tr("昵称已修改。") };
   } catch (error) {
     return { ok: false, text: errorText(error) };
   }
@@ -114,23 +115,23 @@ export function openAccountPanel(options: AccountPanelOptions): AccountPanelHand
   panel.style.cssText = accountPanelStyle;
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-modal", "true");
-  panel.setAttribute("aria-label", "账号信息");
-  const heading = create<HTMLHeadingElement>("h2", "账号信息");
+  panel.setAttribute("aria-label", tr("账号信息"));
+  const heading = create<HTMLHeadingElement>("h2", tr("账号信息"));
   heading.style.margin = "0";
   const rows = create<HTMLDivElement>("div");
   rows.style.cssText = rowStyle;
   const nickname = create<HTMLInputElement>("input");
   nickname.style.cssText = inputStyle;
   nickname.maxLength = 16;
-  nickname.placeholder = "游戏昵称（1–16 字）";
-  nickname.setAttribute("aria-label", "游戏昵称");
-  const rename = create<HTMLButtonElement>("button", "修改昵称");
+  nickname.placeholder = tr("游戏昵称（1–16 字）");
+  nickname.setAttribute("aria-label", tr("游戏昵称"));
+  const rename = create<HTMLButtonElement>("button", tr("修改昵称"));
   rename.type = "button";
   const message = create<HTMLDivElement>("div");
   message.style.cssText = "min-height:20px;color:#ffb3a9";
-  const logout = create<HTMLButtonElement>("button", "退出登录");
+  const logout = create<HTMLButtonElement>("button", tr("退出登录"));
   logout.type = "button";
-  const close = create<HTMLButtonElement>("button", "关闭");
+  const close = create<HTMLButtonElement>("button", tr("关闭"));
   close.type = "button";
   styleAccountButtons(rename, logout, close);
   const nameRow = create<HTMLDivElement>("div");
@@ -165,11 +166,11 @@ export function openAccountPanel(options: AccountPanelOptions): AccountPanelHand
     const value = nickname.value;
     const problem = validateNickname(value);
     if (problem) {
-      message.textContent = problem;
+      message.textContent = tr(problem);
       return;
     }
     if (value === session.summary()?.account.nickname) {
-      message.textContent = "昵称没有变化。";
+      message.textContent = tr("昵称没有变化。");
       return;
     }
     rename.disabled = true;
@@ -179,7 +180,7 @@ export function openAccountPanel(options: AccountPanelOptions): AccountPanelHand
       editedName = false;
       render();
       message.style.color = "#b8f0a0";
-      message.textContent = "昵称已修改。";
+      message.textContent = tr("昵称已修改。");
     } catch (error) {
       message.style.color = "#ffb3a9";
       message.textContent = errorText(error);
@@ -235,8 +236,8 @@ function accountWindowDefinition(rows: number): Node {
   children.push(
     node("Window", { leftTopWH: `0 ${y - 4} ${WIDTH - 60} 1`, frame: "HSection", align: "hcenter" }),
     node("Label", { name: "nicknameLabel", leftTopWH: `20 ${y + 10} ${ROW.label} 30` }),
-    node("Edit", { name: "nickname", leftTopWH: `${ROW.value} ${y + 10} 220 30`, frame: "DefaultEdit", textRender: "bold16" }),
-    node("TextButton", { name: "renameButton", leftTopWH: `${ROW.value + 230} ${y + 9} 100 32`, textRender: "bold15" }),
+    node("Edit", { name: "nickname", leftTopWH: `${ROW.value} ${y + 10} 188 30`, frame: "DefaultEdit", textRender: "bold16" }),
+    node("TextButton", { name: "renameButton", leftTopWH: `${ROW.value + 198} ${y + 9} 132 32`, textRender: "bold15" }),
   );
   y += 48;
   children.push(
@@ -249,7 +250,7 @@ function accountWindowDefinition(rows: number): Node {
   );
   return node("Panel", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "accountDialog", windowRect: `0 0 ${WIDTH} ${y + 30 + 118}`, frame: "CaptionDialog",
-      caption: "账号信息", captionPos: "0 1", align: "center", textRender: "bold" }, children),
+      caption: tr("账号信息"), captionPos: "0 1", align: "center", textRender: "bold" }, children),
   ]);
 }
 
@@ -315,27 +316,27 @@ function openGameAccountPanel(library: BmlLibrary, options: AccountPanelOptions)
         : paintText(pair[1], { size: 15, bold: true, color: TEXT, middle: true });
     }
     switch (name) {
-      case "accountDialog": return { text: "账号信息" };
-      case "nicknameLabel": return paintText("游戏昵称", { size: 15, bold: true, color: LABEL, align: "right",
+      case "accountDialog": return { text: tr("账号信息") };
+      case "nicknameLabel": return paintText(tr("游戏昵称"), { size: 15, bold: true, color: LABEL, align: "right",
         middle: true });
-      case "nickname": return { label: "游戏昵称（1–16 字）", disabled: busy, input: { value: nickname, maxLength: 16,
+      case "nickname": return { label: tr("游戏昵称（1–16 字）"), disabled: busy, input: { value: nickname, maxLength: 16,
         submit: () => void rename(), change: (value: string) => {
           nickname = value;
           editedName = true;
         } } };
-      case "renameButton": return { text: "修改昵称", label: "修改昵称", disabled: busy, action: () => void rename() };
-      case "message": return paintText(busy ? "正在修改…" : message.text, { size: 13, bold: true, middle: true,
+      case "renameButton": return { text: tr("修改昵称"), label: tr("修改昵称"), disabled: busy, action: () => void rename() };
+      case "message": return paintText(busy ? tr("正在修改…") : message.text, { size: 13, bold: true, middle: true,
         color: message.error ? "rgb(205,45,35)" : "rgb(40,150,60)" });
-      case "okButton": return { text: "关闭", label: "关闭", action: () => {
+      case "okButton": return { text: tr("关闭"), label: tr("关闭"), action: () => {
         options.onActivate?.();
         finish();
       } };
-      case "logoutButton": return { text: "退出登录", label: "退出登录", action: () => void logout() };
+      case "logoutButton": return { text: tr("退出登录"), label: tr("退出登录"), action: () => void logout() };
     }
     return {};
   };
   void (te.load({ library, root: layer.element, definition: prepare(library, accountWindowDefinition(rowCount), ROOTS),
-    roots: ROOTS, smoothImages: true, modal: true, label: "账号信息", onCancel: finish, state } as never) as
+    roots: ROOTS, smoothImages: true, modal: true, label: tr("账号信息"), onCancel: finish, state } as never) as
     Promise<WindowView>).then(loaded => {
     if (closed) {
       loaded.dispose();

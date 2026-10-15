@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 回放 (TIMEATTACK.md 4): the 回放 tab of the 单人游戏 page has three pages
  * of release replayCard rows. 我的回放 lists this browser's Ghost records
@@ -98,8 +99,8 @@ export function runRecordKey(trackId: string, options: { speed: number; booster:
 
 /** "标准速度 / 个人赛", as the 排位计时赛 window words its settings. */
 export function settingsLabel(speed: number, booster: number, retro = false): string {
-  const speedText = retro ? `复古 S${speed}` : speed === 7 ? "标准速度" : speed === 4 ? "无限" : `S${speed}`;
-  return `${speedText} / ${booster ? "组队赛" : "个人赛"}`;
+  const speedText = retro ? tr("复古 S{speed}", { speed: speed }) : speed === 7 ? tr("标准速度") : speed === 4 ? tr("无限") : `S${speed}`;
+  return `${speedText} / ${booster ? tr("组队赛") : tr("个人赛")}`;
 }
 
 export function replaySettingsLabel(summary: ReplaySummary, key: string): string {
@@ -158,9 +159,10 @@ export function rankedEntries(rows: Array<{ rank: number; accountId: string; nic
   bestMs: number; updatedAt: number; hasReplay: boolean; self: boolean }>, state: ReplayBrowseState): ReplayMenuEntry[] {
   return rows.filter(row => row.hasReplay).map(row => ({
     key: `ranked:${state.track.id}:${state.speed}:${state.booster}:${row.accountId}`, source: "ranked",
-    trackId: state.track.id, trackTitle: state.track.title, riderName: row.self ? `${row.nickname}（我）` : row.nickname,
+    trackId: state.track.id, trackTitle: state.track.title, riderName: row.nickname,
+    ...(row.self ? { displayRiderName: tr("{name}（我）", { name: row.nickname }) } : {}),
     kartName: row.kartName, elapsedMs: row.bestMs, recordedAt: row.updatedAt,
-    title: `第${row.rank}名　${row.nickname}　${formatRecordTime(row.bestMs)}`,
+    title: tr("第{rank}名　{name}　{time}", { rank: row.rank, name: row.nickname, time: formatRecordTime(row.bestMs) }),
     settings: settingsLabel(state.speed, state.booster), dateText: replayDateText(row.updatedAt), deletable: false,
     speed: state.speed, booster: state.booster, accountId: row.accountId,
   }));
@@ -188,7 +190,7 @@ export async function loadReplayMenu(controller: ReadyHomeController, riderName:
 /** The 联赛回放 page's cards. */
 export async function loadFeaturedMenu(): Promise<ReplayMenuEntry[]> {
   const session = activeBrowserSession();
-  if (!session) throw new Error("请先登录后再查看联赛回放。");
+  if (!session) throw new Error(tr("请先登录后再查看联赛回放。"));
   return featuredEntries(await fetchFeaturedReplays(session));
 }
 
@@ -217,7 +219,7 @@ export async function loadOtherMenu(controller: ReadyReplayController): Promise<
   const state = await replayBrowseState(controller);
   if (!state) return { entries: [], header: undefined };
   const session = activeBrowserSession();
-  if (!session) throw new Error("请先登录后再查看其他回放。");
+  if (!session) throw new Error(tr("请先登录后再查看其他回放。"));
   const ranking = await fetchTimeAttackRanking(session, state.track.id, state.speed, state.booster);
   return { entries: rankedEntries(ranking.rows, state), header: replayBrowseHeader(state) };
 }
@@ -247,7 +249,7 @@ export async function pickReplayTrack(controller: ReadyReplayController): Promis
       onFavoriteChange: () => {},
       onConfirm: (choice: TrackChoice) => {
         close();
-        if (choice.kind !== "track") { notice(controller, "其他回放不能选择随机赛道。"); resolve(false); return; }
+        if (choice.kind !== "track") { notice(controller, tr("其他回放不能选择随机赛道。")); resolve(false); return; }
         void lib.trackMetadata(choice.track.id).catch(() => undefined).then(metadata => {
           controller.replayBrowse = { ...(state ?? { speed: 7, booster: 0 }),
             track: { id: choice.track.id, path: choice.track.path, title: metadata?.cnTitle ?? choice.track.id } };
@@ -256,13 +258,13 @@ export async function pickReplayTrack(controller: ReadyReplayController): Promis
       },
       onCancel: () => { close(); resolve(false); },
       onInteraction: () => controller.host.getAudioContext()?.resume(),
-      onError: (error: unknown) => { notice(controller, `选择赛道：${error instanceof Error ? error.message : String(error)}`); },
+      onError: (error: unknown) => { notice(controller, tr("选择赛道：{error}", { error: error instanceof Error ? error.message : String(error) })); },
       onNotice: () => {},
     }).then(view => {
       if (controller.disposed) { view.dispose(); resolve(false); return; }
       controller.replayTrackSelect = view;
       view.show();
-    }).catch(error => { notice(controller, `选择赛道：${error instanceof Error ? error.message : String(error)}`); resolve(false); });
+    }).catch(error => { notice(controller, tr("选择赛道：{error}", { error: error instanceof Error ? error.message : String(error) })); resolve(false); });
   });
 }
 
@@ -283,15 +285,15 @@ function returnToReplays(controller: ReadyReplayController, tab: ReplayTab): voi
 export async function openReplayEntry(controller: ReadyReplayController, entry: ReplayMenuEntry): Promise<void> {
   if (entry.source === "local") return openLocalReplay(controller, entry);
   const lib = resourceLibrary(controller);
-  if (!lib) throw new Error("缺少资源库。");
+  if (!lib) throw new Error(tr("缺少资源库。"));
   if (controller.replayBusy) return;
   controller.replayBusy = true;
   try {
     const session = activeBrowserSession();
-    if (!session) throw new Error("请先登录后再观看录像。");
+    if (!session) throw new Error(tr("请先登录后再观看录像。"));
     const tracks = await lib.timeAttackTrackCatalog();
     const track = tracks.find(candidate => candidate.id.toLowerCase() === entry.trackId.toLowerCase());
-    if (!track) throw new Error(`赛道 ${entry.trackTitle} 不在当前目录。`);
+    if (!track) throw new Error(tr("赛道 {track} 不在当前目录。", { track: entry.trackTitle }));
     let bytes: Uint8Array;
     try {
       bytes = entry.source === "featured"
@@ -303,7 +305,7 @@ export async function openReplayEntry(controller: ReadyReplayController, entry: 
     const tab: ReplayTab = entry.source === "featured" ? "league" : "other";
     await startReplaySession(controller, {
       trackId: track.id, trackPath: track.path, trackTitle: entry.trackTitle, ksv: bytes,
-      riderName: entry.riderName.replace(/（我）$/, ""), kartName: entry.kartName, recordMs: entry.elapsedMs,
+      riderName: entry.riderName, kartName: entry.kartName, recordMs: entry.elapsedMs,
       speed: entry.speed === 4 ? 4 : 7, booster: entry.booster,
       onReturn: () => returnToReplays(controller, tab),
     });
@@ -316,14 +318,14 @@ export async function openReplayEntry(controller: ReadyReplayController, entry: 
 export async function openLocalReplay(controller: ReadyReplayController, entry: ReplayMenuEntry): Promise<void> {
   const library = replayLibrary(controller);
   const lib = resourceLibrary(controller);
-  if (!library || !lib) throw new Error("缺少资源库。");
+  if (!library || !lib) throw new Error(tr("缺少资源库。"));
   if (controller.replayBusy) return;
   controller.replayBusy = true;
   try {
     const summary = library.records.get(entry.key) as ReplaySummary | undefined;
     const tracks = await lib.timeAttackTrackCatalog();
     const track = tracks.find(candidate => candidate.id.toLowerCase() === entry.trackId.toLowerCase());
-    if (!track) throw new Error(`赛道 ${entry.trackTitle} 不在当前目录。`);
+    if (!track) throw new Error(tr("赛道 {track} 不在当前目录。", { track: entry.trackTitle }));
     const stored = await library.store.get(entry.key).catch(() => undefined) as
       { participants?: Array<{ equipment?: { playerName?: unknown } }> } | undefined;
     const playerName = stored?.participants?.[0]?.equipment?.playerName;
@@ -348,7 +350,7 @@ export async function deleteLocalReplay(controller: ReadyReplayController, entry
   const lib = controller.host.getLibrary();
   if (!library || !lib || controller.replayBusy || entry.source !== "local") return false;
   const agreed = await openMessengerMessage(lib as never, controller.host.root, TITLE,
-    `要删除这条回放吗？|${entry.trackTitle}　${formatRecordTime(entry.elapsedMs)}`, { yes: "删除", no: "取消" })
+    tr("要删除这条回放吗？|{track}　{time}", { track: entry.trackTitle, time: formatRecordTime(entry.elapsedMs) }), { yes: tr("删除"), no: tr("取消") })
     .catch(() => false);
   if (!agreed || controller.disposed) return false;
   await library.delete(entry.key);

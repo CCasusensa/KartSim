@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { attribute, clone, formatSb, loadBml, mapTree, node, nodeName, withAttributes, type Node,
   type NodeState, type Rect } from "./bml-kit";
 import type { XunGarageProgression } from "./garage-progression-panel";
@@ -25,18 +26,18 @@ const ROOTS = [FOLDER, "stage_/common"];
 
 /** kart12SkillTuning_stringBag (cn). */
 export const SKILL_STRINGS = {
-  caption: "[color:255 22 225 255]性能槽%d[/color]性能选择",
-  speed: "竞速",
-  item: "道具",
-  alreadyUse: "已装至其他性能槽中",
-  cancel: "取消",
+  caption: tr("[color:255 22 225 255]性能槽%d[/color]性能选择"),
+  speed: tr("竞速"),
+  item: tr("道具"),
+  alreadyUse: tr("已装至其他性能槽中"),
+  cancel: tr("取消"),
 };
 
 /** The board's white boxes (tuning_selectperformPopupBg_s pixels 16–248, 257–488, 497–729 × 93–120). */
 const GUIDES: Array<[string, string]> = [
-  ["16 93 233 28", "竞速：九选三，不可重复"],
-  ["257 93 232 28", "本次仅更换当前性能槽"],
-  ["497 93 233 28", "本地不消耗材料"],
+  ["16 93 233 28", tr("竞速：九选三，不可重复")],
+  ["257 93 232 28", tr("本次仅更换当前性能槽")],
+  ["497 93 233 28", tr("本地不消耗材料")],
 ];
 const TEXT = "255 42 55 80";
 const HELP = "rgba(179, 195, 228, 1)";
@@ -143,7 +144,7 @@ export class GarageSkillSelectionDialog {
       if (this.disposed) return;
       const definition = skillSelectionDefinition(layout, id => this.state.equippedSlot(id));
       const window = await (this.dependencies.openWindow ?? openGarageReleaseWindow)({
-        library: this.library, definition, roots: ROOTS, label: "迅竞速技能选择",
+        library: this.library, definition, roots: ROOTS, label: tr("迅竞速技能选择"),
         onCancel: () => this.close(false), state: entry => this.nodeState(entry),
       });
       if (this.disposed) {
@@ -160,14 +161,14 @@ export class GarageSkillSelectionDialog {
   }
 
   skillLabel(id: number): string {
-    return this.dependencies.skills.find(skill => skill.id === id)?.label ?? `技能${id}`;
+    return this.dependencies.skills.find(skill => skill.id === id)?.label ?? tr("技能{0}", { "0": id });
   }
 
   /** The two help lines: points given back, points free after 变更. */
   statusText(): string {
     const points = (value: number) => `[color:${GREEN}]${value}[/color]`;
-    return `本次返还 ${points(this.state.refunded)} 点强化点数，确认后可用 ${points(
-      this.dependencies.availablePoints(this.state.value))} 点强化点数。|关闭或取消不修改。`;
+    return tr("本次返还 {0} 点强化点数，确认后可用 {1} 点强化点数。|关闭或取消不修改。", { "0": points(this.state.refunded), "1": points(
+      this.dependencies.availablePoints(this.state.value)) });
   }
 
   /** What each node of the window shows. */
@@ -201,15 +202,15 @@ export class GarageSkillSelectionDialog {
       case "skillTuningCaption": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
         paintColorText(context, formatSb(SKILL_STRINGS.caption, this.row + 1), rect,
           { size: 20, color: "white", align: "center", middle: true, outline: "rgba(3, 38, 64, 0.9)" }) };
-      case "speedTab": return { text: SKILL_STRINGS.speed, textColor: "white", label: "竞速技能（当前）" };
-      case "itemTab": return { text: SKILL_STRINGS.item, label: "道具技能（未开放）" };
+      case "speedTab": return { text: SKILL_STRINGS.speed, textColor: "white", label: tr("竞速技能（当前）") };
+      case "itemTab": return { text: SKILL_STRINGS.item, label: tr("道具技能（未开放）") };
       case "helpDesc": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
         paintColorText(context, this.statusText(), rect, { size: 14, color: HELP, lineGap: 6 }) };
-      case "okButton": return { text: "变更", label: "变更", disabled: !this.state.changed,
+      case "okButton": return { text: tr("变更"), label: tr("变更"), disabled: !this.state.changed,
         action: () => { if (this.state.changed) this.close(true); } };
       case "cancelButton": return { text: SKILL_STRINGS.cancel, label: SKILL_STRINGS.cancel,
         action: () => this.close(false) };
-      case "closeButton": return { label: "关闭技能选择", action: () => this.close(false) };
+      case "closeButton": return { label: tr("关闭技能选择"), action: () => this.close(false) };
     }
     return {};
   }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Game server picker shown before entering the lobby when several servers are open. */
 
 import { te } from "../generated/library.js";
@@ -23,8 +24,8 @@ const unavailableRowStyle =
 /** "在线 12/400 · 房间 3", plus why the server cannot be chosen. */
 export function gameServerSummary(option: GameServerOption): string {
   const { players, capacity, rooms } = option.server;
-  return `在线 ${players}/${capacity} · 房间 ${rooms}` +
-    (option.unavailable ? ` · ${option.unavailable}` : "");
+  return tr("在线 {value}/{value2} · 房间 {value3}", { value: String(players), value2: String(capacity), value3: String(rooms) }) +
+    (option.unavailable ? ` · ${tr(option.unavailable)}` : "");
 }
 
 const HEADING_ID = "kartsim-game-server-title";
@@ -53,14 +54,14 @@ export function showGameServerPicker(dependencies: GameServerPickerDependencies,
     form.setAttribute("aria-labelledby", HEADING_ID);
     const heading = dependencies.createElement("h2");
     heading.id = HEADING_ID;
-    heading.textContent = "选择游戏服务器";
+    heading.textContent = tr("选择游戏服务器");
     heading.style.margin = "0";
     const description = dependencies.createElement("div");
-    description.textContent = "想一起玩的玩家请选择同一个服务器。";
+    description.textContent = tr("想一起玩的玩家请选择同一个服务器。");
     const list = dependencies.createElement("div");
     list.style.cssText = listStyle;
     list.setAttribute("role", "radiogroup");
-    list.setAttribute("aria-label", "游戏服务器");
+    list.setAttribute("aria-label", tr("游戏服务器"));
 
     const choices: Array<{ input: HTMLInputElement; server: GameServer }> = [];
     for (const option of options) {
@@ -91,10 +92,10 @@ export function showGameServerPicker(dependencies: GameServerPickerDependencies,
     errorText.setAttribute("role", "alert");
     const submit = dependencies.createElement("button") as HTMLButtonElement;
     submit.type = "submit";
-    submit.textContent = "进入服务器";
+    submit.textContent = tr("进入服务器");
     const back = dependencies.createElement("button") as HTMLButtonElement;
     back.type = "button";
-    back.textContent = "返回";
+    back.textContent = tr("返回");
     dependencies.styleButtons(submit, back);
 
     /** The radio group is one tab stop: the checked radio, else the first one. */
@@ -133,7 +134,7 @@ export function showGameServerPicker(dependencies: GameServerPickerDependencies,
       event.preventDefault();
       const choice = choices.find(entry => entry.input.checked);
       if (!choice) {
-        errorText.textContent = "请选择一个游戏服务器。";
+        errorText.textContent = tr("请选择一个游戏服务器。");
         return;
       }
       cleanup();
@@ -183,7 +184,7 @@ function serverWindowDefinition(rows: number, paged: boolean): Node {
   );
   return node("Panel", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "serverDialog", windowRect: `0 0 ${WIDTH} ${y + 28 + 118}`, frame: "CaptionDialog",
-      caption: "选择游戏服务器", captionPos: "0 1", align: "center", textRender: "bold" }, children),
+      caption: tr("选择游戏服务器"), captionPos: "0 1", align: "center", textRender: "bold" }, children),
   ]);
 }
 
@@ -216,7 +217,7 @@ function gameServerWindow(library: BmlLibrary, root: HTMLElement, options: GameS
       const server = options.find(option => !option.unavailable && option.server.nodeId === choice)?.server;
       if (server) finish(server);
       else {
-        error = "请选择一个游戏服务器。";
+        error = tr("请选择一个游戏服务器。");
         view?.render();
       }
     };
@@ -249,23 +250,23 @@ function gameServerWindow(library: BmlLibrary, root: HTMLElement, options: GameS
           } };
       }
       switch (name) {
-        case "serverDialog": return { text: "选择游戏服务器" };
-        case "serverInfo": return paintText("想一起玩的玩家请选择同一个服务器。", { size: 14, bold: true, color: TEXT,
+        case "serverDialog": return { text: tr("选择游戏服务器") };
+        case "serverInfo": return paintText(tr("想一起玩的玩家请选择同一个服务器。"), { size: 14, bold: true, color: TEXT,
           middle: true });
-        case "serverPrevious": return { text: "上一页", label: "上一页", disabled: page === 0,
+        case "serverPrevious": return { text: tr("上一页"), label: tr("上一页"), disabled: page === 0,
           action: () => { page--; view?.render(); } };
-        case "serverNext": return { text: "下一页", label: "下一页", disabled: page >= pages - 1,
+        case "serverNext": return { text: tr("下一页"), label: tr("下一页"), disabled: page >= pages - 1,
           action: () => { page++; view?.render(); } };
         case "serverPage": return paintText(`${page + 1} / ${pages}`, { size: 14, bold: true, color: TEXT,
           align: "center", middle: true });
         case "serverError": return paintText(error, { size: 13, bold: true, color: "rgb(205,45,35)", middle: true });
-        case "okButton": return { text: "进入服务器", label: "进入服务器", action: enter };
-        case "cancelButton": return { text: "返回", label: "返回", action: cancel };
+        case "okButton": return { text: tr("进入服务器"), label: tr("进入服务器"), action: enter };
+        case "cancelButton": return { text: tr("返回"), label: tr("返回"), action: cancel };
       }
       return {};
     };
     void (te.load({ library, root: layer.element, definition: prepare(library, serverWindowDefinition(rows, paged), ROOTS),
-      roots: ROOTS, smoothImages: true, modal: true, label: "选择游戏服务器", onCancel: cancel, onConfirm: enter,
+      roots: ROOTS, smoothImages: true, modal: true, label: tr("选择游戏服务器"), onCancel: cancel, onConfirm: enter,
       state } as never) as Promise<WindowView>).then(loaded => {
       if (done) {
         loaded.dispose();

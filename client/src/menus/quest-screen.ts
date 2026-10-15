@@ -1,3 +1,4 @@
+import { gameLocale, tr } from "../i18n/locale";
 import { te } from "../generated/library.js";
 import type { AccountSession } from "../account/account-session";
 import { clone, drawFitted, FONT, ImageCache, indexRows, loadBml, loadStrings, mapTree, node, nodeName, paintText,
@@ -77,10 +78,10 @@ function periodText(start: number, end: number): string {
 /** missionTextDefault / missionTextDistance with their [color:…] runs: "[color:255 36 129 255]目前 2回[/color] / 目标 3回". */
 export function questProgressMarkup(quest: Pick<Quest, "kind" | "value" | "target">, strings: Map<string, string>): string {
   if (quest.kind === QUEST_DISTANCE) {
-    return (strings.get("missionTextDistance") ?? "[color:255 36 129 255]目前 %.1fkm[/color] / 目标 %.1fkm")
+    return (strings.get("missionTextDistance") ?? tr("[color:255 36 129 255]目前 %.1fkm[/color] / 目标 %.1fkm"))
       .replace("%.1f", (quest.value / 10).toFixed(1)).replace("%.1f", (quest.target / 10).toFixed(1));
   }
-  return (strings.get("missionTextDefault") ?? "[color:255 36 129 255]目前 %d回[/color] / 目标 %d回")
+  return (strings.get("missionTextDefault") ?? tr("[color:255 36 129 255]目前 %d回[/color] / 目标 %d回"))
     .replace("%d", String(quest.value)).replace("%d", String(quest.target));
 }
 
@@ -137,8 +138,14 @@ export function readSeenQuests(storage: Pick<Storage, "getItem"> | undefined, ac
 }
 
 function rewardText(reward: QuestReward): string {
-  if (reward.currency || reward.emblem || reward.passPoints) return reward.name;
-  return reward.count > 1 ? `${reward.name} ×${reward.count}` : reward.name;
+  if (gameLocale() !== "zh-CN") {
+    if (reward.passPoints) return `${reward.passPoints.toLocaleString(gameLocale())} ${tr("通行证积分")}`;
+    const currency = ({ lucci: "金币", koin: "酷币", coupon: "点券" } as Record<string, string>)[reward.currency ?? ""];
+    if (currency) return `${reward.count.toLocaleString(gameLocale())} ${tr(currency)}`;
+  }
+  const name = tr(reward.name);
+  if (reward.currency || reward.emblem || reward.passPoints) return name;
+  return reward.count > 1 ? `${name} ×${reward.count}` : name;
 }
 
 function defaultStorage(): Pick<Storage, "getItem" | "setItem"> | undefined {
@@ -273,7 +280,7 @@ export class QuestScreen {
     if (this.disposed) return;
     const view = await te.load({
       library, root: this.options.root, definition: prepared, roots: ROOTS, smoothImages: true, modal: true,
-      label: this.strings.get("questInfo") ?? "任务信息", onCancel: () => this.options.onClose(),
+      label: this.strings.get("questInfo") ?? tr("任务信息"), onCancel: () => this.options.onClose(),
       state: (entry: Node) => this.state(entry, rows),
     }) as WindowView;
     if (this.disposed) {
@@ -321,7 +328,7 @@ export class QuestScreen {
         const hovered = (this.view as unknown as { hovered?: Node } | undefined)?.hovered;
         return { visible: this.guide === group || (!!hovered && nodeName(hovered) === `infoBtn_${group}`) };
       }
-      return { label: "帮助", action: () => {
+      return { label: tr("帮助"), action: () => {
         this.options.onActivate?.();
         this.guide = this.guide === group ? undefined : group;
         this.view?.render();
@@ -329,32 +336,32 @@ export class QuestScreen {
     }
     switch (name) {
       case "cancelButton":
-      case "okButton": return { label: this.strings.get("ok") ?? "确认", action: () => this.options.onClose() };
+      case "okButton": return { label: this.strings.get("ok") ?? tr("确认"), action: () => this.options.onClose() };
       case "listZeroInfo": return { visible: boxes.pass.length === 0 };
       case "clubDim": return { visible: !this.hasClub };
       case "QuestTitleCaption": return { text: !quest ? "" : quest.group === "pass"
-        ? `[${this.stageOf(quest)}${this.strings.get("KartPassDaily") ?? "阶段"}] ${quest.title}` : quest.title };
-      case "period": return { text: !quest ? "" : quest.reset === "none" ? "无期限" : periodText(quest.periodStart, quest.periodEnd) };
+        ? `[${this.stageOf(quest)}${this.strings.get("KartPassDaily") ?? tr("阶段")}] ${quest.title}` : quest.title };
+      case "period": return { text: !quest ? "" : quest.reset === "none" ? tr("无期限") : periodText(quest.periodStart, quest.periodEnd) };
       // multiLine, vcenter: the lines are centred in the label's 100 px.
       case "QuestDesc": return this.centredLines((quest?.desc ?? "").replaceAll("|", "\n"), TEXT.dark);
       // The black plate under it is quest_img_baseBG's; only the word is coloured.
       case "thisQuestStatus": return !quest ? { text: "" } : quest.completedAt
-        ? { text: this.strings.get("questComplete") ?? "完成", textColor: STATUS_COLORS.complete }
-        : quest.locked ? { text: this.strings.get("questDisable") ?? "不可以", textColor: STATUS_COLORS.disable }
-        : { text: this.strings.get("questEnable") ?? "可以", textColor: STATUS_COLORS.enable };
+        ? { text: this.strings.get("questComplete") ?? tr("完成"), textColor: STATUS_COLORS.complete }
+        : quest.locked ? { text: this.strings.get("questDisable") ?? tr("不可以"), textColor: STATUS_COLORS.disable }
+        : { text: this.strings.get("questEnable") ?? tr("可以"), textColor: STATUS_COLORS.enable };
       // " 可进行状态" (marginRect "5 4"): its leading space kept, centred in the plate's 28 px caption strip.
       case "CaptionQuestStatus": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
         context.save();
         context.font = `bold 14px ${FONT}`;
         context.textBaseline = "middle";
         context.fillStyle = TEXT.grey;
-        context.fillText(` ${this.strings.get("enableState") ?? "可进行状态"}`, rect.x + 5, rect.y + 15);
+        context.fillText(` ${this.strings.get("enableState") ?? tr("可进行状态")}`, rect.x + 5, rect.y + 15);
         context.restore();
       } };
       case "lblEmptyConditions": return { visible: !!quest && !quest.locked && quest.group !== "club",
-        text: quest?.group === "club" ? "" : this.strings.get("questEnableAll") ?? "所有人均可参与任务。" };
+        text: quest?.group === "club" ? "" : this.strings.get("questEnableAll") ?? tr("所有人均可参与任务。") };
       case "emptyContainer": return quest?.locked ? this.lockedCondition(quest)
-        : quest?.group === "club" ? paintText(this.hasClub ? (this.strings.get("kClubJoined") ?? "加入俱乐部") : (this.strings.get("clubQuestNotOpen") ?? "加入俱乐部时开放。"),
+        : quest?.group === "club" ? paintText(this.hasClub ? (this.strings.get("kClubJoined") ?? tr("加入俱乐部")) : (this.strings.get("clubQuestNotOpen") ?? tr("加入俱乐部时开放。")),
           { size: 14, color: "rgb(42,55,80)", align: "center", middle: true, bold: true }) : {};
       case "QuestHowTo": return { text: quest?.mission ?? "" };
       case "questGageBG":
@@ -369,7 +376,7 @@ export class QuestScreen {
       case "subTitle1": case "subTitle2": case "subTitle3":
       case "dailyDesc": case "weeklyDesc": return { visible: true };
       // This server's third normal kind is 一般: one reward, never reset; no 网吧.
-      case "repeatDesc": return { visible: true, text: "完成后可获得1次奖励（不初始化）" };
+      case "repeatDesc": return { visible: true, text: tr("完成后可获得1次奖励（不初始化）") };
       case "subTitle4":
       case "onlyPCRoomDesc": return { visible: false };
     }
@@ -402,13 +409,13 @@ export class QuestScreen {
         const image = this.images.named(ROOTS, `${look}${lit ? 2 : 1}@zz`);
         if (image) context.drawImage(image.image, rect.x, rect.y, rect.width, rect.height);
       } };
-      case "resetType": return { text: group === "pass" ? `${this.stageOf(quest)}${this.strings.get("KartPassDaily") ?? "阶段"}`
+      case "resetType": return { text: group === "pass" ? `${this.stageOf(quest)}${this.strings.get("KartPassDaily") ?? tr("阶段")}`
         : this.strings.get(RESET_KEYS[quest.reset] ?? "none") ?? "", visible: !(group === "pass" && locked), ...words };
       case "title": return { text: `${quest.title} (${questPercent(quest)}%)`, visible: !(group === "pass" && locked),
         ...words };
       case "clearIcon": return { visible: !!quest.completedAt };
       case "closeImage": return { visible: group === "pass" && locked };
-      case "closeLabel": return { visible: group === "pass" && locked, text: this.strings.get("CloseDaily") ?? "完成前阶段任务时开放" };
+      case "closeLabel": return { visible: group === "pass" && locked, text: this.strings.get("CloseDaily") ?? tr("完成前阶段任务时开放") };
       case "newButton": return { visible: this.fresh.has(quest.id) && !quest.completedAt && !locked && group !== "pass" };
       case "pc": return { visible: false };
     }
@@ -476,8 +483,8 @@ export class QuestScreen {
 
   private lockedCondition(quest: Quest): NodeState {
     const pre = this.quests.find(entry => entry.id === quest.pre);
-    const text = quest.group === "pass" ? this.strings.get("CloseDaily") ?? "完成前阶段任务时开放"
-      : (this.strings.get("kPrevQuestComplete") ?? "[%s] 完成任务").replace("%s", pre?.title ?? String(quest.pre));
+    const text = quest.group === "pass" ? this.strings.get("CloseDaily") ?? tr("完成前阶段任务时开放")
+      : (this.strings.get("kPrevQuestComplete") ?? tr("[%s] 完成任务")).replace("%s", pre?.title ?? String(quest.pre));
     return { paint: (context: CanvasRenderingContext2D, rect: Rect) => {
       const dot = this.images.named(ROOTS, "img_pointImposible");
       if (dot) context.drawImage(dot.image, rect.x + 6, rect.y + 6);

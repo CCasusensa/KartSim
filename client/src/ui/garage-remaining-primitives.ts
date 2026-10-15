@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export function garageGameTypeAllowed(gameTypes: string | undefined,
   mode: string): boolean {
   return gameTypes === undefined ? true :
@@ -43,8 +44,8 @@ export function garageExpectedProgressionKind(kind: string): string {
 }
 
 export function garagePartPresentation(value: string | undefined,
-  locked: boolean, fallback = "原装") {
-  return { value: value ?? fallback, state: locked ? "锁定" : "" };
+  locked: boolean, fallback = tr("原装")) {
+  return { value: value ?? fallback, state: locked ? tr("锁定") : "" };
 }
 
 export function garageFactoryAbilityDraft(abilities: number[],
@@ -64,8 +65,8 @@ export function garageClassicUpgradeLines(summary: {
   beforePoints: number; afterPoints: number;
 }): string[] {
   return [
-    `等级 Lv.${summary.beforeLevel} → Lv.${summary.afterLevel}`,
-    `可用强化点 ${summary.beforePoints} → ${summary.afterPoints}`,
+    tr("等级 Lv.{0} → Lv.{1}", { "0": summary.beforeLevel, "1": summary.afterLevel }),
+    tr("可用强化点 {0} → {1}", { "0": summary.beforePoints, "1": summary.afterPoints }),
   ];
 }
 

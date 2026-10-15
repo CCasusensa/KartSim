@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Maps a room UI node to its live presentation and command state. */
 
 import { paintRandomTeamToggle } from "../ui/random-team-art";
@@ -117,7 +118,7 @@ function emotionState(host: LobbyRoomStateHost, name: string): NodeState | undef
   const disabled = host.busy || !host.connected ||
     host.room.phase !== "open" || host.chatSending;
   if (name === "roomEmotionToggle") return {
-    label: "表情", expanded: host.emotionWheelOpen, disabled,
+    label: tr("表情"), expanded: host.emotionWheelOpen, disabled,
     action: () => host.toggleEmotionWheel(),
   };
   if (name === "roomEmotionWheel") return {
@@ -202,7 +203,7 @@ function memberSlotState(host: LobbyRoomStateHost, name: string,
   };
 
   const closeSlot = isHost && !member && slot?.open && !disabled ? {
-    label: `关闭席位 ${slot.slot + 1}`,
+    label: tr("关闭席位 {value}", { value: String(slot.slot + 1) }),
     action: () => host.actions.slot(slot.slot, true),
   } : {};
   switch (part) {
@@ -240,7 +241,7 @@ function memberSlotState(host: LobbyRoomStateHost, name: string,
         !(room.mode === "team"
           ? (slot?.slot ?? NaN) % 4 < room.capacity / 2
           : (slot?.slot ?? NaN) < room.capacity),
-      label: `开启席位 ${(slot?.slot ?? 0) + 1}`,
+      label: tr("开启席位 {value}", { value: String((slot?.slot ?? 0) + 1) }),
       action: slot && !member ? () => host.actions.slot(slot.slot, false) : undefined,
     };
     case "riderNameLabel": return { visible: !!member, text: member?.name ?? "" };
@@ -252,11 +253,11 @@ function memberSlotState(host: LobbyRoomStateHost, name: string,
     case "changing": return { visible: !!member && !!member.changing };
     case "myRiderTag": return { visible: !!member && own };
     case "kick": return { visible: !!member && isHost && !own,
-      disabled, label: `移出 ${member?.name}`,
+      disabled, label: tr("移出 {value}", { value: String(member?.name) }),
       action: member ? () => host.actions.kick(member) : undefined };
     case "info": return { visible: !slot?.open || (!!member && isHost && !own),
       disabled: disabled || !member,
-      label: member ? `将房主移交给 ${member.name}` : "空席位信息",
+      label: member ? tr("将房主移交给 {value}", { value: String(member.name) }) : tr("空席位信息"),
       action: member ? () => host.actions.transfer(member) : undefined };
     default: return undefined;
   }
@@ -268,29 +269,29 @@ function roomDetailsState(host: LobbyRoomStateHost, name: string,
   const mode = dependencies.gameplayMode(room);
   switch (name) {
     case "roomName": return { text: room.name };
-    case "gameSpeed": return { text: room.speed === 4 ? "无限加速" : "标准速度" };
+    case "gameSpeed": return { text: room.speed === 4 ? tr("无限加速") : tr("标准速度") };
     case "gameType": return { text: mode === "rp"
-      ? dependencies.rpChannelNames[room.channelName ?? ""]
-      : mode === "roadblock" ? "挡人模式"
-        : mode === "brawl" ? BRAWL_LABEL
-        : mode === "ordinary" ? room.mode === "team" ? "组队竞速赛" : "个人竞速赛"
-          : mode === "item" ? itemModeLabel(room.mode === "team")
-          : `${room.mode === "team" ? "组队" : "个人"}${mode === "grip" ? "抓地" : "幽灵"}${room.speed === 4 ? "无限加速" : "赛"}` };
+      ? tr(dependencies.rpChannelNames[room.channelName ?? ""] ?? "")
+      : mode === "roadblock" ? tr("挡人模式")
+        : mode === "brawl" ? tr(BRAWL_LABEL)
+        : mode === "ordinary" ? room.mode === "team" ? tr("组队竞速赛") : tr("个人竞速赛")
+          : mode === "item" ? tr(itemModeLabel(room.mode === "team"))
+          : tr("{team}{mode}{speed}", { team: room.mode === "team" ? tr("组队") : tr("个人"), mode: mode === "grip" ? tr("抓地") : tr("幽灵"), speed: room.speed === 4 ? tr("无限加速") : tr("赛") }) };
     case "changeRoomInfoNotPassword": return { visible: room.locked === false };
     case "changeRoomInfoPassword": return { visible: room.locked === true };
     // Web addition: the release says 等待中 whatever the phase, so a player who
     // joins a room during its race (allowed, they wait for the next one) sees
     // 等待中 beside controls that stay disabled, as if the window had hung.
     case "sessionStateStr": return { text: host.connected
-      ? host.busy ? "正在处理…"
-        : room.phase === "finished" ? "比赛结算中，请稍候"
-        : room.phase !== "open" ? "比赛进行中，请稍候"
+      ? host.busy ? tr("正在处理…")
+        : room.phase === "finished" ? tr("比赛结算中，请稍候")
+        : room.phase !== "open" ? tr("比赛进行中，请稍候")
         : room.autoStartAt !== undefined
-          ? `自动开始倒数 ${host.countdownState().remaining}`
+          ? tr("自动开始倒数 {value}", { value: String(host.countdownState().remaining) })
           : room.kickVote
-            ? `移出投票 ${room.kickVote.yesIds.length}/${Math.floor(room.kickVote.eligibleIds.length / 2) + 1}`
-            : "等待中"
-      : "连接已断开" };
+            ? tr("移出投票 {value}/{value2}", { value: String(room.kickVote.yesIds.length), value2: String(Math.floor(room.kickVote.eligibleIds.length / 2) + 1) })
+            : tr("等待中")
+      : tr("连接已断开") };
     case "chat": return { lines: (room.chat ?? []).flatMap(line => {
       const text = dependencies.decodeChat(line.text, host.emotions).text;
       return text ? [{ text: `${line.name}: ${text}`,
@@ -317,8 +318,8 @@ function roomDetailsState(host: LobbyRoomStateHost, name: string,
     };
     case "roadBlockTime": return {
       visible: mode === "roadblock" && (room.phase === "open" || !!room.race?.roadblock),
-      text: `限制时间：${(room.phase === "open" ? dependencies.roadblockDefaults.limitMs :
-        (room.race?.roadblock?.limitMs ?? 0)) / 60000} 分钟`,
+      text: tr("限制时间：{value} 分钟", { value: String((room.phase === "open" ? dependencies.roadblockDefaults.limitMs :
+        (room.race?.roadblock?.limitMs ?? 0)) / 60000) }),
     };
     case "out_trackName": return { visible: mode !== "roadblock", text: host.trackTitle };
     default: return undefined;
@@ -332,58 +333,58 @@ function roomCommandState(host: LobbyRoomStateHost, name: string,
   const member = room.members.find(candidate => candidate.playerId === host.playerId);
   switch (name) {
     case "채팅": return {
-      label: "房间聊天，按回车激活；再按发送，空内容取消选中",
+      label: tr("房间聊天，按回车激活；再按发送，空内容取消选中"),
       disabled: disabled || host.chatSending,
       input: { value: host.chatDraft, maxLength: 120, blurOnEmptyEnter: true,
         change: (value: string) => { host.chatDraft = value; },
         submit: () => { host.sendChat(); } },
     };
     case "goBackButton": return { disabled: host.busy,
-      label: "返回大厅", action: host.actions.leave };
+      label: tr("返回大厅"), action: host.actions.leave };
     case "readyButtonCont": return { visible: room.mode === "individual" };
     case "teamReadyButtonCont": return { visible: room.mode === "team" };
     case "ready": return { visible: !isHost && !member?.ready,
-      disabled: disabled || !!member?.changing, label: "准备",
+      disabled: disabled || !!member?.changing, label: tr("准备"),
       onActivate: host.actions.onStartActivate,
       action: () => host.actions.ready(true) };
     case "cancel": return { visible: !isHost && !!member?.ready &&
-      !host.countdownState().active, disabled, label: "取消准备",
+      !host.countdownState().active, disabled, label: tr("取消准备"),
       action: () => host.actions.ready(false) };
     case "cancel_count": return { visible: !isHost && !!member?.ready &&
       host.countdownState().active,
       disabled: disabled || host.countdownState().cancelLocked,
-      label: "取消准备", action: () => host.actions.ready(false) };
+      label: tr("取消准备"), action: () => host.actions.ready(false) };
     case "changeRoomInfo": return { visible: isHost,
       disabled: disabled || !isHost || !host.actions.settings,
-      label: "房间设置", action: host.actions.settings };
+      label: tr("房间设置"), action: host.actions.settings };
     case "start": return { visible: isHost && !host.countdownState().active,
       disabled: disabled || !host.actions.start || host.actions.canStart?.() === false,
       onActivate: host.actions.onStartActivate,
-      label: host.actions.start ? "开始比赛" : "开始比赛（尚未接入）",
+      label: host.actions.start ? tr("开始比赛") : tr("开始比赛（尚未接入）"),
       action: host.actions.start };
     case "start_count": return { visible: isHost && host.countdownState().active,
       disabled: disabled || !host.actions.start || host.actions.canStart?.() === false,
       onActivate: host.actions.onStartActivate,
-      label: "开始比赛", action: host.actions.start };
+      label: tr("开始比赛"), action: host.actions.start };
     case "autoCount": return { visible: host.countdownState().active,
       paint: (canvas: PaintContext, rect: RoomRect) =>
         host.countdown?.paint(canvas, rect, host.countdownState().elapsed) };
     case "teamChange": return { disabled: disabled || (!isHost && !!member?.ready),
-      label: "选择队伍", action: host.actions.team };
+      label: tr("选择队伍"), action: host.actions.team };
     case "카트": return { disabled: disabled ||
       (isHost && host.countdownLocked) || (!isHost && !!member?.ready) ||
-      !host.actions.garage, label: "选择赛车", action: host.actions.garage };
+      !host.actions.garage, label: tr("选择赛车"), action: host.actions.garage };
     case "트랙": {
       const mode = dependencies.gameplayMode(room);
       if (mode === "roadblock") return {
-        disabled: true, label: "全部随机（挡人模式限定24张）",
+        disabled: true, label: tr("全部随机（挡人模式限定24张）"),
       };
       if (mode === "lte") return {
-        disabled: true, label: "全部随机（LTE模式限定3张）",
+        disabled: true, label: tr("全部随机（LTE模式限定3张）"),
       };
       return { disabled: disabled || host.countdownLocked || !isHost ||
         !host.actions.track,
-      label: isHost ? "选择赛道" : "由房主选择赛道", action: host.actions.track };
+      label: isHost ? tr("选择赛道") : tr("由房主选择赛道"), action: host.actions.track };
     }
     case "randomTeam": {
       // Not in the release: the header switch; members other than the host only see it.
@@ -392,7 +393,7 @@ function roomCommandState(host: LobbyRoomStateHost, name: string,
       const hovered = usable && host.view?.hoveredRegionId === "randomTeam";
       return { visible: room.mode === "team", hoverRegion: usable ? "randomTeam" : undefined,
         disabled: !usable, checked: enabled,
-        label: `队伍随机分配 ${enabled ? "ON" : "OFF"}`,
+        label: tr("队伍随机分配 {value}", { value: String(enabled ? "ON" : "OFF") }),
         action: usable ? () => host.actions.randomTeam?.(!enabled) : undefined,
         paint: (canvas: PaintContext, rect: RoomRect) => paintRandomTeamToggle(
           canvas as CanvasRenderingContext2D, rect, { enabled, hovered, disabled: !isHost || disabled }) };

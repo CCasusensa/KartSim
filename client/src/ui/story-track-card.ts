@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { wa as trackThemeOf } from "../generated/library.js";
 import { decodePngRgba } from "../resources/png-decoder";
 import type { TrackMetadata } from "../resources/track-catalog";
@@ -48,5 +49,5 @@ export async function loadStoryTrackCard(library: StoryTrackCardLibrary,
   ]);
   const name = metadata?.cnTitle ?? track.id.replace(/_rvs$/i, "");
   return { image: card.image, width: card.width, height: card.height, themeIcon, reverseStamp,
-    title: `${reverse ? "[反]" : ""}${name}` };
+    title: `${reverse ? tr("[反]") : ""}${name}` };
 }

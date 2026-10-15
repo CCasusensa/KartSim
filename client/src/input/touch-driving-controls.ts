@@ -1,4 +1,5 @@
 import { te } from "../generated/library.js";
+import { tr } from "../i18n/locale";
 import { node, nodeName, paintText, prepare, type BmlLibrary, type Node as BmlNode, type NodeState,
   type WindowView } from "../ui/bml-kit";
 import { gameRoot, gameWindowLibrary, popupLayer, showGameMessage, trapPopupKeys,
@@ -169,7 +170,7 @@ export function simMenuDefinition(groups: readonly TouchMenuGroup[]): BmlNode {
   );
   const height = 41 + y + 6 + strip + 13;
   return node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
-    node("CaptionWindow", { name: "simMenu", frame: "CaptionDialog", caption: "模拟器菜单", captionPos: "0 1",
+    node("CaptionWindow", { name: "simMenu", frame: "CaptionDialog", caption: tr("模拟器菜单"), captionPos: "0 1",
       windowRect: `0 0 ${width} ${height}`, align: "center", textRender: "bold" }, children),
   ]);
 }
@@ -225,15 +226,21 @@ export class TouchDrivingControls {
   ) {
     this.element.className = "touch-controls";
     this.element.dataset.uiLayer = "controls";
-    this.element.setAttribute("aria-label", "触屏驾驶");
+    this.element.setAttribute("aria-label", tr("触屏驾驶"));
     this.element.innerHTML = markup;
+    // Translate static UI attributes after parsing, keeping text out of HTML markup.
+    this.element.querySelectorAll<HTMLElement>("[aria-label], [data-action-name]").forEach(element => {
+      const label = element.getAttribute("aria-label");
+      if (label) element.setAttribute("aria-label", tr(label));
+      if (element.dataset.actionName) element.dataset.actionName = tr(element.dataset.actionName);
+    });
     this.menuButton = this.element.querySelector("[data-touch='menu']")!;
     this.pad = this.element.querySelector(".touch-pad")!;
     this.ghostMenuSlot = this.element.querySelector("[data-touch='ghost-slot']")!;
     this.element.querySelectorAll<HTMLButtonElement>("[data-drive]")
       .forEach(button => this.bindButton(button));
     this.setKeyMap(this.keyMap);
-    this.menuButton.dataset.actionName = "SIM 菜单";
+    this.menuButton.dataset.actionName = tr("SIM 菜单");
     const layoutButtons = new Map<ButtonAction | "menu", HTMLButtonElement>(this.buttons);
     layoutButtons.set("menu", this.menuButton);
     this.layout = new TouchLayoutEditor(this.element, this.pad, layoutButtons,
@@ -289,19 +296,19 @@ export class TouchDrivingControls {
     const visible = this.manualVisible ?? this.usingTouch;
     const entries: TouchMenuEntry[] = [];
     if (this.available)
-      entries.push({ name: "toggle", text: visible ? "隐藏按键" : "显示按键", action: this.onToggle });
+      entries.push({ name: "toggle", text: visible ? tr("隐藏按键") : tr("显示按键"), action: this.onToggle });
     entries.push(
-      { name: "auto-forward", text: `自动前进：${this.autoForward ? "开" : "关"}`,
+      { name: "auto-forward", text: tr("自动前进：{mode}", { mode: tr(this.autoForward ? "开" : "关") }),
         action: this.onAutoForwardToggle },
-      { name: "nitro-seamless", text: `氮气无缝：${nitroModeNames[this.nitroSeamless]}`,
+      { name: "nitro-seamless", text: tr("氮气无缝：{mode}", { mode: tr(nitroModeNames[this.nitroSeamless]) }),
         action: this.onNitroSeamlessToggle },
     );
     if (this.available)
-      entries.push({ name: "pause", text: this.paused ? "继续" : "暂停", action: this.onPauseClick });
+      entries.push({ name: "pause", text: this.paused ? tr("继续") : tr("暂停"), action: this.onPauseClick });
     if (this.screenEntryVisible())
-      entries.push({ name: "screen", text: document.fullscreenElement ? "退出全屏" : "全屏",
+      entries.push({ name: "screen", text: document.fullscreenElement ? tr("退出全屏") : tr("全屏"),
         action: () => void this.onScreen() });
-    entries.push({ name: "layout", text: "调整按键", action: () => this.layout.start() });
+    entries.push({ name: "layout", text: tr("调整按键"), action: () => this.layout.start() });
     return entries;
   }
 
@@ -315,7 +322,7 @@ export class TouchDrivingControls {
 
   /** The menu's groups: 驾驶设置, then each registered section. */
   currentMenuGroups(): TouchMenuGroup[] {
-    const groups: TouchMenuGroup[] = [{ title: "驾驶设置", entries: this.menuEntries() }];
+    const groups: TouchMenuGroup[] = [{ title: tr("驾驶设置"), entries: this.menuEntries() }];
     for (const section of this.menuSections())
       groups.push({ title: section.title, entries: section.menuEntries(), hint: section.hint });
     return groups;
@@ -324,8 +331,8 @@ export class TouchDrivingControls {
   /** A menu node's state for the window renderer. */
   menuNodeState(entry: BmlNode): NodeState {
     const name = nodeName(entry);
-    if (name === "simMenu") return { text: "模拟器菜单" };
-    if (name === "menuClose") return { text: "返回", label: "返回", action: () => this.closeMenu() };
+    if (name === "simMenu") return { text: tr("模拟器菜单") };
+    if (name === "menuClose") return { text: tr("返回"), label: tr("返回"), action: () => this.closeMenu() };
     if (name === "menuStatus") {
       const status = [this.autoForwardMessage, this.nitroSeamlessMessage].filter(Boolean).join("　");
       return paintText(status, { size: 18, bold: true, color: MENU_ERROR, align: "center", middle: true });
@@ -376,7 +383,7 @@ export class TouchDrivingControls {
     const layer = this.menuLayer;
     void (te.load({
       library, root: layer.element, definition: prepare(library, simMenuDefinition(groups), MENU_ROOTS),
-      roots: MENU_ROOTS, smoothImages: true, modal: true, label: "模拟器菜单",
+      roots: MENU_ROOTS, smoothImages: true, modal: true, label: tr("模拟器菜单"),
       onCancel: () => this.closeMenu(),
       state: (entry: BmlNode) => this.menuNodeState(entry),
     } as never) as Promise<WindowView>).then(view => {
@@ -449,15 +456,15 @@ export class TouchDrivingControls {
         action === DrivingAction.SteerRight;
       if (steering) {
         button.dataset.actionName = this.lteDodge
-          ? action === DrivingAction.SteerLeft ? "左躲闪" : "右躲闪"
-          : action === DrivingAction.SteerLeft ? "左转" : "右转";
+          ? action === DrivingAction.SteerLeft ? tr("左躲闪") : tr("右躲闪")
+          : action === DrivingAction.SteerLeft ? tr("左转") : tr("右转");
         button.querySelector<HTMLElement>(".touch-dodge-key")!.hidden = !this.lteDodge;
       }
       const label = this.lteDodge && steering
         ? action === DrivingAction.SteerLeft ? "Z" : "X"
         : action === "pause" ? "Esc" : [...new Set(labels)].join(" / ");
       const name = button.dataset.actionName;
-      button.title = label ? `${name}（${label}）` : name ?? "";
+      button.title = label ? tr("{action}（{key}）", { action: name ?? "", key: label }) : name ?? "";
       button.setAttribute("aria-label", button.title);
     }
   }
@@ -468,7 +475,7 @@ export class TouchDrivingControls {
     const forward = this.buttons.get(DrivingAction.Forward)!;
     if (forward.classList.contains("is-auto-forward") === active) return;
     forward.classList.toggle("is-auto-forward", active);
-    if (active) forward.setAttribute("aria-description", "自动前进中");
+    if (active) forward.setAttribute("aria-description", tr("自动前进中"));
     else forward.removeAttribute("aria-description");
   }
 
@@ -601,7 +608,7 @@ export class TouchDrivingControls {
     this.autoForward = !this.autoForward;
     this.autoForwardMessage = "";
     try { localStorage.setItem(AUTO_FORWARD_KEY, String(this.autoForward)); }
-    catch { this.autoForwardMessage = "自动前进设置未保存，仅本次有效。"; }
+    catch { this.autoForwardMessage = tr("自动前进设置未保存，仅本次有效。"); }
     this.refresh();
   };
 
@@ -610,7 +617,7 @@ export class TouchDrivingControls {
     this.nitroSeamless = nitroModes[(index + 1) % nitroModes.length]!;
     this.nitroSeamlessMessage = "";
     try { localStorage.setItem(NITRO_SEAMLESS_KEY, this.nitroSeamless); }
-    catch { this.nitroSeamlessMessage = "氮气无缝设置未保存，仅本次有效。"; }
+    catch { this.nitroSeamlessMessage = tr("氮气无缝设置未保存，仅本次有效。"); }
     this.onNitroSeamlessChange(this.nitroSeamless);
     this.refresh();
   };
@@ -627,9 +634,9 @@ export class TouchDrivingControls {
       if (document.fullscreenElement) await document.exitFullscreen();
       else if (document.fullscreenEnabled)
         await document.documentElement.requestFullscreen({ navigationUI: "hide" });
-      else this.showScreenHelp("当前浏览器不支持页面全屏。");
+      else this.showScreenHelp(tr("当前浏览器不支持页面全屏。"));
     } catch {
-      this.showScreenHelp("浏览器未允许切换全屏。");
+      this.showScreenHelp(tr("浏览器未允许切换全屏。"));
     }
   };
 
@@ -639,15 +646,14 @@ export class TouchDrivingControls {
    * the menu up.
    */
   showScreenHelp(message: string): void {
-    this.screenHelpMessage =
-      `${message}可通过浏览器的分享或菜单选择“添加到主屏幕”或“安装应用”，再从图标打开。若有“作为网页 App 打开”选项，请开启。`;
+    this.screenHelpMessage = tr("{message}可通过浏览器的分享或菜单选择“添加到主屏幕”或“安装应用”，再从图标打开。若有“作为网页 App 打开”选项，请开启。", { message });
     this.closeScreenHelp();
     const library = this.windowLibrary();
     if (!library) return;
     const close = new AbortController();
     this.screenHelpClose = close;
     this.screenHelpOpen = true;
-    void showGameMessage("全屏", this.screenHelpMessage, { yes: "关闭说明", signal: close.signal, library,
+    void showGameMessage(tr("全屏"), this.screenHelpMessage, { yes: tr("关闭说明"), signal: close.signal, library,
       root: this.stage() }).catch(error => console.warn("全屏说明打开失败", error)).finally(() => {
       if (this.screenHelpClose !== close) return;
       this.screenHelpClose = undefined;

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { T } from "../generated/formats.js";
 import { C8, F9, h2, te } from "../generated/library.js";
 import {
@@ -167,7 +168,7 @@ export async function openMyRoomEmblems(options: MyRoomEmblemOptions): Promise<M
     try {
       summary = await options.onSave!(main);
       main = [...summary.main];
-      options.notice(EMBLEM_STRINGS.success!);
+      options.notice(tr(EMBLEM_STRINGS.success!));
       busy = false;
       close();
     } catch (error) {
@@ -179,7 +180,7 @@ export async function openMyRoomEmblems(options: MyRoomEmblemOptions): Promise<M
   const pick = (id: number) => {
     if (!options.editable || busy) return;
     const result = chooseMainEmblem(main, id);
-    if ("refused" in result) options.notice(EMBLEM_STRINGS[result.refused]!);
+    if ("refused" in result) options.notice(tr(EMBLEM_STRINGS[result.refused]!));
     else main = result.main;
     view.render();
   };
@@ -188,13 +189,13 @@ export async function openMyRoomEmblems(options: MyRoomEmblemOptions): Promise<M
     library: options.library, root: options.root, definition,
     roots: [FOLDER, "stage_/common", "stage_/myRoom"],
     preserveDisplayPixels: true, smoothImages: true, modal: true,
-    label: options.editable ? EMBLEM_STRINGS.dialogMyTitle : EMBLEM_STRINGS.dialogTitle,
+    label: options.editable ? tr(EMBLEM_STRINGS.dialogMyTitle ?? "") : tr(EMBLEM_STRINGS.dialogTitle ?? ""),
     onCancel: close,
     onConfirm: () => { void save().catch(() => undefined); },
     state: (node: EmblemNode) => {
       const nodeName = name(node) ?? "";
       if (node.name === "CaptionWindow" && nodeName === "roomEmblemFrame") {
-        const title = options.editable ? EMBLEM_STRINGS.dialogMyTitle! : EMBLEM_STRINGS.dialogTitle!;
+        const title = options.editable ? tr(EMBLEM_STRINGS.dialogMyTitle!) : tr(EMBLEM_STRINGS.dialogTitle!);
         return { text: options.editable ? title : `${summary.nickname} ${title}` };
       }
       const card = /^emblemCard(\d+)$/.exec(nodeName);
@@ -218,7 +219,7 @@ export async function openMyRoomEmblems(options: MyRoomEmblemOptions): Promise<M
       if (slot) {
         const index = Number(slot[1]) as 0 | 1;
         const id = main[index]!;
-        return { paint: paintIcon(id), label: id ? info(id)?.name ?? String(id) : "空的代表徽章槽",
+        return { paint: paintIcon(id), label: id ? info(id)?.name ?? String(id) : tr("空的代表徽章槽"),
           ...(options.editable && id ? { action: () => {
             if (busy) return;
             main = clearMainEmblem(main, index);
@@ -227,18 +228,18 @@ export async function openMyRoomEmblems(options: MyRoomEmblemOptions): Promise<M
       }
       switch (nodeName) {
         case "emblemCount":
-          return { text: EMBLEM_STRINGS.emblemCount!.replace("%d", String(summary.emblems.length)) };
+          return { text: tr(EMBLEM_STRINGS.emblemCount!).replace("%d", String(summary.emblems.length)) };
         case "page": return { text: `${page + 1} / ${pages()}` };
-        case "prevPage": return { label: "上一页", disabled: page <= 0,
+        case "prevPage": return { label: tr("上一页"), disabled: page <= 0,
           action: () => { page = Math.max(0, page - 1); view.render(); } };
-        case "nextPage": return { label: "下一页", disabled: page >= pages() - 1,
+        case "nextPage": return { label: tr("下一页"), disabled: page >= pages() - 1,
           action: () => { page = Math.min(pages() - 1, page + 1); view.render(); } };
-        case "OK": return { label: EMBLEM_STRINGS.ok, disabled: busy,
-          ...(node.name === "TextButton" ? { text: EMBLEM_STRINGS.ok } : {}),
+        case "OK": return { label: tr(EMBLEM_STRINGS.ok ?? ""), disabled: busy,
+          ...(node.name === "TextButton" ? { text: tr(EMBLEM_STRINGS.ok ?? "") } : {}),
           action: () => { void save().catch(() => undefined); } };
         // setCloseButton="Cancel" also names the caption's close button.
-        case "Cancel": return { label: EMBLEM_STRINGS.cancel, disabled: busy,
-          ...(node.name === "TextButton" ? { text: EMBLEM_STRINGS.cancel } : {}), action: close };
+        case "Cancel": return { label: tr(EMBLEM_STRINGS.cancel ?? ""), disabled: busy,
+          ...(node.name === "TextButton" ? { text: tr(EMBLEM_STRINGS.cancel ?? "") } : {}), action: close };
         case "emblemTooltip": return { paint: (context: CanvasRenderingContext2D) => {
           const hovered = view?.hovered ? /^emblemCard(\d+)$/.exec(name(view.hovered) ?? "") : null;
           if (!hovered) return;
@@ -252,9 +253,9 @@ export async function openMyRoomEmblems(options: MyRoomEmblemOptions): Promise<M
       }
       const key = sbKey(T(node, node.name === "CaptionWindow" ? "caption" : "text") as string | undefined);
       // The multi-line help ("|" breaks lines) wraps inside its box.
-      if (key === "desc") return { text: "", lines: EMBLEM_STRINGS.desc!.split("|").map(text =>
+      if (key === "desc") return { text: "", lines: tr(EMBLEM_STRINGS.desc!).split("|").map(text =>
         ({ text, color: "rgb(42, 55, 80)" })) };
-      if (key && EMBLEM_STRINGS[key] !== undefined) return { text: EMBLEM_STRINGS[key] };
+      if (key && EMBLEM_STRINGS[key] !== undefined) return { text: tr(EMBLEM_STRINGS[key] ?? "") };
       return {};
     },
   } as never) as typeof view;

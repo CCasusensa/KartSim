@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Per-room view state created before room resources are loaded. */
 
 export interface LobbyRoomKeyHandlers {
@@ -18,7 +19,7 @@ export function initializeLobbyRoomInstanceState(host: Record<string, unknown>,
   host.chatSending = false;
   host.lastChatSequence = undefined;
   host.bubbles = new Map();
-  host.trackTitle = "尚未选择赛道";
+  host.trackTitle = tr("尚未选择赛道");
   host.trackImage = undefined;
   host.trackReverseStamp = undefined;
   host.trackIcon = undefined;

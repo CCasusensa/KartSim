@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { T } from "../generated/formats.js";
 import { _w, h2, te } from "../generated/library.js";
 import { currentResourceManager } from "../resources/resource-manager";
@@ -205,9 +206,9 @@ export function showGameMessage(title: string, message: string, options: GameMes
           library, root: layer!.element, preserveDisplayPixels: true, smoothImages: true,
           definition: { ...template.definition, children: [visibleShell] },
           roots: ["dialog2_/customMessageBox", "stage_/common"],
-          modal: true, label: title, onCancel: () => finish(notice),
+          modal: true, label: tr(title), onCancel: () => finish(notice),
           state: (entry: Node) => {
-            if (entry === visibleShell) return { text: title };
+            if (entry === visibleShell) return { text: tr(title) };
             if (entry === text) return {
               visible: true, text: "",
               paint: (context: CanvasRenderingContext2D, rect: Rect) => {
@@ -218,9 +219,9 @@ export function showGameMessage(title: string, message: string, options: GameMes
                 opened.paintLabelLines(context, wrapped, { ...rect, y: top, height: step }, size, color, step);
               },
             };
-            if (entry === yes) return { visible: true, label: options.yes ?? "确定", text: options.yes ?? "确定",
+            if (entry === yes) return { visible: true, label: tr(options.yes ?? "确定"), text: tr(options.yes ?? "确定"),
               action: () => finish(true) };
-            if (entry === no) return { visible: true, label: options.no ?? "取消", text: options.no ?? "取消",
+            if (entry === no) return { visible: true, label: tr(options.no ?? "取消"), text: tr(options.no ?? "取消"),
               action: () => finish(false) };
             return {};
           },
@@ -263,7 +264,7 @@ export function confirmGame(title: string, message: string, yes = "确定", no =
 
 function statusDefinition(title: string): Node {
   return node("Panel", { windowRect: "fullscreen" }, [
-    node("CaptionWindow", { name: "statusDialog", windowRect: "0 0 464 170", frame: "CaptionDialog", caption: title,
+    node("CaptionWindow", { name: "statusDialog", windowRect: "0 0 464 170", frame: "CaptionDialog", caption: tr(title),
       captionPos: "0 1", align: "center", textRender: "bold" }, [
       node("Label", { name: "statusText", windowSize: "408 96", adjust: "0 16", align: "hcenter" }),
     ]),
@@ -289,10 +290,10 @@ export function showGameStatus(title: string, text: string, options: { root?: HT
     if (closed || !library) return;
     layer = popupLayer(options.root ?? gameRoot(), { dim: options.dim });
     void te.load({ library, root: layer.element, definition: prepare(library, statusDefinition(title), ROOTS),
-      roots: ROOTS, smoothImages: true, modal: true, label: title,
+      roots: ROOTS, smoothImages: true, modal: true, label: tr(title),
       state: (entry: Node) => {
         switch (nodeName(entry)) {
-          case "statusDialog": return { text: title };
+          case "statusDialog": return { text: tr(title) };
           case "statusText": return paintText(message, { size: 16, bold: true, color: TEXT, align: "center",
             middle: true, lineGap: 6 });
         }
@@ -342,7 +343,7 @@ function promptDefinition(title: string, info: boolean): Node {
   const top = info ? 64 : 22;
   return node("Panel", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "promptDialog", windowRect: `0 0 464 ${top + 136}`, frame: "CaptionDialog",
-      caption: title, captionPos: "0 1", align: "center", textRender: "bold" }, [
+      caption: tr(title), captionPos: "0 1", align: "center", textRender: "bold" }, [
       ...info ? [node("Label", { name: "promptInfo", leftTopWH: "28 14 408 44" })] : [],
       node("Edit", { name: "promptEdit", leftTopWH: `52 ${top} 360 30`, frame: "DefaultEdit", textRender: "bold16" }),
       node("Window", { leftTopWH: "0 0 408 1", frame: "HSection", align: "hcenter;bottom", adjust: "0 63" }),
@@ -388,19 +389,19 @@ export function promptGame(title: string, options: GamePromptOptions = {}): Prom
       layer = popupLayer(options.root ?? gameRoot());
       const loaded = await te.load({
         library, root: layer.element, definition: prepare(library, promptDefinition(title, !!options.info), ROOTS),
-        roots: ROOTS, smoothImages: true, modal: true, label: title, onCancel: () => finish(undefined),
+        roots: ROOTS, smoothImages: true, modal: true, label: tr(title), onCancel: () => finish(undefined),
         onConfirm: submit,
         state: (entry: Node): NodeState => {
           switch (nodeName(entry)) {
-            case "promptDialog": return { text: title };
+            case "promptDialog": return { text: tr(title) };
             case "promptInfo": return paintText(options.info ?? "", { size: 14, bold: true, color: TEXT,
               align: "center", middle: true, lineGap: 4 });
-            case "promptEdit": return { label: title, input: { value, maxLength: options.maxLength ?? 64,
+            case "promptEdit": return { label: tr(title), input: { value, maxLength: options.maxLength ?? 64,
               password: options.password, submit, change: (next: string) => {
                 value = next;
               } } };
-            case "okButton": return { text: options.ok ?? "确定", label: options.ok ?? "确定", action: submit };
-            case "cancelButton": return { text: options.cancel ?? "取消", label: options.cancel ?? "取消",
+            case "okButton": return { text: tr(options.ok ?? "确定"), label: tr(options.ok ?? "确定"), action: submit };
+            case "cancelButton": return { text: tr(options.cancel ?? "取消"), label: tr(options.cancel ?? "取消"),
               action: () => finish(undefined) };
           }
           return {};

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 下车步行 in the city session (server-go/CITY.md 7). The local rider sits in
  * its kart's driver's seat, someone's back seat, or walks:
@@ -209,7 +210,7 @@ export class CityOnFoot {
     if (event.id === this.myId) {
       // Our own requests are handled with their replies; only forced changes land here.
       if (!event.reason || event.seat !== "foot" || !event.pose) return;
-      this.host.notice(event.reason === "recalled" ? "车主收回了这辆车，你下车了。" : "司机下车了，你也下了车。");
+      this.host.notice(event.reason === "recalled" ? tr("车主收回了这辆车，你下车了。") : tr("司机下车了，你也下了车。"));
       void this.becomeFoot(event.pose);
       return;
     }
@@ -275,9 +276,9 @@ export class CityOnFoot {
       const foot = this.footDesign();
       if (!foot) return;
       const choice = enterChoice(this.liveVehicles(), foot.x, foot.z, this.myId);
-      if (choice.kind === "none") { this.host.notice("附近没有可以上的车。"); return; }
-      if (choice.kind === "locked") { this.host.notice(`${choice.vehicle.ownerName}的车上锁了。`); return; }
-      if (choice.kind === "full") { this.host.notice("这辆车坐满了。"); return; }
+      if (choice.kind === "none") { this.host.notice(tr("附近没有可以上的车。")); return; }
+      if (choice.kind === "locked") { this.host.notice(tr("{value0}的车上锁了。", { value0: choice.vehicle.ownerName })); return; }
+      if (choice.kind === "full") { this.host.notice(tr("这辆车坐满了。")); return; }
       this.busy = true;
       try {
         const reply = await network.enter(choice.vehicle.id);
@@ -296,7 +297,7 @@ export class CityOnFoot {
     if (this.seat === "driver") {
       const velocity = this.host.stage()?.runtime?.local?.physics?.body?.linearVelocity;
       if (velocity && Math.hypot(velocity.x, velocity.y, velocity.z) * 3.6 > EXIT_SPEED_KMH) {
-        this.host.notice("请先停车再下车。");
+        this.host.notice(tr("请先停车再下车。"));
         return;
       }
     }
@@ -341,7 +342,7 @@ export class CityOnFoot {
     try {
       const vehicle = await network.lock(!own.locked);
       this.vehicles.set(vehicle.id, vehicle);
-      this.host.notice(vehicle.locked ? "你的车已上锁，别人开不走也坐不上。" : "你的车已解锁，谁都可以开走或搭车。");
+      this.host.notice(vehicle.locked ? tr("你的车已上锁，别人开不走也坐不上。") : tr("你的车已解锁，谁都可以开走或搭车。"));
     } catch (error) {
       this.host.notice(seatErrorText(error));
     } finally {
@@ -368,7 +369,7 @@ export class CityOnFoot {
       if (this.disposed) this.closeMap();
     } catch (error) {
       console.warn("城市地图打开失败", error);
-      this.host.notice("地图打开失败。");
+      this.host.notice(tr("地图打开失败。"));
     } finally {
       this.mapOpening = false;
     }
@@ -469,7 +470,7 @@ export class CityOnFoot {
     if (vehicle.id !== this.localKartVehicle) {
       const equipment = vehicle.owner === this.myId ? this.host.equipment()
         : drivenEquipment(vehicle.equipment, this.host.equipment());
-      this.host.notice(vehicle.owner === this.myId ? "坐回了你的车。" : `上了${vehicle.ownerName}的车。`);
+      this.host.notice(vehicle.owner === this.myId ? tr("坐回了你的车。") : tr("上了{value0}的车。", { value0: vehicle.ownerName }));
       let loaded: any;
       try {
         loaded = await loadLocalKart(stage, this.host.playerId, this.host.name, equipment);
@@ -501,7 +502,7 @@ export class CityOnFoot {
     this.setLocalRiderVisible(false);
     const driver = this.members.get(vehicle.driver);
     if (driver) this.ride(this.host.playerId, participantOf(this.host.stage(), this.host.playerId), driver.playerId);
-    this.host.notice(`坐上了${driver?.name ?? "别人"}的车后座，按 E 下车。`);
+    this.host.notice(tr("坐上了{value0}的车后座，按 E 下车。", { value0: driver?.name ?? tr("别人") }));
   }
 
   private setLocalRiderVisible(visible: boolean): void {
@@ -747,8 +748,8 @@ export class CityOnFoot {
     for (const vehicle of this.vehicles.values()) {
       if (vehicle.driver !== 0) continue;
       const world = designToWorld(vehicle.pose.x, vehicle.pose.y, vehicle.pose.z);
-      const owner = vehicle.owner === this.myId ? "我的车" : `${vehicle.ownerName}的车`;
-      heads.push({ id: `vehicle:${vehicle.id}`, name: `${owner}${vehicle.locked ? " · 已上锁" : ""}`,
+      const owner = vehicle.owner === this.myId ? tr("我的车") : tr("{value0}的车", { value0: vehicle.ownerName });
+      heads.push({ id: `vehicle:${vehicle.id}`, name: `${owner}${vehicle.locked ? tr(" · 已上锁") : ""}`,
         position: { x: world.x, y: world.y - 0.35, z: world.z } });
     }
     return heads;
@@ -940,14 +941,14 @@ export class CityOnFoot {
 export function seatErrorText(error: unknown): string {
   const code = error instanceof Error ? error.message : String(error);
   const text: Record<string, string> = {
-    NOT_IN_KART: "你现在不在车上。",
-    ALREADY_IN_KART: "你已经在车上了。",
-    VEHICLE_NOT_FOUND: "这辆车已经不在了。",
-    TOO_FAR: "离车太远了，再走近一点。",
-    VEHICLE_LOCKED: "这辆车上锁了。",
-    VEHICLE_FULL: "这辆车坐满了。",
-    RATE_LIMITED: "操作太频繁，请稍后再试。",
-    FUEL_EMPTY: "油箱空了，车已熄火。",
+    NOT_IN_KART: tr("你现在不在车上。"),
+    ALREADY_IN_KART: tr("你已经在车上了。"),
+    VEHICLE_NOT_FOUND: tr("这辆车已经不在了。"),
+    TOO_FAR: tr("离车太远了，再走近一点。"),
+    VEHICLE_LOCKED: tr("这辆车上锁了。"),
+    VEHICLE_FULL: tr("这辆车坐满了。"),
+    RATE_LIMITED: tr("操作太频繁，请稍后再试。"),
+    FUEL_EMPTY: tr("油箱空了，车已熄火。"),
   };
-  return text[code] ?? `操作失败：${code}`;
+  return text[code] ?? tr("操作失败：{value0}", { value0: code });
 }

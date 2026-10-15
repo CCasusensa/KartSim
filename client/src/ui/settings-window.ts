@@ -569,7 +569,7 @@ export class SettingsWindow {
     const status = this.dependencies.versionStatus(this.raceVersion);
     this.drawText(this.raceVersion, client, "bold16", "left",
       status.available ? INK : DISABLED_INK, "button");
-    this.button(SPEED_VERSION, `速度版本：${this.raceVersion}`, rectangle,
+    this.button(SPEED_VERSION, tr("速度版本：{version}", { version: tr(this.raceVersion) }), rectangle,
       Boolean(this.options.speedLocked), () => this.toggleCombo("version"));
     this.drawComboRoles(SPEED_VERSION, "version");
   }
@@ -582,7 +582,7 @@ export class SettingsWindow {
     const text = channel === undefined ? "—" : this.channelText(channel);
     this.drawText(text, client, "bold16", "left",
       channel?.available ? INK : DISABLED_INK, "button");
-    this.button(SPEED_CHANNEL, `速度频道：${text}`, rectangle,
+    this.button(SPEED_CHANNEL, tr("速度频道：{speed}", { speed: text }), rectangle,
       Boolean(this.options.speedLocked), () => this.toggleCombo("speed"));
     this.drawComboRoles(SPEED_CHANNEL, "speed");
   }
@@ -595,7 +595,7 @@ export class SettingsWindow {
       ?.label ?? (this.draft.mainMenuBgmPath === ""
         ? this.text("#sb(defaultBgm)") : "未找到曲目");
     this.drawText(text, client, "bold16", "left", INK, "button");
-    this.button("mainMenuBgm", `主页面音乐：${text}`, rectangle,
+    this.button("mainMenuBgm", tr("主页面音乐：{track}", { track: tr(text) }), rectangle,
       this.bgmChoices.length === 0, () => this.toggleCombo("bgm"));
     this.drawComboRoles("mainMenuBgm", "bgm");
   }
@@ -692,7 +692,7 @@ export class SettingsWindow {
     if (frames?.length) this.drawFrame(frames[Math.min(state, frames.length - 1)]!, rectangle);
     this.drawText(label, { ...rectangle, x: rectangle.x + 4 },
       "bold16", "left", available ? INK : DISABLED_INK, "button");
-    const accessibleLabel = available ? label : `${label}（${reason ?? ""}）`;
+    const accessibleLabel = available ? tr(label) : `${tr(label)}（${tr(reason ?? "")}）`;
     this.button(id, accessibleLabel, rectangle, !available, select);
   }
 
@@ -705,21 +705,23 @@ export class SettingsWindow {
   }
 
   channelText(choice: SettingsChoice): string {
-    return this.dependencies.channelText(choice, value => this.text(value));
+    return tr(this.dependencies.channelText(choice, value => this.text(value)));
   }
 
   speedChannelHint(): string {
     if (this.options.speedLocked)
-      return "多人游戏的速度由房间统一决定，不能在个人设置中修改。";
+      return tr("多人游戏的速度由房间统一决定，不能在个人设置中修改。");
     const status = this.dependencies.versionStatus(this.raceVersion);
     if (!status.available)
-      return `速度版本${this.raceVersion}当前不可选：${status.unavailableReason ?? ""}`;
+      return tr("速度版本{version}当前不可选：{reason}",
+        { version: tr(this.raceVersion), reason: tr(status.unavailableReason ?? "") });
     const choices = this.dependencies.speedChoices(this.raceVersion);
     const available = choices.filter(choice => choice.available);
     const unavailable = choices.filter(choice => !choice.available);
     if (unavailable.length === 0) return "";
     const labels = available.map(choice => this.channelText(choice)).join("、");
-    return `速度频道设置：当前可选 ${labels || "无"}。其余 ${unavailable.length} 个档位缺少车辆快照，暂不可选。`;
+    return tr("速度频道设置：当前可选 {choices}。其余 {count} 个档位缺少车辆快照，暂不可选。",
+      { choices: labels || tr("无"), count: unavailable.length });
   }
 
   private interactionDependencies(): SettingsInteractionDependencies {
@@ -781,7 +783,7 @@ export class SettingsWindow {
     const control = this.controls.get(id)!;
     if (editing && index !== 17) control.dataset.keyIndex = String(index);
     if ([7, 17, 21, 22].includes(index))
-      control.title = "当前计时赛尚未接入此功能。";
+      control.title = tr("当前计时赛尚未接入此功能。");
   }
 
   keyActionLabel(index: number): string {
@@ -790,7 +792,7 @@ export class SettingsWindow {
     };
     const base = index === 20 ? 8 : repeatedKeyIndex(index);
     return `${this.text(`#sb(kartKey${remap[base] ?? base})`)}` +
-      (base !== index ? "（备用）" : "");
+      (base !== index ? tr("（备用）") : "");
   }
 
   drawKeyCursor(rectangle: UiRectangle): void {
@@ -997,7 +999,7 @@ export class SettingsWindow {
     this.drawFrame(frames[this.state(id, true)]!, rectangle);
     const alreadyRegistered = this.controls.has(id);
     const step = () => this.stepVolume(field, direction * 500);
-    this.button(id, `${direction < 0 ? "降低" : "提高"}${this.volumeLabel(field)}`,
+    this.button(id, tr(direction < 0 ? "降低{volume}" : "提高{volume}", { volume: this.volumeLabel(field) }),
       rectangle, false, event => {
         if (event.detail === 0) step();
       });
@@ -1146,7 +1148,7 @@ export class SettingsWindow {
       control.addEventListener("click", action);
       this.registerControl(id, control);
     }
-    control.setAttribute("aria-label", label);
+    control.setAttribute("aria-label", tr(label));
     control.disabled = disabled;
     this.placeControl(control, rectangle);
   }

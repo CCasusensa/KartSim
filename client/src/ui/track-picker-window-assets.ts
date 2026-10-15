@@ -2,7 +2,7 @@
 
 import type { BinaryXmlNode } from "../codecs/binary-xml";
 import { attribute } from "../codecs/binary-xml";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 import type { UiRectangle } from "./scrollbar";
 
 export const trackPickerFontFamily = "P3528 Source Han Sans CN Track Select";
@@ -238,9 +238,7 @@ function localStrings(root: BinaryXmlNode): Map<string, string> {
   const result = new Map<string, string>();
   for (const entry of root.children) {
     const key = attribute(entry, "n");
-    const local = entry.children.find(child => attribute(child, "c") === resourceLocale()) ??
-      entry.children.find(child => attribute(child, "c") === "cn");
-    const value = local && attribute(local, "v");
+    const value = resourceText(entry.children, attribute);
     if (key !== undefined && value !== undefined) result.set(key, value);
   }
   return result;
@@ -254,9 +252,7 @@ function baseStrings(xml: string): Map<string, string> {
   for (const entry of Array.from(document.documentElement.children)) {
     const key = entry.getAttribute("n");
     const locals = Array.from(entry.children);
-    const value = (locals.find(child => child.getAttribute("c") === resourceLocale()) ??
-      locals.find(child => child.getAttribute("c") === "cn"))
-      ?.getAttribute("v");
+    const value = resourceText(locals, (entry, name) => entry.getAttribute(name));
     if (key !== null && value !== null && value !== undefined) result.set(key, value);
   }
   return result;

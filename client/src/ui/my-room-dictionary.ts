@@ -1,3 +1,4 @@
+import { gameLocale, tr } from "../i18n/locale";
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { G1, T, V0, f5, m9, s2, st } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
@@ -221,15 +222,15 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
     this.element.dataset.uiLayer = "dialog";
     this.element.setAttribute("role", "dialog");
     this.element.setAttribute("aria-modal", "true");
-    this.element.setAttribute("aria-label", options.editable ? this.text("itemDictionary") ?? "道具图鉴"
-      : `${this.summary.nickname} 的道具图鉴`);
+    this.element.setAttribute("aria-label", options.editable ? this.text("itemDictionary") ?? tr("道具图鉴")
+      : tr("{name} 的道具图鉴", { name: this.summary.nickname }));
     this.element.tabIndex = -1;
     Object.assign(this.element.style, { position: "absolute", inset: "0", zIndex: "3" });
     Object.assign(this.canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
     this.search.type = "search";
     this.search.maxLength = 10;
     this.search.autocomplete = "off";
-    this.search.placeholder = this.text("giveItemName") ?? "请输入道具名称";
+    this.search.placeholder = this.text("giveItemName") ?? tr("请输入道具名称");
     this.search.setAttribute("aria-label", this.search.placeholder);
     Object.assign(this.search.style, { position: "absolute", margin: "0", padding: "0 4px",
       boxSizing: "border-box", border: "none", outline: "none", background: "transparent", color: "white",
@@ -281,7 +282,10 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
     this.options.onClose();
   }
 
-  private text(key: string): string | undefined { return this.strings.get(key); }
+  private text(key: string): string | undefined {
+    const value = this.strings.get(key);
+    return value === undefined ? undefined : tr(value);
+  }
 
   /** A release texture: the cn variant of an @zz name first, then the name, then without the suffix. */
   private texture(name: string | undefined): HTMLCanvasElement | undefined {
@@ -446,7 +450,47 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
     const state = selected ? 2 : st(key, this.hovered, this.pressed);
     const sprite = this.seriesSprite(series, state);
     if (sprite) this.context.drawImage(sprite, rect.x, rect.y, rect.width, rect.height);
+    const cardGroup = DICTIONARY_GROUPS.findIndex(group => group.card === name);
+    if (gameLocale() !== "zh-CN" && cardGroup >= 0) this.drawGroupCaptions(cardGroup, rect);
+    // Category tabs ship their caption inside the Chinese sprite.
+    if (gameLocale() !== "zh-CN" && (tab >= 0 || sub)) {
+      const context = this.context;
+      context.save();
+      context.fillStyle = selected ? "#278bbd" : this.hovered === key ? "#dcefff" : "#edf4fb";
+      context.fillRect(rect.x + 2, rect.y + 2, rect.width - 4, rect.height - 4);
+      context.font = "bold 14px 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillStyle = selected ? "#ffffff" : "#34465f";
+      context.fillText(this.buttonLabel(name), rect.x + rect.width / 2, rect.y + rect.height / 2,
+        Math.max(1, rect.width - 8));
+      context.restore();
+    }
     this.regions.push({ key, rect, label: this.buttonLabel(name), activate: () => this.activate(name) });
+  }
+
+  /** The collection overview cards also bake their heading and three category captions into the art. */
+  private drawGroupCaptions(group: number, rect: Rect): void {
+    const context = this.context;
+    context.save();
+    context.translate(rect.x, rect.y);
+    context.scale(rect.width / 650, rect.height / 314);
+    context.fillStyle = "white";
+    context.fillRect(24, 16, 610, 26);
+    context.font = "bold 17px 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+    context.textAlign = "left";
+    context.textBaseline = "middle";
+    context.fillStyle = "#344156";
+    context.fillText(this.buttonLabel(DICTIONARY_GROUPS[group]!.card), 26, 30, 600);
+    context.font = "bold 14px 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+    context.textAlign = "center";
+    DICTIONARY_GROUPS[group]!.subs.forEach((sub, index) => {
+      context.fillStyle = "#e3e7f0";
+      context.fillRect(18 + index * 208, 59, 198, 34);
+      context.fillStyle = "#344f79";
+      context.fillText(tr(sub.title), 117 + index * 208, 77, 190);
+    });
+    context.restore();
   }
 
   /** subTab_N have no series in the BML: collect_btn_2depthMenu<group><sub>_<state>@zz. */
@@ -456,14 +500,14 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
   }
 
   private buttonLabel(name: string): string {
-    if (name === "close") return this.text("close") ?? "关闭";
-    if (name === "backBtn") return "返回";
+    if (name === "close") return this.text("close") ?? tr("关闭");
+    if (name === "backBtn") return tr("返回");
     if (name === "leftGrade") return this.gradeName((this.grade + GRADES - 1) % GRADES);
     if (name === "rightGrade") return this.gradeName((this.grade + 1) % GRADES);
     const sub = /^subTab_(\d)$/.exec(name);
-    if (sub) return DICTIONARY_GROUPS[this.group]!.subs[Number(sub[1])]?.title ?? name;
+    if (sub) return tr(DICTIONARY_GROUPS[this.group]!.subs[Number(sub[1])]?.title ?? name);
     const group = DICTIONARY_GROUPS.findIndex(item => item.tab === name || item.card === name);
-    if (group >= 0) return ["车辆", "角色", "装备", "装饰"][group]!;
+    if (group >= 0) return [tr("车辆"), tr("角色"), tr("装备"), tr("装饰")][group]!;
     return name;
   }
 
@@ -598,11 +642,11 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
       context.fillStyle = "rgb(0, 119, 255)";
       context.fillRect(rect.x, rect.y, rect.width, rect.height);
     }
-    m9(context, this.text("getReward") ?? "领取奖励", rect, {
+    m9(context, this.text("getReward") ?? tr("领取奖励"), rect, {
       family: FONT_FAMILY, size: 16, kind: "label",
       color: state === 2 ? "rgb(24, 55, 104)" : state === 3 ? "rgb(220, 220, 220)" : "white",
       align: "center", verticalAlign: "center", stroke: 0, strokeColor: "black" });
-    this.regions.push({ key: "rewardBtn", rect, label: this.text("getReward") ?? "领取奖励",
+    this.regions.push({ key: "rewardBtn", rect, label: this.text("getReward") ?? tr("领取奖励"),
       disabled: this.busy, activate: () => this.activate("rewardBtn") });
   }
 
@@ -699,7 +743,7 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
           height: Math.min(cell.y + cell.height, rect.y + rect.height) - Math.max(cell.y, rect.y) };
         if (visible.height > 20)
           this.regions.push({ key: this.cardKey(entry), rect: visible,
-            label: `${entry.name}${entry.collected ? "（已收藏）" : "（未收藏）"}`, activate: () => undefined });
+            label: `${entry.name}${entry.collected ? tr("（已收藏）") : tr("（未收藏）")}`, activate: () => undefined });
       }
     }
     context.restore();
@@ -716,7 +760,7 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
     const thumbY = rect.y + (rect.height - thumbHeight) * (this.scroll / range);
     context.fillStyle = "rgba(84, 100, 129, 0.75)";
     context.fillRect(rect.x + 2, thumbY, rect.width - 4, thumbHeight);
-    this.regions.push({ key: "scrollTrack", rect, label: "滚动道具列表",
+    this.regions.push({ key: "scrollTrack", rect, label: tr("滚动道具列表"),
       activate: () => {
         const middle = thumbY + thumbHeight / 2;
         const pointerY = this.lastPointerY ?? middle;
@@ -733,7 +777,7 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
     m9(context, this.gradeName(this.grade), rect, {
       family: FONT_FAMILY, size: 14, kind: "label", color: "rgb(22, 152, 246)", align: "center",
       verticalAlign: "center", stroke: 0, strokeColor: "black" });
-    this.regions.push({ key: "gradeCombo", rect, label: `引擎：${this.gradeName(this.grade)}`,
+    this.regions.push({ key: "gradeCombo", rect, label: tr("引擎：{engine}", { engine: this.gradeName(this.grade) }),
       activate: () => { this.comboOpen = !this.comboOpen; this.render(); } });
   }
 
@@ -820,25 +864,25 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
 
   private async reward(): Promise<void> {
     if (!this.options.claim || this.busy) return;
-    const title = this.text("itemDictionary") ?? "道具图鉴";
+    const title = this.text("itemDictionary") ?? tr("道具图鉴");
     const summary = this.summary;
     if (summary.claimable <= 0) {
-      await this.options.notice(title, this.text("newDictionaryItemZero") ?? "暂无新收藏道具。");
+      await this.options.notice(title, this.text("newDictionaryItemZero") ?? tr("暂无新收藏道具。"));
       return;
     }
-    const rewardName = this.text("koin") ?? "K币";
+    const rewardName = this.text("koin") ?? tr("K币");
     this.busy = true;
     this.render();
     let confirmed = false;
     try {
       confirmed = await askDictionaryReward({
         library: this.options.library, root: this.options.root,
-        title: this.text("dictionaryRewardDlgTitle") ?? "图鉴收藏奖励",
+        title: this.text("dictionaryRewardDlgTitle") ?? tr("图鉴收藏奖励"),
         lines: dictionaryRewardLines(this.text("dictionaryRewardDlgDesc") ?? "", summary.claimable, rewardName,
           summary.claimable * summary.reward.count),
         count: summary.claimable * summary.reward.count,
         fontFamily: FONT_FAMILY,
-        ok: this.text("getReward") ?? "领取奖励", cancel: this.text("cancel") ?? "取消",
+        ok: this.text("getReward") ?? tr("领取奖励"), cancel: this.text("cancel") ?? tr("取消"),
       });
     } catch {
       confirmed = false;
@@ -853,12 +897,12 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
       const claim = await this.options.claim();
       this.summary = claim.dictionary;
       this.entryCache.clear();
-      message = (this.text("getRewardSuccess") ?? "发放图鉴奖励[%s] %d个。")
+      message = (this.text("getRewardSuccess") ?? tr("发放图鉴奖励[%s] %d个。"))
         .replace("%s", rewardName).replace("%d", String(claim.koin));
     } catch (error) {
       const code = (error as { code?: string }).code;
-      message = code === "NOTHING_TO_CLAIM" ? this.text("noMoreGetRewardItem") ?? "无法领取更多奖励。"
-        : this.text("addRewardError") ?? "奖励领取失败。";
+      message = code === "NOTHING_TO_CLAIM" ? this.text("noMoreGetRewardItem") ?? tr("无法领取更多奖励。")
+        : this.text("addRewardError") ?? tr("奖励领取失败。");
     }
     this.busy = false;
     this.render();

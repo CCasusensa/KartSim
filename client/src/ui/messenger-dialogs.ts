@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The release dialogs of 好友聊天系统, drawn by the shared BML window
  * renderer: dialog/addFriend mq_dialog@zz (加为好友) and the customMessageBox
@@ -96,9 +97,9 @@ export function openMessengerMessage(library: MessengerLibrary, root: HTMLElemen
         library, root, preserveDisplayPixels: true, smoothImages: true,
         definition: { ...template.definition, children: [visibleShell] },
         roots: ["dialog2_/customMessageBox", "stage_/common"],
-        modal: true, label: title, onCancel: () => finish(false),
+        modal: true, label: tr(title), onCancel: () => finish(false),
         state: (node: BmlNode) => {
-          if (node === visibleShell) return { text: title };
+          if (node === visibleShell) return { text: tr(title) };
           if (node === body) return {
             visible: true, text: "",
             paint: (context: CanvasRenderingContext2D, rect: { x: number; y: number; width: number; height: number }) => {
@@ -111,9 +112,9 @@ export function openMessengerMessage(library: MessengerLibrary, root: HTMLElemen
               view.paintLabelLines(context, lines, { ...rect, y: top, height: step }, size, color, step);
             },
           };
-          if (node === yes) return { visible: true, label: labels.yes ?? "确定", text: labels.yes ?? "确定",
+          if (node === yes) return { visible: true, label: tr(labels.yes ?? "确定"), text: tr(labels.yes ?? "确定"),
             action: () => finish(true) };
-          if (node === no) return { visible: true, label: labels.no ?? "取消", text: labels.no ?? "取消",
+          if (node === no) return { visible: true, label: tr(labels.no ?? "取消"), text: tr(labels.no ?? "取消"),
             action: () => finish(false) };
           return {};
         },
@@ -203,37 +204,37 @@ export async function openAddFriendDialog(library: MessengerLibrary, root: HTMLE
       context: CanvasRenderingContext2D, node: BmlNode) => {
       if (!view) return;
       const size = Number(/\d+/.exec((T(node, "textRender") as string | undefined) ?? "")?.[0] ?? 16);
-      const { lines, lineHeight } = view.wrapLabel(ADD_FRIEND_STRINGS.registerRid!, rect.width, size);
+      const { lines, lineHeight } = view.wrapLabel(tr(ADD_FRIEND_STRINGS.registerRid!), rect.width, size);
       view.paintLabelLines(context, lines, rect, size,
         bmlColor(T(node, "textColor") as string | undefined, "rgb(42,55,80)"), lineHeight + 2);
     };
     view = await te.load({
       library, root, definition: decorated, roots: [folder, "stage_/common"],
-      modal: true, label: ADD_FRIEND_STRINGS.mainCaption, preserveDisplayPixels: true, smoothImages: true,
+      modal: true, label: tr(ADD_FRIEND_STRINGS.mainCaption ?? ""), preserveDisplayPixels: true, smoothImages: true,
       onCancel: cancel,
       onConfirm: confirm,
       state: (node: BmlNode) => {
-        if (node.name === "CaptionWindow") return { text: ADD_FRIEND_STRINGS.mainCaption };
+        if (node.name === "CaptionWindow") return { text: tr(ADD_FRIEND_STRINGS.mainCaption ?? "") };
         const name = T(node, "name") as string | undefined;
         switch (name) {
           case "IdEdit": return {
-            disabled: busy, label: "车手名",
+            disabled: busy, label: tr("车手名"),
             input: { value: nickname, maxLength: 16, submit: confirm,
               change: (value: string) => {
                 nickname = value;
                 view?.render();
               } },
           };
-          case "guideStr": return { visible: nickname === "", text: ADD_FRIEND_STRINGS.guideStr };
-          case "okButton": return { disabled: busy || !nickname.trim(), label: ADD_FRIEND_STRINGS.registerOk,
-            text: ADD_FRIEND_STRINGS.registerOk, action: confirm };
-          case "cancelButton": return { disabled: busy, label: "取消", text: "取消", action: cancel };
-          case "close": return { disabled: busy, label: "关闭", action: cancel };
+          case "guideStr": return { visible: nickname === "", text: tr(ADD_FRIEND_STRINGS.guideStr ?? "") };
+          case "okButton": return { disabled: busy || !nickname.trim(), label: tr(ADD_FRIEND_STRINGS.registerOk ?? ""),
+            text: tr(ADD_FRIEND_STRINGS.registerOk ?? ""), action: confirm };
+          case "cancelButton": return { disabled: busy, label: tr("取消"), text: tr("取消"), action: cancel };
+          case "close": return { disabled: busy, label: tr("关闭"), action: cancel };
         }
         const key = sbKey(node, "text");
         if (key === "registerRid") return { text: "", paint: (context: CanvasRenderingContext2D,
           rect: { x: number; y: number; width: number; height: number }) => label(rect, context, node) };
-        if (key && ADD_FRIEND_STRINGS[key]) return { text: ADD_FRIEND_STRINGS[key] };
+        if (key && ADD_FRIEND_STRINGS[key]) return { text: tr(ADD_FRIEND_STRINGS[key] ?? "") };
         return {};
       },
     } as never) as unknown as DialogView;

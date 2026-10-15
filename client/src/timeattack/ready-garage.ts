@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { ensureFeatureResources } from "../ui/resource-panel";
 import { garageViewCatalog } from "../account/garage-ownership";
 import type { ReadyOptions, ReadySelection } from "./ready-flow";
@@ -185,7 +186,7 @@ export async function selectReadyGarage(controller: ReadyGarageController,
   try {
     host.saveProfile();
   } catch (error) {
-    tellPlayer(host.hud, `本次装备选择未保存：${String(error)}`);
+    tellPlayer(host.hud, tr("本次装备选择未保存：{0}", { "0": String(error) }));
   }
 }
 
@@ -294,7 +295,7 @@ export function applyImmediateReadyGarageSelection(controller: ReadyGarageContro
   try {
     host.saveProfile();
   } catch (error) {
-    tellPlayer(host.hud, `本次车库变更未保存：${String(error)}`);
+    tellPlayer(host.hud, tr("本次车库变更未保存：{0}", { "0": String(error) }));
   }
 }
 

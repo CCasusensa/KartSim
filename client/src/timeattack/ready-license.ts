@@ -2,7 +2,7 @@ import { ensureFeatureResources } from "../ui/resource-panel";
 import { activeBrowserSession } from "../account/account-runtime";
 import { p2, T } from "../generated/formats.js";
 import { F9, U1, te } from "../generated/library.js";
-import { resourceLocale } from "../i18n/locale";
+import { resourceLocale, tr } from "../i18n/locale";
 import { claimLicenseEmblem, fetchLicense, formatLicenseTime, licenseErrorMessage, PRO_LEVEL,
   qualifyLicense, runLicenseStep, takeLicense, type LicenseState, type LicenseStep,
   type LicenseTable } from "../license/license-api";
@@ -148,16 +148,16 @@ function stepIcon(step: LicenseStep, level: number): string {
 
 /** "13秒", "18.7秒", or "2:11.00" from a minute up. */
 const seconds = (ms: number): string => ms >= 60_000 ? formatLicenseTime(ms)
-  : `${Number((ms / 1000).toFixed(2))}秒`;
+  : tr("{count}秒", { count: Number((ms / 1000).toFixed(2)) });
 
 /** The right side of a step card: the clear condition, and the best time once cleared. */
 export function licenseStepDetail(view: LicenseStepView): string {
   const { step } = view;
-  const rule = step.rule === "rival" ? `战胜对手（${formatLicenseTime(step.rivalMs ?? 0)}）`
-    : (step.rule === "time" || step.rule === "item") && step.timeMs > 0 ? `限时 ${seconds(step.timeMs)}`
-      : step.rule === "drill" ? "按提示完成驾驶练习"
-        : step.rule === "finish" ? "完成比赛（无 AI 车手）" : "完成比赛";
-  return view.bestMs !== undefined ? `${rule}  最佳 ${formatLicenseTime(view.bestMs)}` : rule;
+  const rule = step.rule === "rival" ? tr("战胜对手（{time}）", { time: formatLicenseTime(step.rivalMs ?? 0) })
+    : (step.rule === "time" || step.rule === "item") && step.timeMs > 0 ? tr("限时 {time}", { time: seconds(step.timeMs) })
+      : step.rule === "drill" ? tr("按提示完成驾驶练习")
+        : step.rule === "finish" ? tr("完成比赛（无 AI 车手）") : tr("完成比赛");
+  return view.bestMs !== undefined ? tr("{rule}  最佳 {time}", { rule: rule, time: formatLicenseTime(view.bestMs) }) : rule;
 }
 
 async function trackTitles(lib: LicenseLibrary): Promise<Map<string, string>> {
@@ -187,7 +187,7 @@ async function licenseMenu(lib: LicenseLibrary, table: LicenseTable, state: Lice
       // The PRO boards are the same every period; they name the period's course.
       const detail = level === PRO_LEVEL ? `${title(view.step.track)}  ${licenseStepDetail(view)}`
         : licenseStepDetail(view);
-      return { step: view.step.step, name: view.step.name, cleared: view.cleared, open: view.open,
+      return { step: view.step.step, name: tr(view.step.name), cleared: view.cleared, open: view.open,
         detail, ...(icon ? { icon } : {}) };
     }));
   const levels = await Promise.all(table.licenses.map(async license => {
@@ -199,7 +199,7 @@ async function licenseMenu(lib: LicenseLibrary, table: LicenseTable, state: Lice
   const [emblems, emblem] = await Promise.all([
     loadEmblemTable(lib as never).catch(() => new Map()),
     texture(lib, ["etc_/emblem"], `${table.pro.emblemId}_73`)]);
-  const template = "排位计时赛以标准为基准，在%s内完成%s赛道";
+  const template = tr("排位计时赛以标准为基准，在%s内完成%s赛道");
   const rows = table.pro.qualify.map(q => {
     const best = state.records.get(q.track);
     return { track: q.track,
@@ -214,12 +214,12 @@ async function licenseMenu(lib: LicenseLibrary, table: LicenseTable, state: Lice
     pro: {
       qualified: state.qualified,
       ...(emblem ? { emblem } : {}),
-      emblemName: info?.name ?? "PRO挑战资格",
+      emblemName: info?.name ?? tr("PRO挑战资格"),
       rows,
       canClaim: !state.qualified && state.baseLevel >= PRO_LEVEL - 1 && met,
       missions: await steps(PRO_LEVEL),
       canTake: canTakeLicense(table, state, PRO_LEVEL),
-      ...(state.level === PRO_LEVEL ? { status: `PRO驾照有效期至 ${formatDate(state.proUntil)}` } : {}),
+      ...(state.level === PRO_LEVEL ? { status: tr("PRO驾照有效期至 {date}", { date: formatDate(state.proUntil) }) } : {}),
     },
   };
 }
@@ -238,7 +238,7 @@ export async function refreshLicenseMenu(controller: ReadyLicenseController): Pr
     const menu = await loadLicenseMenu(controller);
     if (controller.activeHome === view) view.setLicenseMenu(menu);
   } catch (error) {
-    if (controller.activeHome === view) view.showNotice(`驾照考试读取失败：${licenseErrorMessage(error)}`);
+    if (controller.activeHome === view) view.showNotice(tr("驾照考试读取失败：{error}", { error: licenseErrorMessage(error) }));
   }
 }
 
@@ -356,7 +356,7 @@ export async function openLicenseStep(controller: ReadyLicenseController, stepId
       return undefined;
     }), READY_ROOTS);
     const reward = data.table.rewards.get(step.stockId) ?? "";
-    const simplified = step.rule === "finish" ? "|（网页版暂无 AI 车手，到达终点即可通过）" : "";
+    const simplified = step.rule === "finish" ? tr("|（网页版暂无 AI 车手，到达终点即可通过）") : "";
     const limit = licenseTimeLimit(step);
     const description = (index: 1 | 2): string =>
       (strings.get(`step${step.step}_${index}`) ?? "") + (index === 2 ? simplified : "");
@@ -368,16 +368,16 @@ export async function openLicenseStep(controller: ReadyLicenseController, stepId
     closeWindow(controller);
     const window = await te.load({
       library: lib, root: controller.host.root, definition, roots: READY_ROOTS, smoothImages: true,
-      modal: true, label: `${TITLE}：${step.name}`,
+      modal: true, label: tr("{title}：{error}", { title: tr(TITLE), error: tr(step.name) }),
       onCancel: () => closeWindow(controller), onConfirm: start,
       state: (node: StoryNode) => {
         switch (nodeName(node)) {
           case "subjectName":
-            return { text: `${licenseName(level)}驾照  ${stepView.index + 1}. ${step.name}${
-              limit > 0 ? `（限时 ${seconds(limit)}）` : ""}` };
+            return { text: `${tr("{level}驾照", { level: licenseName(level) })}  ${stepView.index + 1}. ${tr(step.name)}${
+              limit > 0 ? tr("（限时 {time}）", { time: seconds(limit) }) : ""}` };
           case "subjectTime":
-            return limit > 0 ? { visible: true, text: `限时 ${seconds(limit)}` }
-              : step.rule === "rival" ? { visible: true, text: `对手 ${formatLicenseTime(step.rivalMs ?? 0)}` }
+            return limit > 0 ? { visible: true, text: tr("限时 {time}", { time: seconds(limit) }) }
+              : step.rule === "rival" ? { visible: true, text: tr("对手 {time}", { time: formatLicenseTime(step.rivalMs ?? 0) }) }
                 : { visible: false };
           case "subjectTexture1": return paintImage(picture1);
           case "subjectTexture2": return paintImage(picture2);
@@ -385,9 +385,9 @@ export async function openLicenseStep(controller: ReadyLicenseController, stepId
           case "subjectDesc2": return paintText(description(2), { size: 14, color: "white", outline: true });
           case "rewardStockName": return { text: reward };
           case "clearMark": return { visible: stepView.cleared };
-          case "missionTitle": return { text: step.name };
-          case "시작": return { label: "开始", action: start };
-          case "goBackButton": return { label: "关闭", action: () => closeWindow(controller) };
+          case "missionTitle": return { text: tr(step.name) };
+          case "시작": return { label: tr("开始"), action: start };
+          case "goBackButton": return { label: tr("关闭"), action: () => closeWindow(controller) };
         }
         return {};
       },
@@ -399,7 +399,7 @@ export async function openLicenseStep(controller: ReadyLicenseController, stepId
     window.show();
     controller.licenseWindow = window;
   } catch (error) {
-    message(controller, `驾照考试：${error instanceof Error ? error.message : String(error)}`);
+    message(controller, tr("驾照考试：{error}", { error: error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.licenseBusy = false;
   }
@@ -418,7 +418,7 @@ async function licenseCourse(lib: LicenseLibrary, step: { track: string; laps: n
   if (track) return track;
   const folder = `track_/${step.track}/`.toLowerCase();
   const model = lib.mapAssets().find(file => file.virtualPath.toLowerCase() === `${folder}track.1s`);
-  if (!model) throw new Error(`赛道 ${step.track} 不在本地资源中`);
+  if (!model) throw new Error(tr("赛道 {track} 不在本地资源中", { track: step.track }));
   // track@zz.bml has no row for the rider school courses; the step names them.
   registerTrackMetadata({ id: step.track, gameType: "speed", laps: step.laps || 1, difficulty: 1,
     cnTitle: step.name, speedPool: false, theme: step.track.split("_")[0] });
@@ -455,12 +455,12 @@ async function startRace(controller: ReadyLicenseController, spec: LicenseRaceSp
   if (!lib) return;
   const host = controller.host;
   const previous = host.getSelection();
-  if (!previous) throw new Error("请先在计时赛选好车辆和人物。");
+  if (!previous) throw new Error(tr("请先在计时赛选好车辆和人物。"));
   const previousOptions = host.getReadyOptions();
   const [catalog, course] = await Promise.all([lib.timeAttackGarageCatalog(), licenseCourse(lib, spec.track)]);
   const kart = spec.practiceKart
     ? catalog.karts.find(entry => entry.systemKey === PRACTICE_KART) : undefined;
-  if (spec.practiceKart && !kart) throw new Error("缺少练习用卡丁车。");
+  if (spec.practiceKart && !kart) throw new Error(tr("缺少练习用卡丁车。"));
   const restore = (): void => {
     host.setSelection(previous);
     host.setReadyOptions(previousOptions);
@@ -488,7 +488,7 @@ async function startRace(controller: ReadyLicenseController, spec: LicenseRaceSp
   if (!controller.disposed && host.shell.current === "Ready") {
     host.setSelection(previous);
     host.setReadyOptions(previousOptions);
-    message(controller, "比赛未能开始，请重试。");
+    message(controller, tr("比赛未能开始，请重试。"));
   }
 }
 
@@ -509,7 +509,7 @@ async function startLicenseRace(controller: ReadyLicenseController, step: Licens
       onReturn: outcome => { void finishLicenseRun(controller, step, outcome, license); },
     }, level);
   } catch (error) {
-    message(controller, `驾照考试：${error instanceof Error ? error.message : String(error)}`);
+    message(controller, tr("驾照考试：{error}", { error: error instanceof Error ? error.message : String(error) }));
   }
 }
 
@@ -529,17 +529,17 @@ async function returnToLicense(controller: ReadyLicenseController): Promise<void
 const stripColor = (text: string): string => text.replace(/\[color:[^\]]*\]|\[\/color\]/g, "");
 
 function failure(step: LicenseStep, outcome: StoryRaceOutcome, license: LicenseMissionSpec): string {
-  if (step.rule === "drill") return "任务失败：没有按照提示完成全部驾驶练习（向前、向后、右转、左转）。";
+  if (step.rule === "drill") return tr("任务失败：没有按照提示完成全部驾驶练习（向前、向后、右转、左转）。");
   // An item mission's own objective (its targets) was not met.
   if (step.rule === "item" && !license.progress.objective && license.progress.failure &&
       !(licenseTimeLimit(step) > 0 && outcome.elapsedMs >= licenseTimeLimit(step)))
     return license.progress.failure;
   if (!outcome.finished || outcome.cleared === false) {
     return licenseTimeLimit(step) > 0 && outcome.elapsedMs >= licenseTimeLimit(step)
-      ? "任务失败：没有在规定时间内完成。" : "任务失败：没有完成比赛。";
+      ? tr("任务失败：没有在规定时间内完成。") : tr("任务失败：没有完成比赛。");
   }
-  if (step.rule === "rival") return "任务失败：没有赢过对手。";
-  return "任务失败：没有在规定时间内完成。";
+  if (step.rule === "rival") return tr("任务失败：没有赢过对手。");
+  return tr("任务失败：没有在规定时间内完成。");
 }
 
 async function finishLicenseRun(controller: ReadyLicenseController, step: LicenseStep,
@@ -558,19 +558,19 @@ async function finishLicenseRun(controller: ReadyLicenseController, step: Licens
       elapsedMs: outcome.elapsedMs });
     if (controller.licenseData) controller.licenseData.state = result.state;
     await refreshLicenseMenu(controller);
-    const lines = [`任务成功！记录 ${formatLicenseTime(outcome.elapsedMs)}`];
+    const lines = [tr("任务成功！记录 {time}", { time: formatLicenseTime(outcome.elapsedMs) })];
     if (result.run.reward) {
       const template = await baseString(controller, "riderSchoolGetRewardMsg") ??
-        "恭喜获得驾照任务奖励%s。";
+        tr("恭喜获得驾照任务奖励%s。");
       lines.push(stripColor(template).replace("%s", result.run.reward.name));
     } else if (result.run.newBest) {
-      lines.push("刷新了这一关的最佳记录。");
+      lines.push(tr("刷新了这一关的最佳记录。"));
     }
     const data = controller.licenseData;
     const level = data?.table.licenses.find(entry => entry.steps.some(row => row.step === step.step))?.level;
     if (data && level !== undefined && licenseComplete(data.table, data.state, level) &&
         canTakeLicense(data.table, data.state, level))
-      lines.push("所有任务都已完成，点击“获得驾照”按钮领取驾照吧！");
+      lines.push(tr("所有任务都已完成，点击“获得驾照”按钮领取驾照吧！"));
     message(controller, lines.join("\n"));
   } catch (error) {
     message(controller, licenseErrorMessage(error));
@@ -648,7 +648,7 @@ async function openLicenseCard(controller: ReadyLicenseController, level: number
   // resolveStrings: the 有效期 caption is #sb(proLevelExpire) of the card's own bag.
   const definition = pruneMissingTextures(lib, mapTree(resolveStrings(raw, card), node => {
     switch (nodeName(node)) {
-      case "capWnd": return withAttributes(node, { caption: card.get("updateLevelCaption") ?? "恭喜！",
+      case "capWnd": return withAttributes(node, { caption: card.get("updateLevelCaption") ?? tr("恭喜！"),
         windowRect: tallerRect(T(node, "windowRect") as string | undefined, CARD_TEXT_ROOM) });
       case "bg": return withAttributes(node, { texture: `bg_Level${level}@zz` });
     }
@@ -657,23 +657,23 @@ async function openLicenseCard(controller: ReadyLicenseController, level: number
   const summary = activeBrowserSession()?.summary();
   const created = summary?.account.createdAt ? formatDate(summary.account.createdAt).slice(0, 10) : "";
   const text = (level === PRO_LEVEL ? card.get("updateLevelText6") : card.get("updateLevelText"))
-    ?.replace("%s", licenseName(level)) ?? `获得了${licenseName(level)}驾照`;
+    ?.replace("%s", licenseName(level)) ?? tr("获得了{level}驾照", { level: licenseName(level) });
   closeWindow(controller);
   const window = await te.load({
     library: lib, root: controller.host.root, definition, roots, smoothImages: true, modal: true,
-    label: card.get("updateLevelCaption") ?? TITLE,
+    label: card.get("updateLevelCaption") ?? tr(TITLE),
     onCancel: () => closeWindow(controller), onConfirm: () => closeWindow(controller),
     state: (node: StoryNode) => {
       switch (nodeName(node)) {
         case "name": return { text: summary?.account.nickname ?? "" };
         case "createTime": return { text: created };
         // bg_Level6 draws the PRO驾照有效期 rule and box where the level row would sit.
-        case "level": return level === PRO_LEVEL ? { visible: false } : { text: `${licenseName(level)}驾照` };
+        case "level": return level === PRO_LEVEL ? { visible: false } : { text: tr("{level}驾照", { level: licenseName(level) }) };
         case "pro": return { visible: level === PRO_LEVEL };
         case "proLevelExpire": return { text: proUntil ? formatDate(proUntil) : "" };
         case "updateLevelText": return { visible: true,
           ...paintText(text, { size: 14, color: "black", align: "center", lineGap: 2, middle: true }) };
-        case "OK": return { label: "确定", action: () => closeWindow(controller) };
+        case "OK": return { label: tr("确定"), action: () => closeWindow(controller) };
       }
       return {};
     },
@@ -693,7 +693,7 @@ export async function startLicenseQualify(controller: ReadyLicenseController, tr
   const q = data?.table.pro.qualify.find(entry => entry.track === track);
   if (!data || !lib || !q || controller.licenseBusy) return;
   if (data.state.baseLevel < PRO_LEVEL - 1) {
-    message(controller, "获得L1驾照后才能进行PRO等级挑战资格审核。");
+    message(controller, tr("获得L1驾照后才能进行PRO等级挑战资格审核。"));
     return;
   }
   if (data.state.qualified) return;
@@ -707,7 +707,7 @@ export async function startLicenseQualify(controller: ReadyLicenseController, tr
     }, PRO_LEVEL);
   } catch (error) {
     if (!stale(controller, started))
-      message(controller, `资格审核：${error instanceof Error ? error.message : String(error)}`);
+      message(controller, tr("资格审核：{error}", { error: error instanceof Error ? error.message : String(error) }));
   }
 }
 
@@ -715,7 +715,7 @@ async function finishQualify(controller: ReadyLicenseController, track: string, 
   outcome: StoryRaceOutcome): Promise<void> {
   await returnToLicense(controller);
   if (!outcome.finished) {
-    message(controller, "没有完成比赛，记录未更新。");
+    message(controller, tr("没有完成比赛，记录未更新。"));
     return;
   }
   const session = activeBrowserSession();
@@ -725,12 +725,12 @@ async function finishQualify(controller: ReadyLicenseController, track: string, 
       elapsedMs: outcome.elapsedMs });
     if (controller.licenseData) controller.licenseData.state = result.state;
     await refreshLicenseMenu(controller);
-    const lines = [`记录 ${formatLicenseTime(outcome.elapsedMs)}（要求 ${formatLicenseTime(limitMs)} 以内）`];
-    lines.push(outcome.elapsedMs <= limitMs ? "达成了这项条件！" : "还没有达成这项条件，再试一次吧。");
+    const lines = [tr("记录 {time}（要求 {limit} 以内）", { time: formatLicenseTime(outcome.elapsedMs), limit: formatLicenseTime(limitMs) })];
+    lines.push(outcome.elapsedMs <= limitMs ? tr("达成了这项条件！") : tr("还没有达成这项条件，再试一次吧。"));
     const data = controller.licenseData;
     if (data && !data.state.qualified &&
         data.table.pro.qualify.every(q => (data.state.records.get(q.track) ?? Infinity) <= q.timeMs))
-      lines.push("三项条件都已达成，点击“获得徽章”领取PRO等级挑战资格。");
+      lines.push(tr("三项条件都已达成，点击“获得徽章”领取PRO等级挑战资格。"));
     message(controller, lines.join("\n"));
   } catch (error) {
     message(controller, licenseErrorMessage(error));
@@ -745,7 +745,7 @@ export async function claimProEmblem(controller: ReadyLicenseController): Promis
     const result = await claimLicenseEmblem(session);
     if (controller.licenseData) controller.licenseData.state = result.state;
     await refreshLicenseMenu(controller);
-    message(controller, "获得了PRO等级挑战资格徽章！\nPRO等级挑战任务已开放。");
+    message(controller, tr("获得了PRO等级挑战资格徽章！\nPRO等级挑战任务已开放。"));
   } catch (error) {
     message(controller, licenseErrorMessage(error));
   } finally {

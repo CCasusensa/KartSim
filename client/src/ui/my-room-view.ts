@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GarageCatalogEntry } from "../resources/garage-catalog";
 import { MyRoomApi } from "../myroom/myroom-api";
 import { MyRoomError, type EnterTarget, type MyRoomConnection, type RoomAppearance,
@@ -106,15 +107,15 @@ export const MY_ROOM_TEXT = {
 export function enterErrorMessage(error: unknown, random: boolean): string {
   const code = error instanceof MyRoomError ? error.code : "";
   switch (code) {
-    case "UNKNOWN_RIDER": return MY_ROOM_TEXT.unknownRider;
-    case "ALREADY_HERE": return MY_ROOM_TEXT.alreadyMyRoom.replace("%s",
+    case "UNKNOWN_RIDER": return tr(MY_ROOM_TEXT.unknownRider);
+    case "ALREADY_HERE": return tr(MY_ROOM_TEXT.alreadyMyRoom).replace("%s",
       (error as MyRoomError).nickname ?? "");
-    case "WRONG_PASSWORD": return MY_ROOM_TEXT.wrongPassword;
-    case "RANDOM_FAILED": return MY_ROOM_TEXT.cannotEnterRandomRoom;
-    case "ROOM_FULL": return MY_ROOM_TEXT.roomFull;
-    case "RATE_LIMITED": return MY_ROOM_TEXT.tooManyAttempts;
+    case "WRONG_PASSWORD": return tr(MY_ROOM_TEXT.wrongPassword);
+    case "RANDOM_FAILED": return tr(MY_ROOM_TEXT.cannotEnterRandomRoom);
+    case "ROOM_FULL": return tr(MY_ROOM_TEXT.roomFull);
+    case "RATE_LIMITED": return tr(MY_ROOM_TEXT.tooManyAttempts);
   }
-  return random ? MY_ROOM_TEXT.cannotEnterRandomRoom : MY_ROOM_TEXT.cannotEnterMyRoom;
+  return random ? tr(MY_ROOM_TEXT.cannotEnterRandomRoom) : tr(MY_ROOM_TEXT.cannotEnterMyRoom);
 }
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string,
@@ -173,10 +174,10 @@ export class MyRoomView {
       () => this.hud?.render());
     this.element.hidden = true;
     this.element.setAttribute("role", "region");
-    this.element.setAttribute("aria-label", "我的小屋");
+    this.element.setAttribute("aria-label", tr("我的小屋"));
     const style = node("style");
     style.textContent = styles;
-    this.scene.setAttribute("aria-label", "原版小屋三维场景");
+    this.scene.setAttribute("aria-label", tr("原版小屋三维场景"));
     this.shell.append(this.scene);
     this.element.append(style, this.shell);
     options.root.append(this.element);
@@ -332,7 +333,7 @@ export class MyRoomView {
         },
       });
     } catch (error) {
-      this.setStatus(`小屋界面加载失败：${error instanceof Error ? error.message : String(error)}`);
+      this.setStatus(tr("小屋界面加载失败：{error}", { error: error instanceof Error ? error.message : String(error) }));
     } finally {
       this.hudLoading = false;
     }
@@ -359,14 +360,14 @@ export class MyRoomView {
       if (error instanceof MyRoomError && error.code === "PASSWORD_REQUIRED") {
         this.entering = false;
         const typed = await askRoomPassword({ library: this.options.library,
-          root: this.options.root, label: MY_ROOM_TEXT.roomPassword });
+          root: this.options.root, label: tr(MY_ROOM_TEXT.roomPassword) });
         if (!typed || this.disposed) return false;
         return this.enterRoom(target, typed);
       }
       // The own room is entered silently at start; a failure there keeps the
       // local room.
       if (!("own" in target)) {
-        await social.notice(random ? MY_ROOM_TEXT.randomTitle : MY_ROOM_TEXT.findTitle,
+        await social.notice(random ? tr(MY_ROOM_TEXT.randomTitle) : tr(MY_ROOM_TEXT.findTitle),
           enterErrorMessage(error, random));
       }
       return false;
@@ -388,7 +389,7 @@ export class MyRoomView {
     if (changedRoom) this.hud?.clearChat();
     this.hud?.render();
     if (changedRoom && this.visiting)
-      this.hud?.addChatLine(MY_ROOM_TEXT.notifyEnter.replace("%s",
+      this.hud?.addChatLine(tr(MY_ROOM_TEXT.notifyEnter).replace("%s",
         this.members.get(snapshot.self)?.nickname ?? this.options.ownerName));
   }
 
@@ -428,12 +429,12 @@ export class MyRoomView {
     switch (event.type) {
       case "joined":
         this.members.set(event.member.accountId, event.member);
-        this.hud?.addChatLine(MY_ROOM_TEXT.notifyEnter.replace("%s", event.member.nickname));
+        this.hud?.addChatLine(tr(MY_ROOM_TEXT.notifyEnter).replace("%s", event.member.nickname));
         this.syncRiders();
         break;
       case "left":
         this.members.delete(event.accountId);
-        if (event.nickname) this.hud?.addChatLine(MY_ROOM_TEXT.notifyLeave.replace("%s", event.nickname));
+        if (event.nickname) this.hud?.addChatLine(tr(MY_ROOM_TEXT.notifyLeave).replace("%s", event.nickname));
         this.syncRiders();
         break;
       case "moved": {
@@ -447,8 +448,8 @@ export class MyRoomView {
         this.showBalloon(event.accountId, event.text);
         return;
       case "chat-error":
-        this.hud?.addChatLine(event.code === "CHAT_DISABLED" ? MY_ROOM_TEXT.chatDisabled
-          : event.code === "CHAT_FLOOD" ? MY_ROOM_TEXT.chatFlood : MY_ROOM_TEXT.cannotEnterMyRoom);
+        this.hud?.addChatLine(event.code === "CHAT_DISABLED" ? tr(MY_ROOM_TEXT.chatDisabled)
+          : event.code === "CHAT_FLOOD" ? tr(MY_ROOM_TEXT.chatFlood) : tr(MY_ROOM_TEXT.cannotEnterMyRoom));
         return;
       case "settings":
         // The owner changed its room (or looks); the riders here stay.
@@ -465,7 +466,7 @@ export class MyRoomView {
         const owner = event.ownerNickname || this.room?.room.ownerNickname || "";
         this.room = undefined;
         this.members.clear();
-        void this.options.social?.notice(MY_ROOM_TEXT.title, MY_ROOM_TEXT.kicked.replace("%s", owner));
+        void this.options.social?.notice(tr(MY_ROOM_TEXT.title), tr(MY_ROOM_TEXT.kicked).replace("%s", owner));
         void this.enterRoom({ own: true });
         break;
       }
@@ -473,10 +474,10 @@ export class MyRoomView {
         this.room = undefined;
         this.members.clear();
         this.syncRiders();
-        this.setStatus(MY_ROOM_TEXT.replaced);
+        this.setStatus(tr(MY_ROOM_TEXT.replaced));
         break;
       case "connection":
-        this.setStatus(event.open ? undefined : MY_ROOM_TEXT.reconnecting);
+        this.setStatus(event.open ? undefined : tr(MY_ROOM_TEXT.reconnecting));
         return;
       case "rejoined":
         this.applySnapshot(event.snapshot);
@@ -489,7 +490,7 @@ export class MyRoomView {
     try {
       await this.options.social?.connection.kick(accountId);
     } catch (error) {
-      await this.options.social?.notice(MY_ROOM_TEXT.title, enterErrorMessage(error, false));
+      await this.options.social?.notice(tr(MY_ROOM_TEXT.title), enterErrorMessage(error, false));
     }
   }
 
@@ -502,8 +503,8 @@ export class MyRoomView {
     try {
       await run();
     } catch (error) {
-      if (!this.disposed) await this.options.social?.notice(MY_ROOM_TEXT.title,
-        error instanceof MyRoomError || !(error instanceof Error) ? MY_ROOM_TEXT.cannotEnterMyRoom
+      if (!this.disposed) await this.options.social?.notice(tr(MY_ROOM_TEXT.title),
+        error instanceof MyRoomError || !(error instanceof Error) ? tr(MY_ROOM_TEXT.cannotEnterMyRoom)
           : error.message);
     } finally {
       this.dialogBusy = false;
@@ -517,7 +518,7 @@ export class MyRoomView {
     if (!this.room.room.settings.etcLocked) return { nickname };
     if (this.etcPassword) return { nickname, password: this.etcPassword };
     const password = await askRoomPassword({ library: this.options.library, root: this.options.root,
-      label: MY_ROOM_TEXT.etcPassword });
+      label: tr(MY_ROOM_TEXT.etcPassword) });
     return password ? { nickname, password } : undefined;
   }
 
@@ -534,7 +535,7 @@ export class MyRoomView {
       const code = (error as { code?: string }).code;
       if (code === "WRONG_PASSWORD" || code === "PASSWORD_REQUIRED") {
         this.etcPassword = undefined;
-        await this.options.social?.notice(MY_ROOM_TEXT.title, MY_ROOM_TEXT.wrongPassword);
+        await this.options.social?.notice(tr(MY_ROOM_TEXT.title), tr(MY_ROOM_TEXT.wrongPassword));
         return undefined;
       }
       throw error;
@@ -578,7 +579,7 @@ export class MyRoomView {
           library: this.options.library as unknown as MyRoomCareerLibrary,
           root: this.options.root, summary, editable: summary.owner,
           onSave: main => social.api.setMainEmblems(main),
-          notice: message => { void social.notice(summary.owner ? "查看我的徽章" : "查看徽章", message); },
+          notice: message => { void social.notice(summary.owner ? tr("查看我的徽章") : tr("查看徽章"), message); },
           onClose: () => {
             this.emblems = undefined;
             resolve();
@@ -699,7 +700,7 @@ export class MyRoomView {
     this.inventoryOpen = true;
     void Promise.resolve().then(() => this.options.onOpenInventory()).catch(error => {
       this.inventoryOpen = false;
-      this.setStatus(`打开我的物品失败：${String(error)}`);
+      this.setStatus(tr("打开我的物品失败：{error}", { error: String(error) }));
     });
   }
 
@@ -723,7 +724,7 @@ export class MyRoomView {
       if (this.disposed) dialog.dispose();
       else this.admin = dialog;
     } catch (error) {
-      this.setStatus(`打开管理失败：${error instanceof Error ? error.message : String(error)}`);
+      this.setStatus(tr("打开管理失败：{error}", { error: error instanceof Error ? error.message : String(error) }));
     } finally {
       this.adminOpening = false;
     }
@@ -739,9 +740,9 @@ export class MyRoomView {
     try {
       validateMyRoomProfile(myRoom);
       const environment = this.options.environments.find(item => item.id === myRoom.environmentId);
-      if (!environment) throw new Error("请选择可用的小屋环境。");
+      if (!environment) throw new Error(tr("请选择可用的小屋环境。"));
       if (this.sceneView && !(await this.sceneView.setEnvironment(environment))) {
-        this.setStatus("小屋场景未能加载，设置没有保存。");
+        this.setStatus(tr("小屋场景未能加载，设置没有保存。"));
         return false;
       }
       if (this.disposed) return false;
@@ -756,7 +757,7 @@ export class MyRoomView {
       this.setStatus(undefined);
       return true;
     } catch (error) {
-      this.setStatus(`保存失败：${error instanceof Error ? error.message : String(error)}`);
+      this.setStatus(tr("保存失败：{error}", { error: error instanceof Error ? error.message : String(error) }));
       return false;
     }
   }

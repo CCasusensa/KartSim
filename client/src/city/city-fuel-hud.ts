@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The 卡丁城 fuel HUD on a canvas above the race view: the tank gauge at
  * the bottom right in the release 首领模式 HP box (litres, tank class,
@@ -193,8 +194,8 @@ export function paintFuelHud(context: CanvasRenderingContext2D, width: number, h
   // Litres over the bar, the tank class at its end, the range and the nearest station above the box.
   label(context, `${liters(state.fuelMl)} / ${liters(state.capacityMl)} L`, bar.x, y + 8 * scale, 12 * scale,
     warning ? gaugeColor(ratio) : "white");
-  label(context, `${tankClassName(state.sizeClass)}油箱`, bar.x + bar.width, y + 8 * scale, 11 * scale, CYAN, "right");
-  const rangeText = state.empty ? "油箱空了 · 已熄火" : `可行驶 ${distanceText(state.rangeMeters)}`;
+  label(context, tr("{value0}油箱", { value0: tankClassName(state.sizeClass) }), bar.x + bar.width, y + 8 * scale, 11 * scale, CYAN, "right");
+  const rangeText = state.empty ? tr("油箱空了 · 已熄火") : tr("可行驶 {value0}", { value0: distanceText(state.rangeMeters) });
   label(context, rangeText, x + boxWidth, y - 10 * scale, 12 * scale,
     state.empty ? "#ff8080" : warning ? gaugeColor(ratio) : "white", "right");
   if (state.nearest) {
@@ -212,8 +213,8 @@ export function paintFuelHud(context: CanvasRenderingContext2D, width: number, h
     case "rescue": banner = { text: state.prompt.text, color: "#ff8080", key: true }; break;
     case "slow-down": case "full": banner = { text: state.prompt.text, color: "white", key: false }; break;
     default:
-      if (warning === "critical") banner = { text: "油量严重不足，请尽快到加油站加油！", color: "#ff8080", key: false };
-      else if (warning === "low") banner = { text: "油量不足，请留意附近的加油站", color: "#ffd23f", key: false };
+      if (warning === "critical") banner = { text: tr("油量严重不足，请尽快到加油站加油！"), color: "#ff8080", key: false };
+      else if (warning === "low") banner = { text: tr("油量不足，请留意附近的加油站"), color: "#ffd23f", key: false };
   }
   if (banner) {
     context.font = `bold ${15 * scale}px ${FONT}`;
@@ -235,7 +236,7 @@ export function paintFuelHud(context: CanvasRenderingContext2D, width: number, h
     }
     label(context, banner.text, tx, by + bannerHeight / 2 + 1, 15 * scale, banner.color);
   }
-  if (state.empty && blink) label(context, "油箱空了！", width / 2, height * 0.32, 34 * scale, "#ff5c5c", "center");
+  if (state.empty && blink) label(context, tr("油箱空了！"), width / 2, height * 0.32, 34 * scale, "#ff5c5c", "center");
 }
 
 /** The HUD canvas: sized to the race view, redrawn every frame. */

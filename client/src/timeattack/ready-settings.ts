@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { settingsResourceEntry } from "../ui/resource-panel";
 import type { ReadyOptions } from "./ready-flow";
 import { tellPlayer } from "../ui/game-popups";
@@ -123,7 +124,7 @@ export async function openReadySettings(controller: ReadySettingsController,
       controller.host.getReadyOptions().version ?? deps.defaultVersion);
     controller.activeSettings = view;
   } catch (error) {
-    tellPlayer(controller.host.hud, `设置窗口：${String(error)}`);
+    tellPlayer(controller.host.hud, tr("设置窗口：{error}", { error: String(error) }));
     if (controller.host.shell.modal === "settings")
       controller.host.shell.closeModal("settings");
   } finally {
@@ -195,7 +196,7 @@ export function saveReadyGameOptions(controller: ReadySettingsController,
   try {
     persist(controller.host.getGameOptions());
   } catch (error) {
-    tellPlayer(controller.host.hud, `本次游戏设置未保存：${String(error)}`);
+    tellPlayer(controller.host.hud, tr("本次游戏设置未保存：{error}", { error: String(error) }));
   }
 }
 

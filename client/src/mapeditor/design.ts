@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 自制地图的设计数据（地图工坊保存、上传和生成赛道包的唯一输入）。
  *
@@ -193,7 +194,7 @@ export function defaultGround(): GroundDesign {
   return { texture: { track: "village_I01", name: "tilegrass_128_03" }, size: 1200, z: -0.3, tile: 16, drivable: true };
 }
 
-export function newDesign(name = "我的赛道"): MapDesign {
+export function newDesign(name = tr("我的赛道")): MapDesign {
   return {
     format: MAP_FORMAT,
     version: MAP_VERSION,
@@ -224,38 +225,38 @@ const textureRef = (value: unknown): value is TextureRef =>
 /** 检查设计数据；返回问题列表，空表示可以生成。 */
 export function validateDesign(design: MapDesign): string[] {
   const issues: string[] = [];
-  if (design.format !== MAP_FORMAT || design.version !== MAP_VERSION) issues.push("不是地图工坊的设计文件。");
-  if (!/^[0-9a-z]{6,16}$/.test(design.id)) issues.push("地图 id 无效。");
+  if (design.format !== MAP_FORMAT || design.version !== MAP_VERSION) issues.push(tr("不是地图工坊的设计文件。"));
+  if (!/^[0-9a-z]{6,16}$/.test(design.id)) issues.push(tr("地图 id 无效。"));
   const name = design.name.trim();
-  if (!name || [...name].length > MAP_LIMITS.nameLength) issues.push(`地图名需要 1–${MAP_LIMITS.nameLength} 个字。`);
+  if (!name || [...name].length > MAP_LIMITS.nameLength) issues.push(tr("地图名需要 1–{value} 个字。", { value: String(MAP_LIMITS.nameLength) }));
   if (!Number.isInteger(design.laps) || design.laps < MAP_LIMITS.laps[0] || design.laps > MAP_LIMITS.laps[1])
-    issues.push(`圈数需要 ${MAP_LIMITS.laps[0]}–${MAP_LIMITS.laps[1]}。`);
-  if (!Number.isInteger(design.difficulty) || design.difficulty < 1 || design.difficulty > 5) issues.push("难度需要 1–5。");
-  if (!/^[A-Za-z0-9_\-]{1,64}$/.test(design.sky)) issues.push("天空来源赛道无效。");
-  if (!/^[A-Za-z]{2,16}$/.test(design.theme)) issues.push("主题无效。");
-  if (design.roads.length > MAP_LIMITS.roads) issues.push(`道路最多 ${MAP_LIMITS.roads} 条。`);
-  if (design.pieces.length > MAP_LIMITS.pieces) issues.push(`摆件最多 ${MAP_LIMITS.pieces} 个。`);
+    issues.push(tr("圈数需要 {value}–{value2}。", { value: String(MAP_LIMITS.laps[0]), value2: String(MAP_LIMITS.laps[1]) }));
+  if (!Number.isInteger(design.difficulty) || design.difficulty < 1 || design.difficulty > 5) issues.push(tr("难度需要 1–5。"));
+  if (!/^[A-Za-z0-9_\-]{1,64}$/.test(design.sky)) issues.push(tr("天空来源赛道无效。"));
+  if (!/^[A-Za-z]{2,16}$/.test(design.theme)) issues.push(tr("主题无效。"));
+  if (design.roads.length > MAP_LIMITS.roads) issues.push(tr("道路最多 {value} 条。", { value: String(MAP_LIMITS.roads) }));
+  if (design.pieces.length > MAP_LIMITS.pieces) issues.push(tr("摆件最多 {value} 个。", { value: String(MAP_LIMITS.pieces) }));
   const routes = design.roads.filter(road => road.route);
-  if (routes.length !== 1) issues.push("需要恰好一条比赛路线（在道路属性里勾选“比赛路线”）。");
+  if (routes.length !== 1) issues.push(tr("需要恰好一条比赛路线（在道路属性里勾选“比赛路线”）。"));
   for (const road of design.roads) {
     const label = road.name || road.id;
     if (road.points.length < 2 || road.points.length > MAP_LIMITS.roadPoints)
-      issues.push(`道路「${label}」需要 2–${MAP_LIMITS.roadPoints} 个控制点。`);
-    if (road.route && (!road.closed || road.points.length < 3)) issues.push(`比赛路线「${label}」必须闭合，至少 3 个控制点。`);
+      issues.push(tr("道路「{value}」需要 2–{value2} 个控制点。", { value: String(label), value2: String(MAP_LIMITS.roadPoints) }));
+    if (road.route && (!road.closed || road.points.length < 3)) issues.push(tr("比赛路线「{value}」必须闭合，至少 3 个控制点。", { value: String(label) }));
     if (!finite(road.width) || road.width < MAP_LIMITS.width[0] || road.width > MAP_LIMITS.width[1])
-      issues.push(`道路「${label}」宽度需要 ${MAP_LIMITS.width[0]}–${MAP_LIMITS.width[1]} 米。`);
-    if (!textureRef(road.surface)) issues.push(`道路「${label}」没有路面贴图。`);
+      issues.push(tr("道路「{value}」宽度需要 {value2}–{value3} 米。", { value: String(label), value2: String(MAP_LIMITS.width[0]), value3: String(MAP_LIMITS.width[1]) }));
+    if (!textureRef(road.surface)) issues.push(tr("道路「{value}」没有路面贴图。", { value: String(label) }));
     for (const point of road.points) {
       if (![point.x, point.y, point.z].every(finite) ||
         Math.max(Math.abs(point.x), Math.abs(point.y), Math.abs(point.z)) > MAP_LIMITS.extent) {
-        issues.push(`道路「${label}」有控制点超出 ±${MAP_LIMITS.extent} 米。`);
+        issues.push(tr("道路「{value}」有控制点超出 ±{value2} 米。", { value: String(label), value2: String(MAP_LIMITS.extent) }));
         break;
       }
     }
     for (const wall of [road.walls.left, road.walls.right]) {
       if (wall && (!textureRef(wall.texture) || !finite(wall.height) ||
         wall.height < MAP_LIMITS.wallHeight[0] || wall.height > MAP_LIMITS.wallHeight[1]))
-        issues.push(`道路「${label}」的护墙设置无效。`);
+        issues.push(tr("道路「{value}」的护墙设置无效。", { value: String(label) }));
     }
   }
   for (const piece of design.pieces) {
@@ -264,26 +265,26 @@ export function validateDesign(design: MapDesign): string[] {
       !vec3(piece.position) || !vec3(piece.rotation) ||
       !vec3(piece.scale) || piece.scale.some(s => Math.abs(s) < 1e-3 || Math.abs(s) > 100) ||
       piece.position.some(v => Math.abs(v) > MAP_LIMITS.extent)) {
-      issues.push(`摆件「${piece.label || piece.id}」的数据无效。`);
+      issues.push(tr("摆件「{value}」的数据无效。", { value: String(piece.label || piece.id) }));
       break;
     }
   }
-  if (design.items.rows.length > MAP_LIMITS.itemRows) issues.push(`道具箱最多 ${MAP_LIMITS.itemRows} 排。`);
+  if (design.items.rows.length > MAP_LIMITS.itemRows) issues.push(tr("道具箱最多 {value} 排。", { value: String(MAP_LIMITS.itemRows) }));
   for (const row of design.items.rows) {
     if (!design.roads.some(road => road.id === row.road) || !finite(row.distance) || row.distance < 0 ||
       !Number.isInteger(row.count) || row.count < MAP_LIMITS.itemsPerRow[0] || row.count > MAP_LIMITS.itemsPerRow[1]) {
-      issues.push("有一排道具箱的设置无效（所在道路被删了？）。");
+      issues.push(tr("有一排道具箱的设置无效（所在道路被删了？）。"));
       break;
     }
   }
   const arch = design.start.arch;
-  if (!finite(design.start.offset) || design.start.offset < 0) issues.push("起跑线位置无效。");
+  if (!finite(design.start.offset) || design.start.offset < 0) issues.push(tr("起跑线位置无效。"));
   if (arch && (!/^[A-Za-z0-9_\-]{1,64}$/.test(arch.track) || !Array.isArray(arch.path) || !arch.path.length ||
     !arch.path.every(index => Number.isInteger(index) && index >= 0) || !vec3(arch.origin) || !vec3(arch.min) || !vec3(arch.max)))
-    issues.push("起点拱门设置无效。");
+    issues.push(tr("起点拱门设置无效。"));
   if (design.ground && (!textureRef(design.ground.texture) || !finite(design.ground.size) ||
     design.ground.size < 20 || design.ground.size > MAP_LIMITS.extent * 2 || !finite(design.ground.tile) ||
-    design.ground.tile <= 0)) issues.push("地面设置无效。");
+    design.ground.tile <= 0)) issues.push(tr("地面设置无效。"));
   return issues;
 }
 
@@ -316,8 +317,8 @@ export function itemBoxCount(design: Pick<MapDesign, "items">): number {
 /** 解析并补全一个设计文件（导入、读档）；格式不对时抛错。 */
 export function parseDesign(text: string): MapDesign {
   const value = JSON.parse(text) as Partial<MapDesign>;
-  if (value?.format !== MAP_FORMAT) throw new Error("不是地图工坊的设计文件。");
-  if (value.version !== MAP_VERSION) throw new Error(`不支持的设计版本 ${String(value.version)}。`);
+  if (value?.format !== MAP_FORMAT) throw new Error(tr("不是地图工坊的设计文件。"));
+  if (value.version !== MAP_VERSION) throw new Error(tr("不支持的设计版本 {value}。", { value: String(String(value.version)) }));
   const design: MapDesign = {
     ...newDesign(),
     ...value,

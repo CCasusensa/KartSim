@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** The reusable BML window shell for multiplayer dialogs and stage panels. */
 
 import type { WindowNode } from "./multiplayer-window-assets";
@@ -106,7 +107,7 @@ export class MultiplayerWindowView {
         this.render();
       });
     this.popup.setAttribute("role", "listbox");
-    this.popup.setAttribute("aria-label", "房间选项");
+    this.popup.setAttribute("aria-label", tr("房间选项"));
     this.popup.id = `multiplayer-combo-${++nextComboId}`;
     this.popup.hidden = true;
     dependencies.decoratePopup(this.popup);
@@ -253,7 +254,7 @@ export class MultiplayerWindowView {
   }
 
   text(value: string): string {
-    return value.replace(/#sb\(([^)]+)\)/g, (_whole, key: string) => this.strings.get(key) ?? "");
+    return tr(value.replace(/#sb\(([^)]+)\)/g, (_whole, key: string) => this.strings.get(key) ?? ""));
   }
 
   drawComboText(node: WindowNode, rectangle: unknown, disabled = false): void {

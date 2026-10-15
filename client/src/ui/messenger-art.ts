@@ -1,4 +1,4 @@
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 
 /**
  * Release art and layouts of 好友聊天系统 (stage_messengerSystem): the
@@ -180,10 +180,8 @@ function readStringBag(bag: BmlNode): { strings: Map<string, string>; repeated: 
   const repeated = new Map<string, string>();
   for (const entry of bag.children) {
     const key = attr(entry, "n");
-    const local = entry.children.find(child => attr(child, "c") === resourceLocale()) ??
-      entry.children.find(child => attr(child, "c") === "cn");
-    if (!key || !local) continue;
-    const value = attr(local, "v") ?? "";
+    const value = resourceText(entry.children, attr);
+    if (!key || value === undefined) continue;
     if (strings.has(key)) repeated.set(key, value);
     else strings.set(key, value);
   }

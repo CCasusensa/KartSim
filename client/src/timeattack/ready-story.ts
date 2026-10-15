@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { ensureFeatureResources } from "../ui/resource-panel";
 import { ksvCompression } from "../codecs/ksv-compression";
 import { decodeKsvFile } from "../game/ghost/ksv-codec";
@@ -86,7 +87,7 @@ function showStoryMessage(controller: ReadyStoryController, message: string): vo
     controller.storyMessage?.dispose();
     controller.storyMessage = undefined;
   };
-  void openStoryMessage({ library, root: controller.host.root, title: "故事模式", message,
+  void openStoryMessage({ library, root: controller.host.root, title: tr("故事模式"), message,
     onClose: close }).then(view => {
     if (controller.disposed) view.dispose();
     else controller.storyMessage = view;
@@ -180,7 +181,7 @@ export async function loadStoryMenu(controller: ReadyStoryController): Promise<S
       showNew: chapter.showNew,
       open: !!steps && isChapterOpen(progress, chapter, chapters, stepsByChapter),
       cleared: !!steps && isChapterCleared(progress, chapter.name, steps),
-      progress: total === undefined ? "暂无关卡数据" : `已完成 ${Math.min(done, total)} / ${total} 关`,
+      progress: total === undefined ? tr("暂无关卡数据") : tr("已完成 {done} / {total} 关", { done: Math.min(done, total), total: total }),
     };
   }));
 }
@@ -263,7 +264,7 @@ async function openStoryStep(controller: ReadyStoryController, chapter: StoryCha
       library, root: controller.host.root, chapter, step, mission, trackCard,
       trackTitle: trackCard?.title ?? await trackTitle(library, mission.track),
       cleared: isStepCleared(loadStoryProgress(), chapter.name, step.id),
-      unavailable: track ? undefined : `赛道 ${mission.track} 不在本地资源中`,
+      unavailable: track ? undefined : tr("赛道 {track} 不在本地资源中", { track: mission.track }),
       onStart: () => { void playStoryStep(controller, chapter, step, mission); },
       onClose: () => {
         closeStoryWindow(controller);
@@ -277,9 +278,9 @@ async function openStoryStep(controller: ReadyStoryController, chapter: StoryCha
     }
     controller.storyWindow = window;
     // 开始 stays in its release disabled state; say why in the release message box.
-    if (!track) showStoryMessage(controller, `赛道 ${mission.track} 不在本地资源中。`);
+    if (!track) showStoryMessage(controller, tr("赛道 {track} 不在本地资源中。", { track: mission.track }));
     else if (!PLAYABLE_STORY_MISSIONS.has(mission.kind))
-      showStoryMessage(controller, "这一关的玩法网页版暂未开放，敬请期待。");
+      showStoryMessage(controller, tr("这一关的玩法网页版暂未开放，敬请期待。"));
   } catch (error) {
     report(controller, error);
   } finally {
@@ -349,7 +350,7 @@ export function storyGhostSources(bytes: Uint8Array, track: string, mission: Sto
       failure = error;
     }
   }
-  if (!recording) throw failure instanceof Error ? failure : new Error("对手录像无法读取。");
+  if (!recording) throw failure instanceof Error ? failure : new Error(tr("对手录像无法读取。"));
   const raw = recording as unknown as {
     bestTimeMs?: number;
     players: Array<{ equipment: Record<string, unknown>; playerName?: string }>;
@@ -380,12 +381,12 @@ export function storyGhostSources(bytes: Uint8Array, track: string, mission: Sto
 /** Clear rule of a finished race. */
 export function storyStepResult(mission: StoryMission, outcome: StoryRaceOutcome,
   rivalTimeMs: number): { cleared: boolean; message: string } {
-  if (!outcome.finished) return { cleared: false, message: "任务失败：没有完成比赛" };
+  if (!outcome.finished) return { cleared: false, message: tr("任务失败：没有完成比赛") };
   if (mission.kind === "Shadow" && rivalTimeMs > 0 && outcome.elapsedMs >= rivalTimeMs)
-    return { cleared: false, message: `任务失败：没有赢过${mission.rival?.name ?? "对手"}` };
+    return { cleared: false, message: tr("任务失败：没有赢过{rival}", { rival: mission.rival?.name ?? tr("对手") }) };
   if (mission.timeLimitMs > 0 && outcome.elapsedMs > mission.timeLimitMs)
-    return { cleared: false, message: "任务失败：没有在规定时间内完成" };
-  return { cleared: true, message: "任务成功！" };
+    return { cleared: false, message: tr("任务失败：没有在规定时间内完成") };
+  return { cleared: true, message: tr("任务成功！") };
 }
 
 async function startStoryRace(controller: ReadyStoryController, chapter: StoryChapter,
@@ -397,12 +398,12 @@ async function startStoryRace(controller: ReadyStoryController, chapter: StoryCh
     const library = story.library as StoryReadyLibrary;
     const host = controller.host;
     const previous = host.getSelection();
-    if (!previous) throw new Error("请先在计时赛选好车辆和人物。");
+    if (!previous) throw new Error(tr("请先在计时赛选好车辆和人物。"));
     const previousOptions = host.getReadyOptions();
     const [catalog, tracks] = await Promise.all([library.timeAttackGarageCatalog(),
       library.timeAttackTrackCatalog()]);
     const track = tracks.find(entry => entry.id.toLowerCase() === mission.track.toLowerCase());
-    if (!track) throw new Error(`赛道 ${mission.track} 不在本地资源中`);
+    if (!track) throw new Error(tr("赛道 {track} 不在本地资源中", { track: mission.track }));
     const kart = mission.fixedKartId === undefined ? undefined
       : catalog.karts.find(entry => entry.itemId === mission.fixedKartId);
     const character = mission.fixedCharId === undefined ? undefined
@@ -455,7 +456,7 @@ async function startStoryRace(controller: ReadyStoryController, chapter: StoryCh
       host.setSelection(previous);
       host.setReadyOptions(previousOptions);
       if (controller.activeHome)
-        await openStoryChapter(controller, chapter.name, { notice: "比赛未能开始，请重试。" });
+        await openStoryChapter(controller, chapter.name, { notice: tr("比赛未能开始，请重试。") });
     }
   } catch (error) {
     report(controller, error);

@@ -1,3 +1,5 @@
+import { gameLocale, tr } from "../i18n/locale";
+import { localizedRoadblockTexture, localizeResultTexture } from "./result-art-localization";
 /** Roadblock race HUD and result panels built from the original BML assets. */
 
 import type { ResultNode } from "./multiplayer-result-view";
@@ -81,24 +83,27 @@ export class RoadblockResultView {
         score,
         { ...time, children: [
           deps.cloneNode(lapText, {
-            texture: isRunner ? "lap_RunnerText@cn" : "lap_BlockerText@cn",
+            texture: localizedRoadblockTexture(isRunner ? "lap_RunnerText@cn" : "lap_BlockerText@cn"),
             leftTopTex: `${left} ${top}`,
           }, [deps.cloneNode(handicap, {
-            texture: "lap_HandicapText@cn",
+            texture: localizedRoadblockTexture("lap_HandicapText@cn"),
             visible: String(isRunner && race.roadblock.noRunnerManualReset),
           })]),
           lapNumber,
         ] },
         { ...rankBoard, children: [deps.cloneNode(role, {
-          texture: isRunner ? "rank_RunnerText@cn" : "rank_BlockerText@cn",
+          texture: localizedRoadblockTexture(isRunner ? "rank_RunnerText@cn" : "rank_BlockerText@cn"),
         })] },
       ],
     };
     screen.view = await deps.loadView({
       library, root, definition,
       roots: [hudFolder, "stage_/common", "stage_/speedIndiGame", "stage_/itemIndiGame"],
-      label: isRunner ? "跑者：到达终点" : "挡人方：阻止跑者",
-      projectTexture: deps.projectTexture,
+      label: isRunner ? tr("跑者：到达终点") : tr("挡人方：阻止跑者"),
+      projectTexture: (name: string, canvas: HTMLCanvasElement) => {
+        const projected = typeof deps.projectTexture === "function" ? deps.projectTexture(name, canvas) : canvas;
+        return localizeResultTexture(name, projected);
+      },
       state: node => {
         const name = deps.attribute(node, "name");
         const ms = screen.remainingMs;
@@ -126,7 +131,7 @@ export class RoadblockResultView {
     if (!title) throw new Error("挡人结果缺少胜负图片槽。");
     const outcomes = [true, false].map(won => deps.cloneNode(title, {
       name: won ? "runnerWin" : "runnerLose",
-      texture: won ? "gameresult_RunnerWin@cn" : "gameresult_RunnerLose@cn",
+      texture: localizedRoadblockTexture(won ? "gameresult_RunnerWin@cn" : "gameresult_RunnerLose@cn"),
     }));
     const shiftTimeLabel = (node: ResultNode): ResultNode =>
       deps.cloneNode(node, ["finishTime", "runnerRetire"].includes(deps.attribute(node, "name") ?? "")
@@ -189,7 +194,7 @@ export class RoadblockResultView {
       const name = deps.attribute(child, "name");
       return child === list ? { ...child, name: "Container", children: rows }
         : name === "runnerHeader" || name === "blockerHeader"
-          ? deps.cloneNode(child, { texture: `${name}@cn` }) : child;
+          ? deps.cloneNode(child, { texture: localizedRoadblockTexture(`${name}@cn`) }) : child;
     }));
     const definition = { ...stage, children: [
       deps.cloneNode(gameResult, { windowRect: "550 50 964 215" }, [
@@ -199,7 +204,8 @@ export class RoadblockResultView {
     ] };
     screen.view = await deps.loadView({
       library, root, definition, roots: [resultFolder, "stage_/common"],
-      label: "挡人模式结果",
+      label: tr("挡人模式结果"),
+      projectTexture: localizeResultTexture,
       state: node => {
         const name = deps.attribute(node, "name");
         const outcome = screen.race?.roadblockOutcome;
@@ -210,13 +216,14 @@ export class RoadblockResultView {
         if (name === "runnerWin" || name === "runnerLose")
           return { visible: !!outcome && outcome.runnerWon === (name === "runnerWin") };
         if (name === "limitTime")
-          return { text: `限制时间：${Math.floor((screen.race?.roadblock?.limitMs ?? 0) / 60000)} 分钟` };
+          return { text: tr("限制时间：{minutes} 分钟", { minutes: Math.floor((screen.race?.roadblock?.limitMs ?? 0) / 60000) }) };
         if (name === "finishTime") return {
           visible: !!outcome?.runnerWon,
           text: outcome?.runnerWon
-            ? `完成时间：${((outcome.endAt - screen.race!.startAt) / 1000).toFixed(2)} 秒` : "",
+            ? tr("完成时间：{seconds} 秒", { seconds: ((outcome.endAt - screen.race!.startAt) / 1000).toFixed(2) }) : "",
         };
-        if (name === "runnerRetire") return { visible: !!outcome && !outcome.runnerWon };
+        if (name === "runnerRetire") return { visible: !!outcome && !outcome.runnerWon,
+          ...(gameLocale() === "zh-CN" ? {} : { text: tr("跑者未完成比赛") }) };
         return {};
       },
     });

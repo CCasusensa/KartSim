@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePart, GaragePartSlot } from "./garage-parts-business";
 
 export interface GarageControlsVehicle {
@@ -183,12 +184,12 @@ function showFactoryPage(host: GarageControlsHost, equipment: GarageControlsEqui
   host.factoryPanel?.update(equipment.factory, available, pending,
     available ? vehicle.title : undefined, available ? vehicle : undefined, vehicleKey);
   if (available) host.updateFactoryScores();
-  else host.factoryPanel?.updateScores(undefined, "当前车辆不支持车辆改装。");
+  else host.factoryPanel?.updateScores(undefined, tr("当前车辆不支持车辆改装。"));
   host.updatePageVisibility();
   host.updateCards();
 }
 
-export const GARAGE_PRACTICE_NOTICE = "练习车不支持部件、强化、改装或外观修改。";
+export const GARAGE_PRACTICE_NOTICE = tr("练习车不支持部件、强化、改装或外观修改。");
 
 /**
  * The part list is a three-column grid, so bare text sat in its first card
@@ -274,7 +275,7 @@ function showLevelPage(
 function mountPartTabs(host: GarageControlsHost, family: string | undefined,
   layout: GarageControlsLayout, dependencies: GarageControlsDependencies): void {
   for (const slot of dependencies.slots) {
-    const alternate = family === "legacy" && slot === "booster" ? "部件" : undefined;
+    const alternate = family === "legacy" && slot === "booster" ? tr("部件") : undefined;
     const button = host.nativeButton(
       `/partsListBoard/${layout.partsTab}/${dependencies.slotNodes[slot]}`,
       dependencies.slotLabel(slot, family), () => host.selectSlot(slot), alternate);
@@ -335,7 +336,7 @@ function renderPartCard(
   card.classList.toggle("selected", equipped);
   const preview = host.button("", () => host.setPartPreview(part));
   preview.className = "garage-part-preview";
-  preview.setAttribute("aria-label", `预览 ${host.partLabel(part)} ${dependencies.slotLabel(host.slot, part.family)}`);
+  preview.setAttribute("aria-label", tr("预览 {0} {1}", { "0": host.partLabel(part), "1": dependencies.slotLabel(host.slot, part.family) }));
   if (part.family === "legacy" && part.legacyEffect) preview.title = part.legacyEffect;
   dependencies.bindPreview(preview, part, () => host.previewPart, next => {
     if (!host.transformPreviewUiHidden) host.setPartPreview(next);
@@ -355,9 +356,9 @@ function renderPartCard(
   card.classList.toggle("locked", locked);
   card.append(preview);
   if (dependencies.canEquip(locked)) {
-    const equip = host.button(equipped ? "已装备" : "装备", () => host.requestEquip(part));
+    const equip = host.button(equipped ? tr("已装备") : tr("装备"), () => host.requestEquip(part));
     equip.setAttribute("aria-label",
-      `${equipped ? "已装备" : "装备"} ${host.partLabel(part)} ${dependencies.slotLabel(host.slot, part.family)}`);
+      `${equipped ? tr("已装备") : tr("装备")} ${host.partLabel(part)} ${dependencies.slotLabel(host.slot, part.family)}`);
     equip.className = "garage-equip-label";
     host.skin(equip, "garage_btn_equip_");
     equip.disabled = equipped;
@@ -375,14 +376,14 @@ function mountXunUpgradeActions(
     host.defaultPartGrades)?.itemId;
   const next = equippedId === undefined ? undefined
     : parts.find(part => part.itemId === equippedId + 1);
-  const upgrade = host.button("强化一级", () => { if (next) host.equip(next); });
+  const upgrade = host.button(tr("强化一级"), () => { if (next) host.equip(next); });
   upgrade.disabled = !next || dependencies.slotLocked(base, host.slot);
   upgrade.dataset.upgrade = "true";
   host.skin(upgrade, "garage_btn_reinforce_0@zz");
   upgrade.textContent = "";
-  upgrade.setAttribute("aria-label", "强化一级（本地测试）");
+  upgrade.setAttribute("aria-label", tr("强化一级（本地测试）"));
   host.place(upgrade, host.rect("partsReinforceButton"));
-  const reset = host.nativeButton("partsResetButton", "重置当前部件（本地测试）",
+  const reset = host.nativeButton("partsResetButton", tr("重置当前部件（本地测试）"),
     () => host.requestEquip(undefined));
   reset.textContent = "";
   reset.dataset.upgrade = "true";
@@ -395,7 +396,7 @@ function showPartsPage(host: GarageControlsHost, equipment: GarageControlsEquipm
   const transform = host.controls.querySelector<HTMLElement>("[data-transform-preview]");
   if (transform) transform.dataset.transformAvailable = String(layout.kind === "xun");
   const gradeLabel = `engineGrade${family === "xun" ? 13 : family === "v1" ? 12 : family === "x" ? 11 : 0}`;
-  host.partTitle.textContent = host.assets.strings.get(gradeLabel) ?? "车辆部件";
+  host.partTitle.textContent = host.assets.strings.get(gradeLabel) ?? tr("车辆部件");
   host.removePart.disabled = host.coatingMode
     ? !equipment.cosmetics?.coating || host.cosmeticBusy
     : host.cosmeticSlot ? !equipment.cosmetics?.[host.cosmeticSlot]
@@ -415,7 +416,7 @@ function showPartsPage(host: GarageControlsHost, equipment: GarageControlsEquipm
   if (!family) {
     const notice = document.createElement("div");
     notice.className = "garage-parts-notice";
-    notice.textContent = "该代暂无可用的四槽部件目录。";
+    notice.textContent = tr("该代暂无可用的四槽部件目录。");
     host.inventory.append(notice);
   }
   for (const [index, part] of parts.entries())
@@ -485,7 +486,7 @@ export function updateGarageControls(
     host.comparisons.length = 0;
     host.cancelPreview.hidden = true;
     host.removePart.disabled = true;
-    host.inventory.textContent = `当前车辆参数不可用：${error instanceof Error ? error.message : error}`;
+    host.inventory.textContent = tr("当前车辆参数不可用：{0}", { "0": error instanceof Error ? error.message : String(error) });
   }
   host.inventory.scrollTop = scrollTop;
   host.updatePageVisibility();

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import {
   Box3, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial,
   PerspectiveCamera, Raycaster, Scene, SRGBColorSpace, Vector3, WebGLRenderer,
@@ -703,7 +704,7 @@ export class MyRoomSceneView {
     options: MyRoomSceneOptions = {}) {
     this.showcase = options.showcase;
     this.canvas.setAttribute("aria-label", this.showcase
-      ? "大厅三维场景" : "原版小屋三维场景，↑↓ 前进后退，←→ 转身，滚轮缩放");
+      ? tr("大厅三维场景") : tr("原版小屋三维场景，↑↓ 前进后退，←→ 转身，滚轮缩放"));
     this.canvas.tabIndex = this.showcase ? -1 : 0;
     this.canvas.style.width = "100%";
     this.canvas.style.height = "100%";
@@ -714,7 +715,7 @@ export class MyRoomSceneView {
     // Read by assistive tech only; an error shows as a game notice plate (setStatus).
     this.status.setAttribute("role", "status");
     this.status.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)";
-    this.status.textContent = "等待载入原版小屋场景…";
+    this.status.textContent = tr("等待载入原版小屋场景…");
     root.append(this.canvas, this.status);
     if (this.showcase) {
       this.canvas.style.pointerEvents = "none";
@@ -740,7 +741,7 @@ export class MyRoomSceneView {
     if (this.disposed) return false;
     if (environment.id === this.environmentId && this.room) return true;
     const generation = ++this.generation;
-    this.setStatus(`正在加载${environment.title}…`);
+    this.setStatus(tr("正在加载{0}…", { "0": environment.title }));
     let nextRoom: RenderedRoom | undefined;
     let nextSky: RenderedRoom | undefined;
     try {
@@ -796,8 +797,8 @@ export class MyRoomSceneView {
       this.disposeCollider();
       previousSky?.dispose();
       this.setStatus(this.avatar
-        ? "↑↓ / WS 前进后退 · ←→ / AD 转身 · 滚轮缩放"
-        : "滚轮缩放", false);
+        ? tr("↑↓ / WS 前进后退 · ←→ / AD 转身 · 滚轮缩放")
+        : tr("滚轮缩放"), false);
       this.startTime = performance.now();
       this.resize();
       this.startRendering();
@@ -805,7 +806,7 @@ export class MyRoomSceneView {
     } catch (error) {
       if (!this.disposed && generation === this.generation) {
         const message = error instanceof Error ? error.message : String(error);
-        this.setStatus(`原版小屋场景加载失败：${message}`, true);
+        this.setStatus(tr("原版小屋场景加载失败：{0}", { "0": message }), true);
       }
       return false;
     } finally {
@@ -828,7 +829,7 @@ export class MyRoomSceneView {
     const generation = ++this.subjectGeneration;
     let next: RoomAvatar | undefined;
     let nextWalking: WalkingAvatar | undefined;
-    if (this.room) this.setStatus("正在加载当前人物和卡丁车…");
+    if (this.room) this.setStatus(tr("正在加载当前人物和卡丁车…"));
     try {
       const equipment = parked.profile.equipment;
       const [kartColors, riderColors, ownRiderColors] = await Promise.all([
@@ -872,13 +873,13 @@ export class MyRoomSceneView {
       this.placeSubject();
       previous && Lt(previous);
       disposeWalkingAvatar(previousWalking);
-      this.setStatus("↑↓ / WS 前进后退 · ←→ / AD 转身 · 滚轮缩放");
+      this.setStatus(tr("↑↓ / WS 前进后退 · ←→ / AD 转身 · 滚轮缩放"));
       void this.setDisplayKarts(subject.displayKarts ?? []);
       return true;
     } catch (error) {
       if (!this.disposed && generation === this.subjectGeneration) {
         const message = error instanceof Error ? error.message : String(error);
-        this.setStatus(`小屋人物和车辆加载失败：${message}`, true);
+        this.setStatus(tr("小屋人物和车辆加载失败：{0}", { "0": message }), true);
       }
       return false;
     } finally {
@@ -917,7 +918,7 @@ export class MyRoomSceneView {
     } catch (error) {
       if (!this.disposed && generation === this.displayGeneration) {
         const message = error instanceof Error ? error.message : String(error);
-        this.setStatus(`小屋代表卡丁车加载失败：${message}`, true);
+        this.setStatus(tr("小屋代表卡丁车加载失败：{0}", { "0": message }), true);
       }
       return false;
     } finally {
@@ -1323,7 +1324,7 @@ export class MyRoomSceneView {
         this.renderer.clearDepth();
         yo(this.renderer, () => this.renderer!.render(this.scene, this.camera));
       } catch (error) {
-        this.setStatus(`原版小屋场景渲染失败：${error instanceof Error ? error.message : String(error)}`, true);
+        this.setStatus(tr("原版小屋场景渲染失败：{0}", { "0": error instanceof Error ? error.message : String(error) }), true);
         return;
       }
       if (this.onFrame) this.onFrame(this.riderHeads());

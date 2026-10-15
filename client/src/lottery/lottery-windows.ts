@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The lottery screens' popup windows in the release look, drawn by the
  * shared window renderer (te) in a popup layer over the stage:
@@ -225,7 +226,7 @@ export function packWindowDefinition(rows: number, paged: boolean): Node {
   return node("Panel", { windowRect: "fullscreen", color: "160 0 0 0", alphaBlend: "true" }, [
     // Under the wallet: a gap, then the HSection and 关闭 that sit 63 and 6 above the client bottom.
     node("CaptionWindow", { name: "packDialog", windowRect: `0 0 ${PACK.width} ${y + 134}`, frame: "CaptionDialog",
-      caption: "兑换", captionPos: "0 1", align: "center", textRender: "bold", setCloseButton: "closeButton" }, [
+      caption: tr("兑换"), captionPos: "0 1", align: "center", textRender: "bold", setCloseButton: "closeButton" }, [
       node("Window", { name: "packList", leftTopWH: `0 10 ${PACK.list} ${listHeight}`, align: "hcenter",
         frame: "GrayEdit" }, [
         ...rowNodes,
@@ -303,23 +304,23 @@ export function openPackWindow(options: PackWindowOptions): Promise<boolean> {
         return packRowState(name, pack, busy.has(pack.stockId), () => buy(pack), options.picture, icons);
       }
       switch (name) {
-        case "packDialog": return { text: "兑换" };
+        case "packDialog": return { text: tr("兑换") };
         case "packEmpty": return packs.length ? { visible: false }
-          : textState("暂时没有可兑换的礼包。", { size: 16, color: SUBTEXT, align: "center" }, 1, true);
-        case "prevPage": return { label: "上一页", disabled: page === 0, ...(page > 0 ? { action: () => turn(-1) } : {}) };
-        case "nextPage": return { label: "下一页", disabled: page >= pages - 1,
+          : textState(tr("暂时没有可兑换的礼包。"), { size: 16, color: SUBTEXT, align: "center" }, 1, true);
+        case "prevPage": return { label: tr("上一页"), disabled: page === 0, ...(page > 0 ? { action: () => turn(-1) } : {}) };
+        case "nextPage": return { label: tr("下一页"), disabled: page >= pages - 1,
           ...(page < pages - 1 ? { action: () => turn(1) } : {}) };
         case "pageText": return { text: `${page + 1}/${pages}` };
         case "walletText": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
           paintWallet(context, rect, options.wallet(), icons) };
-        case "closeButton": return { label: "关闭", action: close };
-        case "cancelButton": return { text: "关闭", label: "关闭", action: close };
+        case "closeButton": return { label: tr("关闭"), action: close };
+        case "cancelButton": return { text: tr("关闭"), label: tr("关闭"), action: close };
       }
       return {};
     };
     window = await showWindow({
       library: options.library, root: options.root, definition: packWindowDefinition(rows, pages > 1),
-      folder: PACK_FOLDER, roots: PACK_ROOTS, label: "兑换", state, cancel: close, focus: "cancelButton",
+      folder: PACK_FOLDER, roots: PACK_ROOTS, label: tr("兑换"), state, cancel: close, focus: "cancelButton",
       index: tree => indexRows(tree, "packRow", rowOf),
     });
     return window;
@@ -340,7 +341,7 @@ function packRowState(name: string, pack: LotteryPack, busy: boolean, buy: () =>
     case "packPrice": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
       paintAmount(context, rect, pack.price, pack.currency, icons, "right", PRICE_COLORS[pack.currency]);
     } };
-    case "packBuy": return { text: "兑换", label: `兑换 ${pack.name}`, disabled: busy, ...(busy ? {} : { action: buy }) };
+    case "packBuy": return { text: tr("兑换"), label: tr("兑换 {0}", { "0": pack.name }), disabled: busy, ...(busy ? {} : { action: buy }) };
   }
   return {};
 }
@@ -372,8 +373,8 @@ function paintWallet(context: CanvasRenderingContext2D, rect: Rect,
   context.font = `bold 14px ${FONT}`;
   context.fillStyle = SUBTEXT;
   context.textBaseline = "middle";
-  context.fillText("持有：", rect.x, rect.y + rect.height / 2 + 1);
-  const start = rect.x + context.measureText("持有：").width + 10;
+  context.fillText(tr("持有："), rect.x, rect.y + rect.height / 2 + 1);
+  const start = rect.x + context.measureText(tr("持有：")).width + 10;
   context.restore();
   const slot = (rect.x + rect.width - start) / CURRENCIES.length;
   CURRENCIES.forEach((currency, index) => paintAmount(context, { ...rect, x: start + index * slot, width: slot },
@@ -421,7 +422,7 @@ export function gachaPickerDefinition(dialog: Node, card: Node, columns: number,
       Array.from({ length: columns * rows }, (_unused, index) => cell(index)));
       return child;
     });
-    return { ...withAttributes(entry, { leftTopWH: `0 0 ${width} ${height}`, caption: "选择扭蛋", captionPos: "0 1",
+    return { ...withAttributes(entry, { leftTopWH: `0 0 ${width} ${height}`, caption: tr("选择扭蛋"), captionPos: "0 1",
       textRender: "bold" }), children: [...inner,
       node("ImageButton", { name: "prevPage", windowSize: "160 24", adjust: `-130 ${pagerY}`, align: "hcenter",
         autoLoadImage: "btn_left_", alphaBlend: "true" }),
@@ -436,8 +437,8 @@ export function gachaPickerDefinition(dialog: Node, card: Node, columns: number,
 
 /** A card's status on its dark tab: 未开放 / 可使用 / 可兑换. */
 export function gachaStatus(entry: Pick<GachaEntry, "open" | "owned">): string {
-  if (!entry.open) return "未开放";
-  return entry.owned > 0 ? "可使用" : "可兑换";
+  if (!entry.open) return tr("未开放");
+  return entry.owned > 0 ? tr("可使用") : tr("可兑换");
 }
 
 export interface GachaPickerOptions {
@@ -464,7 +465,7 @@ export function openGachaPicker(options: GachaPickerOptions): Promise<number | u
       loadBml(options.library, GACHA_FOLDER, "eventMenuGachaMultiButton@zz"),
       loadStrings(options.library, GACHA_FOLDER, "eventMenuGachaMultiDialog_stringBag"),
     ]);
-    const countFormat = strings.get("itemCount") ?? "%d 个";
+    const countFormat = strings.get("itemCount") ?? tr("%d 个");
     let window: OpenWindow | undefined;
     const render = () => window?.render();
     options.subscribe(render);
@@ -496,7 +497,7 @@ export function openGachaPicker(options: GachaPickerOptions): Promise<number | u
           case "itemPeriod": return { text: gachaStatus(gacha) };
           case "itemCount": {
             // The release label keeps off the card's right edge (marginRect).
-            const count = textState(`持有 ${fillString(countFormat, gacha.owned)}`,
+            const count = textState(tr("持有 {0}", { "0": fillString(countFormat, gacha.owned) }),
               { size: 14, color: SUBTEXT, align: "right" }, 1);
             return { ...count, paint: (context: CanvasRenderingContext2D, rect: Rect) =>
               (count.paint as (context: CanvasRenderingContext2D, rect: Rect) => void)(context,
@@ -508,26 +509,26 @@ export function openGachaPicker(options: GachaPickerOptions): Promise<number | u
             paintPicture(context, options.picture({ category: 24, itemId: gacha.itemId, name: gacha.name }),
               { x: rect.x + (rect.width - size) / 2, y: rect.y + 52, width: size, height: size });
           } };
-          case "itemInfo": return textState(gacha.key ? `需同时使用 ${gacha.key.name}（持有 ${gacha.key.owned} 个）` : "",
+          case "itemInfo": return textState(gacha.key ? tr("需同时使用 {0}（持有 {1} 个）", { "0": gacha.key.name, "1": gacha.key.owned }) : "",
             { size: 14, color: "rgb(64,75,95)", align: "center", lineHeight: 18 }, 2, true);
         }
         return {};
       }
       switch (name) {
-        case "eventMenuGachaMultiDialog": return { text: "选择扭蛋" };
-        case "prevPage": return { visible: pages > 1, label: "上一页", disabled: page === 0,
+        case "eventMenuGachaMultiDialog": return { text: tr("选择扭蛋") };
+        case "prevPage": return { visible: pages > 1, label: tr("上一页"), disabled: page === 0,
           ...(page > 0 ? { action: () => turn(-1) } : {}) };
-        case "nextPage": return { visible: pages > 1, label: "下一页", disabled: page >= pages - 1,
+        case "nextPage": return { visible: pages > 1, label: tr("下一页"), disabled: page >= pages - 1,
           ...(page < pages - 1 ? { action: () => turn(1) } : {}) };
         case "pageText": return { visible: pages > 1, text: `${page + 1}/${pages}` };
-        case "closeButton": return { label: "关闭", action: close };
+        case "closeButton": return { label: tr("关闭"), action: close };
       }
       return {};
     };
     window = await showWindow({
       library: options.library, root: options.root,
       definition: gachaPickerDefinition(dialog, card, GACHA_GRID.columns, GACHA_GRID.rows),
-      folder: GACHA_FOLDER, roots: GACHA_ROOTS, label: "选择扭蛋", state, cancel: close, focus: "closeButton",
+      folder: GACHA_FOLDER, roots: GACHA_ROOTS, label: tr("选择扭蛋"), state, cancel: close, focus: "closeButton",
       index: tree => indexRows(tree, "gachaCell", cellOf),
     });
     return window;

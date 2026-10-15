@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Shop requests to the data service (server-go/ECONOMY.md 6): the catalog
  * with an in-memory ETag cache, and idempotent purchases.
@@ -16,30 +17,30 @@ export type ShopApiSession = Pick<AccountSession, "backendOrigin" | "authorizedF
 
 /** Chinese messages for the data service's stable error codes. */
 const ERROR_MESSAGES: Record<string, string> = {
-  INSUFFICIENT_FUNDS: "余额不足，无法购买该道具。",
-  ALREADY_OWNED: "你已永久拥有该道具，无需重复购买。",
-  EXP_REQUIRED: "经验不足，暂时无法购买该道具。",
-  OFFER_NOT_FOUND: "该商品已下架或价格已变更，请刷新商店后重试。",
-  PRICE_CHANGED: "价格已变化，请刷新商店后重试。",
-  QUANTITY_LIMIT: "该道具的数量已达上限，无法继续购买。",
-  REQUEST_ID_CONFLICT: "购买请求冲突，请重新选择后再试。",
-  INVALID_REQUEST_ID: "购买请求无效，请刷新商店后重试。",
-  SHOP_CLAIM_CLOSED: "领取已关闭。",
-  BALANCE_LIMIT: "余额已达上限，无法继续领取。",
-  LOGIN_REQUIRED: "登录已失效，请重新登录。",
-  TOO_MANY_ATTEMPTS: "操作过于频繁，请稍后再试。",
-  DATA_SERVICE_UNAVAILABLE: "数据服务暂时不可用，请稍后再试。",
-  NETWORK_ERROR: "网络连接失败，请检查网络后重试。",
-  INVALID_RESPONSE: "服务器返回的数据无效，请稍后再试。",
-  INVALID_CATALOG: "商店目录数据无效，请稍后再试。",
-  INVALID_REQUEST: "购买请求无效，请刷新商店后重试。",
-  NOT_FOUND: "商店服务暂未开放。",
-  METHOD_NOT_ALLOWED: "商店服务暂未开放。",
-  INTERNAL_ERROR: "服务器内部错误，请稍后再试。",
+  INSUFFICIENT_FUNDS: tr("余额不足，无法购买该道具。"),
+  ALREADY_OWNED: tr("你已永久拥有该道具，无需重复购买。"),
+  EXP_REQUIRED: tr("经验不足，暂时无法购买该道具。"),
+  OFFER_NOT_FOUND: tr("该商品已下架或价格已变更，请刷新商店后重试。"),
+  PRICE_CHANGED: tr("价格已变化，请刷新商店后重试。"),
+  QUANTITY_LIMIT: tr("该道具的数量已达上限，无法继续购买。"),
+  REQUEST_ID_CONFLICT: tr("购买请求冲突，请重新选择后再试。"),
+  INVALID_REQUEST_ID: tr("购买请求无效，请刷新商店后重试。"),
+  SHOP_CLAIM_CLOSED: tr("领取已关闭。"),
+  BALANCE_LIMIT: tr("余额已达上限，无法继续领取。"),
+  LOGIN_REQUIRED: tr("登录已失效，请重新登录。"),
+  TOO_MANY_ATTEMPTS: tr("操作过于频繁，请稍后再试。"),
+  DATA_SERVICE_UNAVAILABLE: tr("数据服务暂时不可用，请稍后再试。"),
+  NETWORK_ERROR: tr("网络连接失败，请检查网络后重试。"),
+  INVALID_RESPONSE: tr("服务器返回的数据无效，请稍后再试。"),
+  INVALID_CATALOG: tr("商店目录数据无效，请稍后再试。"),
+  INVALID_REQUEST: tr("购买请求无效，请刷新商店后重试。"),
+  NOT_FOUND: tr("商店服务暂未开放。"),
+  METHOD_NOT_ALLOWED: tr("商店服务暂未开放。"),
+  INTERNAL_ERROR: tr("服务器内部错误，请稍后再试。"),
 };
 
 export function shopErrorMessage(code: string): string {
-  return ERROR_MESSAGES[code] ?? `操作失败（${code}），请稍后再试。`;
+  return ERROR_MESSAGES[code] ?? tr("操作失败（{0}），请稍后再试。", { "0": code });
 }
 
 /**
@@ -273,7 +274,7 @@ const defaultSleep = (ms: number) => new Promise<void>(resolve => setTimeout(res
 function timeoutSignal(ms: number): AbortSignal {
   if (typeof AbortSignal.timeout === "function") return AbortSignal.timeout(ms);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(new DOMException("请求超时", "TimeoutError")), ms);
+  const timer = setTimeout(() => controller.abort(new DOMException(tr("请求超时"), "TimeoutError")), ms);
   (timer as { unref?(): void }).unref?.();
   return controller.signal;
 }
@@ -281,7 +282,7 @@ function timeoutSignal(ms: number): AbortSignal {
 /** Rejects with the signal's reason once it aborts. */
 function whenAborted(signal: AbortSignal): Promise<never> {
   return new Promise((_, reject) => {
-    const fail = () => reject(signal.reason ?? new DOMException("请求超时", "TimeoutError"));
+    const fail = () => reject(signal.reason ?? new DOMException(tr("请求超时"), "TimeoutError"));
     if (signal.aborted) fail();
     else signal.addEventListener("abort", fail, { once: true });
   });

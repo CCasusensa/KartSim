@@ -1,5 +1,5 @@
 /** Brief lobby notice shown when the room host changes the selected track. */
-import { resourceLocale, tr } from "../i18n/locale";
+import { resourceText, tr } from "../i18n/locale";
 
 export interface TrackChangeNode {
   name: string;
@@ -69,7 +69,7 @@ export class TrackChangeNotice {
     ]);
     const message = caption.children.find(child =>
       dependencies.nodeAttribute(child, "name") === "message");
-    if (!message) throw new Error("换图提示缺少原版 message 标签");
+    if (!message) throw new Error(tr("换图提示缺少原版 message 标签"));
 
     const [width, height] = dependencies.nodeAttribute(caption, "clientSize")
       .split(/\s+/).map(Number);
@@ -105,10 +105,8 @@ export class TrackChangeNotice {
       for (const [isHost, key] of stringKeys) {
         const choices = strings.find(node =>
           dependencies.stringAttribute(node, "n") === key)?.children;
-        const entry = choices?.find(node => dependencies.stringAttribute(node, "c") === resourceLocale()) ??
-          choices?.find(node => dependencies.stringAttribute(node, "c") === "cn");
-        const text = entry && dependencies.stringAttribute(entry, "v");
-        if (!text) throw new Error(`换图提示原版文字缺失：${key}`);
+        const text = resourceText(choices ?? [], dependencies.stringAttribute);
+        if (!text) throw new Error(tr("换图提示原版文字缺失：{value}", { value: String(key) }));
         notice.layouts.set(isHost,
           notice.view.wrapLabel(text, maxTextWidth!, fontSize));
       }

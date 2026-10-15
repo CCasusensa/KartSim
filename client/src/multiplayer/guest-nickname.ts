@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Guest nickname availability check and fallback entry dialog. */
 
 export interface GuestNicknameDependencies {
@@ -30,7 +31,7 @@ export async function chooseGuestNickname(dependencies: GuestNicknameDependencie
     const payload = await response.json();
     if (!response.ok) {
       throw new Error(dependencies.errorMessages[payload.error ?? ""] ??
-        payload.error ?? "昵称检查失败。");
+        payload.error ?? tr("昵称检查失败。"));
     }
     return payload.available === true;
   };
@@ -53,25 +54,25 @@ export async function chooseGuestNickname(dependencies: GuestNicknameDependencie
     overlay.style.cssText = dependencies.overlayStyle;
     form.style.cssText = dependencies.panelStyle;
     const heading = dependencies.createElement("h2");
-    heading.textContent = "游客昵称";
+    heading.textContent = tr("游客昵称");
     heading.style.margin = "0";
     const description = dependencies.createElement("div");
     description.textContent = previousName
-      ? "这个昵称已被使用，请换一个昵称。"
-      : "请输入进入多人游戏时使用的昵称。";
+      ? tr("这个昵称已被使用，请换一个昵称。")
+      : tr("请输入进入多人游戏时使用的昵称。");
     const input = dependencies.createElement("input") as HTMLInputElement;
     input.value = previousName;
     input.maxLength = 36;
-    input.placeholder = "1–18 字昵称";
+    input.placeholder = tr("1–18 字昵称");
     input.style.cssText = "box-sizing:border-box;width:100%;padding:9px;font:inherit;background:#fff;color:#152333";
     const errorText = dependencies.createElement("div");
     errorText.style.cssText = "min-height:20px;color:#ffb3a9";
     const submit = dependencies.createElement("button") as HTMLButtonElement;
     submit.type = "submit";
-    submit.textContent = "进入多人游戏";
+    submit.textContent = tr("进入多人游戏");
     const back = dependencies.createElement("button") as HTMLButtonElement;
     back.type = "button";
-    back.textContent = "返回";
+    back.textContent = tr("返回");
     dependencies.styleButtons(submit, back);
 
     const cleanup = () => {
@@ -91,7 +92,7 @@ export async function chooseGuestNickname(dependencies: GuestNicknameDependencie
       try {
         const name = input.value;
         if (!await available(name)) {
-          errorText.textContent = "昵称已被注册或当前有人使用，请换一个。";
+          errorText.textContent = tr("昵称已被注册或当前有人使用，请换一个。");
           return;
         }
         cleanup();

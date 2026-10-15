@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Account UI styling, endpoint closures and user-facing service errors. */
 
 export const accountOverlayStyle =
@@ -65,12 +66,12 @@ function beijingMinute(ms: number): string {
  * is an admin's free text: callers show the result as text, never as HTML.
  */
 export function formatBanMessage(until: unknown, reason: unknown): string {
-  const why = typeof reason === "string" && reason.trim() ? `（原因：${reason.trim()}）` : "";
+  const why = typeof reason === "string" && reason.trim() ? tr("（原因：{value}）", { value: String(reason.trim()) }) : "";
   if (typeof until !== "number" || !Number.isFinite(until) || until <= 0) {
-    return why ? `账号已被封禁${why}` : "账号已被封禁。";
+    return why ? tr("账号已被封禁{value}", { value: String(why) }) : tr("账号已被封禁。");
   }
-  if (until >= PERMANENT_BAN_FROM) return `账号已被永久封禁${why}`;
-  return `账号已被封禁，解封时间：${beijingMinute(until)}${why}`;
+  if (until >= PERMANENT_BAN_FROM) return tr("账号已被永久封禁{value}", { value: String(why) });
+  return tr("账号已被封禁，解封时间：{value}{value2}", { value: String(beijingMinute(until)), value2: String(why) });
 }
 
 /**
@@ -91,7 +92,7 @@ export function formatAccountServiceError(error: unknown,
   messages: Record<string, string> = accountErrorMessages): string {
   const banned = accountBanMessage(error);
   if (banned) return banned;
-  return error instanceof Error ? messages[error.message] ?? error.message
+  return error instanceof Error ? tr(messages[error.message] ?? error.message)
     : String(error);
 }
 

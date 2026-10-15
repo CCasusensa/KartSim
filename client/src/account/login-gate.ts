@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Startup login gate (ECONOMY.md 7.1): every player signs in before the home
  * lobby. A remembered token is checked first; otherwise the login/register
@@ -40,19 +41,19 @@ export function loginGateErrorMessage(error: unknown): string {
   const code = errorCode(error);
   switch (code) {
     case "DATA_SERVICE_UNAVAILABLE":
-      return "无法连接数据服务。请确认数据服务（kart-data）已经启动、网络正常，然后重试。";
+      return tr("无法连接数据服务。请确认数据服务（kart-data）已经启动、网络正常，然后重试。");
     case "BACKEND_ORIGIN_MISMATCH":
-      return "游戏页面与数据服务的地址配置不匹配，请联系站点管理员。";
+      return tr("游戏页面与数据服务的地址配置不匹配，请联系站点管理员。");
     case "NOT_FOUND":
     case "INVALID_ACCOUNT_SUMMARY":
     case "INVALID_INVENTORY":
-      return "数据服务尚未更新到账号版本，请更新服务端后重试。";
+      return tr("数据服务尚未更新到账号版本，请更新服务端后重试。");
     case "RATE_LIMITED":
     case "TOO_MANY_ATTEMPTS":
-      return "请求过于频繁，请稍后重试。";
+      return tr("请求过于频繁，请稍后重试。");
     default:
-      return `无法登录：${code && accountErrorMessages[code] ? accountErrorMessages[code]
-        : error instanceof Error ? error.message : String(error)}`;
+      return tr("无法登录：{value}", { value: String(code && accountErrorMessages[code] ? tr(accountErrorMessages[code]!)
+        : error instanceof Error ? error.message : String(error)) });
   }
 }
 
@@ -60,7 +61,7 @@ export function loginGateErrorMessage(error: unknown): string {
 export async function ensureAccountSession(deps: LoginGateDependencies):
   Promise<BrowserAccountSession> {
   for (;;) {
-    let progress = deps.progress?.("正在连接数据服务…");
+    let progress = deps.progress?.(tr("正在连接数据服务…"));
     try {
       const origin = deps.backendOrigin();
       const config = await fetchAuthConfig(deps.fetch, origin, deps.pageOrigin());
@@ -82,7 +83,7 @@ export async function ensureAccountSession(deps: LoginGateDependencies):
       progress = undefined;
       const credentials = await deps.signIn(config.registration, origin);
       deps.tokens.save(origin, credentials.token);
-      progress = deps.progress?.("正在读取账号…");
+      progress = deps.progress?.(tr("正在读取账号…"));
       const session = new BrowserAccountSession(options(credentials.token));
       await session.refresh();
       progress?.close();
@@ -104,10 +105,10 @@ export const OPEN_REGISTRATION_INVITE_MESSAGE =
  */
 export function startupLoginOptions(registration: RegistrationMode): AccountLoginOptions {
   return {
-    heading: "跑跑卡丁车 · 账号登录",
+    heading: tr("跑跑卡丁车 · 账号登录"),
     hint: registration === "closed"
-      ? "请使用已有账号登录后进入游戏。"
-      : "登录或注册账号后进入游戏，等级、金币和车库都保存在账号中。",
+      ? tr("请使用已有账号登录后进入游戏。")
+      : tr("登录或注册账号后进入游戏，等级、金币和车库都保存在账号中。"),
     // Open registration: admin usernames still need an invite (400 INVALID_INVITE).
     invite: registration === "invite" ? "required" : registration === "open" ? "collapsed" : "hidden",
     registrationClosed: registration === "closed",
@@ -117,14 +118,15 @@ export function startupLoginOptions(registration: RegistrationMode): AccountLogi
     allowBack: false,
     validate: (mode, fields) => {
       if (mode === "login") {
-        if (!fields.username) return "请输入账号名。";
-        if (!fields.password) return "请输入密码。";
+        if (!fields.username) return tr("请输入账号名。");
+        if (!fields.password) return tr("请输入密码。");
         return undefined;
       }
-      return validateUsername(fields.username ?? "") ??
+      const problem = validateUsername(fields.username ?? "") ??
         validateNickname(fields.nickname ?? "") ??
         validatePassword(fields.password ?? "") ??
-        (registration === "invite" && !fields.invite ? "请输入邀请码。" : undefined);
+        (registration === "invite" && !fields.invite ? tr("请输入邀请码。") : undefined);
+      return problem ? tr(problem) : undefined;
     },
   };
 }
@@ -147,8 +149,8 @@ function startupRequests(registration: RegistrationMode, backendOrigin: string,
         { username: fields.username ?? "", password: fields.password ?? "" }),
     formatError: error => accountBanMessage(error) ?? (error instanceof AccountServiceError
       ? (error.code === "INVALID_INVITE" && registration === "open"
-        ? OPEN_REGISTRATION_INVITE_MESSAGE
-        : accountErrorMessages[error.code] ?? loginGateErrorMessage(error))
+        ? tr(OPEN_REGISTRATION_INVITE_MESSAGE)
+        : accountErrorMessages[error.code] ? tr(accountErrorMessages[error.code]!) : loginGateErrorMessage(error))
       : formatAccountServiceError(error)),
   };
 }
@@ -191,11 +193,11 @@ export function browserLoginGateDependencies(root: HTMLElement): LoginGateDepend
     fetch: fetchImpl,
     tokens: tokenAccess(),
     signIn: (registration, origin) => showStartupLogin(root, registration, origin, fetchImpl),
-    retry: message => showLoginMessage(root, "账号服务", message, "重试"),
+    retry: message => showLoginMessage(root, tr("账号服务"), message, tr("重试")),
     progress: message => {
       const library = gameWindowLibrary();
-      return library ? showGameStatus(library, root, "账号服务", message)
-        : showAccountStatus(document, "账号服务", message);
+      return library ? showGameStatus(library, root, tr("账号服务"), message)
+        : showAccountStatus(document, tr("账号服务"), message);
     },
   };
 }

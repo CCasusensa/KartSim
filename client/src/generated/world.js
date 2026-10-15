@@ -1,3 +1,4 @@
+import { resourceText } from "../i18n/locale.ts";
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
 // Stable minified names are retained for behavioral parity.
@@ -2870,9 +2871,7 @@ function DE(n, e) {
   return (
     Array.from(t.documentElement.children).forEach((r) => {
       const s = r.getAttribute("n"),
-        a = Array.from(r.children)
-          .find((c) => c.getAttribute("c") === "cn")
-          ?.getAttribute("v");
+        a = resourceText(Array.from(r.children), (entry, key) => entry.getAttribute(key));
       s !== null && a !== null && a !== void 0 && i.set(s, a);
     }),
     i

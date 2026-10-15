@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GarageInventoryCosmetic } from "./garage-cosmetic-inventory";
 
 export interface GarageEquippedCosmeticLayout {
@@ -110,8 +111,8 @@ export function updateGarageCosmeticEquippedSlots(
     }
     const value = document.createElement("strong");
     const empty = node.includes("Lamp")
-      ? (host.assets.strings.get("emptyLamp") ?? "基础车灯")
-      : (host.assets.strings.get("emptyParts") ?? "未装备");
+      ? (host.assets.strings.get("emptyLamp") ?? tr("基础车灯"))
+      : (host.assets.strings.get("emptyParts") ?? tr("未装备"));
     value.textContent = choice?.title ?? empty;
     button.append(name, value);
     host.place(button, host.rect(`/${root}/${node}`));
@@ -121,7 +122,7 @@ export function updateGarageCosmeticEquippedSlots(
       if (host.assets.nodes.has(previewPath)) {
         const lamp = slot === "tailLamp" ? choice : undefined;
         const preview = host.nativeButton(previewPath,
-          host.transformPreviewSessionActive() ? "取消" : "预览", () => {
+          host.transformPreviewSessionActive() ? tr("取消") : tr("预览"), () => {
             const wasActive = host.transformPreviewSessionActive();
             host.cosmeticPreview = wasActive ? undefined : lamp;
             if (wasActive) {
@@ -130,23 +131,23 @@ export function updateGarageCosmeticEquippedSlots(
             } else host.startTransformPreview(true);
             host.syncTransformPreviewUi();
             const active = host.transformPreviewSessionActive();
-            preview.textContent = active ? "取消" : "预览";
+            preview.textContent = active ? tr("取消") : tr("预览");
             preview.setAttribute("aria-pressed", String(active));
-            preview.setAttribute("aria-label", active ? "取消预览" : `预览 ${label}`);
+            preview.setAttribute("aria-label", active ? tr("取消预览") : tr("预览 {0}", { "0": label }));
             host.cancelPreview.hidden = !host.previewPart &&
               !host.cosmeticPreview && !host.coatingPreview;
-            const lampTitle = lamp?.title ?? host.assets.strings.get("emptyLamp") ?? "基础车灯";
+            const lampTitle = lamp?.title ?? host.assets.strings.get("emptyLamp") ?? tr("基础车灯");
             host.status.textContent = active
-              ? `预览：${lampTitle}，尚未装备。` : "已取消车灯预览。";
+              ? tr("预览：{0}，尚未装备。", { "0": lampTitle }) : tr("已取消车灯预览。");
             host.updatePerformance();
           });
         preview.classList.add("garage-equipped-preview-action");
         preview.dataset.cosmeticPreview = "true";
         preview.dataset.vehicleInfo = "true";
         const active = host.transformPreviewSessionActive();
-        preview.textContent = active ? "取消" : "预览";
+        preview.textContent = active ? tr("取消") : tr("预览");
         preview.setAttribute("aria-pressed", String(active));
-        preview.setAttribute("aria-label", active ? "取消预览" : `预览 ${label}`);
+        preview.setAttribute("aria-label", active ? tr("取消预览") : tr("预览 {0}", { "0": label }));
       }
     }
   }

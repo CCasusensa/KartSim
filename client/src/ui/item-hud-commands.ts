@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Item race HUD draw commands from an ItemHudState (pure: no loading, no GL).
  * Commands use the overlay renderer's "panel" payload; text is rasterized
@@ -233,7 +234,7 @@ export function buildItemHudCommands(assets: ItemHudAssets,
         fullUv(), alpha));
     } else if (alpha > 0) {
       const rect = { left: 600, top: ITEM_LUCCI_TOP, right: 1000, bottom: ITEM_LUCCI_TOP + 32 };
-      push(textPanel(input, { node: assets.abuse.text, rect }, `+${state.lucci.amount} 金币`,
+      push(textPanel(input, { node: assets.abuse.text, rect }, tr("+{0} 金币", { "0": state.lucci.amount }),
         { color: "rgba(255,222,0,1)", outline: "black", size: 20, align: "center", verticalAlign: "center" },
         alpha));
     }

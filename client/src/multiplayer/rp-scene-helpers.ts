@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** RP scene camera and result panel rules verified against the released assets. */
 
 import type { RoomTemplateDependencies, RoomTemplateNode } from
@@ -16,7 +17,7 @@ export function rpSceneCameraMatrices(node: RoomTemplateNode, width: number,
     const values = text === undefined ? fallback
       : text.trim().split(/\s+/).map(Number);
     if (values.length !== 3 || values.some(value => !Number.isFinite(value))) {
-      throw new Error(`RP ${name} 无效。`);
+      throw new Error(tr("RP {value} 无效。", { value: String(name) }));
     }
     return values.map(Math.fround);
   };
@@ -26,10 +27,10 @@ export function rpSceneCameraMatrices(node: RoomTemplateNode, width: number,
     Number(attribute(node, "zoom")) !== 1 ||
     ["camera", "customCamera", "orthographic", "useRelCamera"].some(name =>
       attribute(node, name) !== undefined && attribute(node, name) !== "false")) {
-    throw new Error("RP 场景相机超出已核实的 P3553 分支。");
+    throw new Error(tr("RP 场景相机超出已核实的 P3553 分支。"));
   }
   if (!(width > 0 && height > 0)) {
-    throw new Error("RP 场景窗口尺寸无效。");
+    throw new Error(tr("RP 场景窗口尺寸无效。"));
   }
   const f32 = Math.fround;
   const depth = f32(eye[1]! - target[1]!);
@@ -107,7 +108,7 @@ export function decorateRpResultTemplate(root: RoomTemplateNode,
   const dialog = root.children.find(child =>
     attribute(child, "name") === "noticeDlg");
   if (!dialog || !attribute(dialog, "frame")) {
-    throw new Error("RP 缺少原版结果窗口。");
+    throw new Error(tr("RP 缺少原版结果窗口。"));
   }
   const box = root.children.find(child => attribute(child, "name") === "boxOpen");
   const outcomes = dialog.children.filter(child =>
@@ -117,7 +118,7 @@ export function decorateRpResultTemplate(root: RoomTemplateNode,
     outcomes.length !== 2 || !main ||
     !outcomes.some(child => attribute(child, "name") === "당첨" &&
       child.children[0]?.name === "Play1SPanel")) {
-    throw new Error("RP 缺少原版开箱/欧非结果资源。");
+    throw new Error(tr("RP 缺少原版开箱/欧非结果资源。"));
   }
   const label = (name: string, rect: string, text: string,
     font: string): RoomTemplateNode => ({
@@ -133,7 +134,7 @@ export function decorateRpResultTemplate(root: RoomTemplateNode,
     clone(dialog, { visible: "false" }, [
       ...outcomes, main,
       label("rpKart", "20 267 450 36", kartTitle, "bold20"),
-      label("rpPet", "20 307 450 32", `飞宠：${petTitle}`, "bold16"),
+      label("rpPet", "20 307 450 32", tr("飞宠：{value}", { value: String(petTitle) }), "bold16"),
     ]),
   ] };
 }

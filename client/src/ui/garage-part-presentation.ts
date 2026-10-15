@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GaragePartListing {
   family: string;
   slot: string;
@@ -65,17 +66,17 @@ export function garagePartDisplayName(part: GaragePartListing,
     const engineGrade = part.engineGrade === undefined ||
       part.engineGrade === 0 ? 0 : part.engineGrade + 4;
     const engine = dependencies.engineName(strings, engineGrade,
-      part.engineGrade === 8 ? "V1引擎" :
-        part.engineGrade === 7 ? "X引擎" : "");
+      part.engineGrade === 8 ? tr("V1引擎") :
+        part.engineGrade === 7 ? tr("X引擎") : "");
     const quality = dependencies.gradeName(part.grade, strings);
     return [engine, quality,
-      dependencies.localize(strings, "partsBasic", "基本"), slot]
+      dependencies.localize(strings, "partsBasic", tr("基本")), slot]
       .filter(Boolean).join(" ");
   }
   if (part.family === "xun") {
     const quality = dependencies.gradeName(part.grade, strings);
     const ordinal = garageXunPartOrdinal(part, available, dependencies);
-    return [dependencies.engineName(strings, 13, "迅引擎"), quality,
+    return [dependencies.engineName(strings, 13, tr("迅引擎")), quality,
       slot, ordinal === undefined ? "" : String(ordinal)]
       .filter(Boolean).join(" ");
   }
@@ -83,7 +84,7 @@ export function garagePartDisplayName(part: GaragePartListing,
   const quality = dependencies.gradeName(part.grade, strings);
   return [
     dependencies.engineName(strings, part.family === "v1" ? 12 : 11,
-      part.family === "v1" ? "V1引擎" : "X引擎"),
+      part.family === "v1" ? tr("V1引擎") : tr("X引擎")),
     quality, slot, String(ordinal === undefined ? part.value : ordinal),
   ].filter(Boolean).join(" ");
 }

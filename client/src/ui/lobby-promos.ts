@@ -5,6 +5,7 @@
  * keeps its built-in pictures and COMING SOON boards.
  */
 import type { LobbyImage } from "./lobby-home-view";
+import { gameLocale, tr } from "../i18n/locale";
 
 export const LOBBY_PROMOS_PATH = "/api/lobby/promos";
 /** Home reopens often (after every race); the settings are read again after this. */
@@ -49,6 +50,24 @@ export interface LobbyPromos {
   /** Empty keeps the built-in pictures. */
   banners: LobbyBanner[];
   boards: [LobbyBoard, LobbyBoard];
+}
+
+/** Known promotions whose uploaded artwork contains Chinese lettering.
+ * Draw their copy as text outside Chinese; keep custom admin artwork intact.
+ * Match a verified URL host (not a substring in an arbitrary URL).
+ */
+export function localizedLobbyPromo(promo: Pick<LobbyBoard, "title" | "link">):
+  { title: string; subtitle: string } | undefined {
+  if (gameLocale() === "zh-CN") return undefined;
+  let host = "";
+  try { host = new URL(safeLobbyLink(promo.link) ?? "").hostname.toLowerCase(); } catch { /* No external link. */ }
+  if (host === "ccraft.app" || host.endsWith(".ccraft.app") || /^ccraft(?:\s|$)/i.test(promo.title ?? ""))
+    return { title: "CCRAFT", subtitle: tr("网页版 · 浏览器直接玩") };
+  if (host === "qun.qq.com" || host === "jq.qq.com" || host === "qm.qq.com" || /^加入\s*QQ\s*群\s*\+?$/.test(promo.title ?? ""))
+    return { title: tr("加入QQ 群"), subtitle: tr("和车友一起交流") };
+  if (/^(COMING SOON|敬请期待|即将推出)$/i.test(promo.title ?? ""))
+    return { title: tr("即将推出"), subtitle: tr("敬请期待") };
+  return undefined;
 }
 
 /**

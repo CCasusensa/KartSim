@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** RP draw result window, from asset selection to timed reveal and cleanup. */
 
 interface SceneNode {
@@ -81,7 +82,7 @@ export class RpResultNotice {
     if (!dependencies.validDraws(race.rp,
       race.roster.map(member => member.playerId)) ||
       !Object.hasOwn(race.rp!.draws, playerId)) {
-      throw new Error("RP 结果窗口缺少本局抽取身份。");
+      throw new Error(tr("RP 结果窗口缺少本局抽取身份。"));
     }
     const draw = { ...race.rp!.draws[playerId]! };
     const [originalDefinition, catalog] = await Promise.all([
@@ -94,10 +95,10 @@ export class RpResultNotice {
         item.itemId === draw.flyingPetId)
       : undefined;
     if (!kart || (draw.flyingPetId && !pet)) {
-      throw new Error("RP 抽取物品缺少精确资源身份。");
+      throw new Error(tr("RP 抽取物品缺少精确资源身份。"));
     }
     const definition = dependencies.decorateDefinition(originalDefinition,
-      kart.title, pet?.title ?? "无");
+      kart.title, pet?.title ?? tr("无"));
     const resultPanel = definition.children[1]!;
     const box = definition.children[0]!.children[0]!;
     const sparkle = resultPanel.children.find(node =>
@@ -109,7 +110,7 @@ export class RpResultNotice {
       await notice.sound.prepare();
       notice.view = await dependencies.loadView({
         library, root, definition, roots: ["dialog/bokbulbok"],
-        label: `本局 RP 赛车：${kart.title}，飞宠：${pet?.title ?? "无"}`,
+        label: tr("本局 RP 赛车：{value}，飞宠：{value2}", { value: String(kart.title), value2: String(pet?.title ?? tr("无")) }),
         state: (node: SceneNode) => notice.state(node), modal: true,
       });
       notice.view.element.dataset.uiLayer = "notice";
@@ -139,13 +140,13 @@ export class RpResultNotice {
 
   present(signal: AbortSignal): Promise<void> {
     if (this.disposed || signal.aborted) {
-      return Promise.reject(new Error("本局 RP 结果展示已取消。"));
+      return Promise.reject(new Error(tr("本局 RP 结果展示已取消。")));
     }
-    if (this.started) throw new Error("本局 RP 结果不能重复展示。");
+    if (this.started) throw new Error(tr("本局 RP 结果不能重复展示。"));
     this.started = true;
     this.now = this.since = this.dependencies.nowMs() >>> 0;
     return new Promise<void>((resolve, reject) => {
-      const onAbort = () => this.finish(new Error("本局 RP 结果展示已取消。"));
+      const onAbort = () => this.finish(new Error(tr("本局 RP 结果展示已取消。")));
       this.cancel = () => signal.removeEventListener("abort", onAbort);
       this.complete = error => error ? reject(error) : resolve();
       signal.addEventListener("abort", onAbort, { once: true });
@@ -198,7 +199,7 @@ export class RpResultNotice {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.finish(new Error("本局 RP 结果展示已释放。"));
+    this.finish(new Error(tr("本局 RP 结果展示已释放。")));
     this.view?.dispose();
     this.scene?.dispose();
     this.sound?.dispose();

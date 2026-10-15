@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** The loading board shown while a multiplayer race is being prepared. */
 
 export interface RaceLoadingImage {
@@ -22,7 +23,7 @@ export class RaceLoadingScreen {
   constructor(readonly root: HTMLElement, readonly background: HTMLCanvasElement) {
     this.element.className = "multiplayer-loading";
     this.element.dataset.uiLayer = "system";
-    this.element.setAttribute("aria-label", "比赛加载中");
+    this.element.setAttribute("aria-label", tr("比赛加载中"));
     this.element.hidden = true;
 
     this.progress.className = "multiplayer-loading-progress";
@@ -38,7 +39,7 @@ export class RaceLoadingScreen {
     this.board.width = background.width;
     this.board.height = background.height;
     const context = this.board.getContext("2d");
-    if (!context) throw new Error("无法创建多人加载画面。");
+    if (!context) throw new Error(tr("无法创建多人加载画面。"));
     this.context = context;
 
     this.observer = new ResizeObserver(() => this.paint());
@@ -66,7 +67,7 @@ export class RaceLoadingScreen {
 
   show(loaded: number, total: number): void {
     if (this.disposed) return;
-    this.progress.textContent = `游戏即将开始，稍等一下哦~。  ${loaded}/${total}`;
+    this.progress.textContent = tr("游戏即将开始，稍等一下哦~。  {value}/{value2}", { value: String(loaded), value2: String(total) });
     this.paint();
     this.element.hidden = false;
   }

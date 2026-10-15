@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GarageAssetRect } from "./garage-asset-bundle";
 
 export interface GarageCardGridAssets {
@@ -118,9 +119,9 @@ export function garageXunUpgradeRows(summary: {
   beforePoints: number; afterPoints: number;
 }) {
   return [
-    { label: "性能槽数量", before: String(Math.min(summary.beforeLevel, 3)),
+    { label: tr("性能槽数量"), before: String(Math.min(summary.beforeLevel, 3)),
       after: String(Math.min(summary.afterLevel, 3)) },
-    { label: "强化点数", before: String(summary.beforePoints),
+    { label: tr("强化点数"), before: String(summary.beforePoints),
       after: String(summary.afterPoints) },
   ];
 }

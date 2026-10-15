@@ -1,3 +1,4 @@
+import { installLanguagePicker, tr } from "../../i18n/locale";
 /**
  * 地图工坊入口（client/editor.html）：读取与游戏相同的资源（同源 OPFS 缓存），
  * 装上游戏外观，再打开编辑器。
@@ -14,11 +15,13 @@ import { loadCatalog } from "../catalog";
 import { openNewMapWizard } from "./wizard";
 
 installLocalMultiplayerConfig();
+installLanguagePicker();
+document.title = `${tr("地图工坊")} · KartSim`;
 
 const root = document.getElementById("editor")!;
 const bar = h("div");
-const text = h("div", {}, "正在读取资源索引…");
-const loading = h("div", { class: "ed-loading" }, h("h1", {}, "地图工坊"), text, h("div", { class: "ed-progress" }, bar));
+const text = h("div", {}, tr("正在读取资源索引…"));
+const loading = h("div", { class: "ed-loading" }, h("h1", {}, tr("地图工坊")), text, h("div", { class: "ed-progress" }, bar));
 document.body.append(loading);
 const progress = (value: number, message?: string) => {
   bar.style.width = `${Math.round(Math.min(1, value) * 100)}%`;
@@ -28,15 +31,15 @@ const progress = (value: number, message?: string) => {
 try {
   const bundle = await loadLegacyResourceBundle("p3553", event => {
     if (event.background) return;
-    progress(0.1 + 0.3 * (event.totalBytes ? event.loadedBytes / event.totalBytes : 0), `正在读取 ${event.file}`);
+    progress(0.1 + 0.3 * (event.totalBytes ? event.loadedBytes / event.totalBytes : 0), tr("正在读取 {value}", { value: String(event.file) }));
   });
-  progress(0.45, "正在解析资源索引…");
+  progress(0.45, tr("正在解析资源索引…"));
   const library = await (Sw as unknown as { load(sources: unknown, progress: unknown, indexes: unknown): Promise<EditorLibrary> })
     .load(bundle.sources, (event: { current: number; total: number }) => progress(0.45 + 0.4 * event.current / Math.max(1, event.total)), bundle.archiveIndexes);
-  progress(0.9, "正在载入游戏界面素材…");
+  progress(0.9, tr("正在载入游戏界面素材…"));
   await installEditorSkin(library);
   const assets = new EditorAssets(library);
-  progress(0.96, "正在读取素材目录…");
+  progress(0.96, tr("正在读取素材目录…"));
   const [, catalog] = await Promise.all([assets.tracks(), loadCatalog()]);
   const app = new EditorApp(root, assets);
   app.dock.attach(catalog.data, catalog.sheets);
@@ -53,9 +56,9 @@ try {
     // 第一次来：直接打开新建向导
     openNewMapWizard(app, { firstRun: true });
   } else {
-    app.say("欢迎回来！点“我的地图”接着做，或者“新地图”再做一张", 6000);
+    app.say(tr("欢迎回来！点“我的地图”接着做，或者“新地图”再做一张"), 6000);
   }
 } catch (error) {
   console.error(error);
-  text.textContent = `地图工坊启动失败：${(error as Error).message}`;
+  text.textContent = tr("地图工坊启动失败：{value}", { value: String((error as Error).message) });
 }

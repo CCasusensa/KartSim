@@ -286,3 +286,7 @@ details.ed-more > summary { cursor: pointer; color: #0d3d8c; font-size: 12px; }
 .ed-root:not(.ed-advanced) .ed-status { display: none; }
 /* 自动吸附开关：开着时字是绿色 */
 .ed-toolstrip .k-button.ed-icon.ed-snap.k-on { color: #1d8a3c; }
+
+/* Keep the language picker clear of the editor toolbar. */
+.ks-language-picker { top: 60px; }
+html:is([lang="en"], [lang="ko"]) .k-button.ed-icon span { white-space: normal; text-align: center; line-height: 1.15; }

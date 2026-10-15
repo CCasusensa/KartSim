@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { T, m9 } from "../generated/formats.js";
 import { C8, F9, te } from "../generated/library.js";
 
@@ -24,14 +25,14 @@ type Rect = { x: number; y: number; width: number; height: number };
 
 /** dialog/gachaDialog Gacha_stringBag (cn). */
 export const GACHA_STRINGS = {
-  openLotteryCheck: "确定开启吗？|开启时将消耗一个相应道具。",
-  congratulationStrFormat: "恭喜你！获得了 %s道具",
-  lotteryNotInPeriod: "不在使用期之内",
-  lotteryNotHave: "%s的数量不足，无法使用",
-  unknownError: "发生了未知错误",
-  useBox: "开启",
-  ok: "确定",
-  cancel: "取消",
+  openLotteryCheck: tr("确定开启吗？|开启时将消耗一个相应道具。"),
+  congratulationStrFormat: tr("恭喜你！获得了 %s道具"),
+  lotteryNotInPeriod: tr("不在使用期之内"),
+  lotteryNotHave: tr("%s的数量不足，无法使用"),
+  unknownError: tr("发生了未知错误"),
+  useBox: tr("开启"),
+  ok: tr("确定"),
+  cancel: tr("取消"),
 };
 
 export interface BoxReward {
@@ -45,7 +46,7 @@ export interface BoxReward {
 /** The text of one reward: name, then ×count or (N天). */
 export function boxRewardText(reward: BoxReward): string {
   const amount = reward.count > 1 ? ` ×${reward.count}` : "";
-  const period = reward.days > 0 ? `（${reward.days}天）` : "";
+  const period = reward.days > 0 ? tr("（{0}天）", { "0": reward.days }) : "";
   return `${reward.name || `${reward.category}-${reward.itemId}`}${amount}${period}`;
 }
 

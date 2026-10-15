@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { activeBrowserSession } from "../account/account-runtime";
 import { currentMessenger } from "../messenger/messenger-runtime";
 import { GlobalChat } from "../menus/global-chat";
@@ -31,7 +32,7 @@ function context(controller: ReadyMenusController, title: string) {
   const session = activeBrowserSession();
   const library = host.getLibrary() as Partial<BmlLibrary> | undefined;
   if (!session || typeof library?.canonicalCandidates !== "function") {
-    tellPlayer(host.hud, `${title}：请先登录。`);
+    tellPlayer(host.hud, tr("{title}：请先登录。", { title: title }));
     return undefined;
   }
   return { host, session, library: library as BmlLibrary, api: new MenusApi(session) };
@@ -53,16 +54,16 @@ async function openModal(controller: ReadyMenusController, title: string,
     if (controller.disposed) menu.dispose();
     else controller.activeMenu = menu;
   } catch (error) {
-    tellPlayer(controller.host.hud, `${title}：${error instanceof Error ? error.message : String(error)}`);
+    tellPlayer(controller.host.hud, tr("{title}：{error}", { title: title, error: error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.menuOpening = false;
   }
 }
 
 export function openReadyRewardBox(controller: ReadyMenusController): Promise<void> {
-  const ready = context(controller, "奖励箱");
+  const ready = context(controller, tr("奖励箱"));
   if (!ready) return Promise.resolve();
-  return openModal(controller, "奖励箱", close => RewardBoxScreen.open({
+  return openModal(controller, tr("奖励箱"), close => RewardBoxScreen.open({
     library: ready.library, root: ready.host.root, api: ready.api, session: ready.session,
     now: () => ready.session.serverNow(),
     onClose: close,
@@ -72,9 +73,9 @@ export function openReadyRewardBox(controller: ReadyMenusController): Promise<vo
 }
 
 export function openReadyQuests(controller: ReadyMenusController): Promise<void> {
-  const ready = context(controller, "任务");
+  const ready = context(controller, tr("任务"));
   if (!ready) return Promise.resolve();
-  return openModal(controller, "任务", close => QuestScreen.open({
+  return openModal(controller, tr("任务"), close => QuestScreen.open({
     library: ready.library, root: ready.host.root, api: ready.api, session: ready.session,
     now: () => ready.session.serverNow(),
     onClose: close,
@@ -87,7 +88,7 @@ export function openReadyQuests(controller: ReadyMenusController): Promise<void>
  * list), then the rider's 车手信息 card.
  */
 export async function openReadyFindRider(controller: ReadyMenusController): Promise<void> {
-  const ready = context(controller, "查找车手");
+  const ready = context(controller, tr("查找车手"));
   if (!ready || controller.menuOpening || controller.disposed) return;
   closeReadyMenus(controller);
   const messenger = currentMessenger();
@@ -103,7 +104,7 @@ export async function openReadyFindRider(controller: ReadyMenusController): Prom
         find.setBusy(true);
         void ready.api.rider(nickname.trim()).then(card => {
           find.close();
-          void openModal(controller, "车手信息", close => RiderCardView.open({
+          void openModal(controller, tr("车手信息"), close => RiderCardView.open({
             library: ready.library, root: ready.host.root, card,
             requestFriend: messenger && !card.self ? name => messenger.api.requestFriend(name) : undefined,
             visitRoom: name => {
@@ -120,7 +121,7 @@ export async function openReadyFindRider(controller: ReadyMenusController): Prom
           }));
         }, error => {
           find.setBusy(false);
-          void openMessengerMessage(ready.library as never, ready.host.root, "查找车手", menuErrorMessage(error), {})
+          void openMessengerMessage(ready.library as never, ready.host.root, tr("查找车手"), menuErrorMessage(error), {})
             .catch(() => false);
         });
       },
@@ -129,7 +130,7 @@ export async function openReadyFindRider(controller: ReadyMenusController): Prom
       },
     });
   } catch (error) {
-    tellPlayer(ready.host.hud, `查找车手：${error instanceof Error ? error.message : String(error)}`);
+    tellPlayer(ready.host.hud, tr("查找车手：{error}", { error: error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.menuOpening = false;
   }
@@ -164,7 +165,7 @@ export function ensureReadyNoticer(controller: ReadyMenusController): Noticer | 
 export function toggleReadyNoticer(controller: ReadyMenusController): void {
   const noticer = ensureReadyNoticer(controller);
   if (!noticer) {
-    tellPlayer(controller.host.hud, "迷你提示窗：请先登录。");
+    tellPlayer(controller.host.hud, tr("迷你提示窗：请先登录。"));
     return;
   }
   void noticer.toggle();
@@ -176,7 +177,7 @@ export function toggleReadyChat(controller: ReadyMenusController): void {
   const library = controller.host.getLibrary() as Partial<BmlLibrary> | undefined;
   if (typeof library?.canonicalCandidates !== "function") return;
   if (!activeBrowserSession()) {
-    tellPlayer(controller.host.hud, "聊天：请先登录。");
+    tellPlayer(controller.host.hud, tr("聊天：请先登录。"));
     return;
   }
   controller.activeChat ??= new GlobalChat({
@@ -186,7 +187,7 @@ export function toggleReadyChat(controller: ReadyMenusController): void {
     onActivate: () => controller.host.getInterfaceAudio()?.playClick(),
   });
   void controller.activeChat.toggle().catch(error => tellPlayer(controller.host.hud,
-    `聊天：${error instanceof Error ? error.message : String(error)}`));
+    tr("聊天：{error}", { error: error instanceof Error ? error.message : String(error) })));
 }
 
 /** The taskbar was hidden (a race) or shown again. */

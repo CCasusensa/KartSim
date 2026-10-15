@@ -1,5 +1,5 @@
 import type { GarageItemDefinition, GarageResource } from "./timeattack-items";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText, tr } from "../i18n/locale";
 
 export interface ItemTableNode {
   name: string;
@@ -209,16 +209,14 @@ async function systemVehicleDefinitions(
     throw new Error(`practiceKart 需要唯一的 etc_/baseStringBag.xml，实际 ${bags.length}。`);
   const names = dependencies.parseXml(await bags[0]!.bytes()).root.children.find(node =>
     node.name === "k" && attribute(node, "n") === "practiceKart")?.children;
-  const titleNode = names?.find(node => node.name === "m" && attribute(node, "c") === resourceLocale()) ??
-    names?.find(node => node.name === "m" && attribute(node, "c") === "cn");
-  const title = titleNode && attribute(titleNode, "v")?.trim();
+  const title = names && resourceText(names, attribute)?.trim();
   if (!title) throw new Error("baseStringBag.xml 缺少 practiceKart 的 CN 名称。");
   const vehicles = [systemKart(internalId, title, 8, "practiceKart", "system-vehicle")];
 
   if (["model.1s", "param.xml", "f00.1s", "f01.1s", "f02.1s",
     "f03.1s", "f04.1s", "f05.1s", "f06.1s"].every(name =>
     library.get(`kart_/practiceX/${name}`)))
-    vehicles.push(systemKart("practiceX", "练习用卡丁车 X", 7,
+    vehicles.push(systemKart("practiceX", tr("练习用卡丁车 X"), 7,
       "legacyPracticeX", "legacy-system-family"));
 
   for (const family of dependencies.legacyFamilies) {

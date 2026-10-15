@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageStateVehicle {
   itemId: number;
   engineGrade?: number;
@@ -101,7 +102,7 @@ export function requestGarageRestoreDefaults(
   const selected = host.selected;
   const serial = host.serial();
   host.confirmation?.open(
-    "部件、强化、改装和外观记录将清除并立即生效。\n是否确认恢复原装？",
+    tr("部件、强化、改装和外观记录将清除并立即生效。\n是否确认恢复原装？"),
     () => {
       if (host.disposed || host.selected !== selected || host.serial() !== serial) return;
       host.cosmeticResetToken = {};
@@ -111,7 +112,7 @@ export function requestGarageRestoreDefaults(
       host.configuration = dependencies.writeConfiguration(host.configuration, selected.itemId, serial, {});
       host.publishCurrentState();
       host.updateControls();
-      host.status.textContent = "已恢复原装并立即生效。";
+      host.status.textContent = tr("已恢复原装并立即生效。");
     },
   );
 }
@@ -166,7 +167,7 @@ export function setGarageProgression(
     host.configuration = dependencies.writeConfiguration(host.configuration,
       host.selected.itemId, host.serial(), equipment);
     host.publishCurrentState();
-    host.status.textContent = "强化配置已更新并立即生效。";
+    host.status.textContent = tr("强化配置已更新并立即生效。");
     if (refreshControls) host.updateControls();
     host.pointEffects?.transition(before, progression);
     return true;

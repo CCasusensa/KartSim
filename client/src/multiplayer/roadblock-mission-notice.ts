@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** The roadblock mode's opening mission banner and its timed two-frame animation. */
 
 export interface RoadblockNoticeNode {
@@ -61,7 +62,7 @@ export class RoadblockMissionNotice {
     dependencies: RoadblockMissionDependencies): Promise<T> {
     if (!race.roadblock || !race.roster.some(member =>
       member.playerId === playerId)) {
-      throw new Error("挡人任务横幅缺少本局身份。");
+      throw new Error(tr("挡人任务横幅缺少本局身份。"));
     }
 
     const definition = await dependencies.loadDefinition(library,
@@ -71,10 +72,10 @@ export class RoadblockMissionNotice {
     const mission = scene && findNamedNode(scene, "roadBlockMisson",
       dependencies.attribute);
     if (!scene || !mission) {
-      throw new Error("挡人开赛缺少原版任务横幅。");
+      throw new Error(tr("挡人开赛缺少原版任务横幅。"));
     }
     const size = dependencies.attribute(mission, "windowSize");
-    if (!size) throw new Error("挡人开赛缺少原版任务横幅尺寸。");
+    if (!size) throw new Error(tr("挡人开赛缺少原版任务横幅尺寸。"));
 
     const notice = new this(dependencies);
     const role = race.roadblock.runnerId === playerId ? "runner" : "blocker";
@@ -93,7 +94,7 @@ export class RoadblockMissionNotice {
     notice.view = await dependencies.loadView({
       library, root, definition: viewDefinition,
       roots: ["stage_/mqReady", "stage_/common"],
-      label: role === "runner" ? "红方任务" : "蓝方任务",
+      label: role === "runner" ? tr("红方任务") : tr("蓝方任务"),
       preserveDisplayPixels: true, smoothImages: true,
       state: (node: RoadblockNoticeNode) => frames.includes(node)
         ? { visible: frames.indexOf(node) === notice.frame } : {},
@@ -105,14 +106,14 @@ export class RoadblockMissionNotice {
 
   present(signal: AbortSignal): Promise<void> {
     if (this.disposed || signal.aborted) {
-      return Promise.reject(new Error("本局任务横幅已取消。"));
+      return Promise.reject(new Error(tr("本局任务横幅已取消。")));
     }
-    if (this.started) throw new Error("本局任务横幅不能重复开始。");
+    if (this.started) throw new Error(tr("本局任务横幅不能重复开始。"));
     this.started = true;
     this.frame = 0;
     this.since = this.lastFrame = this.dependencies.nowMs();
     return new Promise<void>((resolve, reject) => {
-      const onAbort = () => this.finish(new Error("本局任务横幅已取消。"));
+      const onAbort = () => this.finish(new Error(tr("本局任务横幅已取消。")));
       this.cancel = () => signal.removeEventListener("abort", onAbort);
       this.complete = error => error ? reject(error) : resolve();
       signal.addEventListener("abort", onAbort, { once: true });
@@ -158,7 +159,7 @@ export class RoadblockMissionNotice {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.finish(new Error("本局任务横幅已释放。"));
+    this.finish(new Error(tr("本局任务横幅已释放。")));
     this.view.dispose();
   }
 }

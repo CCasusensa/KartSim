@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GaragePerformanceVehicle {
   itemId: number;
   path: string;
@@ -83,19 +84,19 @@ export interface GaragePerformanceDependencies {
 }
 
 const SCORE_METRICS = [
-  { label: "加速度", field: "TransAccelFactor", node: "transAccelFactor" },
-  { label: "弯道", field: "SteerConstraint", node: "cornerDrawFactor" },
-  { label: "漂移", field: "DriftEscapeForce", node: "driftEscapeForce" },
-  { label: "加速时间", field: "NormalBoosterTime", node: "normalBoosterTime" },
-  { label: "集气速度", field: "DriftMaxGauge", node: "boosterGauge" },
+  { label: tr("加速度"), field: "TransAccelFactor", node: "transAccelFactor" },
+  { label: tr("弯道"), field: "SteerConstraint", node: "cornerDrawFactor" },
+  { label: tr("漂移"), field: "DriftEscapeForce", node: "driftEscapeForce" },
+  { label: tr("加速时间"), field: "NormalBoosterTime", node: "normalBoosterTime" },
+  { label: tr("集气速度"), field: "DriftMaxGauge", node: "boosterGauge" },
 ] as const;
 
 const PHYSICAL_METRICS = [
-  { label: "加速系数", field: "transAccelFactor", node: "transAccelFactor", precision: 5 },
-  { label: "转向约束", field: "steerConstraint", node: "cornerDrawFactor", precision: 3 },
-  { label: "漂移逃脱力", field: "driftEscapeForce", node: "driftEscapeForce", precision: 0 },
-  { label: "个人氮气 / ms", field: "normalBoosterTime", node: "normalBoosterTime", precision: 0 },
-  { label: "集气阈值", field: "driftMaxGauge", node: "boosterGauge", precision: 0 },
+  { label: tr("加速系数"), field: "transAccelFactor", node: "transAccelFactor", precision: 5 },
+  { label: tr("转向约束"), field: "steerConstraint", node: "cornerDrawFactor", precision: 3 },
+  { label: tr("漂移逃脱力"), field: "driftEscapeForce", node: "driftEscapeForce", precision: 0 },
+  { label: tr("个人氮气 / ms"), field: "normalBoosterTime", node: "normalBoosterTime", precision: 0 },
+  { label: tr("集气阈值"), field: "driftMaxGauge", node: "boosterGauge", precision: 0 },
 ] as const;
 
 const DEFAULT_PART_METRICS = [
@@ -148,7 +149,7 @@ export function updateGaragePerformance(
     const previewConfiguration = host.previewPart
       ? { ...configuration, [host.previewPart.slot]: host.previewPart }
       : configuration;
-    host.renderScoreRows(undefined, "正在读取原版评分数据。");
+    host.renderScoreRows(undefined, tr("正在读取原版评分数据。"));
     const sourceKind = scoreFamily === "xun" ? "xun-body" : "x-v1";
     const source = scoreSourceFor(host, dependencies, selected, sourceKind);
     const stillCurrent = () => !host.disposed && host.scoreRevision === revision &&
@@ -186,7 +187,7 @@ export function updateGaragePerformance(
         before: currentScores[metric.field]!,
         after: previewScores[metric.field]!,
         baseline: baseline?.[metric.field],
-      })), "P3543 原版评分规则 · 当前车辆状态");
+      })), tr("P3543 原版评分规则 · 当前车辆状态"));
 
       const latestConfiguration = dependencies.currentConfiguration(
         host.configuration, selected.itemId, host.serial());
@@ -197,7 +198,7 @@ export function updateGaragePerformance(
     }).catch(error => {
       if (stillCurrent()) {
         const message = error instanceof Error ? error.message : String(error);
-        host.renderScoreRows(undefined, `评分暂不可用：${message}`);
+        host.renderScoreRows(undefined, tr("评分暂不可用：{0}", { "0": message }));
       }
     });
     return;
@@ -205,7 +206,7 @@ export function updateGaragePerformance(
 
   host.info.replaceChildren();
   host.comparisons.length = 0;
-  host.info.title = "当前车代显示物理参数，不是官服面板评分。";
+  host.info.title = tr("当前车代显示物理参数，不是官服面板评分。");
   host.info.dataset.performanceMode = "physical";
   host.cancelPreview.hidden = !host.previewPart && !host.cosmeticPreview && !host.coatingPreview;
   const root = dependencies.performanceLayout(selected.engineGrade)?.performanceRoot ?? "textPerformList";
@@ -225,7 +226,7 @@ export function updateGaragePerformance(
         token: dependencies.textureToken(node, "texture"), rect: host.rect(previewPath),
       });
     }
-    row.title = `${metric.label}（物理参数，非官服面板分值）`;
+    row.title = tr("{0}（物理参数，非官服面板分值）", { "0": metric.label });
     row.setAttribute("aria-label", `${metric.label} ${row.textContent}`);
     host.info.append(row);
   }

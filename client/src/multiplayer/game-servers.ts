@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Game server list, one-time entry tickets and the remembered choice.
  *
@@ -13,7 +14,7 @@
  */
 export const LOBBY_NODE_ID = "lobby";
 export const LOBBY_SERVER: GameServer = {
-  nodeId: LOBBY_NODE_ID, name: "多人大厅", origin: null, players: 0, rooms: 0, capacity: 1, full: false,
+  nodeId: LOBBY_NODE_ID, get name() { return tr("多人大厅"); }, origin: null, players: 0, rooms: 0, capacity: 1, full: false,
 };
 
 /** localStorage key of the last game server the player picked. */
@@ -148,7 +149,7 @@ function serverFrom(value: unknown): GameServer | undefined {
 export function parseGameServerList(value: unknown): GameServerList {
   const body = record(value);
   if (!body || !dataNode(body.dataNode) || !Array.isArray(body.servers)) {
-    throw new Error("游戏服务器列表格式无效。");
+    throw new Error(tr("游戏服务器列表格式无效。"));
   }
   const servers: GameServer[] = [];
   const seen = new Set<string>();
@@ -170,9 +171,9 @@ export function parseGameServerTicket(value: unknown, nodeId: string): GameServe
       origin === undefined || !dataNode(body.dataNode) ||
       !Number.isSafeInteger(body.expiresAt) ||
       (body.expiresAt as number) <= 0) {
-    throw new Error("入场票据格式无效。");
+    throw new Error(tr("入场票据格式无效。"));
   }
-  if (body.nodeId !== nodeId) throw new Error("入场票据与所选游戏服务器不符。");
+  if (body.nodeId !== nodeId) throw new Error(tr("入场票据与所选游戏服务器不符。"));
   return { ticket: body.ticket, nodeId: body.nodeId, origin,
     dataNode: body.dataNode, expiresAt: body.expiresAt as number };
 }
@@ -209,14 +210,14 @@ function noUsableServerMessage(options: GameServerOption[]): string {
   for (const { unavailable } of options) {
     if (unavailable) counts.set(unavailable, (counts.get(unavailable) ?? 0) + 1);
   }
-  if (!counts.size) return NO_GAME_SERVER_MESSAGE;
+  if (!counts.size) return tr(NO_GAME_SERVER_MESSAGE);
   if (counts.size === 1) {
     const [reason] = counts.keys();
-    return NO_GAME_SERVER_MESSAGE + (UNAVAILABLE_CAUSES[reason!]?.all ?? `${reason}。`);
+    return tr(NO_GAME_SERVER_MESSAGE) + tr(UNAVAILABLE_CAUSES[reason!]?.all ?? `${reason}。`);
   }
-  return `${NO_GAME_SERVER_MESSAGE}在线的游戏服务器中，${[...counts]
-    .map(([reason, total]) => `${total} 台${UNAVAILABLE_CAUSES[reason]?.some ?? reason}`)
-    .join("；")}。`;
+  return tr("{value}在线的游戏服务器中，{value2}。", { value: String(tr(NO_GAME_SERVER_MESSAGE)), value2: String([...counts]
+    .map(([reason, total]) => tr("{value} 台{value2}", { value: String(total), value2: String(tr(UNAVAILABLE_CAUSES[reason]?.some ?? reason)) }))
+    .join("；")) });
 }
 
 /**
@@ -226,9 +227,9 @@ function noUsableServerMessage(options: GameServerOption[]): string {
 export function gameServerOfferUrl(origin: string | null, backendOrigin: string,
   pageUrl: string): string {
   const target = httpOrigin(origin ?? backendOrigin);
-  if (!target) throw new Error("游戏服务器地址必须是完整的 HTTP(S) 域名，不含路径。");
+  if (!target) throw new Error(tr("游戏服务器地址必须是完整的 HTTP(S) 域名，不含路径。"));
   if (new URL(pageUrl).protocol === "https:" && !target.startsWith("https:")) {
-    throw new Error("HTTPS 网页必须连接 HTTPS 游戏服务器。");
+    throw new Error(tr("HTTPS 网页必须连接 HTTPS 游戏服务器。"));
   }
   return `${target}/multiplayer/offer`;
 }
@@ -258,7 +259,7 @@ async function requestJson(deps: GameServerDependencies, path: string,
     response = await deps.fetch(url, { credentials: "same-origin", ...init, signal });
   } catch (error) {
     if (signal.aborted) throw error;
-    throw new Error("无法连接数据服务，请检查后端服务。");
+    throw new Error(tr("无法连接数据服务，请检查后端服务。"));
   }
   let body: unknown;
   try { body = await response.json(); }
@@ -279,7 +280,7 @@ export async function fetchGameServerList(deps: GameServerDependencies,
   } catch (error) {
     // The Java service and other pre-split backends have no server list.
     if (error instanceof Error && ["NOT_FOUND", "HTTP_404"].includes(error.message)) {
-      throw new Error("联机后端尚未更新到多服务器版本，请同步更新后端。");
+      throw new Error(tr("联机后端尚未更新到多服务器版本，请同步更新后端。"));
     }
     throw error;
   }
@@ -323,7 +324,7 @@ export async function chooseGameServer(deps: GameServerDependencies, root: unkno
   const remembered = loadRememberedGameServer(deps.storage);
   const selected = usable.find(server => server.nodeId === remembered) ?? usable[0]!;
   const chosen = await deps.pick(root, options, selected.nodeId, signal);
-  if (!usable.includes(chosen)) throw new Error("所选游戏服务器不可用。");
+  if (!usable.includes(chosen)) throw new Error(tr("所选游戏服务器不可用。"));
   rememberGameServer(chosen.nodeId, deps.storage);
   return chosen;
 }

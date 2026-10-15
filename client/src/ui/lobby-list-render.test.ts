@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { renderLobbyList, type LobbyListRenderHost } from "./lobby-list-render";
+import { tr } from "../i18n/locale";
 
 /** A 2D context that accepts every drawing call. */
 function fakeContext(): CanvasRenderingContext2D {
@@ -76,6 +77,29 @@ test("首页快速进入的频道决定打开的分类", () => withWindow(async 
   assert.deepEqual(view.modes, [["speedIndiInfinit", 0, "ordinary"]]);
   assert.equal(view.host.lobbyUi?.category, "speedInfinit");
   assert.ok(!view.buttons().some(button => button.key.startsWith("filter:")));
+}));
+
+test("random pool captions follow the language while player track titles stay intact", () => withWindow(() => {
+  const saved = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  try {
+    for (const locale of ["zh-CN", "en", "ko"]) {
+      Object.defineProperty(globalThis, "localStorage", { configurable: true, value: { getItem: () => locale } });
+      const captions: string[] = [];
+      const context = fakeContext();
+      context.fillText = (value: string) => { captions.push(value); };
+      const view = lobby({ context, rooms: [
+        { name: "自订房间", mode: "individual", speed: 7, count: 1, capacity: 8, randomTrackCode: 0 },
+        { name: "另一个房间", mode: "individual", speed: 7, count: 1, capacity: 8, trackId: "village_R01" },
+      ], total: 2 } as unknown as Partial<LobbyListRenderHost>);
+      view.render();
+      assert.ok(captions.includes(tr("随机赛道")));
+      assert.ok(captions.includes("城镇 高速公路"));
+      if (locale !== "zh-CN") assert.ok(!captions.includes("随机赛道"));
+    }
+  } finally {
+    if (saved) Object.defineProperty(globalThis, "localStorage", saved);
+    else Reflect.deleteProperty(globalThis, "localStorage");
+  }
 }));
 
 test("房间行按分类过滤，满员不可加入，未连接时按钮停用", () => withWindow(async () => {

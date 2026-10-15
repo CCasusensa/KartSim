@@ -1,3 +1,5 @@
+import { paintMultiplayerModeCaption } from "./multiplayer-localized-art";
+import { tr } from "../i18n/locale";
 /** Draw the original multiplayer lobby's declarative BML tree. */
 export interface LobbyLayoutNode {
   name: string;
@@ -50,7 +52,7 @@ export interface LobbyDrawDependencies {
   attribute(node: LobbyLayoutNode, name: string): string | undefined;
   rectangle(node: LobbyLayoutNode, parent: LobbyRect, frame?: unknown,
     texture?: LobbyTexture): LobbyRect;
-  modeForButton(name: string): { gameplay?: string } | undefined;
+  modeForButton(name: string): { gameplay?: string; label?: string } | undefined;
   interactiveNames: ReadonlySet<string>;
   imageState(name: string, hovered?: string, pressed?: string): number;
   drawTexture(context: CanvasRenderingContext2D, texture: LobbyTexture,
@@ -77,8 +79,8 @@ const ROOM_STATUS_SIZE = 14;
 /** Status tag text and colour for a listed room. */
 export function lobbyRoomStatus(room: LobbyRoomSummary): { text: string; fill: string } {
   return room.gaming
-    ? { text: "游戏中", fill: "#d9534f" }
-    : { text: "准备中", fill: "#2e9d5b" };
+    ? { text: tr("游戏中"), fill: "#d9534f" }
+    : { text: tr("准备中"), fill: "#2e9d5b" };
 }
 
 export function drawLobbyListNode(
@@ -142,6 +144,7 @@ export function drawLobbyListNode(
         bounds.width, bounds.height);
     }
     host.context.restore();
+    if (mode?.label) paintMultiplayerModeCaption(host.context, bounds, mode.label);
     if (mode && "gameplay" in mode && host.mode &&
         mode.gameplay === host.gameplay) {
       host.context.save();
@@ -186,10 +189,10 @@ export function drawLobbyListNode(
   }
   if (name === "trackName") {
     text = room?.randomTrackCode !== undefined
-      ? (dependencies.randomTrack(room.randomTrackCode)?.title ?? "随机赛道资源不可用")
+      ? tr(dependencies.randomTrack(room.randomTrackCode)?.title ?? "随机赛道资源不可用")
       : room?.trackId
-        ? (host.assets.trackTitles.get(room.trackId) ?? "赛道资源不可用")
-        : "未选择赛道";
+        ? (host.assets.trackTitles.get(room.trackId) ?? tr("赛道资源不可用"))
+        : tr("未选择赛道");
   }
   if (name === "userCnt")
     text = room ? `${room.count}/${room.capacity}` : undefined;
@@ -197,6 +200,7 @@ export function drawLobbyListNode(
     const stringBagReference = /^#sb\(([^)]+)\)$/.exec(text);
     if (stringBagReference) text = host.assets.strings.get(stringBagReference[1]!);
     if (text) {
+      if (name !== "roomTitle" && name !== "trackName") text = tr(text);
       const alignment = attribute(node, "textAlign") ?? "";
       const color = attribute(node, "textColor") ?? "white";
       const channels = color.split(/\s+/).map(Number);

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** The authored garage confirmation window, including canvas art and focus behavior. */
 
 export interface ConfirmationRectangle {
@@ -108,7 +109,7 @@ export class GarageConfirmationDialog {
     this.element.hidden = true;
     this.element.setAttribute("role", "alertdialog");
     this.element.setAttribute("aria-modal", "true");
-    this.element.setAttribute("aria-label", "确认车库操作");
+    this.element.setAttribute("aria-label", tr("确认车库操作"));
     this.canvas.className = "garage-confirmation-canvas";
     this.canvas.style.imageRendering = "pixelated";
     this.canvas.width = 1600;
@@ -181,10 +182,10 @@ export class GarageConfirmationDialog {
     this.previousFocus = document.activeElement instanceof HTMLElement
       ? document.activeElement : undefined;
     const request = typeof message === "string" ? {
-      title: options.singleAction ? "提示" : "确认",
+      title: options.singleAction ? tr("提示") : tr("确认"),
       message,
-      affirmative: options.singleAction ? "确认" : "确定",
-      negative: options.singleAction ? "" : "取消",
+      affirmative: options.singleAction ? tr("确认") : tr("确定"),
+      negative: options.singleAction ? "" : tr("取消"),
       warning: !options.singleAction,
     } : message;
     this.request = options.singleAction && !request.singleAction

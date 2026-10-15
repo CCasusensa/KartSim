@@ -22,14 +22,14 @@ test("主菜单颜色解析 ARGB 与命名颜色", () => {
   assert.equal(mainMenuColor(undefined, "black"), "black");
 });
 
-test("主菜单字符串取国服文本并保留缺省键", () => {
+test("主菜单字符串优先当前语言，缺少译文时回退资源原文并保留缺省键", () => {
   const bag = node("StringBag", {}, [
     node("k", { n: "singlePlay" }, [node("m", { c: "kr", v: "싱글" }), node("m", { c: "cn", v: "单人游戏" })]),
     node("k", { n: "krOnly" }, [node("m", { c: "kr", v: "x" })]),
   ]);
   const strings = readMainMenuStrings(bag);
   assert.equal(strings.get("singlePlay"), "单人游戏");
-  assert.equal(strings.has("krOnly"), false);
+  assert.equal(strings.get("krOnly"), "x");
   assert.equal(strings.get("event"), "活动");
 });
 

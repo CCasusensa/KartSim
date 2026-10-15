@@ -1,3 +1,4 @@
+import { tr } from "../../i18n/locale";
 /**
  * 设计数据在视口里的样子：摆件（游戏装配的官方物件）、道路（与赛道包同一
  * 套几何）、地面、起点线和方向箭头、道路控制点手柄。
@@ -181,7 +182,7 @@ export class MapViews {
       this.onPieceLoaded?.();
     }).catch(error => {
       console.warn("摆件载入失败", piece.track, piece.path, error);
-      this.warnings.push(`摆件「${piece.label}」载入失败：${(error as Error).message}`);
+      this.warnings.push(tr("摆件「{value}」载入失败：{value2}", { value: String(piece.label), value2: String((error as Error).message) }));
     });
     return view;
   }

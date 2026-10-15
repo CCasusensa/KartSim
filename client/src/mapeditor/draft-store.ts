@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 本机草稿（IndexedDB，编辑器页和游戏页同源共享）：设计文件，以及最近一次
  * 生成的赛道包。游戏启动时把生成过的草稿挂成“本机地图”，计时赛里就能试跑。
@@ -19,7 +20,7 @@ export interface StoredBuild {
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    if (typeof indexedDB === "undefined") { reject(new Error("浏览器不支持 IndexedDB。")); return; }
+    if (typeof indexedDB === "undefined") { reject(new Error(tr("浏览器不支持 IndexedDB。"))); return; }
     const request = indexedDB.open(DB_NAME, 1);
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -27,7 +28,7 @@ function open(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(BUILDS)) db.createObjectStore(BUILDS, { keyPath: "id" });
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("IndexedDB 打开失败。"));
+    request.onerror = () => reject(request.error ?? new Error(tr("IndexedDB 打开失败。")));
   });
 }
 
@@ -38,8 +39,8 @@ async function run<T>(store: string, mode: IDBTransactionMode, work: (store: IDB
       const transaction = db.transaction(store, mode);
       const request = work(transaction.objectStore(store));
       transaction.oncomplete = () => resolve(request.result);
-      transaction.onerror = () => reject(transaction.error ?? request.error ?? new Error("IndexedDB 写入失败。"));
-      transaction.onabort = () => reject(transaction.error ?? new Error("IndexedDB 事务中止（存储空间不足？）。"));
+      transaction.onerror = () => reject(transaction.error ?? request.error ?? new Error(tr("IndexedDB 写入失败。")));
+      transaction.onabort = () => reject(transaction.error ?? new Error(tr("IndexedDB 事务中止（存储空间不足？）。")));
     });
   } finally {
     db.close();

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Opens, presents, leaves, and disposes a multiplayer race session. */
 
 interface RoomSnapshot { phase: string; members?: unknown[] }
@@ -143,7 +144,7 @@ export function watchRaceSessionFocusLoss(host: RaceSessionLifecycleHost,
 
 export function showRaceSessionWaiting(host: RaceSessionLifecycleHost,
   nowMs: () => number, focusTargets?: FocusLossTargets): void {
-  if (host.disposed) throw new Error("多人比赛已释放。");
+  if (host.disposed) throw new Error(tr("多人比赛已释放。"));
   if (host.active) return;
   host.now = nowMs();
   host.scene.update(host.host.renderer, host.now, []);
@@ -159,17 +160,17 @@ export function showRaceSessionWaiting(host: RaceSessionLifecycleHost,
     watchRaceSessionFocusLoss(host, focusTargets);
   host.host.autoForward.cancel();
   host.host.renderer.domElement.focus();
-  host.host.status("本机加载完成，等待其他玩家和统一起跑通知。");
+  host.host.status(tr("本机加载完成，等待其他玩家和统一起跑通知。"));
 }
 
 export function scheduleRaceSessionStart(host: RaceSessionLifecycleHost,
   start: unknown): void {
-  if (host.disposed) throw new Error("多人比赛已释放。");
+  if (host.disposed) throw new Error(tr("多人比赛已释放。"));
   host.runtime.scheduleStart(start);
   host.showWaiting();
   host.host.status(host.runtime.local.physics.speedRaceMode?.kind === "lte"
-    ? "LTE Web试玩：Z左躲闪、X右躲闪；自动补氮气及香蕉事件尚未接齐。"
-    : "沿用设置中的驾驶按键，等待统一起跑。");
+    ? tr("LTE Web试玩：Z左躲闪、X右躲闪；自动补氮气及香蕉事件尚未接齐。")
+    : tr("沿用设置中的驾驶按键，等待统一起跑。"));
 }
 
 export function renderRaceSession(host: RaceSessionLifecycleHost): void {
@@ -194,7 +195,7 @@ export function requestRaceSessionLeave(host: RaceSessionLifecycleHost): void {
     : () => host.host.leave();
   void leave().catch(error => {
     host.leaving = false;
-    host.host.status(`退出失败：${String(error)}`, true);
+    host.host.status(tr("退出失败：{value}", { value: String(String(error)) }), true);
   });
 }
 
@@ -202,8 +203,8 @@ export function failRaceSession(host: RaceSessionLifecycleHost,
   error: unknown): void {
   if (host.disposed) return;
   console.error("多人比赛已停止", error);
-  host.host.status(`多人比赛已停止：${error instanceof Error
-    ? error.message : String(error)}`, true);
+  host.host.status(tr("多人比赛已停止：{value}", { value: String(error instanceof Error
+    ? error.message : String(error)) }), true);
   host.resultVisible = false;
   host.requestLeave();
   host.dispose();

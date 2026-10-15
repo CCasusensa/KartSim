@@ -1,7 +1,7 @@
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { G1, T, V0, ct, f5, m9, p2, s2, st, ve } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText, tr } from "../i18n/locale";
 
 /**
  * The release MyRoomStage monocoque overlay: owner menu, rider list and chat box
@@ -124,7 +124,7 @@ export function myRoomRiderRows<Rider extends { slot: number }>(riders: readonly
 
 /** `%s` / `%d` placeholders in the release string bag. */
 export function formatMyRoomString(template: string, value: string | number): string {
-  return template.replace(/%[sd]/, String(value));
+  return tr(template).replace(/%[sd]/, String(value));
 }
 
 /** Release `textColor` is a name or an "A R G B" byte list. */
@@ -149,9 +149,7 @@ export function readMyRoomStringBag(bag: MyRoomHudNode): Map<string, string> {
   const visit = (node: MyRoomHudNode): void => {
     if (node.name === "k") {
       const key = attribute(node, "n");
-      const local = node.children.find(child => attribute(child, "c") === resourceLocale()) ??
-        node.children.find(child => attribute(child, "c") === "cn");
-      const value = local && attribute(local, "v");
+      const value = resourceText(node.children, attribute);
       if (key && value !== undefined) strings.set(key, value);
       return;
     }
@@ -244,9 +242,9 @@ export class MyRoomHud {
       pointerEvents: "none" });
     Object.assign(this.canvas.style, { position: "absolute", inset: "0", width: "100%",
       height: "100%", pointerEvents: "auto" });
-    this.canvas.setAttribute("aria-label", "小屋菜单");
+    this.canvas.setAttribute("aria-label", tr("小屋菜单"));
     this.chatInput.maxLength = 60;
-    this.chatInput.setAttribute("aria-label", "小屋聊天");
+    this.chatInput.setAttribute("aria-label", tr("小屋聊天"));
     Object.assign(this.chatInput.style, { position: "absolute", border: "0", outline: "0",
       background: "transparent", color: "white", padding: "0", pointerEvents: "auto",
       font: `14px "${FONT_FAMILY}"` });
@@ -406,7 +404,8 @@ export class MyRoomHud {
     const raw = attribute(node, "text");
     if (!raw) return undefined;
     const key = /^#sb\(([^)]+)\)$/.exec(raw)?.[1];
-    const value = key ? this.assets.strings.get(key) : raw;
+    const source = key ? this.assets.strings.get(key) : raw;
+    const value = source === undefined ? undefined : tr(source);
     if (value === undefined) return undefined;
     const room = this.options.room();
     if (name === "riderList") return formatMyRoomString(value, room.ownerName);
@@ -463,9 +462,9 @@ export class MyRoomHud {
   }
 
   private buttonLabel(node: MyRoomHudNode, name: string): string {
-    if (name === "hideChat") return "收起聊天";
-    if (name === "openChat") return "展开聊天";
-    if (name === "kick") return `请${this.card?.nickname ?? ""}离开小屋`;
+    if (name === "hideChat") return tr("收起聊天");
+    if (name === "openChat") return tr("展开聊天");
+    if (name === "kick") return tr("请{name}离开小屋", { name: this.card?.nickname ?? "" });
     const label = node.children.find(child => child.name === "Label");
     return (label && this.text(label, "")) ?? name;
   }

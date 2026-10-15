@@ -38,6 +38,24 @@ function homeOverReady() {
   return { controller, shell, closed: () => disposed > 0 };
 }
 
+test("home closes when the lobby's stable page marker becomes visible", () => {
+  const clock = frames();
+  try {
+    const { controller, shell, closed } = homeOverReady();
+    controller.multiplayer = {};
+    shell.current = "MultiplayerLobby";
+    const lobby = { hidden: true };
+    controller.host.root.querySelector = ((selector: string) =>
+      selector === 'div[data-ui-page="multiplayer-lobby"]' ? lobby : null) as typeof controller.host.root.querySelector;
+    closeReadyHomeWhenCovered(controller);
+    clock.advance(16);
+    assert.equal(closed(), false);
+    lobby.hidden = false;
+    clock.advance(16);
+    assert.equal(closed(), true);
+  } finally { clock.restore(); }
+});
+
 test("首页卡丁城：首次进入先下载联机资源（超过 400ms），首页仍等到城市画出来才关", () => {
   const clock = frames();
   try {

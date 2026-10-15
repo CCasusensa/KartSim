@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The city session's network layer over the lobby's live game connection:
  * JSON requests/events (city-* messages), 0xC1 motion frames out and in,
@@ -181,16 +182,16 @@ export function createCityRaceConnection(network: CityNetwork, playerId: string,
     sendGiantState: resolved,
     subscribeGiantState: noSubscription,
     subscribeTeamGauge: noSubscription,
-    sendItem: () => Promise.reject(new Error("卡丁城没有道具。")),
+    sendItem: () => Promise.reject(new Error(tr("卡丁城没有道具。"))),
     subscribeItem: noSubscription,
     sendAwardMotion: resolved,
     subscribeAwardMotion: noSubscription,
     chatChannels: [
-      { id: "city", label: "全城", description: "发给当前线路的所有玩家" },
-      { id: "near", label: "附近", description: "发给周围的玩家" },
+      { id: "city", label: tr("全城"), description: tr("发给当前线路的所有玩家") },
+      { id: "near", label: tr("附近"), description: tr("发给周围的玩家") },
     ] satisfies RaceChatChannel[],
     sendRaceChat: (text: string, channel = "city") => channel === "city" || channel === "near"
-      ? network.chat(text, channel) : Promise.reject(new Error("无效的聊天频道。")),
+      ? network.chat(text, channel) : Promise.reject(new Error(tr("无效的聊天频道。"))),
     subscribeRaceChat: (listener: (message: RaceChatMessage) => void) => hooks.onChat(listener),
     returnToRoom: resolved,
     reportFinish: resolved,

@@ -2,6 +2,18 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { featuredEntries, rankedEntries, replayDateText, replayEntries, replaySettingsLabel, runRecordKey } from "./ready-replays";
 
+test("self labels never alter replay nicknames that already end in a translated marker", () => {
+  const state = { track: { id: "village_R01", path: "p", title: "Track" }, speed: 7, booster: 0 };
+  for (const nickname of ["Alex (Me)", "Alex (나)", "开始（我）"]) {
+    for (const self of [false, true]) {
+      const [entry] = rankedEntries([{ rank: 1, accountId: "a", nickname, kartName: "Kart",
+        bestMs: 1000, updatedAt: 1, hasReplay: true, self }], state);
+      assert.equal(entry!.riderName, nickname);
+      assert.equal(entry!.displayRiderName, self ? `${nickname}（我）` : undefined);
+    }
+  }
+});
+
 test("replay cards come from records with a Ghost, newest first, titled by track and time", () => {
   const records: Array<[string, Record<string, unknown>]> = [
     ["village_r01\u00007\u00000", { hasGhost: true, elapsedMs: 95_120, kartName: "棉花糖", speed: 7, booster: 0 }],
@@ -42,7 +54,8 @@ test("联赛回放 and 其他回放 cards carry their sources and titles", () =>
   assert.deepEqual(ranked.map(entry => entry.accountId), ["a1", "a2"]);
   assert.equal(ranked[0]?.title, "第1名　小乖　01:30:00");
   assert.equal(ranked[0]?.settings, "无限 / 组队赛");
-  assert.equal(ranked[1]?.riderName, "我自己（我）");
+  assert.equal(ranked[1]?.riderName, "我自己");
+  assert.equal(ranked[1]?.displayRiderName, "我自己（我）");
   assert.equal(ranked[0]?.key, "ranked:forest_I01:4:1:a1");
 });
 

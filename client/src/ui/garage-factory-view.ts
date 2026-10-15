@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { FactoryPickerRect } from "./garage-factory-picker";
 
 export interface GarageFactoryLayout {
@@ -154,11 +155,11 @@ export function updateGarageFactoryScoreLabel(
   if (!host.scoreLabel) return;
   if (host.emptyVehicleInfo) {
     host.scoreLabel.textContent = "";
-    host.scoreLabel.title = "当前车辆改装信息不可用";
+    host.scoreLabel.title = tr("当前车辆改装信息不可用");
     return;
   }
   host.scoreLabel.textContent = scoreFields
     .map(field => scores ? String(((scores[field] as number) << 16) >> 16) : "—")
     .join("\n");
-  host.scoreLabel.title = title ?? "客户端五项评分";
+  host.scoreLabel.title = title ?? tr("客户端五项评分");
 }

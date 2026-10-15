@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { licenseItemsOf } from "../license/license-item-race";
 import { itemSlotInput } from "../ui/multiplayer-race-hud";
 import { observeOf, type ObserveState } from "./replay-observe";
@@ -107,7 +108,7 @@ export function rankBoardValues(
       rank: participant.rank,
       local: participant.id === "player",
       name: participant.id === "player"
-        ? host.session.localName || "自己"
+        ? host.session.localName || tr("自己")
         : host.session.ghosts[Number(participant.id.slice(5))]?.name ?? "",
       color: colors[participant.id === "player" ? 0 : Number(participant.id.slice(5)) + 1],
     })),

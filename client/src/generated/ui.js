@@ -1,3 +1,4 @@
+import { resourceText } from "../i18n/locale.ts";
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
 // Stable minified names are retained for behavioral parity.
@@ -1629,8 +1630,8 @@ function f80(n) {
   return (
     n.children.forEach((t) => {
       const i = T(t, "n"),
-        r = t.children.find((o) => T(o, "c") === "cn"),
-        s = r && T(r, "v");
+        r = resourceText(t.children, T),
+        s = r;
       i !== void 0 && s !== void 0 && e.set(i, s);
     }),
     e
@@ -1645,9 +1646,7 @@ function p80(n) {
   return (
     Array.from(e.documentElement.children).forEach((i) => {
       const r = i.getAttribute("n"),
-        o = Array.from(i.children)
-          .find((a) => a.getAttribute("c") === "cn")
-          ?.getAttribute("v");
+        o = resourceText(Array.from(i.children), (entry, key) => entry.getAttribute(key));
       r !== null && o !== null && o !== void 0 && t.set(r, o);
     }),
     t
@@ -2352,8 +2351,8 @@ function U80(n) {
   return (
     n.children.forEach((t) => {
       const i = T(t, "n"),
-        r = t.children.find((o) => T(o, "c") === "cn"),
-        s = r && T(r, "v");
+        r = resourceText(t.children, T),
+        s = r;
       i !== void 0 && s !== void 0 && e.set(i, s);
     }),
     e
@@ -2368,9 +2367,7 @@ function $80(n) {
   return (
     Array.from(e.documentElement.children).forEach((r) => {
       const s = r.getAttribute("n"),
-        a = Array.from(r.children)
-          .find((c) => c.getAttribute("c") === "cn")
-          ?.getAttribute("v");
+        a = resourceText(Array.from(r.children), (entry, key) => entry.getAttribute(key));
       s !== null && a !== null && a !== void 0 && i.set(s, a);
     }),
     i

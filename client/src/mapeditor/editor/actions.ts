@@ -1,3 +1,4 @@
+import { tr } from "../../i18n/locale";
 /**
  * 存取、检查、试跑和发布。
  */
@@ -20,7 +21,7 @@ import { openNewMapWizard } from "./wizard";
 
 interface Modal { close(): void; body: HTMLElement; buttons: HTMLElement; setProgress(value: number, text?: string): void }
 
-export function modal(title: string, content: string | HTMLElement, buttons: Array<[string, () => void]> = [["确定", () => undefined]]): Modal {
+export function modal(title: string, content: string | HTMLElement, buttons: Array<[string, () => void]> = [[tr("确定"), () => undefined]]): Modal {
   const body = h("div", { class: "ed-body" }, content);
   const row = h("div", { class: "ed-buttons" });
   const dialog = h("div", { class: "k-dialog" }, h("div", { class: "k-caption" }, title), body, row);
@@ -41,7 +42,7 @@ export function modal(title: string, content: string | HTMLElement, buttons: Arr
 
 async function canvasPng(canvas: HTMLCanvasElement): Promise<Uint8Array> {
   const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
-  if (!blob) throw new Error("截图失败。");
+  if (!blob) throw new Error(tr("截图失败。"));
   return new Uint8Array(await blob.arrayBuffer());
 }
 
@@ -74,7 +75,7 @@ export class EditorActions {
 
   accountLabel(): string {
     if (!this.accountChecked) return "";
-    return this.account ? `账号：${this.account.nickname}` : "未登录（发布前先在游戏里登录）";
+    return this.account ? tr("账号：{value}", { value: String(this.account.nickname) }) : tr("未登录（发布前先在游戏里登录）");
   }
 
   async myMaps(): Promise<CustomMapSummary[] | undefined> {
@@ -87,7 +88,7 @@ export class EditorActions {
 
   newMap(): void {
     const go = () => openNewMapWizard(this.app);
-    if (this.app.state.dirty) modal("新建地图", "当前地图还没保存，确定新建吗？", [["新建", go], ["保存后新建", () => void this.save().then(ok => ok && go())], ["取消", () => undefined]]);
+    if (this.app.state.dirty) modal(tr("新建地图"), tr("当前地图还没保存，确定新建吗？"), [[tr("新建"), go], [tr("保存后新建"), () => void this.save().then(ok => ok && go())], [tr("取消"), () => undefined]]);
     else go();
   }
 
@@ -95,42 +96,42 @@ export class EditorActions {
     try {
       await saveDesign(this.app.state.design);
       this.app.state.markSaved();
-      if (!options.quiet) this.app.say("已保存到本机。");
+      if (!options.quiet) this.app.say(tr("已保存到本机。"));
       this.app.leftVersion++;
       this.app.queueRender();
       return true;
     } catch (error) {
-      modal("保存失败", (error as Error).message);
+      modal(tr("保存失败"), (error as Error).message);
       return false;
     }
   }
 
   /** 打开：本机草稿和自己发布在服务器上的地图。 */
   openDialog(): void {
-    const list = h("div", { class: "ed-open-list" }, h("div", { class: "ed-empty" }, "正在读取…"));
-    const dialog = modal(this.app.advanced ? "打开地图" : "我的地图", list, [["导入文件…", () => this.importFile()], ["关闭", () => undefined]]);
+    const list = h("div", { class: "ed-open-list" }, h("div", { class: "ed-empty" }, tr("正在读取…")));
+    const dialog = modal(this.app.advanced ? tr("打开地图") : tr("我的地图"), list, [[tr("导入文件…"), () => this.importFile()], [tr("关闭"), () => undefined]]);
     dialog.body.style.whiteSpace = "normal";
     const fill = async () => {
       const [designs, maps] = await Promise.all([listDesigns().catch(() => undefined), this.myMaps()]);
       list.replaceChildren();
       const row = (name: string, meta: string, actions: HTMLElement[]) =>
         h("div", { class: "ed-row k-row" }, h("span", { class: "ed-name" }, name), h("span", { class: "ed-meta" }, meta), ...actions);
-      list.append(h("h4", {}, "本机草稿"));
-      if (!designs) list.append(h("div", { class: "ed-empty" }, "浏览器不能读取本机草稿。"));
-      else if (!designs.length) list.append(h("div", { class: "ed-empty" }, "还没有保存过的地图。"));
+      list.append(h("h4", {}, tr("本机草稿")));
+      if (!designs) list.append(h("div", { class: "ed-empty" }, tr("浏览器不能读取本机草稿。")));
+      else if (!designs.length) list.append(h("div", { class: "ed-empty" }, tr("还没有保存过的地图。")));
       for (const design of designs ?? []) {
         list.append(row(design.name, new Date(design.updatedAt).toLocaleString(), [
-          button("打开", () => { dialog.close(); void this.openDraft(design.id); }, { class: "ed-small" }),
-          button("删除", () => void this.deleteDraft(design, () => void fill()), { class: "ed-small" }),
+          button(tr("打开"), () => { dialog.close(); void this.openDraft(design.id); }, { class: "ed-small" }),
+          button(tr("删除"), () => void this.deleteDraft(design, () => void fill()), { class: "ed-small" }),
         ]));
       }
-      list.append(h("h4", {}, "已发布（服务器）"));
-      if (maps === undefined) list.append(h("div", { class: "ed-empty" }, "登录后显示（在同一浏览器打开游戏登录即可）。"));
-      else if (!maps.length) list.append(h("div", { class: "ed-empty" }, "还没有发布过地图。"));
+      list.append(h("h4", {}, tr("已发布（服务器）")));
+      if (maps === undefined) list.append(h("div", { class: "ed-empty" }, tr("登录后显示（在同一浏览器打开游戏登录即可）。")));
+      else if (!maps.length) list.append(h("div", { class: "ed-empty" }, tr("还没有发布过地图。")));
       for (const map of maps ?? []) {
         list.append(row(map.name, `${(map.size / 1e6).toFixed(1)} MB`, [
-          button("打开", () => { dialog.close(); void this.openPublished(map.id); }, { class: "ed-small" }),
-          button("下架", () => void this.unpublish(map, () => void fill()), { class: "ed-small" }),
+          button(tr("打开"), () => { dialog.close(); void this.openPublished(map.id); }, { class: "ed-small" }),
+          button(tr("下架"), () => void this.unpublish(map, () => void fill()), { class: "ed-small" }),
         ]));
       }
     };
@@ -140,41 +141,41 @@ export class EditorActions {
   async openDraft(id: string): Promise<void> {
     const open = async () => {
       const design = await loadDesign(id);
-      if (!design) { modal("打开失败", "找不到这张草稿。"); return; }
+      if (!design) { modal(tr("打开失败"), tr("找不到这张草稿。")); return; }
       this.load(parseDesign(JSON.stringify(design)));
     };
-    if (this.app.state.dirty && id !== this.app.state.design.id) modal("打开地图", "当前地图还没保存，确定打开另一张吗？", [["打开", () => void open()], ["取消", () => undefined]]);
+    if (this.app.state.dirty && id !== this.app.state.design.id) modal(tr("打开地图"), tr("当前地图还没保存，确定打开另一张吗？"), [[tr("打开"), () => void open()], [tr("取消"), () => undefined]]);
     else await open();
   }
 
   async openPublished(id: string): Promise<void> {
     try {
       this.load(parseDesign(await fetchMapDesign(id)));
-      this.app.say("已从服务器打开，修改后再发布会覆盖原版本。");
+      this.app.say(tr("已从服务器打开，修改后再发布会覆盖原版本。"));
     } catch (error) {
-      modal("打开失败", (error as Error).message);
+      modal(tr("打开失败"), (error as Error).message);
     }
   }
 
   private load(design: MapDesign): void {
     this.app.loadNewDesign(design);
     this.app.leftVersion++;
-    this.app.say(`已打开「${design.name}」。`);
+    this.app.say(tr("已打开「{value}」。", { value: String(design.name) }));
   }
 
   async deleteDraft(design: MapDesign, done?: () => void): Promise<void> {
-    modal("删除草稿", `删除本机草稿「${design.name}」？已发布的版本不受影响。`, [["删除", () => {
+    modal(tr("删除草稿"), tr("删除本机草稿「{value}」？已发布的版本不受影响。", { value: String(design.name) }), [[tr("删除"), () => {
       void deleteDraft(design.id).then(() => { this.app.leftVersion++; this.app.queueRender(); done?.(); });
-    }], ["取消", () => undefined]]);
+    }], [tr("取消"), () => undefined]]);
   }
 
   async unpublish(map: CustomMapSummary, done?: () => void): Promise<void> {
     const token = storedSessionToken();
     if (!token) return;
-    modal("下架地图", `从服务器删除「${map.name}」？已经在玩这张图的房间会找不到赛道。`, [["下架", () => {
-      void deleteMap(map.id, token).then(() => { this.app.say("已下架。"); this.app.leftVersion++; this.app.queueRender(); done?.(); })
-        .catch(error => modal("下架失败", (error as Error).message));
-    }], ["取消", () => undefined]]);
+    modal(tr("下架地图"), tr("从服务器删除「{value}」？已经在玩这张图的房间会找不到赛道。", { value: String(map.name) }), [[tr("下架"), () => {
+      void deleteMap(map.id, token).then(() => { this.app.say(tr("已下架。")); this.app.leftVersion++; this.app.queueRender(); done?.(); })
+        .catch(error => modal(tr("下架失败"), (error as Error).message));
+    }], [tr("取消"), () => undefined]]);
   }
 
   /** 导入设计文件（.json）或地图包（.kartmap）。 */
@@ -188,7 +189,7 @@ export class EditorActions {
         if (isZip(bytes)) await this.importPackage(bytes);
         else { this.load(parseDesign(new TextDecoder().decode(bytes))); this.app.state.dirty = true; }
       } catch (error) {
-        modal("导入失败", (error as Error).message);
+        modal(tr("导入失败"), (error as Error).message);
       }
     });
     input.click();
@@ -205,12 +206,11 @@ export class EditorActions {
         thumb: pack.thumb ? new Blob([pack.thumb as BlobPart], { type: "image/png" }) : undefined });
       this.load(pack.design);
       this.app.leftVersion++;
-      modal("导入地图包", `已导入「${pack.design.name}」（${(pack.container.length / 1e6).toFixed(1)} MB${
-        pack.summary.author ? `，作者 ${pack.summary.author}` : ""}）。\n可以直接试跑，也可以继续修改；` +
-        "别人的地图要发布成自己的，请先“另存为”。", [["试跑", () => this.openTestDrive()], ["关闭", () => undefined]]);
+      modal(tr("导入地图包"), tr("已导入「{value}」（{value2} MB{value3}）。\n可以直接试跑，也可以继续修改；", { value: String(pack.design.name), value2: String((pack.container.length / 1e6).toFixed(1)), value3: String(pack.summary.author ? tr("，作者 {value}", { value: String(pack.summary.author) }) : "") }) +
+        tr("别人的地图要发布成自己的，请先“另存为”。"), [[tr("试跑"), () => this.openTestDrive()], [tr("关闭"), () => undefined]]);
     };
     if (existing && existing.updatedAt !== pack.design.updatedAt)
-      modal("导入地图包", `本机已有同一张地图「${existing.name}」，覆盖成导入的版本吗？`, [["覆盖", () => void store()], ["取消", () => undefined]]);
+      modal(tr("导入地图包"), tr("本机已有同一张地图「{value}」，覆盖成导入的版本吗？", { value: String(existing.name) }), [[tr("覆盖"), () => void store()], [tr("取消"), () => undefined]]);
     else await store();
   }
 
@@ -218,11 +218,11 @@ export class EditorActions {
   saveAs(): void {
     const design = structuredClone(this.app.state.design);
     design.id = randomId();
-    design.name = [...`${design.name}（副本）`].slice(0, MAP_LIMITS.nameLength).join("");
+    design.name = [...tr("{value}（副本）", { value: String(design.name) })].slice(0, MAP_LIMITS.nameLength).join("");
     design.updatedAt = Date.now();
     this.load(design);
     this.app.state.dirty = true;
-    void this.save().then(() => this.app.say(`已另存为「${design.name}」。`));
+    void this.save().then(() => this.app.say(tr("已另存为「{value}」。", { value: String(design.name) })));
   }
 
   private download(name: string, blob: Blob): void {
@@ -237,12 +237,12 @@ export class EditorActions {
 
   /** 导出：地图包、赛道包（游戏格式）或设计文件。 */
   exportDialog(): void {
-    modal("导出地图",
-      "地图包（.kartmap）：一个文件装下整张地图——设计、生成好的赛道包和卡片图。发给别人后，在地图工坊“导入”就能修改或直接试跑。\n\n" +
-      "赛道包（.rho）：与官方赛道完全相同的游戏格式文件（track_custom_<id>.rho），可以用 client/tools/city/register-container.mjs 登记进资源镜像。\n\n" +
-      "设计文件（.json）：只有设计数据，体积最小，用同一套官方资源重新生成。",
-      [["地图包", () => void this.exportPackage()], ["赛道包", () => void this.exportContainer()],
-        ["设计文件", () => this.exportDesign()], ["取消", () => undefined]]);
+    modal(tr("导出地图"),
+      tr("地图包（.kartmap）：一个文件装下整张地图——设计、生成好的赛道包和卡片图。发给别人后，在地图工坊“导入”就能修改或直接试跑。\n\n") +
+      tr("赛道包（.rho）：与官方赛道完全相同的游戏格式文件（track_custom_<id>.rho），可以用 client/tools/city/register-container.mjs 登记进资源镜像。\n\n") +
+      tr("设计文件（.json）：只有设计数据，体积最小，用同一套官方资源重新生成。"),
+      [[tr("地图包"), () => void this.exportPackage()], [tr("赛道包"), () => void this.exportContainer()],
+        [tr("设计文件"), () => this.exportDesign()], [tr("取消"), () => undefined]]);
   }
 
   exportDesign(): void {
@@ -250,28 +250,28 @@ export class EditorActions {
   }
 
   private async exportPackage(): Promise<void> {
-    const result = await this.build("导出地图包");
+    const result = await this.build(tr("导出地图包"));
     if (!result) return;
     const { built, stored } = result;
     const bytes = encodeMapPackage({ design: this.app.state.design, summary: stored.summary, container: built.container,
       card: stored.card ? new Uint8Array(await stored.card.arrayBuffer()) : undefined,
       thumb: stored.thumb ? new Uint8Array(await stored.thumb.arrayBuffer()) : undefined });
     this.download(this.fileName(PACKAGE_EXTENSION), new Blob([bytes as BlobPart], { type: "application/zip" }));
-    this.app.say(`已导出地图包（${(bytes.length / 1e6).toFixed(1)} MB）。`);
+    this.app.say(tr("已导出地图包（{value} MB）。", { value: String((bytes.length / 1e6).toFixed(1)) }));
   }
 
   private async exportContainer(): Promise<void> {
-    const result = await this.build("导出赛道包");
+    const result = await this.build(tr("导出赛道包"));
     if (!result) return;
     this.download(result.built.containerName, new Blob([result.built.container as BlobPart], { type: "application/octet-stream" }));
-    this.app.say(`已导出赛道包 ${result.built.containerName}。`);
+    this.app.say(tr("已导出赛道包 {value}。", { value: String(result.built.containerName) }));
   }
 
   // ------------------------------------------------------------------ 检查与生成
 
   check(): void {
     const issues = validateDesign(this.app.state.design);
-    modal("检查地图", issues.length ? issues.map(issue => `· ${issue}`).join("\n") : "没有发现问题，可以试跑和发布。");
+    modal(tr("检查地图"), issues.length ? issues.map(issue => `· ${issue}`).join("\n") : tr("没有发现问题，可以试跑和发布。"));
   }
 
   /** 赛道卡片和缩略图：从斜上方看整条路线，叠上路线描边（与官方卡片相同）。 */
@@ -323,16 +323,16 @@ export class EditorActions {
     const design = this.app.state.design;
     if (!this.app.advanced) {
       const issues = friendlyIssues(design);
-      if (issues.length) { modal("还差一点", `${issues.map(issue => `· ${issue}`).join("\n")}`, [["知道了", () => undefined]]); return undefined; }
+      if (issues.length) { modal(tr("还差一点"), `${issues.map(issue => `· ${issue}`).join("\n")}`, [[tr("知道了"), () => undefined]]); return undefined; }
     }
     const issues = validateDesign(design);
-    if (issues.length) { modal(title, `还不能生成：\n${issues.map(issue => `· ${issue}`).join("\n")}`); return undefined; }
-    const progress = modal(title, this.app.advanced ? "正在生成赛道…" : "正在把地图变成真正的赛道…", []);
+    if (issues.length) { modal(title, tr("还不能生成：\n{value}", { value: String(issues.map(issue => `· ${issue}`).join("\n")) })); return undefined; }
+    const progress = modal(title, this.app.advanced ? tr("正在生成赛道…") : tr("正在把地图变成真正的赛道…"), []);
     progress.setProgress(0.05);
     try {
       await this.save();
       const { card, thumb } = await this.cards();
-      const steps = ["生成道路", "复制官方摆件", "生成路线和小地图", "复制贴图", "打包"];
+      const steps = [tr("生成道路"), tr("复制官方摆件"), tr("生成路线和小地图"), tr("复制贴图"), tr("打包")];
       const built = await buildCustomTrack(design, {
         library: this.app.assets.library, formats, card, thumb,
         onProgress: message => progress.setProgress(0.1 + 0.85 * (steps.indexOf(message) + 1) / steps.length, `${message}…`),
@@ -351,13 +351,13 @@ export class EditorActions {
     } catch (error) {
       progress.close();
       console.error(error);
-      modal(title, `生成失败：${(error as Error).message}`);
+      modal(title, tr("生成失败：{value}", { value: String((error as Error).message) }));
       return undefined;
     }
   }
 
   private warningsText(built: BuiltTrack): string {
-    return built.warnings.length ? `\n\n注意：\n${built.warnings.slice(0, 12).map(w => `· ${w}`).join("\n")}` : "";
+    return built.warnings.length ? tr("\n\n注意：\n{value}", { value: String(built.warnings.slice(0, 12).map(w => `· ${w}`).join("\n")) }) : "";
   }
 
   openTestDrive(): void {
@@ -368,32 +368,32 @@ export class EditorActions {
 
   /** 生成后在游戏的计时赛里试跑（新标签页）。 */
   async testDrive(): Promise<void> {
-    const result = await this.build("试跑");
+    const result = await this.build(tr("试跑"));
     if (!result) return;
     const { built } = result;
     const open = () => this.openTestDrive();
     if (!this.app.advanced) {
-      modal("赛道做好了！", `一圈 ${built.routeLength.toFixed(0)} 米。点“出发”会打开游戏，选好这张图，按开始就能开车。\n` +
-        "开完回到这里还能接着改，改完再点“开车试玩”。", [["出发", open], ["等会儿", () => undefined]]);
+      modal(tr("赛道做好了！"), tr("一圈 {value} 米。点“出发”会打开游戏，选好这张图，按开始就能开车。\n", { value: String(built.routeLength.toFixed(0)) }) +
+        tr("开完回到这里还能接着改，改完再点“开车试玩”。"), [[tr("出发"), open], [tr("等会儿"), () => undefined]]);
       return;
     }
-    modal("试跑", `赛道包已生成（${(built.container.length / 1e6).toFixed(1)} MB，路线 ${built.routeLength.toFixed(0)} 米，${built.stats.gates} 个检查点）。\n` +
-      `游戏页会打开计时赛并选好这张地图（标着“[草稿]”），点“开始”即可。${this.warningsText(built)}`,
-    [["打开游戏试跑", open], ["关闭", () => undefined]]);
+    modal(tr("试跑"), tr("赛道包已生成（{value} MB，路线 {value2} 米，{value3} 个检查点）。\n", { value: String((built.container.length / 1e6).toFixed(1)), value2: String(built.routeLength.toFixed(0)), value3: String(built.stats.gates) }) +
+      tr("游戏页会打开计时赛并选好这张地图（标着“[草稿]”），点“开始”即可。{value}", { value: String(this.warningsText(built)) }),
+    [[tr("打开游戏试跑"), open], [tr("关闭"), () => undefined]]);
   }
 
   /** 上传到服务器，多人竞速房可选。 */
   async publish(): Promise<void> {
     await this.refreshAccount();
     if (!this.account) {
-      modal(this.app.advanced ? "发布" : "分享给大家", "发布需要登录。请在同一个浏览器里打开游戏并登录，然后回到这里再点“发布”。",
-        [["打开游戏", () => window.open("/", "kartsim-game")], ["关闭", () => undefined]]);
+      modal(this.app.advanced ? tr("发布") : tr("分享给大家"), tr("发布需要登录。请在同一个浏览器里打开游戏并登录，然后回到这里再点“发布”。"),
+        [[tr("打开游戏"), () => window.open("/", "kartsim-game")], [tr("关闭"), () => undefined]]);
       return;
     }
-    const result = await this.build("发布");
+    const result = await this.build(tr("发布"));
     if (!result) return;
     const { built, stored } = result;
-    const progress = modal("发布", "正在上传…", []);
+    const progress = modal(tr("发布"), tr("正在上传…"), []);
     progress.setProgress(0.5);
     try {
       const summary = await publishMap({
@@ -405,50 +405,49 @@ export class EditorActions {
       saveProgress(this.app.state.design.id, { shared: true });
       this.app.queueRender();
       if (!this.app.advanced) {
-        modal("分享成功！", `「${summary.name}」已经上线了。\n大家在游戏的“单人游戏 → 地图工坊”里就能玩到；多人游戏选赛道时也能找到它${
-          summary.items > 0 ? "（道具赛也行）" : ""}。\n以后再改，点“分享给大家”会更新成新的样子。`, [["太好了", () => undefined]]);
+        modal(tr("分享成功！"), tr("「{value}」已经上线了。\n大家在游戏的“单人游戏 → 地图工坊”里就能玩到；多人游戏选赛道时也能找到它{value2}。\n以后再改，点“分享给大家”会更新成新的样子。", { value: String(summary.name), value2: String(summary.items > 0 ? tr("（道具赛也行）") : "") }), [[tr("太好了"), () => undefined]]);
         return;
       }
-      modal("发布成功", `「${summary.name}」已发布（${(summary.size / 1e6).toFixed(1)} MB）。\n` +
-        `单人游戏 → 地图工坊里所有人都能玩到它；多人游戏的竞速房${summary.items > 0 ? "和道具房" : ""}里，在“选择赛道”的` +
-        `“${THEME_TITLES[summary.theme] ?? summary.theme}”分类（或直接搜索名字）就能找到，其他玩家进房时会自动下载。` +
-        `${summary.items > 0 ? "" : "\n（没有道具箱，道具房里选不到；在比赛路线的属性里放道具箱后重新发布即可。）"}${this.warningsText(built)}`);
+      modal(tr("发布成功"), tr("「{value}」已发布（{value2} MB）。\n", { value: String(summary.name), value2: String((summary.size / 1e6).toFixed(1)) }) +
+        tr("单人游戏 → 地图工坊里所有人都能玩到它；多人游戏的竞速房{value}里，在“选择赛道”的", { value: String(summary.items > 0 ? tr("和道具房") : "") }) +
+        tr("“{value}”分类（或直接搜索名字）就能找到，其他玩家进房时会自动下载。", { value: String(tr(THEME_TITLES[summary.theme] ?? summary.theme)) }) +
+        `${summary.items > 0 ? "" : tr("\n（没有道具箱，道具房里选不到；在比赛路线的属性里放道具箱后重新发布即可。）")}${this.warningsText(built)}`);
     } catch (error) {
       progress.close();
       const code = (error as Error).message;
       const text: Record<string, string> = {
-        LOGIN_REQUIRED: "登录已过期，请在游戏里重新登录。", MAP_NOT_OWNER: "这张地图属于别人（导入了别人的地图包或设计），请先点“另存为”变成自己的地图再发布。",
-        TOO_MANY_MAPS: "每个账号最多发布 20 张地图，先下架一些旧地图。", MAP_TOO_LARGE: "赛道包超过 40 MB，减少一些摆件或换小一点的贴图。",
-        INVALID_MAP: "服务器拒绝了这个赛道包（数据不完整）。", DATA_SERVICE_UNAVAILABLE: "连不上服务器。",
+        LOGIN_REQUIRED: tr("登录已过期，请在游戏里重新登录。"), MAP_NOT_OWNER: tr("这张地图属于别人（导入了别人的地图包或设计），请先点“另存为”变成自己的地图再发布。"),
+        TOO_MANY_MAPS: tr("每个账号最多发布 20 张地图，先下架一些旧地图。"), MAP_TOO_LARGE: tr("赛道包超过 40 MB，减少一些摆件或换小一点的贴图。"),
+        INVALID_MAP: tr("服务器拒绝了这个赛道包（数据不完整）。"), DATA_SERVICE_UNAVAILABLE: tr("连不上服务器。"),
       };
-      modal("发布失败", text[code] ?? code);
+      modal(tr("发布失败"), text[code] ?? code);
     }
   }
 
   help(): void {
     if (!this.app.advanced) {
-      modal("怎么玩",
-        "做一张自己的跑跑卡丁车赛道，就像搭积木：\n\n" +
-        "① 铺赛道：点下面素材栏的“赛道”，选一种形状，赛道一下就铺好了。想自己画，就用左边的“画赛道”，在地上一个点一个点地点。\n" +
-        "② 摆东西：素材栏里有建筑、树木、路灯、广告牌……点一下卡片，再点地面就放下了。放之前滚动鼠标滚轮可以转方向；按住鼠标不动一会儿，再上下拖，能把它抬到半空。左边的“吸附”开着时，靠近赛道放会自动贴到路边、顺着路摆正。\n" +
-        "③ 改一改：点一下地图上的东西，头顶会出现按钮：转向、变大、变小、抬高、复制、删除；按住它拖动就能挪位置。点赛道可以变宽、换路面、装护栏；拖赛道上的白色圆点能改形状；按住起跑线拖动，能沿着赛道挪起点；起跑线上方自动立一座原版起点拱门，点它可以换样式。\n" +
-        "④ 放道具箱：素材栏“机关道具 → 道具箱”，点“自动布置”，这张图就能开道具赛了。\n" +
-        "⑤ 开车试玩：点右上角“开车试玩”，在游戏里跑一圈看看。\n" +
-        "⑥ 分享给大家：点“分享给大家”，所有人都能在游戏的“单人游戏 → 地图工坊”里玩到。\n\n" +
-        "看地图：拖动空地移动，右键拖动转方向，滚轮拉近拉远，键盘 W A S D 也能移动。\n" +
-        "放错了别担心：点“↶ 撤销”就回去了。地图会自动保存。",
-        [["开始玩", () => undefined]]);
+      modal(tr("怎么玩"),
+        tr("做一张自己的跑跑卡丁车赛道，就像搭积木：\n\n") +
+        tr("① 铺赛道：点下面素材栏的“赛道”，选一种形状，赛道一下就铺好了。想自己画，就用左边的“画赛道”，在地上一个点一个点地点。\n") +
+        tr("② 摆东西：素材栏里有建筑、树木、路灯、广告牌……点一下卡片，再点地面就放下了。放之前滚动鼠标滚轮可以转方向；按住鼠标不动一会儿，再上下拖，能把它抬到半空。左边的“吸附”开着时，靠近赛道放会自动贴到路边、顺着路摆正。\n") +
+        tr("③ 改一改：点一下地图上的东西，头顶会出现按钮：转向、变大、变小、抬高、复制、删除；按住它拖动就能挪位置。点赛道可以变宽、换路面、装护栏；拖赛道上的白色圆点能改形状；按住起跑线拖动，能沿着赛道挪起点；起跑线上方自动立一座原版起点拱门，点它可以换样式。\n") +
+        tr("④ 放道具箱：素材栏“机关道具 → 道具箱”，点“自动布置”，这张图就能开道具赛了。\n") +
+        tr("⑤ 开车试玩：点右上角“开车试玩”，在游戏里跑一圈看看。\n") +
+        tr("⑥ 分享给大家：点“分享给大家”，所有人都能在游戏的“单人游戏 → 地图工坊”里玩到。\n\n") +
+        tr("看地图：拖动空地移动，右键拖动转方向，滚轮拉近拉远，键盘 W A S D 也能移动。\n") +
+        tr("放错了别担心：点“↶ 撤销”就回去了。地图会自动保存。"),
+        [[tr("开始玩"), () => undefined]]);
       return;
     }
-    modal("地图工坊帮助",
-      "【三步做一张地图】①“新建”向导里选主题和赛道形状（或在素材栏“赛道 → 形状”里换）；② 在底部素材栏挑建筑、树木、路灯……点卡片，再在地图上点击放置；③ 点“试跑”在游戏里跑一圈，满意了就“发布”。\n" +
-      "【视角】右键拖动旋转，滚轮缩放，中键或按住空格左键拖动平移，方向键移动（Shift 加速），F 聚焦选中物。触控板可用 Alt+左键旋转。\n" +
-      "【素材栏】七大类：赛道（形状、路面、护栏）、建筑、自然、路边、机关道具（加速跳台、道具箱）、装饰、环境（主题套装、天空、地面）。鼠标停在卡片上，右边会转着显示大预览。物件都来自官方赛道，可以按主题筛选或搜索。\n" +
-      "【放置】点物件卡片后在地图上点击放下；滚轮或 Q/E 旋转（Shift 转 90°），长按左键后上下拖调高度，[ ] 调大小，Esc 或右键结束。\n" +
-      "【修改】“选择”工具（V）点选摆件，按住拖动挪位置，右侧有转一转、放大缩小、升高降低、贴地、复制、删除。“推土机”（B）点到哪个删哪个。选中道路后拖白色圆点改形状，右侧可以换路宽、护栏、路面。\n" +
-      "【道具赛】“机关道具 → 道具箱”里自动布置，或点路放一排。有道具箱的地图发布后，道具房也能选它。\n" +
-      "【试跑与发布】“试跑”生成赛道并在游戏计时赛里打开（标着[草稿]，只有你能看到）；“发布”上传到服务器，所有人都能在“单人游戏 → 地图工坊”里玩，多人竞速房（有道具箱时还有道具房）里也能选。\n" +
-      "【更多】导入/导出地图包（.kartmap）、另存为、检查；“高级模式”可以浏览整条官方赛道取任意物件，用手柄精确移动旋转缩放，调所有数值。",
-      [["知道了", () => undefined]]);
+    modal(tr("地图工坊帮助"),
+      tr("【三步做一张地图】①“新建”向导里选主题和赛道形状（或在素材栏“赛道 → 形状”里换）；② 在底部素材栏挑建筑、树木、路灯……点卡片，再在地图上点击放置；③ 点“试跑”在游戏里跑一圈，满意了就“发布”。\n") +
+      tr("【视角】右键拖动旋转，滚轮缩放，中键或按住空格左键拖动平移，方向键移动（Shift 加速），F 聚焦选中物。触控板可用 Alt+左键旋转。\n") +
+      tr("【素材栏】七大类：赛道（形状、路面、护栏）、建筑、自然、路边、机关道具（加速跳台、道具箱）、装饰、环境（主题套装、天空、地面）。鼠标停在卡片上，右边会转着显示大预览。物件都来自官方赛道，可以按主题筛选或搜索。\n") +
+      tr("【放置】点物件卡片后在地图上点击放下；滚轮或 Q/E 旋转（Shift 转 90°），长按左键后上下拖调高度，[ ] 调大小，Esc 或右键结束。\n") +
+      tr("【修改】“选择”工具（V）点选摆件，按住拖动挪位置，右侧有转一转、放大缩小、升高降低、贴地、复制、删除。“推土机”（B）点到哪个删哪个。选中道路后拖白色圆点改形状，右侧可以换路宽、护栏、路面。\n") +
+      tr("【道具赛】“机关道具 → 道具箱”里自动布置，或点路放一排。有道具箱的地图发布后，道具房也能选它。\n") +
+      tr("【试跑与发布】“试跑”生成赛道并在游戏计时赛里打开（标着[草稿]，只有你能看到）；“发布”上传到服务器，所有人都能在“单人游戏 → 地图工坊”里玩，多人竞速房（有道具箱时还有道具房）里也能选。\n") +
+      tr("【更多】导入/导出地图包（.kartmap）、另存为、检查；“高级模式”可以浏览整条官方赛道取任意物件，用手柄精确移动旋转缩放，调所有数值。"),
+      [[tr("知道了"), () => undefined]]);
   }
 }

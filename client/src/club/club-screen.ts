@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { p2, s2 } from "../generated/formats.js";
 import { U1, te } from "../generated/library.js";
 import { attribute, clone, fillRows, FONT, indexRows, mapTree, nodeName, nodesUnder, paintText, prepare,
@@ -34,18 +35,18 @@ export interface ClubScreenOptions {
 }
 
 const PAGES: Record<ClubPage, { folder: string; roots: string[]; label: string }> = {
-  main: { folder: "stage_/clubMain", roots: ["stage_/clubMain", "stage_/common"], label: "我的俱乐部" },
-  list: { folder: "stage_/clubList", roots: ["stage_/clubList", "stage_/common", "stage_/clubMain"], label: "俱乐部目录" },
+  main: { folder: "stage_/clubMain", roots: ["stage_/clubMain", "stage_/common"], label: tr("我的俱乐部") },
+  list: { folder: "stage_/clubList", roots: ["stage_/clubList", "stage_/common", "stage_/clubMain"], label: tr("俱乐部目录") },
   create: { folder: "stage_/clubCreate", roots: ["stage_/clubCreate", "stage_/common", "stage_/clubMain"],
-    label: "创建俱乐部" },
+    label: tr("创建俱乐部") },
   house: { folder: "stage_/clubHouse", roots: ["stage_/clubHouse", "stage_/common", "stage_/clubMain"],
-    label: "俱乐部基地" },
+    label: tr("俱乐部基地") },
 };
 const MEMBERS_PER_PAGE = 10;
 const APPLICANTS_PER_PAGE = 10;
 /** Menu tab captions (stage_club* string bags: myClub, clubList, clubHouse, createClub). */
-const TAB_CAPTIONS: Record<string, string> = { myClub: "我的俱乐部", clubList: "俱乐部目录", clubHouse: "俱乐部基地",
-  createClub: "创建俱乐部" };
+const TAB_CAPTIONS: Record<string, string> = { myClub: tr("我的俱乐部"), clubList: tr("俱乐部目录"), clubHouse: tr("俱乐部基地"),
+  createClub: tr("创建俱乐部") };
 /** The 周活跃度 gauge's full mark. */
 const WEEKLY_TARGET = 1000;
 
@@ -173,8 +174,8 @@ export class ClubScreen {
     this.message?.abort();
     const abort = new AbortController();
     this.message = abort;
-    return openMessengerMessage(this.options.library as never, this.options.root, "俱乐部", text,
-      confirm ? { yes: "确定", no: "取消" } : {}, abort.signal).catch(() => false);
+    return openMessengerMessage(this.options.library as never, this.options.root, tr("俱乐部"), text,
+      confirm ? { yes: tr("确定"), no: tr("取消") } : {}, abort.signal).catch(() => false);
   }
 
   /** Run a club request: busy guard, errors as release messages. */
@@ -255,7 +256,7 @@ export class ClubScreen {
   private tabState(node: Node, name: string): NodeState | undefined {
     const member = !!this.state?.club;
     switch (name) {
-      case "clubClose": return { label: "关闭", action: () => this.options.onClose() };
+      case "clubClose": return { label: tr("关闭"), action: () => this.options.onClose() };
       case "myClub": return this.tabLabel(node, name, this.page === "main", member && this.page !== "main"
         ? { action: () => void this.show("main") } : { disabled: !member });
       case "clubList": return this.tabLabel(node, name, this.page === "list", this.page !== "list"
@@ -293,11 +294,11 @@ export class ClubScreen {
   private async openCreate(): Promise<void> {
     const rules = this.rules;
     if (rules && this.options.level() < rules.createLevel) {
-      void this.notice("七彩色星星手套以上玩家|可创建俱乐部。");
+      void this.notice(tr("七彩色星星手套以上玩家|可创建俱乐部。"));
       return;
     }
     const applied = this.state?.me.applied;
-    if (applied && !await this.ask(`已申请加入[${applied.name}]俱乐部，|取消后要创建俱乐部吗？`)) return;
+    if (applied && !await this.ask(tr("已申请加入[{0}]俱乐部，|取消后要创建俱乐部吗？", { "0": applied.name }))) return;
     void this.show("create");
   }
 
@@ -331,13 +332,13 @@ export class ClubScreen {
         context.fillStyle = "rgba(20,30,50,.6)";
         context.fillRect(rect.x + rect.width * ratio, rect.y, rect.width * (1 - ratio), rect.height);
       } };
-      case "clubIntroStr": return paintText(club.intro || "点击[修改]按钮，|用文字来展示你的俱乐部吧。",
+      case "clubIntroStr": return paintText(club.intro || tr("点击[修改]按钮，|用文字来展示你的俱乐部吧。"),
         { size: 16, color: "rgb(42,55,80)" });
       case "editClubIntroBtn": return manage ? { action: () => void this.editIntro() } : { visible: false };
       case "clubIntroEdit": return { visible: false };
       case "autoJoinCont": return { visible: manage };
-      case "autoJoin": return { checked: club.autoJoin, label: "自动加入俱乐部", action: () => void this.toggleAutoJoin() };
-      case "recruitCrewLbl": return { visible: !manage, text: club.autoJoin ? "俱乐部会员招募中（自动加入）" : "俱乐部会员招募中" };
+      case "autoJoin": return { checked: club.autoJoin, label: tr("自动加入俱乐部"), action: () => void this.toggleAutoJoin() };
+      case "recruitCrewLbl": return { visible: !manage, text: club.autoJoin ? tr("俱乐部会员招募中（自动加入）") : tr("俱乐部会员招募中") };
       case "clubLeave": return me.grade !== GRADE_MASTER ? { visible: true, action: () => void this.leave() }
         : { visible: false };
       case "clubBreak": return me.grade === GRADE_MASTER && !club.breakAt ? { visible: true, action: () => void this.breakClub() }
@@ -346,19 +347,19 @@ export class ClubScreen {
         ? { visible: true, action: () => void this.cancelBreak() } : { visible: false };
       case "pauseClubBreakReserve": return { visible: !!club.breakAt };
       case "speedClubRaceScore":
-      case "itemClubRaceScore": return { text: "0场  0胜  0败" };
+      case "itemClubRaceScore": return { text: tr("0场  0胜  0败") };
       case "speedClubRaceRate":
-      case "itemClubRaceRate": return { text: "胜率  0%" };
+      case "itemClubRaceRate": return { text: tr("胜率  0%") };
       case "acceptJoin": return me.grade >= GRADE_MASTER && me.grade <= GRADE_FIRST
         ? { action: () => void this.openApplicants() } : { disabled: true };
       case "acceptJoinEnable": return { visible: me.grade <= GRADE_FIRST };
       case "acceptJoinDisable": return { visible: me.grade > GRADE_FIRST };
       case "page": return { text: String(this.memberPage + 1) };
       case "divPage": return { text: `/ ${pages}` };
-      case "prevPage": return this.memberPage > 0 ? { label: "上一页", action: () => { this.memberPage--; this.render(); } }
+      case "prevPage": return this.memberPage > 0 ? { label: tr("上一页"), action: () => { this.memberPage--; this.render(); } }
         : { disabled: true };
       case "nextPage": return this.memberPage + 1 < pages
-        ? { label: "下一页", action: () => { this.memberPage++; this.render(); } } : { disabled: true };
+        ? { label: tr("下一页"), action: () => { this.memberPage++; this.render(); } } : { disabled: true };
     }
     if (self && this.myInfoNodes.has(node)) return this.memberText(name, self) ?? {};
     return {};
@@ -387,7 +388,7 @@ export class ClubScreen {
     const canModify = me.grade === GRADE_MASTER ? member.grade !== GRADE_MASTER
       : me.grade === GRADE_MANAGER && member.grade > GRADE_MANAGER;
     if (name === "backPanel") return { visible: false };
-    if (name === "modify") return canModify ? { visible: true, label: `管理 ${member.nickname}`,
+    if (name === "modify") return canModify ? { visible: true, label: tr("管理 {0}", { "0": member.nickname }),
       action: () => void this.openCrewModify(member) } : { visible: false };
     if (name === "oid") return { visible: false };
     return this.memberText(name, member) ?? {};
@@ -396,29 +397,29 @@ export class ClubScreen {
   private async editIntro(): Promise<void> {
     const club = this.state?.club;
     if (!club) return;
-    const intro = await this.prompt("俱乐部简介", club.intro, this.rules?.introMax ?? 150);
+    const intro = await this.prompt(tr("俱乐部简介"), club.intro, this.rules?.introMax ?? 150);
     if (intro === undefined) return;
     const state = await this.run(() => this.options.api.update({ intro }));
     if (!state) return;
     this.apply(state);
     this.render();
-    void this.notice("俱乐部简介已变更。");
+    void this.notice(tr("俱乐部简介已变更。"));
   }
 
   private async toggleAutoJoin(): Promise<void> {
     const club = this.state?.club;
     if (!club) return;
-    if (!club.autoJoin && !await this.ask("开启自动加入俱乐部设置时，|所有车手都可自由加入俱乐部。|是否继续开启自动加入俱乐部设置？"))
+    if (!club.autoJoin && !await this.ask(tr("开启自动加入俱乐部设置时，|所有车手都可自由加入俱乐部。|是否继续开启自动加入俱乐部设置？")))
       return;
     const state = await this.run(() => this.options.api.update({ autoJoin: !club.autoJoin }));
     if (!state) return;
     this.apply(state);
     this.render();
-    void this.notice("自动加入状态已变更。");
+    void this.notice(tr("自动加入状态已变更。"));
   }
 
   private async leave(): Promise<void> {
-    if (!await this.ask("确认要退出俱乐部吗？|退出后24小时内无法加入俱乐部。")) return;
+    if (!await this.ask(tr("确认要退出俱乐部吗？|退出后24小时内无法加入俱乐部。"))) return;
     const state = await this.run(() => this.options.api.leave());
     if (!state) return;
     this.apply(state);
@@ -426,21 +427,21 @@ export class ClubScreen {
   }
 
   private async breakClub(): Promise<void> {
-    if (!await this.ask("确认要解散俱乐部吗？|单人俱乐部申请解散后会立即解散。|其他情况在7天后解散。")) return;
+    if (!await this.ask(tr("确认要解散俱乐部吗？|单人俱乐部申请解散后会立即解散。|其他情况在7天后解散。"))) return;
     const result = await this.run(() => this.options.api.breakClub());
     if (!result) return;
     this.apply(result.state);
     if (result.immediate) {
       await this.show("list");
-      void this.notice("俱乐部已解散。");
+      void this.notice(tr("俱乐部已解散。"));
     } else {
       this.render();
-      void this.notice("已提交俱乐部的解散申请。");
+      void this.notice(tr("已提交俱乐部的解散申请。"));
     }
   }
 
   private async cancelBreak(): Promise<void> {
-    if (!await this.ask("确认要取消解散俱乐部吗？")) return;
+    if (!await this.ask(tr("确认要取消解散俱乐部吗？"))) return;
     const state = await this.run(() => this.options.api.cancelBreak());
     if (!state) return;
     this.apply(state);
@@ -509,18 +510,18 @@ export class ClubScreen {
           node("Label", { name: "info", leftTopWH: "24 76 472 40", textRender: "bold14", textColor: "255 72 106 163" }),
           node("Window", { leftTopWH: "0 0 470 1", frame: "HSection", align: "hcenter;bottom", adjust: "0 63" }),
           node("TextButton", { name: "ok", leftTopWH: "0 0 132 40", align: "hcenter;bottom", adjust: "-72 12",
-            textRender: "bold16", text: "确定" }),
+            textRender: "bold16", text: tr("确定") }),
           node("TextButton", { name: "cancel", leftTopWH: "0 0 132 40", align: "hcenter;bottom", adjust: "72 12",
-            textRender: "bold16", text: "取消" }),
+            textRender: "bold16", text: tr("取消") }),
         ]),
       ]);
       void this.openDialog(definition, ["stage_/common"], title, entry => {
         switch (nodeName(entry)) {
           case "edit": return { input: { value: text, maxLength, change: (next: string) => { text = next; },
             submit: () => finish(text) }, label: title };
-          case "info": return paintText(info || `最多可输入${maxLength}字`, { size: 14, color: "rgb(72,106,163)" });
-          case "ok": return { label: "确定", action: () => finish(text) };
-          case "cancel": return { label: "取消", action: () => finish(undefined) };
+          case "info": return paintText(info || tr("最多可输入{0}字", { "0": maxLength }), { size: 14, color: "rgb(72,106,163)" });
+          case "ok": return { label: tr("确定"), action: () => finish(text) };
+          case "cancel": return { label: tr("取消"), action: () => finish(undefined) };
         }
         return {};
       }).then(() => this.dialog?.focus("edit")).catch(error => {
@@ -549,7 +550,7 @@ export class ClubScreen {
       page = Math.min(page, Math.max(0, Math.ceil(list.length / APPLICANTS_PER_PAGE) - 1));
       this.render();
     };
-    await this.openDialog(definition, ["dialog/clubWaitingCrew", "stage_/common"], "申请加入俱乐部", node => {
+    await this.openDialog(definition, ["dialog/clubWaitingCrew", "stage_/common"], tr("申请加入俱乐部"), node => {
       const name = nodeName(node);
       const row = rows.get(node);
       if (row !== undefined) {
@@ -559,20 +560,20 @@ export class ClubScreen {
           case "glove": return { visible: false };
           case "level": return { text: `Lv.${applicant.level}` };
           case "rid": return { text: applicant.nickname, size: undefined };
-          case "accept": return { label: `同意 ${applicant.nickname}`, action: () => void decide(applicant, true) };
-          case "rejection": return { label: `拒绝 ${applicant.nickname}`, action: () => void decide(applicant, false) };
+          case "accept": return { label: tr("同意 {0}", { "0": applicant.nickname }), action: () => void decide(applicant, true) };
+          case "rejection": return { label: tr("拒绝 {0}", { "0": applicant.nickname }), action: () => void decide(applicant, false) };
         }
         return {};
       }
       const pages = Math.max(1, Math.ceil(list.length / APPLICANTS_PER_PAGE));
       switch (name) {
-        case "waitingCrewLists": return list.length ? {} : { ...paintText("无申请加入人员。", { size: 16, align: "center",
+        case "waitingCrewLists": return list.length ? {} : { ...paintText(tr("无申请加入人员。"), { size: 16, align: "center",
           middle: true }) };
         case "page": return { text: `${page + 1} / ${pages}` };
-        case "prevPage": return page > 0 ? { label: "上一页", action: () => { page--; this.render(); } } : { disabled: true };
-        case "nextPage": return page + 1 < pages ? { label: "下一页", action: () => { page++; this.render(); } }
+        case "prevPage": return page > 0 ? { label: tr("上一页"), action: () => { page--; this.render(); } } : { disabled: true };
+        case "nextPage": return page + 1 < pages ? { label: tr("下一页"), action: () => { page++; this.render(); } }
           : { disabled: true };
-        case "ok": return { label: "确定", action: () => this.closeDialog() };
+        case "ok": return { label: tr("确定"), action: () => this.closeDialog() };
       }
       return {};
     }, prepared => indexRows(prepared, "waitingCrew_", rows));
@@ -603,22 +604,22 @@ export class ClubScreen {
         context.restore();
       },
     });
-    await this.openDialog(definition, ["dialog/clubCrewModify", "stage_/common"], "俱乐部会员等级变更", node => {
+    await this.openDialog(definition, ["dialog/clubCrewModify", "stage_/common"], tr("俱乐部会员等级变更"), node => {
       switch (nodeName(node)) {
         case "rid": return { text: member.nickname };
-        case "crewGrade": return { text: `现在是${gradeName(member.grade)}` };
+        case "crewGrade": return { text: tr("现在是{0}", { "0": gradeName(member.grade) }) };
         case "managerGradeBtn": return radio(GRADE_MANAGER);
         case "firstMemberGradeBtn": return radio(GRADE_FIRST);
         case "memberGradeBtn": return radio(GRADE_MEMBER);
-        case "kickOut": return { label: "踢除", action: () => void (async () => {
-          if (!await this.ask(`确认要踢除[${member.nickname}]会员吗？`)) return;
+        case "kickOut": return { label: tr("踢除"), action: () => void (async () => {
+          if (!await this.ask(tr("确认要踢除[{0}]会员吗？", { "0": member.nickname }))) return;
           const state = await this.run(() => this.options.api.member(member.accountId, { kick: true }));
           if (!state) return;
           this.apply(state);
           this.closeDialog();
           this.render();
         })() };
-        case "ok": return { label: "确定", action: () => void (async () => {
+        case "ok": return { label: tr("确定"), action: () => void (async () => {
           if (grade === member.grade) {
             this.closeDialog();
             return;
@@ -629,7 +630,7 @@ export class ClubScreen {
           this.closeDialog();
           this.render();
         })() };
-        case "cancel": return { label: "取消", action: () => this.closeDialog() };
+        case "cancel": return { label: tr("取消"), action: () => this.closeDialog() };
       }
       return {};
     });
@@ -673,28 +674,28 @@ export class ClubScreen {
         context.fillStyle = "rgba(20,30,50,.6)";
         context.fillRect(rect.x + rect.width * ratio, rect.y, rect.width * (1 - ratio), rect.height);
       } } : { visible: false };
-      case "clubIntroStr": return paintText(shown?.intro ?? "选择俱乐部后显示俱乐部简介。", { size: 16 });
-      case "clubJoinState": return { text: shown ? shown.breakAt ? "申请解散中" : shown.autoJoin
-        ? "俱乐部会员招募中（自动加入）" : "俱乐部会员招募中" : "" };
+      case "clubIntroStr": return paintText(shown?.intro ?? tr("选择俱乐部后显示俱乐部简介。"), { size: 16 });
+      case "clubJoinState": return { text: shown ? shown.breakAt ? tr("申请解散中") : shown.autoJoin
+        ? tr("俱乐部会员招募中（自动加入）") : tr("俱乐部会员招募中") : "" };
       case "clubJoin": {
         const can = !!shown && !mine && shown.id !== me?.applied?.id && !shown.breakAt;
         return can ? { action: () => void this.applyTo(shown!) } : { disabled: true };
       }
       case "clubNameEdit": return { input: { value: this.list.name, maxLength: 10,
         change: (value: string) => { this.list.name = value; }, submit: () => { this.list.page = 0; void this.search(); } },
-      label: "俱乐部名称" };
+      label: tr("俱乐部名称") };
       case "clubMasterEdit": return { input: { value: this.list.master, maxLength: 20,
         change: (value: string) => { this.list.master = value; }, submit: () => { this.list.page = 0; void this.search(); } },
-      label: "俱乐部会长名" };
-      case "clubSearch": return { label: "搜索", action: () => { this.list.page = 0; void this.search(); } };
+      label: tr("俱乐部会长名") };
+      case "clubSearch": return { label: tr("搜索"), action: () => { this.list.page = 0; void this.search(); } };
       case "storageGridSelector": return this.list.clubs.length ? {}
-        : paintText("无满足搜索条件的俱乐部，|请确认搜索条件。", { size: 16, align: "center", middle: true, color: "rgb(84,100,129)" });
+        : paintText(tr("无满足搜索条件的俱乐部，|请确认搜索条件。"), { size: 16, align: "center", middle: true, color: "rgb(84,100,129)" });
       case "page": return { text: String(this.list.page + 1) };
       case "divTotalPage": return { text: `/ ${pages}` };
       case "prevPage": return this.list.page > 0
-        ? { label: "上一页", action: () => { this.list.page--; void this.search(); } } : { disabled: true };
+        ? { label: tr("上一页"), action: () => { this.list.page--; void this.search(); } } : { disabled: true };
       case "nextPage": return this.list.page + 1 < pages
-        ? { label: "下一页", action: () => { this.list.page++; void this.search(); } } : { disabled: true };
+        ? { label: tr("下一页"), action: () => { this.list.page++; void this.search(); } } : { disabled: true };
       case "myClubInfo_empty": return { visible: !mine && !me?.applied };
       case "myClubInfo_wait": return { visible: !mine && !!me?.applied };
       case "myClubInfo_Joined": return { visible: !!mine };
@@ -707,7 +708,7 @@ export class ClubScreen {
       case "myClub_RealCrewCount": return { text: mine ? String(mine.members) : "" };
       case "myClub_MaxCrewCount": return { text: mine ? String(mine.maxMembers) : "" };
       case "myClub_CreateDate": return { text: mine ? formatClubDate(mine.createdAt) : "" };
-      case "clubJoinCancel": return { label: "取消加入", action: () => void this.cancelApplication() };
+      case "clubJoinCancel": return { label: tr("取消加入"), action: () => void this.cancelApplication() };
     }
     return {};
   }
@@ -736,21 +737,21 @@ export class ClubScreen {
   private async applyTo(info: ClubInfo): Promise<void> {
     const applied = this.state?.me.applied;
     if (applied && applied.id !== info.id &&
-        !await this.ask(`已申请加入[${applied.name}]俱乐部，|取消后要重新申请加入吗？`)) return;
+        !await this.ask(tr("已申请加入[{0}]俱乐部，|取消后要重新申请加入吗？", { "0": applied.name }))) return;
     const result = await this.run(() => this.options.api.apply(info.id));
     if (!result) return;
     this.apply(result.state);
     if (result.joined) {
       await this.show("main");
-      void this.notice(`恭喜您，成功加入[${info.name}]俱乐部。`);
+      void this.notice(tr("恭喜您，成功加入[{0}]俱乐部。", { "0": info.name }));
     } else {
       this.render();
-      void this.notice("申请加入俱乐部成功。|请耐心等待批准。");
+      void this.notice(tr("申请加入俱乐部成功。|请耐心等待批准。"));
     }
   }
 
   private async cancelApplication(): Promise<void> {
-    if (!await this.ask("确认要取消申请吗？")) return;
+    if (!await this.ask(tr("确认要取消申请吗？"))) return;
     const state = await this.run(() => this.options.api.cancelApplication());
     if (!state) return;
     this.apply(state);
@@ -769,7 +770,7 @@ export class ClubScreen {
       const mark = basic[Number(slot[1])];
       if (!mark) return { visible: false };
       const selected = this.create.mark === mark.id;
-      return { label: `俱乐部徽章 ${mark.id}`, action: () => { this.create.mark = mark.id; this.render(); },
+      return { label: tr("俱乐部徽章 {0}", { "0": mark.id }), action: () => { this.create.mark = mark.id; this.render(); },
         paint: (context: CanvasRenderingContext2D, rect: Rect) => {
           context.save();
           context.fillStyle = selected ? "rgba(36,129,255,.25)" : "rgba(255,255,255,.08)";
@@ -788,19 +789,19 @@ export class ClubScreen {
     switch (name) {
       case "clubFrameSlotList": return { visible: false };
       case "selectedClubMark": return { ...this.paintMark(this.create.mark, this.create.frame),
-        label: "切换标志框", action: () => {
+        label: tr("切换标志框"), action: () => {
           const index = frames.findIndex(frame => frame.id === this.create.frame);
           this.create.frame = frames[(index + 1) % Math.max(1, frames.length)]?.id ?? 0;
           this.render();
         } };
       case "selectedClubFrame": return { visible: false };
       case "clubNameEdit": return { input: { value: this.create.name, maxLength: this.rules?.nameMax ?? 10,
-        change: (value: string) => { this.create.name = value; this.render(); } }, label: "俱乐部名称" };
+        change: (value: string) => { this.create.name = value; this.render(); } }, label: tr("俱乐部名称") };
       case "clubNameGuide": return { visible: !this.create.name };
       case "clubInfoEdit": return { input: { value: this.create.intro, maxLength: this.rules?.introMax ?? 150,
-        change: (value: string) => { this.create.intro = value; this.render(); } }, label: "俱乐部简介" };
+        change: (value: string) => { this.create.intro = value; this.render(); } }, label: tr("俱乐部简介") };
       case "clubInfoGuide": return { visible: !this.create.intro };
-      case "createClubBtn": return { label: "创建俱乐部", action: () => void this.submitCreate() };
+      case "createClubBtn": return { label: tr("创建俱乐部"), action: () => void this.submitCreate() };
     }
     return {};
   }
@@ -808,14 +809,14 @@ export class ClubScreen {
   private async submitCreate(): Promise<void> {
     const rules = this.rules;
     if (!this.create.name.trim()) {
-      void this.notice("需要输入俱乐部名称才能进行创建。");
+      void this.notice(tr("需要输入俱乐部名称才能进行创建。"));
       return;
     }
     if (!this.create.intro.trim()) {
-      void this.notice("需要输入俱乐部简介才能进行创建。");
+      void this.notice(tr("需要输入俱乐部简介才能进行创建。"));
       return;
     }
-    if (!await this.ask(`创建俱乐部需要${(rules?.createLucci ?? 100_000).toLocaleString("en-US")}金币。|确认要创建[${this.create.name.trim()}]俱乐部吗？`))
+    if (!await this.ask(tr("创建俱乐部需要{0}金币。|确认要创建[{1}]俱乐部吗？", { "0": (rules?.createLucci ?? 100_000).toLocaleString("en-US"), "1": this.create.name.trim() })))
       return;
     const state = await this.run(() => this.options.api.create({ name: this.create.name, intro: this.create.intro,
       mark: this.create.mark, frame: this.create.frame }));
@@ -824,7 +825,7 @@ export class ClubScreen {
     this.create = { name: "", intro: "", mark: 0, frame: 0 };
     // Notices go over the new page, so it opens first.
     await this.show("main");
-    void this.notice("俱乐部创建成功！");
+    void this.notice(tr("俱乐部创建成功！"));
   }
 
   // ----- 俱乐部基地
@@ -856,10 +857,10 @@ export class ClubScreen {
       case "facility1":
       case "facility2":
       case "facility3": return { visible: name === `facility${facility}` };
-      case "btn_clubHQ": return { label: "俱乐部总部", action: () => this.selectFacility(0) };
-      case "btn_racingCenter": return { label: "赛事中心", action: () => this.selectFacility(1) };
-      case "btn_riderCenter": return { label: "车手中心", action: () => this.selectFacility(2) };
-      case "btn_clubBank": return { label: "俱乐部银行", action: () => this.selectFacility(3) };
+      case "btn_clubHQ": return { label: tr("俱乐部总部"), action: () => this.selectFacility(0) };
+      case "btn_racingCenter": return { label: tr("赛事中心"), action: () => this.selectFacility(1) };
+      case "btn_riderCenter": return { label: tr("车手中心"), action: () => this.selectFacility(2) };
+      case "btn_clubBank": return { label: tr("俱乐部银行"), action: () => this.selectFacility(3) };
       case "toolTip": return { visible: true };
       case "toolTip_lv": return { text: "" };
       case "clubLv": return { text: `Lv.${club.level}` };
@@ -876,20 +877,20 @@ export class ClubScreen {
       case "clubCrew": return { text: upgrade && facility === 0 ? `${club.members} / ${upgrade.members}` : "-" };
       case "upgrade": {
         const allowed = manage && !!upgrade && (facility === 0 || next <= club.level);
-        return allowed ? { label: "升级", action: () => void this.upgrade() } : { disabled: true };
+        return allowed ? { label: tr("升级"), action: () => void this.upgrade() } : { disabled: true };
       }
-      case "clubInfoChangeTitle": return { text: "俱乐部信息变更" };
+      case "clubInfoChangeTitle": return { text: tr("俱乐部信息变更") };
       case "changeClubName": return manage ? { action: () => void this.rename() } : { disabled: true };
       case "changeClubMark": return manage ? { action: () => void this.changeMark() } : { disabled: true };
-      case "facilityName": return { text: ["俱乐部总部", "赛事中心", "车手中心", "俱乐部银行"][facility]! +
+      case "facilityName": return { text: [tr("俱乐部总部"), tr("赛事中心"), tr("车手中心"), tr("俱乐部银行")][facility]! +
         `  Lv.${club.facilities[facility]}` };
-      case "facilityInfo": return { text: ["管理俱乐部名称，等级，徽章设施", "管理俱乐部福利道具的设施", "管理俱乐部会员的设施",
-        "管理俱乐部预算的设施"][facility] };
-      case "facilityUse": return { text: facility % 2 === 0 ? "俱乐部管理层以上职位可使用。" : "俱乐部会员以上职位可使用。" };
+      case "facilityInfo": return { text: [tr("管理俱乐部名称，等级，徽章设施"), tr("管理俱乐部福利道具的设施"), tr("管理俱乐部会员的设施"),
+        tr("管理俱乐部预算的设施")][facility] };
+      case "facilityUse": return { text: facility % 2 === 0 ? tr("俱乐部管理层以上职位可使用。") : tr("俱乐部会员以上职位可使用。") };
       case "facilityImg": return { visible: false };
       case "supportRankRid": return { text: house.topDonor || "-" };
       case "totalSupportLucci": return { text: house.myDonations.toLocaleString("en-US") };
-      case "support": return house.donatedToday ? { disabled: true } : { label: "进行捐助", action: () => void this.donate() };
+      case "support": return house.donatedToday ? { disabled: true } : { label: tr("进行捐助"), action: () => void this.donate() };
     }
     const check = /^checkBtn(\d)$/.exec(name);
     if (check) {
@@ -938,7 +939,7 @@ export class ClubScreen {
     const welfare = rules.welfares.find(entry => entry.slot === slot);
     const open = !!welfare && house.club.facilities[1]! >= welfare.level;
     switch (name) {
-      case "stockName": return { text: welfare?.name ?? "活动道具（暂无）" };
+      case "stockName": return { text: welfare?.name ?? tr("活动道具（暂无）") };
       case "item": return { visible: false };
       case "received": return { visible: open && house.welfareToday.includes(slot) };
       case "closed": return { visible: !open };
@@ -958,34 +959,34 @@ export class ClubScreen {
     const rules = this.rules;
     if (!house || !rules) return;
     const facility = this.facility;
-    const names = ["俱乐部总部", "赛事中心", "车手中心", "俱乐部银行"];
+    const names = [tr("俱乐部总部"), tr("赛事中心"), tr("车手中心"), tr("俱乐部银行")];
     const next = house.club.facilities[facility]! + 1;
     const cost = rules.upgrades.find(entry => entry.level === next);
     if (!cost) return;
-    const effect = facility === 0 ? `可以使用Lv${next}俱乐部徽章。`
-      : facility === 1 ? `Lv${next} 赛事中心将会添加福利道具。`
-        : facility === 2 ? `会员人数上限增加到${rules.memberCaps[next - 1]}人。`
-          : `俱乐部预算上限增加到${formatLucci(rules.budgetCaps[next - 1] ?? 0)}金币。`;
-    if (!await this.ask(`${names[facility]} 升级|LV${next} 升级费用：活跃度 ${cost.cs}，预算 ${formatLucci(cost.lucci)}金币|* ${effect}|确认要进行升级吗？`))
+    const effect = facility === 0 ? tr("可以使用Lv{0}俱乐部徽章。", { "0": next })
+      : facility === 1 ? tr("Lv{0} 赛事中心将会添加福利道具。", { "0": next })
+        : facility === 2 ? tr("会员人数上限增加到{0}人。", { "0": rules.memberCaps[next - 1] ?? 0 })
+          : tr("俱乐部预算上限增加到{0}金币。", { "0": formatLucci(rules.budgetCaps[next - 1] ?? 0) });
+    if (!await this.ask(tr("{0} 升级|LV{1} 升级费用：活跃度 {2}，预算 {3}金币|* {4}|确认要进行升级吗？", { "0": names[facility] ?? "", "1": next, "2": cost.cs, "3": formatLucci(cost.lucci), "4": effect })))
       return;
     const updated = await this.run(() => this.options.api.upgrade(facility));
     if (!updated) return;
     this.house = updated;
     this.render();
-    void this.notice(`升级至LV ${next} ${names[facility]}！`);
+    void this.notice(tr("升级至LV {0} {1}！", { "0": next, "1": names[facility] ?? "" }));
   }
 
   private async rename(): Promise<void> {
     const house = this.house;
     if (!house || !this.rules) return;
-    const name = await this.prompt("俱乐部名称变更", house.club.name, this.rules.nameMax,
-      `变更时消耗俱乐部预算 ${formatLucci(this.rules.nameChangeLucci)}金币。最少2字，最多10字。`);
+    const name = await this.prompt(tr("俱乐部名称变更"), house.club.name, this.rules.nameMax,
+      tr("变更时消耗俱乐部预算 {0}金币。最少2字，最多10字。", { "0": formatLucci(this.rules.nameChangeLucci) }));
     if (name === undefined) return;
     const updated = await this.run(() => this.options.api.rename(name));
     if (!updated) return;
     this.house = updated;
     this.render();
-    void this.notice("俱乐部名称已变更。");
+    void this.notice(tr("俱乐部名称已变更。"));
   }
 
   private async changeMark(): Promise<void> {
@@ -1002,24 +1003,24 @@ export class ClubScreen {
     const definition: Node = { name: "Panel", attributes: [{ name: "windowRect", value: "fullscreen" },
       { name: "color", value: "200 0 0 0" }, { name: "alphaBlend", value: "true" }], children: [{
       name: "CaptionWindow", attributes: [{ name: "leftTopWH", value: "0 0 900 640" }, { name: "frame", value: "CaptionDialog" },
-        { name: "align", value: "center" }, { name: "caption", value: "俱乐部徽章变更" }, { name: "setCloseButton", value: "cancel" }],
+        { name: "align", value: "center" }, { name: "caption", value: tr("俱乐部徽章变更") }, { name: "setCloseButton", value: "cancel" }],
       children: [
         { name: "Window", attributes: [{ name: "name", value: "markGrid" }, { name: "leftTopWH", value: "20 20 600 500" }], children: [] },
         { name: "Window", attributes: [{ name: "name", value: "preview" }, { name: "leftTopWH", value: "660 40 200 200" }], children: [] },
         { name: "TextButton", attributes: [{ name: "name", value: "frameNext" }, { name: "leftTopWH", value: "690 260 140 40" },
-          { name: "text", value: "切换标志框" }, { name: "textRender", value: "bold16" }], children: [] },
+          { name: "text", value: tr("切换标志框") }, { name: "textRender", value: "bold16" }], children: [] },
         { name: "Label", attributes: [{ name: "name", value: "info" }, { name: "leftTopWH", value: "640 320 240 120" }], children: [] },
         { name: "TextButton", attributes: [{ name: "name", value: "prevPage" }, { name: "leftTopWH", value: "20 530 140 36" },
-          { name: "text", value: "上一页" }, { name: "textRender", value: "bold16" }], children: [] },
+          { name: "text", value: tr("上一页") }, { name: "textRender", value: "bold16" }], children: [] },
         { name: "Label", attributes: [{ name: "name", value: "page" }, { name: "leftTopWH", value: "240 530 140 36" },
           { name: "textAlign", value: "center" }, { name: "textRender", value: "bold16" },
           { name: "textColor", value: "255 42 55 80" }], children: [] },
         { name: "TextButton", attributes: [{ name: "name", value: "nextPage" }, { name: "leftTopWH", value: "480 530 140 36" },
-          { name: "text", value: "下一页" }, { name: "textRender", value: "bold16" }], children: [] },
+          { name: "text", value: tr("下一页") }, { name: "textRender", value: "bold16" }], children: [] },
         { name: "TextButton", attributes: [{ name: "name", value: "ok" }, { name: "leftTopWH", value: "640 560 110 40" },
-          { name: "text", value: "变更" }, { name: "textRender", value: "bold16" }], children: [] },
+          { name: "text", value: tr("变更") }, { name: "textRender", value: "bold16" }], children: [] },
         { name: "TextButton", attributes: [{ name: "name", value: "cancel" }, { name: "leftTopWH", value: "760 560 110 40" },
-          { name: "text", value: "取消" }, { name: "textRender", value: "bold16" }], children: [] },
+          { name: "text", value: tr("取消") }, { name: "textRender", value: "bold16" }], children: [] },
       ],
     }] };
     const grid = definition.children[0]!.children[0]!;
@@ -1030,13 +1031,13 @@ export class ClubScreen {
         { name: "leftTopWH", value: `${x} ${y} 96 120` }], children: [] });
     }
     const pages = Math.max(1, Math.ceil(marks.length / perPage));
-    await this.openDialog(definition, ["stage_/common", "stage_/clubHouse"], "俱乐部徽章变更", node => {
+    await this.openDialog(definition, ["stage_/common", "stage_/clubHouse"], tr("俱乐部徽章变更"), node => {
       const name = nodeName(node);
       const slot = /^markSlot_(\d+)$/.exec(name);
       if (slot) {
         const entry = marks[page * perPage + Number(slot[1])];
         if (!entry) return { visible: false };
-        return { label: `徽章 ${entry.id}`, action: () => { mark = entry.id; this.render(); },
+        return { label: tr("徽章 {0}", { "0": entry.id }), action: () => { mark = entry.id; this.render(); },
           paint: (context: CanvasRenderingContext2D, rect: Rect) => {
             context.save();
             context.fillStyle = mark === entry.id ? "rgba(36,129,255,.25)" : "rgba(42,55,80,.08)";
@@ -1049,25 +1050,25 @@ export class ClubScreen {
       }
       switch (name) {
         case "preview": return this.paintMark(mark, frame);
-        case "frameNext": return { label: "切换标志框", action: () => {
+        case "frameNext": return { label: tr("切换标志框"), action: () => {
           const index = frames.findIndex(entry => entry.id === frame);
           frame = frames[(index + 1) % Math.max(1, frames.length)]?.id ?? frame;
           this.render();
         } };
-        case "info": return paintText(`变更时消耗俱乐部预算 ${formatLucci(rules.markChangeLucci)}金币。|当前预算 ${formatLucci(house.club.budget)}金币。`,
+        case "info": return paintText(tr("变更时消耗俱乐部预算 {0}金币。|当前预算 {1}金币。", { "0": formatLucci(rules.markChangeLucci), "1": formatLucci(house.club.budget) }),
           { size: 14 });
         case "page": return { text: `${page + 1} / ${pages}` };
         case "prevPage": return page > 0 ? { action: () => { page--; this.render(); } } : { disabled: true };
         case "nextPage": return page + 1 < pages ? { action: () => { page++; this.render(); } } : { disabled: true };
-        case "ok": return { label: "变更", action: () => void (async () => {
+        case "ok": return { label: tr("变更"), action: () => void (async () => {
           const updated = await this.run(() => this.options.api.changeMark(mark, frame));
           if (!updated) return;
           this.house = updated;
           this.closeDialog();
           this.render();
-          void this.notice("俱乐部徽章已变更。");
+          void this.notice(tr("俱乐部徽章已变更。"));
         })() };
-        case "cancel": return { label: "取消", action: () => this.closeDialog() };
+        case "cancel": return { label: tr("取消"), action: () => this.closeDialog() };
       }
       return {};
     });
@@ -1076,12 +1077,12 @@ export class ClubScreen {
   private async donate(): Promise<void> {
     const amount = this.rules?.donations[this.donation];
     if (!amount) return;
-    if (!await this.ask(`确认要向俱乐部捐助${formatLucci(amount)}金币吗？`)) return;
+    if (!await this.ask(tr("确认要向俱乐部捐助{0}金币吗？", { "0": formatLucci(amount) }))) return;
     const updated = await this.run(() => this.options.api.donate(amount));
     if (!updated) return;
     this.house = updated;
     this.render();
-    void this.notice(`已向俱乐部捐助${formatLucci(amount)}金币。`);
+    void this.notice(tr("已向俱乐部捐助{0}金币。", { "0": formatLucci(amount) }));
   }
 
   private async claimWelfare(slot: number): Promise<void> {
@@ -1089,7 +1090,7 @@ export class ClubScreen {
     if (!result) return;
     this.house = result.house;
     this.render();
-    void this.notice(`已获得[${result.welfare.name}]。`);
+    void this.notice(tr("已获得[{0}]。", { "0": result.welfare.name }));
   }
 
 }

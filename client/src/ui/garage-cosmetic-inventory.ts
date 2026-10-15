@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageInventoryCosmetic {
   id: string | number;
   family: string;
@@ -72,7 +73,7 @@ export function updateGarageCoatingInventory(
     (host.selected.engineGrade !== 8 && host.selected.engineGrade !== 9);
   const equipped = dependencies.currentConfiguration(host.configuration,
     host.selected.itemId, host.serial()).cosmetics?.coating;
-  host.status.textContent = "点击预览；确认装备后立即应用。取消预览恢复当前装备。";
+  host.status.textContent = tr("点击预览；确认装备后立即应用。取消预览恢复当前装备。");
   for (const coating of host.assets.coatings.filter(choice => choice.family === family)) {
     const card = document.createElement("div");
     card.className = "garage-part-card garage-cosmetic-card";
@@ -82,12 +83,12 @@ export function updateGarageCoatingInventory(
     const preview = host.button("", () => {
       host.coatingPreview = coating;
       host.cancelPreview.hidden = false;
-      host.status.textContent = `试穿：${coating.title}。可拖动车辆或开启变形预览，不会写入装备。`;
+      host.status.textContent = tr("试穿：{0}。可拖动车辆或开启变形预览，不会写入装备。", { "0": coating.title });
     });
     preview.className = "garage-part-preview";
-    preview.setAttribute("aria-label", `试穿 ${coating.title}`);
+    preview.setAttribute("aria-label", tr("试穿 {0}", { "0": coating.title }));
     preview.disabled = locked || host.cosmeticBusy || !!coating.unavailableReason;
-    preview.title = locked ? "车型禁止安装车膜" : (coating.unavailableReason ?? coating.title);
+    preview.title = locked ? tr("车型禁止安装车膜") : (coating.unavailableReason ?? coating.title);
     const label = document.createElement("span");
     label.className = "garage-cosmetic-name";
     label.textContent = coating.title;
@@ -96,11 +97,11 @@ export function updateGarageCoatingInventory(
     if (icon) preview.append(icon);
     card.append(preview);
     if (dependencies.canEquip(locked, !!coating.unavailableReason)) {
-      const equip = host.button(equipped === coating.id ? "已装备" : "装备",
+      const equip = host.button(equipped === coating.id ? tr("已装备") : tr("装备"),
         () => host.requestCoating(coating));
       equip.className = "garage-equip-label";
       host.skin(equip, "garage_btn_equip_");
-      equip.setAttribute("aria-label", `装备 ${coating.title}`);
+      equip.setAttribute("aria-label", tr("装备 {0}", { "0": coating.title }));
       equip.disabled = equipped === coating.id || host.cosmeticBusy;
       card.append(equip);
     }
@@ -136,11 +137,11 @@ export function updateGarageCosmeticInventory(
           previous.family !== choice.family)) host.panels?.setTransformPreview?.(false);
       host.cosmeticPreview = choice;
       host.cancelPreview.hidden = false;
-      host.status.textContent = `预览：${choice.title}，尚未装备。`;
+      host.status.textContent = tr("预览：{0}，尚未装备。", { "0": choice.title });
       host.startTransformPreview();
     });
     preview.className = "garage-part-preview";
-    preview.setAttribute("aria-label", `预览 ${choice.title}`);
+    preview.setAttribute("aria-label", tr("预览 {0}", { "0": choice.title }));
     preview.title = choice.title;
     const label = document.createElement("span");
     label.className = "garage-cosmetic-name";
@@ -151,7 +152,7 @@ export function updateGarageCosmeticInventory(
     else {
       const hint = document.createElement("span");
       hint.className = "garage-cosmetic-preview-hint";
-      hint.textContent = "点击预览";
+      hint.textContent = tr("点击预览");
       preview.append(hint);
       if (choice.previewModel) host.addModelTarget(preview, { path: choice.previewModel },
         "garage-inventory-icon garage-booster-effect-model",
@@ -162,10 +163,10 @@ export function updateGarageCosmeticInventory(
     card.append(preview);
     if (dependencies.canEquip(locked)) {
       const equippedHere = equipped === choice.id;
-      const equip = host.button(equippedHere ? "已装备" : "装备",
+      const equip = host.button(equippedHere ? tr("已装备") : tr("装备"),
         () => host.requestCosmetic(choice));
       equip.className = "garage-equip-label";
-      equip.setAttribute("aria-label", `${equippedHere ? "已装备" : "装备"} ${choice.title}`);
+      equip.setAttribute("aria-label", `${equippedHere ? tr("已装备") : tr("装备")} ${choice.title}`);
       host.skin(equip, "garage_btn_equip_");
       equip.disabled = equippedHere || host.cosmeticBusy;
       card.append(equip);
@@ -178,9 +179,9 @@ export function updateGarageCosmeticInventory(
 export function syncGarageCosmeticPreviewActions(host: GarageCosmeticInventoryHost): void {
   const active = host.transformPreviewSessionActive();
   host.controls?.querySelectorAll("[data-cosmetic-preview='true']").forEach(button => {
-    const label = active ? "取消" : "预览";
+    const label = active ? tr("取消") : tr("预览");
     if (button.textContent !== label) button.textContent = label;
     button.setAttribute("aria-pressed", String(active));
-    button.setAttribute("aria-label", active ? "取消预览" : "预览车灯");
+    button.setAttribute("aria-label", active ? tr("取消预览") : tr("预览车灯"));
   });
 }

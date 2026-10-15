@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { isItemChannel } from "../multiplayer/lobby-item-mode";
 import type { LobbyRoomSummary } from "./lobby-list-draw";
 import {
@@ -43,7 +44,7 @@ export function activateLobbyListEntry(
     if (!tab) return;
     if (!lobbyTabAvailable(tab, host.options.version)) {
       host.options.onUnavailable?.(tab.title, tab.unavailable ??
-        `${tab.title}需要 P3553 资源版本。`);
+        tr("{0}需要 P3553 资源版本。", { "0": tab.title }));
       return;
     }
     if (tab.id === state.tab) return;

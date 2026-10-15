@@ -55,3 +55,22 @@ test("XML bags fall back to Chinese and download labels follow the language", ()
     assert.equal(formatDownloadTitle("asset.rho"), `${prefix}asset.rho`);
   });
 });
+
+test("native us values and empty resource rows use the selected language", () => {
+  const bag = node("StringBag", {}, [
+    node("k", { n: "native" }, [node("m", { c: "cn", v: "设置" }),
+      node("m", { c: "us", v: "Native settings" }), node("m", { c: "kr", v: "설정" })]),
+    node("k", { n: "empty" }, [node("m", { c: "cn", v: "设置" }),
+      node("m", { c: "us", v: " " }), node("m", { c: "kr", v: "" })]),
+  ]);
+  withSavedLocale("en", () => {
+    assert.equal(resourceLocale(), "us");
+    assert.equal(readMainMenuStrings(bag).get("native"), "Native settings");
+    assert.equal(readMainMenuStrings(bag).get("empty"), "Settings");
+    assert.equal(tr("兑换成功！获得 {0}", { "0": "中文玩家的道具" }), "Redeemed! Received 中文玩家的道具");
+  });
+  withSavedLocale("ko", () => {
+    assert.equal(resourceLocale(), "kr");
+    assert.equal(readMainMenuStrings(bag).get("empty"), "설정");
+  });
+});

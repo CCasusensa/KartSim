@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * What the 驾照考试 pages show, from the data service's table and standing
  * (the same rules server-go/internal/data/store/license.go enforces): a
@@ -20,17 +21,17 @@ export interface LicenseStepView {
 }
 
 export function licenseName(level: number): string {
-  return LICENSE_NAMES[level - 1] ?? "";
+  return tr(LICENSE_NAMES[level - 1] ?? "");
 }
 
 /** Why a license page cannot be played yet; undefined when it can. */
 export function licenseLock(state: LicenseState, level: number): string | undefined {
   if (level === PRO_LEVEL) {
-    if (state.baseLevel < PRO_LEVEL - 1) return "获得L1驾照后才能挑战PRO驾照。";
+    if (state.baseLevel < PRO_LEVEL - 1) return tr("获得L1驾照后才能挑战PRO驾照。");
     return undefined;
   }
-  if (level > state.baseLevel + 1) return `请先获得${licenseName(level - 1)}驾照。`;
-  if (level > state.tryLevel) return `等级达到${TRY_GLOVES[level] ?? "更高等级"}后才能挑战${licenseName(level)}驾照。`;
+  if (level > state.baseLevel + 1) return tr("请先获得{license}驾照。", { license: licenseName(level - 1) });
+  if (level > state.tryLevel) return tr("等级达到{glove}后才能挑战{license}驾照。", { glove: tr(TRY_GLOVES[level] ?? "更高等级"), license: licenseName(level) });
   return undefined;
 }
 
@@ -112,5 +113,5 @@ const CHANNEL_LICENSE: Record<string, number> = { speedIndiInfinit: 2, speedTeam
 /** The advice shown entering a channel below its license, if any. */
 export function channelLicenseWarning(channel: string | undefined, license: number): string | undefined {
   const wanted = channel ? CHANNEL_LICENSE[channel] : undefined;
-  return wanted && license < wanted ? `建议${licenseName(wanted)}驾照以上玩家进入该频道。` : undefined;
+  return wanted && license < wanted ? tr("建议{license}驾照以上玩家进入该频道。", { license: licenseName(wanted) }) : undefined;
 }

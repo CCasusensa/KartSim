@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { ensureFeatureResources } from "../ui/resource-panel";
 import type { FavoriteItem, LocalProfile } from "../ui/local-profile";
 import type { MyRoomAdminKart } from "../ui/my-room-admin";
@@ -270,7 +271,7 @@ async function equipFromHouseGarage(controller: ReadyHouseController,
         controller.activeTimeAttackReady) await openReadyHouse(controller);
   } catch (error) {
     tellPlayer(controller.host.hud,
-      `装备道具失败：${error instanceof Error ? error.message : String(error)}`);
+      tr("装备道具失败：{0}", { "0": error instanceof Error ? error.message : String(error) }));
   }
 }
 
@@ -304,9 +305,9 @@ function roomKart(item: FavoriteItem, catalog: ItemInventoryCatalog) {
 
 export function localRiderName(): string {
   try {
-    return loadLocalRiderNickname(() => localStorage) || "车手";
+    return loadLocalRiderNickname(() => localStorage) || tr("车手");
   } catch {
-    return "车手";
+    return tr("车手");
   }
 }
 
@@ -320,7 +321,7 @@ function houseMusic(controller: ReadyHouseController, library: ReadyHouseLibrary
     owner: () => host.getBgm() as unknown as MyRoomBgmOwner | undefined,
     mainMenuPath: () => host.getGameOptions?.().mainMenuBgmPath ?? "",
     onError: error => host.hud.showDebugText(
-      `小屋音乐：${error instanceof Error ? error.message : String(error)}`, "error"),
+      tr("小屋音乐：{0}", { "0": error instanceof Error ? error.message : String(error) }), "error"),
   });
 }
 
@@ -399,7 +400,7 @@ export async function openReadyHouse(controller: ReadyHouseController, visit?: s
     }
   } catch (error) {
     tellPlayer(controller.host.hud,
-      `我的小屋：${error instanceof Error ? error.message : String(error)}`);
+      tr("我的小屋：{0}", { "0": error instanceof Error ? error.message : String(error) }));
   } finally {
     if (!controller.activeHouse && controller.host.shell.modal === "house")
       closeReadyHouse(controller);

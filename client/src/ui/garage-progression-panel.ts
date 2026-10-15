@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageProgressionRect {
   x: number;
   y: number;
@@ -117,11 +118,11 @@ function renderClassicProgression(
   dependencies: GarageProgressionPanelDependencies,
 ): void {
   const select = document.createElement("select");
-  select.setAttribute("aria-label", host.assets.strings.get("specialSlotSelect") ?? "特殊属性");
+  select.setAttribute("aria-label", host.assets.strings.get("specialSlotSelect") ?? tr("特殊属性"));
   select.className = "garage-native-combo";
   const empty = document.createElement("option");
   empty.textContent = host.assets.strings.get("specialSlotSelect") ??
-    host.assets.strings.get("emptySlot") ?? "属性为空";
+    host.assets.strings.get("emptySlot") ?? tr("属性为空");
   empty.value = "";
   select.append(empty);
   const available = factory?.active
@@ -154,25 +155,25 @@ function renderClassicProgression(
   select.onchange = refreshDescription;
   refreshDescription();
 
-  host.nativeLabel("/backGround/back_img/@text:#sb(pointLeft)", "可使用强化点");
+  host.nativeLabel("/backGround/back_img/@text:#sb(pointLeft)", tr("可使用强化点"));
   host.label(String(dependencies.remainingPoints(progression)), host.rect("pointLeft"), "pointLeft");
   const attributes = [
-    ["Speed", "速度"], ["Cornering", "弯道"], ["Drift", "漂移"], ["Booster", "加速器"],
+    ["Speed", tr("速度")], ["Cornering", tr("弯道")], ["Drift", tr("漂移")], ["Booster", tr("加速器")],
   ] as const;
   attributes.forEach(([node, label], index) => {
     host.label(label, host.rect(`point${node}Cat`), `point${node}Cat`);
     host.label(String(progression.points[index]), host.rect(`point${node}`), `point${node}`);
-    host.button(`point${node}Plus`, `增加${label}强化点`,
+    host.button(`point${node}Plus`, tr("增加{0}强化点", { "0": label }),
       () => host.onChange(dependencies.changePoint(progression, index, 1)),
       progression.points[index] === 10 || dependencies.remainingPoints(progression) === 0);
-    host.button(`point${node}Minus`, `减少${label}强化点`,
+    host.button(`point${node}Minus`, tr("减少{0}强化点", { "0": label }),
       () => host.onChange(dependencies.changePoint(progression, index, -1)),
       progression.points[index] === 0);
   });
-  host.button("pointClear", "重置强化点",
+  host.button("pointClear", tr("重置强化点"),
     () => host.onChange({ ...dependencies.initialProgression(false), level: progression.level }),
     progression.points.every(point => point === 0));
-  host.button("pointApply", host.assets.strings.get("apply") ?? "适用", () => {}, true);
+  host.button("pointApply", host.assets.strings.get("apply") ?? tr("适用"), () => {}, true);
 }
 
 function renderXunSkills(
@@ -180,16 +181,16 @@ function renderXunSkills(
   progression: XunGarageProgression,
   dependencies: GarageProgressionPanelDependencies,
 ): void {
-  host.nativeLabel(`${skillPanelPath}/@text:#sb(tuningSkill)`, "性能强化");
+  host.nativeLabel(`${skillPanelPath}/@text:#sb(tuningSkill)`, tr("性能强化"));
   host.nativeLabel(`${skillPanelPath}/@text:#sb(helpTuningSkillStr)`, "");
   const remaining = dependencies.remainingPoints(progression);
-  host.nativeLabel(`${skillPanelPath}/@text:#sb(haveTuningPoint)`, "持有强化点数");
+  host.nativeLabel(`${skillPanelPath}/@text:#sb(haveTuningPoint)`, tr("持有强化点数"));
   host.texture(remaining ? "tuning_pointTextBg" : "tuning_pointTextBg_none",
     host.rect(`${skillPanelPath}/haveTuningPoint`));
   const pointCount = document.createElement("div");
   pointCount.textContent = String(remaining);
   pointCount.className = "garage-tuning-number";
-  pointCount.setAttribute("aria-label", `可用强化点：${remaining}`);
+  pointCount.setAttribute("aria-label", tr("可用强化点：{0}", { "0": remaining }));
   host.place(pointCount, host.rect(`${skillPanelPath}/curTuningPoint`));
 
   progression.skills.forEach((skill, index) => {
@@ -206,22 +207,22 @@ function renderXunSkills(
     const gauge = document.createElement("div");
     gauge.className = "garage-tuning-gauge";
     gauge.setAttribute("role", "meter");
-    gauge.setAttribute("aria-label", `第${index + 1}栏强化进度`);
+    gauge.setAttribute("aria-label", tr("第{0}栏强化进度", { "0": index + 1 }));
     gauge.setAttribute("aria-valuemin", "0");
     gauge.setAttribute("aria-valuemax", "5");
     gauge.setAttribute("aria-valuenow", String(skill.points));
     const gaugeUrl = host.assets.urls.get(`tuning_progressbar_0${skill.points}`);
     if (gaugeUrl) gauge.style.backgroundImage = `url("${gaugeUrl}")`;
     host.place(gauge, moveRight(host.rect(`${path}/skillGauge`), skillButtonInset));
-    host.button(`${path}/skillChange`, `更换第${index + 1}栏技能`, () => host.onSelectSkill(index));
+    host.button(`${path}/skillChange`, tr("更换第{0}栏技能", { "0": index + 1 }), () => host.onSelectSkill(index));
     host.label(`${skill.points} / 5`,
       moveRight(host.rect(`${path}/skillTuningPoint`), skillButtonInset + 3),
       `${path}/skillTuningPoint`);
-    host.button(`${path}/plusTuningPoint`, `增加第${index + 1}栏强化点`,
+    host.button(`${path}/plusTuningPoint`, tr("增加第{0}栏强化点", { "0": index + 1 }),
       () => host.onChange(dependencies.changePoint(progression, index, 1)),
       skill.points === 5 || dependencies.remainingPoints(progression) === 0,
       plusButtonInset);
-    host.button(`${path}/minusTuningPoint`, `减少第${index + 1}栏强化点`,
+    host.button(`${path}/minusTuningPoint`, tr("减少第{0}栏强化点", { "0": index + 1 }),
       () => host.onChange(dependencies.changePoint(progression, index, -1)),
       skill.points === 0, skillButtonInset);
   });
@@ -235,8 +236,8 @@ function renderXunExceedType(
   vehicle: { itemId: number; kartType?: number } | undefined,
 ): void {
   for (const [node, fallback] of [
-    ["exceedType", "超负荷类型"], ["curExceedType", "现在类型"],
-    ["exceedAccel", "超负荷加速度"], ["exceedTime", "超负荷时间"],
+    ["exceedType", tr("超负荷类型")], ["curExceedType", tr("现在类型")],
+    ["exceedAccel", tr("超负荷加速度")], ["exceedTime", tr("超负荷时间")],
   ] as const) host.nativeLabel(`${exceedPanelPath}/@text:#sb(${node})`, fallback);
   host.texture("tuning_Exceedslot", host.rect(`${exceedPanelPath}/exceedSlot`));
 
@@ -264,7 +265,7 @@ function renderXunExceedType(
   }, host.assets.exceedTypeChange);
   if (availability !== "hidden") {
     const change = host.button(`${exceedPanelPath}/exceedTypeChangeBtn`,
-      "变更超负荷类型", host.onExceedTypeChange,
+      tr("变更超负荷类型"), host.onExceedTypeChange,
       availability !== "enabled");
     change.className += " garage-exceed-type-change-button";
   }
@@ -299,15 +300,15 @@ export function updateGarageProgressionPanel(
   host.engine12Container.hidden = !xun;
   host.activeContainer = xun ? host.engine12Container : host.classicContainer;
   if (!hasVehicle) {
-    host.label(noAvailableVehicles ? "暂无可升级车辆" :
-      "请从下方列表选择可升级车辆（9 代及以下或 XUN）。",
+    host.label(noAvailableVehicles ? tr("暂无可升级车辆") :
+      tr("请从下方列表选择可升级车辆（9 代及以下或 XUN）。"),
     { x: 22, y: 210, width: 700, height: 40 });
     return;
   }
 
   const next = progression.level === 5 ? progression : dependencies.nextLevel(progression, engineGrade);
   host.button(xun ? "tuningLevelUp" : "카트레벨업",
-    progression.level === 5 ? "车辆已满级" : `车辆升至 Lv.${next.level}（本地测试）`,
+    progression.level === 5 ? tr("车辆已满级") : tr("车辆升至 Lv.{0}（本地测试）", { "0": next.level }),
     () => host.onChange(next), progression.level === 5);
   if (progression.kind === "classic")
     renderClassicProgression(host, progression, factory, dependencies);

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageInventoryScrollHost {
   inventory: HTMLElement;
   inventoryScrollHit: HTMLElement;
@@ -39,7 +40,7 @@ export interface GaragePreviewActionHost {
 
 /** Cancel every pending visual preview before recomputing vehicle performance. */
 export function createGarageCancelPreviewButton<T>(host: GaragePreviewActionHost): T {
-  return host.button("取消预览", () => {
+  return host.button(tr("取消预览"), () => {
     const hadCosmeticPreview = host.cosmeticPreview !== undefined;
     host.transformPreviewStartPending = false;
     host.coatingPreview = undefined;
@@ -54,7 +55,7 @@ export function createGarageCancelPreviewButton<T>(host: GaragePreviewActionHost
 
 /** Remove from the active coating, cosmetic or mechanical part lane. */
 export function createGarageRemovePartButton<T>(host: GaragePreviewActionHost): T {
-  return host.button("拆除部件", () => {
+  return host.button(tr("拆除部件"), () => {
     if (host.coatingMode) host.requestCoating(undefined);
     else if (host.cosmeticSlot) host.requestCosmetic(undefined);
     else host.requestEquip(undefined);

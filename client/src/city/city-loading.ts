@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { RaceLoadingScreen } from "../multiplayer/race-loading-screen";
 import { currentResourceManager } from "../resources/resource-manager";
 
@@ -36,7 +37,7 @@ export interface CityLoadingDependencies {
 class CityLoadingScreen extends RaceLoadingScreen implements CityLoadingView {
   showStatus(message: string): void {
     if (this.disposed) return;
-    this.element.setAttribute("aria-label", "卡丁城加载中");
+    this.element.setAttribute("aria-label", tr("卡丁城加载中"));
     this.progress.textContent = message;
     this.paint();
     this.element.hidden = false;
@@ -84,7 +85,7 @@ const active = new WeakMap<CityLoadingHost, LoadingState>();
 class LoadingState {
   refs = 0;
   closed = false;
-  message = "正在连接卡丁城…";
+  message = tr("正在连接卡丁城…");
   track?: string;
   view?: CityLoadingView;
   releaseProgress?: () => void;
@@ -104,7 +105,7 @@ class LoadingState {
       this.paint();
     }).catch(error => {
       if (!this.closed && !host.disposed)
-        host.options.status(`卡丁城加载画面资源失败：${error instanceof Error ? error.message : String(error)}`, true);
+        host.options.status(tr("卡丁城加载画面资源失败：{value0}", { value0: error instanceof Error ? error.message : String(error) }), true);
     });
   }
 

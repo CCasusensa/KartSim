@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * What the two lottery screens share: a full-screen original stage (the
  * 1080-high virtual screen of the shop, scaled to the viewport, covering
@@ -321,8 +322,8 @@ export class LotteryShell {
   }
 
   /** A question in the release message box (customMessageBox): ok / 取消. */
-  confirm(title: string, message: string, ok = "确定"): Promise<boolean> {
-    return this.popup(context => confirmGame(title, message, ok, "取消",
+  confirm(title: string, message: string, ok = tr("确定")): Promise<boolean> {
+    return this.popup(context => confirmGame(title, message, ok, tr("取消"),
       { root: context.root, library: context.library, signal: context.signal }), false);
   }
 
@@ -355,7 +356,7 @@ export class LotteryShell {
       const result = await this.options.api.buyPack(pack);
       await this.options.session.refresh().catch(() => undefined);
       const got = result.items.filter(item => !item.owned).map(itemLine).join("、");
-      this.showNotice(`兑换成功！获得 ${got || pack.name}`);
+      this.showNotice(tr("兑换成功！获得 {0}", { "0": got || pack.name }));
       return true;
     } catch (error) {
       this.showNotice(lotteryErrorMessage(error));

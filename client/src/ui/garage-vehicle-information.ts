@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageInfoPart {
   family?: string;
   [key: string]: unknown;
@@ -96,7 +97,7 @@ export function updateGarageVehicleInformation(
     const classic = host.selected.engineGrade !== undefined &&
       host.selected.engineGrade >= 0 && host.selected.engineGrade <= 6;
     const presentation = dependencies.partPresentation(
-      partName, locked, classic ? "未装备" : undefined);
+      partName, locked, classic ? tr("未装备") : undefined);
     const label = dependencies.slotLabel(slot, family);
     const title = `${label} · ${presentation.value}${presentation.state ? ` · ${presentation.state}` : ""}`;
     button.replaceChildren();

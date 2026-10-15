@@ -7,7 +7,7 @@
  */
 import { s2 } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText, tr } from "../i18n/locale";
 import { layoutArt, loadLayoutArt, type ShopArt, type ShopArtLibrary } from "../shop/shop-assets";
 import { attr, type ShopNode } from "../shop/shop-original";
 
@@ -38,9 +38,7 @@ export async function loadStringBag(library: LotteryLibrary, roots: readonly str
   for (const key of root.children) {
     const name = attr(key, "n");
     if (!name) continue;
-    const value = ([resourceLocale(), "cn", "tw", "kr"] as const).map(locale =>
-      key.children.find(entry => attr(entry, "c") === locale && attr(entry, "v"))).find(Boolean);
-    const text = value ? attr(value, "v") : undefined;
+    const text = resourceText(key.children, attr);
     if (text) strings.set(name, text);
   }
   return strings;
@@ -50,7 +48,7 @@ export async function loadStringBag(library: LotteryLibrary, roots: readonly str
 export function resolveStrings(node: ShopNode, strings: ReadonlyMap<string, string>): ShopNode {
   const attributes = node.attributes.map(entry => entry.value.includes("#sb(")
     ? { ...entry, value: entry.value.replace(/#sb\(([^)]+)\)/g, (_whole, key: string) => strings.get(key) ?? key) }
-    : entry);
+    : /^(text|caption|toolTip)$/.test(entry.name) ? { ...entry, value: tr(entry.value) } : entry);
   return { ...node, attributes, children: node.children.map(child => resolveStrings(child, strings)) };
 }
 

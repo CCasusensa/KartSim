@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The taskbar 상점 button and the lobby top bar "+" buttons open the shop
  * (ready-shop.ts) only while no multiplayer race owns the screen: the shop is
@@ -11,7 +12,7 @@ import { openReadyShop, type ReadyShopController } from "./ready-shop";
 /** Room phases in which the race is loading, counting down or running. */
 const RACE_PHASES: ReadonlySet<string> = new Set(["loading", "countdown", "racing"]);
 
-export const SHOP_BLOCKED_DURING_RACE = "比赛即将开始或正在进行，暂时无法打开商店。";
+export const SHOP_BLOCKED_DURING_RACE = tr("比赛即将开始或正在进行，暂时无法打开商店。");
 
 interface LobbyRaceState {
   raceVisible?: boolean;

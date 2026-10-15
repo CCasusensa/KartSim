@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The 赛道对决 / 练习目标 tabs of the single-player 计时赛 window
  * (stage_timeAttackReady): the release Web build hid them (ready-options
@@ -239,7 +240,7 @@ export async function installReadyMissions(view: MissionReadyView, deps: ReadyMi
     return;
   }
   if (!session) {
-    state.loadError = "登录后可查看练习目标与赛道对决。";
+    state.loadError = tr("登录后可查看练习目标与赛道对决。");
     return;
   }
   try {
@@ -289,7 +290,7 @@ function npcRecord(view: MissionReadyView): unknown {
   const kart = state.catalog?.karts.find(entry => entry.itemId === duel.stage.npc.kartId);
   const advantage = duel.stage.difficulties[state.difficulty]?.advantageMs ?? 0;
   return { speed: duel.stage.speed, booster: duel.stage.teamBooster ? 1 : 0, elapsedMs: duel.stage.targetMs + advantage,
-    kartName: kart?.title ?? `卡丁车 ${duel.stage.npc.kartId}`, crashCount: 0 };
+    kartName: kart?.title ?? tr("卡丁车 {id}", { id: duel.stage.npc.kartId }), crashCount: 0 };
 }
 
 /** The NPC rider's preview, loaded on demand for the stage shown. */
@@ -316,7 +317,7 @@ function ensureNpcPreview(view: MissionReadyView, deps: ReadyMissionDependencies
       }),
     loadPortrait(view, deps, duel.stage).then(texture => { npc.portrait = texture; }),
   ]).then(() => { if (!view.disposed) view.render(); }).catch(error => {
-    view.options.onNotice?.(`对手预览加载失败：${error instanceof Error ? error.message : String(error)}`);
+    view.options.onNotice?.(tr("对手预览加载失败：{error}", { error: error instanceof Error ? error.message : String(error) }));
   });
 }
 
@@ -418,7 +419,7 @@ function drawRows(view: MissionReadyView, grid: Node, rect: Rect, deps: ReadyMis
   const rows = state.rows[kind];
   const size = kind === "duel" ? DUEL_ROW : TRAINING_ROW;
   if (rows.length === 0) {
-    const message = state.loadError ?? (kind === "duel" ? "当前没有进行中的赛道对决。" : "该赛道没有练习目标。");
+    const message = state.loadError ?? (kind === "duel" ? tr("当前没有进行中的赛道对决。") : tr("该赛道没有练习目标。"));
     deps.paintText(view.context, message, { x: rect.x, y: rect.y + 20, width: rect.width, height: 40 },
       { render: "bold16", align: "center", color: deps.color("255 220 231 242") });
     return;
@@ -465,7 +466,7 @@ function buildRows(view: MissionReadyView, deps: ReadyMissionDependencies): void
     const hidden = find(row, "hiddenMissionPanel")!;
     setAttr(hidden, "visible", "false");
     const allClaimed = set.stages.every(stage => stage.claimed);
-    const title = set.type === "crash" ? set.title.replace("%s", String(current.requirement)) : set.title;
+    const title = set.type === "crash" ? tr(set.title).replace("%s", String(current.requirement)) : tr(set.title);
     setAttr(find(normal, "title")!, "text", title);
     const progress = find(normal, "progressPanel")!;
     const desc = find(progress, "desc")!;
@@ -473,15 +474,15 @@ function buildRows(view: MissionReadyView, deps: ReadyMissionDependencies): void
     const bar = find(progress, "bar")!;
     if (set.type === "record") {
       const target = set.stages[0]!.requirement;
-      setAttr(desc, "text", `${translate("trainingMissionRacordDesc", "目标时间")} ${formatRecordTime(target)} ${
-        translate("trainingMissionRacordTarget", "以内完成")}`);
+      setAttr(desc, "text", `${translate("trainingMissionRacordDesc", tr("目标时间"))} ${formatRecordTime(target)} ${
+        translate("trainingMissionRacordTarget", tr("以内完成"))}`);
       setAttr(desc, "windowSize", "230 16");
       setAttr(cur, "visible", "false");
       setAttr(sepa, "visible", "false");
       setAttr(tar, "visible", "false");
       setAttr(bar, "visible", current.value > 0 ? "true" : "false");
     } else {
-      setAttr(desc, "text", `${current.stage}${translate("KartPassDaily", "阶段")}`);
+      setAttr(desc, "text", tr("{stage}阶段", { stage: current.stage }));
       setAttr(cur, "text", String(Math.min(current.value, current.count)));
       setAttr(tar, "text", String(current.count));
       const fraction = Math.max(0, Math.min(1, current.value / current.count));
@@ -511,7 +512,7 @@ function buildRows(view: MissionReadyView, deps: ReadyMissionDependencies): void
     const portraitPanel = find(row, "portraitPanel")!;
     const rewardPanel = find(row, "rewardPanel")!;
     const closeMsg = find(row, "closeMsg")!;
-    setAttr(find(info, "step")!, "text", `${stage.stage} ${translate("KartPassDaily", "阶段")}`);
+    setAttr(find(info, "step")!, "text", tr("{stage} 阶段", { stage: stage.stage }));
     setAttr(find(info, "name")!, "text", stage.npc.name);
     // A locked stage shows only 在上一阶段胜利时开放.
     setAttr(closeMsg, "visible", standing.open ? "false" : "true");
@@ -532,7 +533,7 @@ function buildRows(view: MissionReadyView, deps: ReadyMissionDependencies): void
       const icon = find(slot, "icon")!;
       icon.children = [];
       (icon as Node & { reward?: MissionReward }).reward = reward;
-      setAttr(find(slot, "option")!, "text", reward && (reward.count ?? 1) > 1 ? `${reward.count}个` : "");
+      setAttr(find(slot, "option")!, "text", reward && (reward.count ?? 1) > 1 ? tr("{count}个", { count: reward.count ?? 1 }) : "");
       setAttr(find(slot, "option")!, "visible", reward ? "true" : "false");
       setAttr(find(slot, "emptyCover")!, "visible", reward ? "false" : "true");
       setAttr(find(slot, "clearCover")!, "visible", reward && standing.won ? "true" : "false");
@@ -559,7 +560,7 @@ function drawRewardPicture(view: MissionReadyView, node: Node, rect: Rect, deps:
       width, height);
   }
   // Currency and RP amounts, and item names, are written under the picture.
-  const caption = reward.type === "lucci" ? `${reward.value}金币` : reward.type === "rp" ? `RP ${reward.value}`
+  const caption = reward.type === "lucci" ? tr("{amount}金币", { amount: reward.value }) : reward.type === "rp" ? `RP ${reward.value}`
     : rect.width >= 80 ? reward.name : "";
   if (caption) {
     deps.paintText(view.context, caption, { x: rect.x - 20, y: rect.y + rect.height - 16, width: rect.width + 40,
@@ -576,7 +577,7 @@ export function drawReadyMissionLabel(view: MissionReadyView, node: Node, rect: 
   const duelTab = state?.templates !== undefined && state.tab === "duel";
   let text: string | undefined;
   if (deps.trackCardPanel(parent)) {
-    text = `${view.reverseTrack ? "[反]" : ""}${view.assets.trackTitle}`;
+    text = `${view.reverseTrack ? tr("[反]") : ""}${view.assets.trackTitle}`;
   } else if (name === "value" && parent !== undefined) {
     const record = view.record as Record<string, string> | undefined;
     const keys: Record<string, string> = { setting: "setting", record: "time", kart: "kart", crash: "crash",
@@ -696,7 +697,7 @@ export function activateReadyMissionButton(view: MissionReadyView, name: string)
   if (name === "duel") {
     const duel = currentDuel(state);
     if (!duel || !duel.standing.open) {
-      view.options.onNotice?.(deps ? deps.translate("#sb(duelMissionCloseMessage)", view.assets.strings) : "在上一阶段胜利时开放");
+      view.options.onNotice?.(deps ? deps.translate("#sb(duelMissionCloseMessage)", view.assets.strings) : tr("在上一阶段胜利时开放"));
       return;
     }
     view.options.onStartActivate?.();
@@ -717,9 +718,9 @@ async function claimReward(view: MissionReadyView, set: number, stage: number): 
     if (state.disposed) return;
     state.data = { ...state.data, goals: result.goals };
     state.rows.revision = -1;
-    view.options.onNotice?.("已领取练习目标奖励，请到奖励箱查收。");
+    view.options.onNotice?.(tr("已领取练习目标奖励，请到奖励箱查收。"));
   } catch (error) {
-    view.options.onNotice?.(`领取失败：${timeAttackErrorMessage(error)}`);
+    view.options.onNotice?.(tr("领取失败：{error}", { error: timeAttackErrorMessage(error) }));
   } finally {
     state.busy = false;
     if (!view.disposed) view.render();

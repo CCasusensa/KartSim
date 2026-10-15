@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export const garageDefaultWidth = 1600;
 
 export const garageStageSizes = [
@@ -40,8 +41,8 @@ export const garageRadarDescriptionKeys = [
 ];
 
 export const garageRadarCaptions = [
-  "集气速度", "加速时间", "加速最高速度", "竞速",
-  "弯道", "稳定性", "平衡", "强化力量",
+  tr("集气速度"), tr("加速时间"), tr("加速最高速度"), tr("竞速"),
+  tr("弯道"), tr("稳定性"), tr("平衡"), tr("强化力量"),
 ];
 
 export const garageRadarSkillFields = new Set([
@@ -52,7 +53,7 @@ export const garageRadarSkillFields = new Set([
 export const garageExceedChoices = [2, 3, 4];
 export const garageSidePanelInset = 15;
 export const garageSidePanelInnerInset = garageSidePanelInset - 2;
-export const garageResetPrompt = "立即重置当前车辆的粒子改记录？";
+export const garageResetPrompt = tr("立即重置当前车辆的粒子改记录？");
 
 export const garageClassicUpgradeDirectory = "dialog/kartLevelUp/";
 export const garageXunUpgradeDirectory = "dialog2_/kart12TuningLevelUp/";
@@ -60,7 +61,7 @@ export const garageXunUpgradeStages = [
   "preEffect", "successEffect", "successResult",
 ];
 export const garageXunUpgradeStageLabels = [
-  "强化开始", "强化成功", "强化结果",
+  tr("强化开始"), tr("强化成功"), tr("强化结果"),
 ];
 export const garageSkillPanelPath =
   "/backGround/engine12Data/tuningPanel/skillTuning";
@@ -115,7 +116,7 @@ export const garagePartSlotKeys = {
   wheel: "partsWheel12", booster: "partsBooster12",
 };
 
-export const garageGradeFallbacks = ["", "终极", "稀有", "高级", "普通"];
+export const garageGradeFallbacks = ["", tr("终极"), tr("稀有"), tr("高级"), tr("普通")];
 export const garageCardPageSize = 9;
 export const garageRemovePartRect = {
   x: 70, y: 590, width: 100, height: 32,

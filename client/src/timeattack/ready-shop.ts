@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { ensureFeatureResources } from "../ui/resource-panel";
 /**
  * Opening the shop (server-go/ECONOMY.md 7.6) from the taskbar 상점 button and
@@ -189,7 +190,7 @@ export async function openReadyShop(controller: ReadyShopController, initialTab?
   if (controller.disposed || controller.activeShop || controller.shopOpening) return;
   const session = activeBrowserSession();
   if (!session) {
-    report(controller, "商店需要登录账号。");
+    report(controller, tr("商店需要登录账号。"));
     return;
   }
   const library = controller.host.getLibrary();
@@ -237,7 +238,7 @@ export async function openReadyShop(controller: ReadyShopController, initialTab?
     controller.activeShop = undefined;
     if (reopen && purchased && garageX && garageXOpen(controller) && !controller.disposed) {
       void reopenGarageX(controller).catch(error =>
-        report(controller, `车库刷新失败：${error instanceof Error ? error.message : String(error)}`));
+        report(controller, tr("车库刷新失败：{0}", { "0": error instanceof Error ? error.message : String(error) })));
     }
   };
   try {
@@ -306,7 +307,7 @@ export async function openReadyShop(controller: ReadyShopController, initialTab?
     closed = true;
     stopFollowingTaskbar();
     disposePreview();
-    report(controller, `商店：${error instanceof Error ? error.message : String(error)}`);
+    report(controller, tr("商店：{0}", { "0": error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.shopOpening = false;
     controller.shopCancelled = false;

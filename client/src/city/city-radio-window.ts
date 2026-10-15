@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城收音机窗口（P）：release CaptionDialog（和操作说明、地图一样走 te.load），
  * 上面是正在播放，中间一排上一首 / 开关 / 下一首 / 随机，下面两列是光线飞车电台
@@ -61,12 +62,12 @@ export function paintNowPlaying(context: CanvasRenderingContext2D, rect: Rect, s
     context.lineTo(rect.x + rect.width - 14, y);
     context.stroke();
   }
-  const status = !state.on ? "收音机已关闭 · 正在放城市音乐" : state.loading ? "正在调频…" : "正在播放";
+  const status = !state.on ? tr("收音机已关闭 · 正在放城市音乐") : state.loading ? tr("正在调频…") : tr("正在播放");
   context.textBaseline = "middle";
   context.textAlign = "left";
   context.font = `bold 14px ${FONT}`;
   context.fillStyle = "rgb(255, 220, 120)";
-  context.fillText(`光线飞车电台 · ${status}`, rect.x + 22, rect.y + 24);
+  context.fillText(tr("光线飞车电台 · {value0}", { value0: status }), rect.x + 22, rect.y + 24);
   context.font = `bold 24px ${FONT}`;
   context.fillStyle = "white";
   context.fillText(fitText(context, song.title, rect.width - 200), rect.x + 22, rect.y + 54);
@@ -76,7 +77,7 @@ export function paintNowPlaying(context: CanvasRenderingContext2D, rect: Rect, s
   context.fillText(song.singer, rect.x + rect.width - 22, rect.y + 54);
   context.font = `bold 13px ${FONT}`;
   context.fillStyle = "rgba(255, 255, 255, 0.7)";
-  context.fillText(`${state.index + 1} / ${state.songs.length}${state.shuffle ? " · 随机" : " · 顺序"}`,
+  context.fillText(`${state.index + 1} / ${state.songs.length}${state.shuffle ? tr(" · 随机") : tr(" · 顺序")}`,
     rect.x + rect.width - 22, rect.y + 24);
   context.restore();
 }
@@ -131,18 +132,18 @@ export function radioWindowDefinition(songCount: number): Node {
   });
   return node("Container", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "cityRadioWnd", frame: "CaptionDialog", leftTopWH: "0 0 780 664",
-      caption: "卡丁城收音机", captionColor: "black", align: "center" }, [
+      caption: tr("卡丁城收音机"), captionColor: "black", align: "center" }, [
       node("Panel", { name: "radioNow", leftTopWH: "22 10 736 88" }),
       node("Container", { leftTopWH: "22 108 736 42" }, [
-        button("previousButton", 0, 176, "上一首（B）"),
-        button("powerButton", 186, 176, "关闭收音机"),
-        button("nextButton", 372, 176, "下一首（N）"),
-        button("shuffleButton", 558, 178, "随机播放：开"),
+        button("previousButton", 0, 176, tr("上一首（B）")),
+        button("powerButton", 186, 176, tr("关闭收音机")),
+        button("nextButton", 372, 176, tr("下一首（N）")),
+        button("shuffleButton", 558, 178, tr("随机播放：开")),
       ]),
       ...rows,
       node("Window", { frame: "HSection", leftTopWH: "0 0 736 1", align: "hcenter;bottom", adjust: "0 64" }),
       node("Container", { leftTopWH: "0 0 155 42", align: "hcenter;bottom", adjust: "0 12" }, [
-        button("okButton", 0, 155, "关闭（P）", true),
+        button("okButton", 0, 155, tr("关闭（P）"), true),
       ]),
     ]),
   ]);
@@ -163,7 +164,7 @@ export async function showCityRadioWindow(options: { library: BmlLibrary; root: 
   const songs = radio.songs;
   view = await loadView({
     library: options.library, root: options.root, definition: radioWindowDefinition(songs.length), roots: ROOTS,
-    preserveDisplayPixels: true, smoothImages: true, modal: true, label: "卡丁城收音机",
+    preserveDisplayPixels: true, smoothImages: true, modal: true, label: tr("卡丁城收音机"),
     onCancel: () => options.close(), onConfirm: () => options.close(),
     state: (entry: Node) => {
       const state = radioState(radio);
@@ -173,19 +174,19 @@ export async function showCityRadioWindow(options: { library: BmlLibrary; root: 
         const index = Number(row[1]);
         const song = songs[index]!;
         const current = index === state.index && state.on;
-        return { label: `播放 ${song.title}（${song.singer}）`, action: () => radio.select(index),
+        return { label: tr("播放 {value0}（{value1}）", { value0: song.title, value1: song.singer }), action: () => radio.select(index),
           paint: (context: CanvasRenderingContext2D, rect: Rect) => paintSongRow(context, rect, song, index + 1,
             current, current && !state.loading, view?.hoveredRegionId === name) };
       }
       switch (name) {
         case "radioNow": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintNowPlaying(context, rect, state) };
-        case "previousButton": return { label: "上一首", action: () => radio.previous() };
-        case "nextButton": return { label: "下一首", action: () => radio.next() };
-        case "powerButton": return { text: state.on ? "关闭收音机" : "打开收音机",
-          label: state.on ? "关闭收音机，换回城市音乐" : "打开收音机", action: () => radio.toggle() };
-        case "shuffleButton": return { text: state.shuffle ? "随机播放：开" : "随机播放：关",
-          label: state.shuffle ? "改为顺序播放" : "改为随机播放", action: () => radio.setShuffle(!state.shuffle) };
-        case "okButton": return { label: "关闭", action: () => options.close() };
+        case "previousButton": return { label: tr("上一首"), action: () => radio.previous() };
+        case "nextButton": return { label: tr("下一首"), action: () => radio.next() };
+        case "powerButton": return { text: state.on ? tr("关闭收音机") : tr("打开收音机"),
+          label: state.on ? tr("关闭收音机，换回城市音乐") : tr("打开收音机"), action: () => radio.toggle() };
+        case "shuffleButton": return { text: state.shuffle ? tr("随机播放：开") : tr("随机播放：关"),
+          label: state.shuffle ? tr("改为顺序播放") : tr("改为随机播放"), action: () => radio.setShuffle(!state.shuffle) };
+        case "okButton": return { label: tr("关闭"), action: () => options.close() };
       }
       return {};
     },

@@ -1,8 +1,9 @@
+import { gameLocale, tr } from "../i18n/locale";
 import { setLobbyHomeBackdrop, setLobbyShopBackdrop } from "./lobby-home-backdrop";
 import { LobbyTopBar, type LobbyAccountInfo, type LobbyExperience,
   type LobbyWallet } from "./lobby-top-bar";
 import type { LobbyTopBarArt } from "./lobby-top-bar-assets";
-import { openLobbyLink, type LobbyBanner, type LobbyBoard, type LobbyPromos } from "./lobby-promos";
+import { localizedLobbyPromo, openLobbyLink, type LobbyBanner, type LobbyBoard, type LobbyPromos } from "./lobby-promos";
 import { te } from "../generated/library.js";
 import { node as bmlNode, nodeName, paintText, prepare, type Node, type NodeState, type Rect,
   type WindowView } from "./bml-kit";
@@ -102,7 +103,7 @@ function quickSettingsDefinition(): Node {
   );
   return bmlNode("Panel", { windowRect: "fullscreen" }, [
     bmlNode("CaptionWindow", { name: "quickDialog", windowRect: `0 0 ${SETTINGS.width} ${bottom + 118}`,
-      frame: "CaptionDialog", caption: "快速进入设置", captionPos: "0 1", align: "center", textRender: "bold" }, children),
+      frame: "CaptionDialog", caption: tr("快速进入设置"), captionPos: "0 1", align: "center", textRender: "bold" }, children),
   ]);
 }
 const QUICK_ENTRY_KEY = "kartsim.lobbyQuickEntries";
@@ -209,16 +210,22 @@ const STYLES = `
   transition:opacity .16s ease,transform .16s ease}
 .ks-lobby-entry{transition:font-size .16s ease}
 .ks-lobby-entry.ks-active{font-size:3.35cqh}
+.ks-lobby[data-locale=en] .ks-lobby-entry{font-size:2.4cqh}
+.ks-lobby[data-locale=en] .ks-lobby-entry.ks-active{font-size:2.7cqh}
 .ks-lobby-entry.ks-active::before{width:21cqw}
 .ks-lobby-entry.ks-active .ks-lobby-arrow{opacity:1;transform:none}
 .ks-lobby-entry[data-kind=unavailable]{color:rgba(255,255,255,.88)}
 .ks-lobby-promo{position:absolute;right:1.4cqw;top:8.6cqh;width:35cqh;display:flex;flex-direction:column;gap:.9cqh}
 .ks-lobby-carousel{position:relative;height:20.2cqh;border-radius:.5cqh;overflow:hidden;
   box-shadow:0 .4cqh 1.2cqh rgba(0,0,0,.35);background:#16305e}
+.ks-lobby-promo-copy{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:center;gap:1cqh;padding:2cqh;background:linear-gradient(135deg,#134f83,#142143);text-align:center}
+.ks-lobby-promo-copy[hidden]{display:none}
+.ks-lobby-promo-copy strong{font-size:3.8cqh;line-height:1.15}
+.ks-lobby-promo-copy span{font-size:1.85cqh;line-height:1.4}
 .ks-lobby-carousel canvas{position:absolute;inset:0;width:100%;height:100%}
 .ks-lobby-carousel.ks-link canvas{cursor:pointer}
 .ks-lobby-carousel canvas:focus-visible{outline:.3cqh solid #ffe66b;outline-offset:-.3cqh}
-.ks-lobby-dots{position:absolute;left:0;right:0;bottom:.9cqh;display:flex;justify-content:center;gap:.9cqh}
+.ks-lobby-dots{position:absolute;left:0;right:0;bottom:.9cqh;display:flex;justify-content:center;gap:.9cqh;z-index:2}
 .ks-lobby-dot{width:1cqh;height:1cqh;border-radius:50%;background:rgba(255,255,255,.55);
   box-shadow:0 0 .3cqh rgba(0,0,0,.5)}
 .ks-lobby-dot[aria-current=true]{background:#1f8fff;outline:.15cqh solid #fff}
@@ -284,6 +291,7 @@ export class LobbyHomeView {
   private settings?: { close(restoreFocus?: boolean): void };
   private readonly carousel = element("canvas");
   private readonly dots = element("div", "ks-lobby-dots");
+  private readonly promoText = element("div", "ks-lobby-promo-copy");
   private readonly observer?: ResizeObserver;
   /** The status bar across the top. */
   readonly topBar: LobbyTopBar;
@@ -310,8 +318,9 @@ export class LobbyHomeView {
     this.entries = loadQuickEntries();
     const node = this.element;
     node.dataset.uiLayer = "stage";
+    node.dataset.locale = gameLocale();
     node.setAttribute("role", "region");
-    node.setAttribute("aria-label", "大厅");
+    node.setAttribute("aria-label", tr("大厅"));
     if (options.fontFamily) node.style.setProperty("--ks-lobby-font", `"${options.fontFamily}"`);
     this.fallback.setAttribute("aria-hidden", "true");
     this.sceneRoot.append(this.fallback);
@@ -499,11 +508,11 @@ export class LobbyHomeView {
 
   private buildQuickEntries(): HTMLElement {
     const nav = element("nav", "ks-lobby-quick");
-    nav.setAttribute("aria-label", "快速进入");
+    nav.setAttribute("aria-label", tr("快速进入"));
     const head = element("div", "ks-lobby-quick-head");
-    head.append(element("span", undefined, "快速进入"));
+    head.append(element("span", undefined, tr("快速进入")));
     this.gear.type = "button";
-    this.gear.setAttribute("aria-label", "快速进入设置");
+    this.gear.setAttribute("aria-label", tr("快速进入设置"));
     this.gear.setAttribute("aria-expanded", "false");
     this.gear.append(svg(ICONS.gear));
     this.bindSound(this.gear);
@@ -526,7 +535,7 @@ export class LobbyHomeView {
       const button = element("button", "ks-lobby-entry");
       button.type = "button";
       button.dataset.kind = entry.kind;
-      button.append(element("span", undefined, entry.title),
+      button.append(element("span", undefined, tr(entry.title)),
         element("span", "ks-lobby-arrow", "»"));
       button.addEventListener("mouseenter", () => {
         if (this.active !== index) this.options.onHover?.();
@@ -551,7 +560,7 @@ export class LobbyHomeView {
     this.options.onActivate?.();
     this.closeSettings(false);
     if (entry.kind === "unavailable") {
-      this.showNotice(`${entry.title}暂未开放`);
+      this.showNotice(tr("{title}暂未开放", { title: tr(entry.title) }));
       return;
     }
     this.captureBackdrop();
@@ -595,7 +604,7 @@ export class LobbyHomeView {
         const quick = QUICK_ENTRIES[Number(item[2])]!;
         const checked = chosen.has(quick.id);
         const disabled = !checked && chosen.size >= MAX_QUICK_ENTRIES;
-        const title = quick.kind === "unavailable" ? `${quick.title}（暂未开放）` : quick.title;
+        const title = quick.kind === "unavailable" ? tr("{title}（暂未开放）", { title: tr(quick.title) }) : tr(quick.title);
         if (item[1] === "Check") return { checked, disabled, label: title, ...disabled ? {} : { action: () => toggle(quick.id) } };
         return { text: "", label: title, checked, disabled, ...disabled ? {} : { action: () => toggle(quick.id) },
           paint: (context: CanvasRenderingContext2D, rect: Rect) => paintText(title, { size: 15, bold: true, middle: true,
@@ -603,10 +612,10 @@ export class LobbyHomeView {
             .paint(context, { ...rect, x: rect.x + 24, width: rect.width - 24 }) };
       }
       switch (name) {
-        case "quickDialog": return { text: "快速进入设置" };
-        case "quickHint": return paintText(`选择显示在大厅左侧的模式（最多 ${MAX_QUICK_ENTRIES} 个）`, { size: 14, bold: true,
+        case "quickDialog": return { text: tr("快速进入设置") };
+        case "quickHint": return paintText(tr("选择显示在大厅左侧的模式（最多 {count} 个）", { count: MAX_QUICK_ENTRIES }), { size: 14, bold: true,
           color: "rgb(42,55,80)", middle: true });
-        case "okButton": return { text: "完成", label: "完成", action: () => {
+        case "okButton": return { text: tr("完成"), label: tr("完成"), action: () => {
           this.options.onActivate?.();
           // Keep the catalogue order so the list reads the same each time.
           this.entries = QUICK_ENTRIES.map(quick => quick.id).filter(id => chosen.has(id));
@@ -614,7 +623,7 @@ export class LobbyHomeView {
           this.renderEntries();
           close();
         } };
-        case "cancelButton": return { text: "恢复默认", label: "恢复默认", action: () => {
+        case "cancelButton": return { text: tr("恢复默认"), label: tr("恢复默认"), action: () => {
           this.options.onActivate?.();
           chosen.clear();
           DEFAULT_QUICK_ENTRIES.forEach(id => chosen.add(id));
@@ -626,7 +635,7 @@ export class LobbyHomeView {
     this.settings = handle;
     this.gear.setAttribute("aria-expanded", "true");
     void (te.load({ library, root: layer.element, definition: prepare(library, quickSettingsDefinition(), SETTINGS_ROOTS),
-      roots: SETTINGS_ROOTS, smoothImages: true, modal: true, label: "快速进入设置", onCancel: () => close(), state } as never) as
+      roots: SETTINGS_ROOTS, smoothImages: true, modal: true, label: tr("快速进入设置"), onCancel: () => close(), state } as never) as
       Promise<WindowView>).then(loaded => {
       if (closed) {
         loaded.dispose();
@@ -648,9 +657,10 @@ export class LobbyHomeView {
 
   private buildPromo(): HTMLElement {
     const promo = element("aside", "ks-lobby-promo");
-    promo.setAttribute("aria-label", "活动");
+    promo.setAttribute("aria-label", tr("活动"));
     const carousel = element("div", "ks-lobby-carousel");
-    carousel.append(this.carousel, this.dots);
+    this.promoText.setAttribute("aria-hidden", "true");
+    carousel.append(this.carousel, this.dots, this.promoText);
     // A picture with a link opens it.
     this.carousel.addEventListener("click", () => this.openBanner());
     this.carousel.addEventListener("keydown", event => {
@@ -669,13 +679,13 @@ export class LobbyHomeView {
   /** The release mq lobby 活动 panel (eventmenu_pop: title and a 3-column button grid). */
   private buildEvents(events: ReadonlyArray<LobbyEvent>): HTMLElement {
     const panel = element("section", "ks-lobby-events");
-    panel.setAttribute("aria-label", "活动");
+    panel.setAttribute("aria-label", tr("活动"));
     const grid = element("div", "ks-lobby-event-grid");
     for (const event of events) {
       const button = element("button", "ks-lobby-event");
       button.type = "button";
       button.dataset.event = event.id;
-      button.setAttribute("aria-label", event.label);
+      button.setAttribute("aria-label", tr(event.label));
       const canvas = element("canvas");
       canvas.setAttribute("aria-hidden", "true");
       const draw = (state: number) => {
@@ -694,10 +704,10 @@ export class LobbyHomeView {
         this.options.onActivate?.();
         this.options.onEvent?.(event.id);
       });
-      button.append(canvas, element("span", undefined, event.label));
+      button.append(canvas, element("span", undefined, tr(event.label)));
       grid.append(button);
     }
-    panel.append(element("h2", undefined, "活动"), grid);
+    panel.append(element("h2", undefined, tr("活动")), grid);
     return panel;
   }
 
@@ -705,7 +715,7 @@ export class LobbyHomeView {
     this.dots.replaceChildren(...this.banners.map((_, index) => {
       const dot = element("button", "ks-lobby-dot");
       dot.type = "button";
-      dot.setAttribute("aria-label", `宣传图 ${index + 1}`);
+      dot.setAttribute("aria-label", tr("宣传图 {index}", { index: index + 1 }));
       dot.addEventListener("click", () => {
         this.options.onActivate?.();
         this.showBanner(index);
@@ -734,7 +744,7 @@ export class LobbyHomeView {
   private board(tone: string, art: string | undefined): HTMLElement {
     const board = element("button", `ks-lobby-board ${tone}`);
     board.type = "button";
-    const text = element("span", undefined, "COMING SOON");
+    const text = element("span", undefined, gameLocale() === "zh-CN" ? "COMING SOON" : tr("即将推出"));
     const picture = element("canvas", "ks-lobby-board-picture");
     picture.setAttribute("aria-hidden", "true");
     picture.hidden = true;
@@ -745,7 +755,7 @@ export class LobbyHomeView {
     this.bindSound(board);
     board.addEventListener("click", () => {
       this.options.onActivate?.();
-      if (!openLobbyLink(entry.promo.link)) this.showNotice("敬请期待");
+      if (!openLobbyLink(entry.promo.link)) this.showNotice(tr("敬请期待"));
     });
     if (art) {
       const image = new Image();
@@ -763,12 +773,13 @@ export class LobbyHomeView {
   /** A board shows its picture, or the drawn board with its title (COMING SOON without one). */
   private setBoard(board: PromoBoard, promo: LobbyBoard): void {
     board.promo = promo;
-    board.text.textContent = promo.title ?? "COMING SOON";
-    board.element.setAttribute("aria-label", promo.title ?? (promo.link ? "宣传" : "即将推出"));
-    if (promo.title) board.element.title = promo.title;
+    const localized = localizedLobbyPromo(promo);
+    board.text.textContent = localized?.title ?? (promo.title ? tr(promo.title) : gameLocale() === "zh-CN" ? "COMING SOON" : tr("即将推出"));
+    board.element.setAttribute("aria-label", localized?.title ?? tr(promo.title ?? (promo.link ? "宣传" : "即将推出")));
+    if (promo.title || localized) board.element.title = localized?.title ?? tr(promo.title!);
     else board.element.removeAttribute("title");
-    board.element.classList.toggle("ks-picture", !!promo.image);
-    board.picture.hidden = !promo.image;
+    board.element.classList.toggle("ks-picture", !!promo.image && !localized);
+    board.picture.hidden = !promo.image || !!localized;
   }
 
   private bindSound(button: HTMLElement): void {
@@ -783,6 +794,7 @@ export class LobbyHomeView {
   }
 
   private paintBoard(board: PromoBoard): void {
+    if (localizedLobbyPromo(board.promo)) return;
     const image = board.promo.image;
     const canvas = board.picture;
     const width = board.element.clientWidth;
@@ -824,10 +836,14 @@ export class LobbyHomeView {
     const link = !!banner?.link;
     canvas.parentElement?.classList.toggle("ks-link", link);
     canvas.setAttribute("role", link ? "link" : "img");
-    canvas.setAttribute("aria-label", banner?.title ?? "活动宣传图");
+    const localized = banner && localizedLobbyPromo(banner);
+    canvas.setAttribute("aria-label", localized?.title ?? tr(banner?.title ?? "活动宣传图"));
+    this.promoText.hidden = !localized;
+    this.promoText.replaceChildren(...(localized ? [element("strong", undefined, localized.title),
+      element("span", undefined, localized.subtitle)] : []));
     if (link) canvas.tabIndex = 0;
     else canvas.removeAttribute("tabindex");
-    if (banner?.title) canvas.title = banner.title;
+    if (banner?.title || localized) canvas.title = localized?.title ?? tr(banner!.title!);
     else canvas.removeAttribute("title");
     this.dots.querySelectorAll("button").forEach((dot, index) =>
       dot.setAttribute("aria-current", String(index === this.banner)));
@@ -841,7 +857,7 @@ export class LobbyHomeView {
     if (!context) return;
     context.fillStyle = "#16305e";
     context.fillRect(0, 0, canvas.width, canvas.height);
-    if (banner) {
+    if (banner && !localized) {
       context.imageSmoothingQuality = "high";
       const crop = coverCrop(banner, canvas);
       context.drawImage(banner.image, crop.x, crop.y, crop.width, crop.height,

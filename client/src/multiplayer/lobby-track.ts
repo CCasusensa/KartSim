@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { itemRandomTrackGroups, itemTrackCatalog, type TrackLibrary } from "../resources/track-catalog";
 import { formatMultiplayerError } from "./errors";
 import type { Gameplay, LobbyRoom } from "./lobby-actions";
@@ -187,7 +188,7 @@ export async function chooseLobbyTrack(host: LobbyTrackHost,
     loaded = true;
     view.show();
   } catch (error) {
-    if (!host.disposed) host.options.status(`选择赛道：${formatMultiplayerError(error)}`, true);
+    if (!host.disposed) host.options.status(tr("选择赛道：{value}", { value: String(formatMultiplayerError(error)) }), true);
   } finally {
     host.finishChangingLoad(modal, loaded);
   }

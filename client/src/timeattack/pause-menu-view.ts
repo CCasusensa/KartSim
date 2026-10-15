@@ -1,3 +1,5 @@
+import { gameLocale, tr } from "../i18n/locale";
+
 export type PauseAction = "retry" | "menu" | "resume";
 
 export interface PauseHit {
@@ -87,7 +89,7 @@ export class PauseMenuView {
     this.canvas.setAttribute("role", "dialog");
     this.canvas.setAttribute("aria-hidden", "true");
     this.canvas.setAttribute("aria-label",
-      dependencies.string(assets.strings, "menu"));
+      tr(dependencies.string(assets.strings, "menu")));
     this.canvas.addEventListener("pointermove", this.onPointerMove);
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
     this.canvas.addEventListener("pointerup", this.onPointerUp);
@@ -154,7 +156,7 @@ export class PauseMenuView {
     ops.drawFrame(this.context, this.assets.captionFrame, this.assets.frame.image, dialog);
     const caption = ops.captionRect(this.assets.captionFrame, dialog,
       this.assets.captionOffset);
-    ops.drawText(this.context, ops.string(this.assets.strings, "menu"), caption, {
+    ops.drawText(this.context, tr(ops.string(this.assets.strings, "menu")), caption, {
       family: ops.fontFamily, size: 20, kind: "button", color: "white",
       align: "center", verticalAlign: "center",
     });
@@ -170,6 +172,18 @@ export class PauseMenuView {
     if (!hit) throw new Error(`P3528 pause button ${action} 缺少布局。`);
     const state = this.dependencies.buttonState(action, this.hovered, this.pressed);
     this.dependencies.drawButton(this.context, images[state]!, hit.rect);
+    if (gameLocale() === "zh-CN" || action === "resume") return;
+    // Replace only the bitmap's text area with its own blank background,
+    // preserving the icon, border and hover/pressed appearance.
+    const image = images[state] as { image: CanvasImageSource; width: number; height: number };
+    const scaleX = hit.rect.width / image.width, scaleY = hit.rect.height / image.height;
+    this.context.drawImage(image.image, 2, 3, image.width - 4, 10,
+      hit.rect.x + 2 * scaleX, hit.rect.y + 65 * scaleY,
+      (image.width - 4) * scaleX, (image.height - 68) * scaleY);
+    this.dependencies.drawText(this.context, tr(action === "retry" ? "重新开始" : "返回菜单"), {
+      ...hit.rect, y: hit.rect.y + 65 * scaleY, height: (image.height - 68) * scaleY,
+    }, { family: this.dependencies.fontFamily, size: 16, kind: "button", color: "rgb(42,55,80)",
+      align: "center", verticalAlign: "center" });
   }
 
   resizeCanvas(): void {

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 
 export interface GaragePreviewInputHost {
@@ -44,7 +45,7 @@ export function createGarageTransformPreviewButton(host: GaragePreviewInputHost,
   button.classList.add("garage-transform-preview");
   const label = document.createElement("span");
   label.textContent = stringKey
-    ? host.assets.strings.get(stringKey) ?? "变形预览" : "变形预览";
+    ? host.assets.strings.get(stringKey) ?? tr("变形预览") : tr("变形预览");
   button.append(label);
   host.skin(button, dependencies.attribute(node, "autoImage") ?? "garage_check_0", 5);
   button.dataset.transformPreview = "true";

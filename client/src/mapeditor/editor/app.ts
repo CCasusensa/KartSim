@@ -1,3 +1,4 @@
+import { tr } from "../../i18n/locale";
 /**
  * 地图工坊主程序：工具栏、底部素材栏、视口交互（选取、放置、推土机、画路、
  * 拖动挪位置；高级模式另有从官方赛道取件和变换手柄）、撤销重做与快捷键。
@@ -195,29 +196,29 @@ export class EditorApp {
     const tool = (label: string, kind: "select" | "bulldoze", key: string, title: string) =>
       button(`${label} ${key}`, () => this.setTool({ kind }), { class: this.tool.kind === kind && this.mode === "select" ? "k-on" : "", title });
     this.bar.append(
-      h("span", { class: "ed-title" }, "地图工坊"),
-      h("span", { class: "ed-mapname", title: "地图名（在右侧“地图设置”里改）" }, this.state.design.name),
-      button("新建", () => this.actions.newMap(), { title: "新建向导：选主题和赛道形状" }),
-      button("打开", () => this.actions.openDialog()),
-      button("保存", () => void this.actions.save(), { title: "保存到本机（Ctrl+S）" }),
+      h("span", { class: "ed-title" }, tr("地图工坊")),
+      h("span", { class: "ed-mapname", title: tr("地图名（在右侧“地图设置”里改）") }, this.state.design.name),
+      button(tr("新建"), () => this.actions.newMap(), { title: tr("新建向导：选主题和赛道形状") }),
+      button(tr("打开"), () => this.actions.openDialog()),
+      button(tr("保存"), () => void this.actions.save(), { title: tr("保存到本机（Ctrl+S）") }),
       h("span", { class: "ed-sep" }),
-      button("撤销", () => this.state.undo(), { disabled: !this.state.canUndo, title: "Ctrl+Z" }),
-      button("重做", () => this.state.redo(), { disabled: !this.state.canRedo, title: "Ctrl+Y" }),
+      button(tr("撤销"), () => this.state.undo(), { disabled: !this.state.canUndo, title: "Ctrl+Z" }),
+      button(tr("重做"), () => this.state.redo(), { disabled: !this.state.canRedo, title: "Ctrl+Y" }),
       h("span", { class: "ed-sep" }),
-      tool("选择", "select", "V", "点选摆件和道路，按住拖动挪位置"),
-      tool("推土机", "bulldoze", "B", "点摆件推掉，按住拖动连片推"),
-      button(this.mode === "draw" ? "结束画路" : "画路 D", () => this.mode === "draw" ? this.finishDraw() : this.startDraw(),
-        { class: this.mode === "draw" ? "k-on" : "", title: "在地图上依次点击放控制点" }),
+      tool(tr("选择"), "select", "V", tr("点选摆件和道路，按住拖动挪位置")),
+      tool(tr("推土机"), "bulldoze", "B", tr("点摆件推掉，按住拖动连片推")),
+      button(this.mode === "draw" ? tr("结束画路") : tr("画路 D"), () => this.mode === "draw" ? this.finishDraw() : this.startDraw(),
+        { class: this.mode === "draw" ? "k-on" : "", title: tr("在地图上依次点击放控制点") }),
       ...(this.advanced ? [
         h("span", { class: "ed-sep" }),
-        mode("移动", "translate", "W"), mode("旋转", "rotate", "E"), mode("缩放", "scale", "R"),
+        mode(tr("移动"), "translate", "W"), mode(tr("旋转"), "rotate", "E"), mode(tr("缩放"), "scale", "R"),
       ] : []),
-      button(this.snap ? "吸附：开" : "吸附：关", () => this.setSnap(!this.snap),
-        { class: this.snap ? "k-on" : "", title: "贴路边、顺着路摆正、落到表面，位置按 0.5 米、旋转按 15° 对齐" }),
+      button(this.snap ? tr("吸附：开") : tr("吸附：关"), () => this.setSnap(!this.snap),
+        { class: this.snap ? "k-on" : "", title: tr("贴路边、顺着路摆正、落到表面，位置按 0.5 米、旋转按 15° 对齐") }),
       h("span", { class: "ed-spacer" }),
-      button("试跑", () => void this.actions.testDrive(), { class: "ed-primary", title: "生成赛道，在游戏的计时赛里跑一圈" }),
-      button("发布", () => void this.actions.publish(), { class: "ed-primary", title: "上传到服务器，大家都能玩" }),
-      button("更多 ▾", () => this.toggleMenu()),
+      button(tr("试跑"), () => void this.actions.testDrive(), { class: "ed-primary", title: tr("生成赛道，在游戏的计时赛里跑一圈") }),
+      button(tr("发布"), () => void this.actions.publish(), { class: "ed-primary", title: tr("上传到服务器，大家都能玩") }),
+      button(tr("更多 ▾"), () => this.toggleMenu()),
     );
   }
 
@@ -225,19 +226,19 @@ export class EditorApp {
   private renderSimpleBar(): void {
     const design = this.state.design;
     this.bar.append(
-      h("span", { class: "ed-title" }, "地图工坊"),
-      h("button", { type: "button", class: "ed-mapname ed-mapname-button", title: "改名字、圈数和难度", onclick: () => openMapSettings(this) },
+      h("span", { class: "ed-title" }, tr("地图工坊")),
+      h("button", { type: "button", class: "ed-mapname ed-mapname-button", title: tr("改名字、圈数和难度"), onclick: () => openMapSettings(this) },
         `「${design.name}」 ✎`),
-      button("新地图", () => this.actions.newMap(), { title: "选主题和赛道形状，做一张新地图" }),
-      button("我的地图", () => this.actions.openDialog(), { title: "打开以前做的地图" }),
+      button(tr("新地图"), () => this.actions.newMap(), { title: tr("选主题和赛道形状，做一张新地图") }),
+      button(tr("我的地图"), () => this.actions.openDialog(), { title: tr("打开以前做的地图") }),
       h("span", { class: "ed-sep" }),
-      button("↶ 撤销", () => this.state.undo(), { disabled: !this.state.canUndo, title: "Ctrl+Z" }),
-      button("↷ 重做", () => this.state.redo(), { disabled: !this.state.canRedo, title: "Ctrl+Y" }),
+      button(tr("↶ 撤销"), () => this.state.undo(), { disabled: !this.state.canUndo, title: "Ctrl+Z" }),
+      button(tr("↷ 重做"), () => this.state.redo(), { disabled: !this.state.canRedo, title: "Ctrl+Y" }),
       h("span", { class: "ed-spacer" }),
-      h("span", { class: "ed-saved" }, this.state.dirty ? "改动中…" : design.roads.length || design.pieces.length ? "✓ 已自动保存" : ""),
-      button("▶ 开车试玩", () => void this.actions.testDrive(), { class: "ed-primary ed-play", title: "在游戏里开这张图跑一圈" }),
-      button("★ 分享给大家", () => void this.actions.publish(), { class: "ed-primary", title: "上传到服务器，所有人都能玩" }),
-      button("更多 ▾", () => this.toggleMenu()),
+      h("span", { class: "ed-saved" }, this.state.dirty ? tr("改动中…") : design.roads.length || design.pieces.length ? tr("✓ 已自动保存") : ""),
+      button(tr("▶ 开车试玩"), () => void this.actions.testDrive(), { class: "ed-primary ed-play", title: tr("在游戏里开这张图跑一圈") }),
+      button(tr("★ 分享给大家"), () => void this.actions.publish(), { class: "ed-primary", title: tr("上传到服务器，所有人都能玩") }),
+      button(tr("更多 ▾"), () => this.toggleMenu()),
     );
   }
 
@@ -245,14 +246,14 @@ export class EditorApp {
     if (this.menu) { this.menu.remove(); this.menu = undefined; return; }
     const close = () => { this.menu?.remove(); this.menu = undefined; window.removeEventListener("pointerdown", outside, true); };
     const item = (label: string, run: () => void) => button(label, () => { close(); run(); });
-    const menu = h("div", { class: "ed-menu k-dialog" }, h("div", { class: "k-caption" }, "更多"),
-      item("怎么玩", () => this.actions.help()),
-      item("地图设置（名字、圈数、难度）", () => openMapSettings(this)),
-      item("复制一份", () => this.actions.saveAs()),
-      item("导入地图文件…", () => this.actions.importFile()),
-      item("导出地图文件…", () => this.actions.exportDialog()),
-      item("检查地图", () => this.actions.check()),
-      item(this.advanced ? "✓ 高级模式（专业编辑）" : "高级模式（专业编辑）", () => this.setAdvanced(!this.advanced)));
+    const menu = h("div", { class: "ed-menu k-dialog" }, h("div", { class: "k-caption" }, tr("更多")),
+      item(tr("怎么玩"), () => this.actions.help()),
+      item(tr("地图设置（名字、圈数、难度）"), () => openMapSettings(this)),
+      item(tr("复制一份"), () => this.actions.saveAs()),
+      item(tr("导入地图文件…"), () => this.actions.importFile()),
+      item(tr("导出地图文件…"), () => this.actions.exportDialog()),
+      item(tr("检查地图"), () => this.actions.check()),
+      item(this.advanced ? tr("✓ 高级模式（专业编辑）") : tr("高级模式（专业编辑）"), () => this.setAdvanced(!this.advanced)));
     const outside = (event: Event) => { if (!menu.contains(event.target as Node)) close(); };
     window.addEventListener("pointerdown", outside, true);
     const rect = this.bar.getBoundingClientRect();
@@ -267,7 +268,7 @@ export class EditorApp {
     this.snap = on;
     try { localStorage.setItem("kartsim-mapeditor-snap", on ? "1" : "0"); } catch { /* 隐私模式 */ }
     this.attachGizmo();
-    this.say(on ? "自动吸附打开了：靠近赛道会贴到路边、顺着路摆正" : "自动吸附关掉了：东西放在哪就是哪", 3000);
+    this.say(on ? tr("自动吸附打开了：靠近赛道会贴到路边、顺着路摆正") : tr("自动吸附关掉了：东西放在哪就是哪"), 3000);
     this.queueRender();
   }
 
@@ -278,7 +279,7 @@ export class EditorApp {
     this.viewport.wasd = !on;
     if (!on && this.mode === "source") this.closeSource();
     this.attachGizmo();
-    this.say(on ? "高级模式：左侧可以浏览整条官方赛道取件，W/E/R 用手柄移动、旋转、缩放，右侧有全部数值。" : "已回到简单模式。", 6000);
+    this.say(on ? tr("高级模式：左侧可以浏览整条官方赛道取件，W/E/R 用手柄移动、旋转、缩放，右侧有全部数值。") : tr("已回到简单模式。"), 6000);
     this.queueRender();
   }
 
@@ -286,12 +287,12 @@ export class EditorApp {
     clear(this.status);
     const design = this.state.design;
     const selection = this.state.selection;
-    const what = selection?.kind === "pieces" ? `已选 ${selection.ids.length} 个摆件`
-      : selection?.kind === "road" ? `已选道路「${this.state.road(selection.id)?.name ?? ""}」${selection.point !== undefined ? ` 第 ${selection.point + 1} 点` : ""}` : "";
+    const what = selection?.kind === "pieces" ? tr("已选 {value} 个摆件", { value: String(selection.ids.length) })
+      : selection?.kind === "road" ? tr("已选道路「{value}」{value2}", { value: String(this.state.road(selection.id)?.name ?? ""), value2: String(selection.point !== undefined ? tr(" 第 {value} 点", { value: String(selection.point + 1) }) : "") }) : "";
     this.status.append(
       h("span", { class: "ed-grow" }, this.message || what),
-      h("span", {}, "地图 ", h("b", {}, design.name), `　道路 ${design.roads.length}　摆件 ${design.pieces.length}`),
-      h("span", {}, this.state.dirty ? "未保存" : "已保存"),
+      h("span", {}, tr("地图 "), h("b", {}, design.name), tr("　道路 {value}　摆件 {value2}", { value: String(design.roads.length), value2: String(design.pieces.length) })),
+      h("span", {}, this.state.dirty ? tr("未保存") : tr("已保存")),
       h("span", {}, this.actions.accountLabel()),
     );
   }
@@ -310,28 +311,28 @@ export class EditorApp {
     const road = this.state.selectedRoad();
     const tool = this.tool;
     this.hint.textContent = this.mode === "draw"
-      ? `画路：点击放下控制点${road && road.points.length >= 3 ? "，点回起点（绿色）闭合成环" : ""}；双击、Enter 或 Esc 结束`
+      ? tr("画路：点击放下控制点{value}；双击、Enter 或 Esc 结束", { value: String(road && road.points.length >= 3 ? tr("，点回起点（绿色）闭合成环") : "") })
       : this.mode === "source" && this.source
-        ? `正在查看官方赛道「${this.source.track.title}」：点击物件选取（Shift 多选），再点左下角“放到我的地图”`
+        ? tr("正在查看官方赛道「{value}」：点击物件选取（Shift 多选），再点左下角“放到我的地图”", { value: String(this.source.track.title) })
         : tool.kind === "place"
-          ? `放置「${tool.piece.label}」：点击放下；滚轮或 Q/E 旋转，长按上下拖调高度，[ ] 大小，Esc 或右键结束`
-          : tool.kind === "bulldoze" ? "推土机：点摆件推掉，按住拖动连片推；Esc 结束"
-            : tool.kind === "items" ? "点道路放一排道具箱；Esc 结束" : "";
+          ? tr("放置「{value}」：点击放下；滚轮或 Q/E 旋转，长按上下拖调高度，[ ] 大小，Esc 或右键结束", { value: String(tool.piece.label) })
+          : tool.kind === "bulldoze" ? tr("推土机：点摆件推掉，按住拖动连片推；Esc 结束")
+            : tool.kind === "items" ? tr("点道路放一排道具箱；Esc 结束") : "";
     clear(this.sourceBar);
     // 简单模式的提示在游戏界面里（底部动作条、提示气泡）
     if (!this.advanced) this.hint.textContent = "";
     this.helpTip.style.display = this.mode === "source" || !this.advanced ? "none" : "";
     clear(this.helpTip);
-    this.helpTip.append("左键：选择 / 放置　右键拖动：转视角　滚轮：缩放　中键或空格+左键：平移", h("br"),
-      this.advanced ? "W/E/R：移动/旋转/缩放手柄　D：画路　B：推土机　Ctrl+D：复制　Delete：删除　F：聚焦"
-        : "Q/E：旋转　[ ]：大小　D：画路　B：推土机　Ctrl+D：复制　Delete：删除　F：聚焦　Ctrl+Z：撤销");
+    this.helpTip.append(tr("左键：选择 / 放置　右键拖动：转视角　滚轮：缩放　中键或空格+左键：平移"), h("br"),
+      this.advanced ? tr("W/E/R：移动/旋转/缩放手柄　D：画路　B：推土机　Ctrl+D：复制　Delete：删除　F：聚焦")
+        : tr("Q/E：旋转　[ ]：大小　D：画路　B：推土机　Ctrl+D：复制　Delete：删除　F：聚焦　Ctrl+Z：撤销"));
     if (this.mode === "source" && this.source) {
       const count = this.source.selected.size;
       this.sourceBar.append(
-        button(`放到我的地图（${count}）`, () => this.placeSourceSelection(), { class: "ed-primary", disabled: !count }),
-        button("全选", () => this.selectAllSource()),
-        button("清除选择", () => { this.source!.selected.clear(); this.updateSourceBoxes(); this.queueRender(); }),
-        button("回到我的地图", () => this.closeSource()),
+        button(tr("放到我的地图（{value}）", { value: String(count) }), () => this.placeSourceSelection(), { class: "ed-primary", disabled: !count }),
+        button(tr("全选"), () => this.selectAllSource()),
+        button(tr("清除选择"), () => { this.source!.selected.clear(); this.updateSourceBoxes(); this.queueRender(); }),
+        button(tr("回到我的地图"), () => this.closeSource()),
       );
     }
   }
@@ -409,7 +410,7 @@ export class EditorApp {
     const like = this.state.design.roads.find(road => road.route) ?? this.state.design.roads[0];
     const wall = { ...DEFAULT_WALL, texture: structuredClone(this.defaultWall()) };
     const road: RoadDesign = {
-      id: this.state.newId("r"), name: isFirst ? "主赛道" : `道路 ${this.state.design.roads.length + 1}`,
+      id: this.state.newId("r"), name: isFirst ? tr("主赛道") : tr("道路 {value}", { value: String(this.state.design.roads.length + 1) }),
       closed: false, route: isFirst, points: [], width: like?.width ?? 22,
       surface: texture ? { track: texture.track, name: texture.name, road: texture.road ?? [], alpha: texture.alpha }
         : structuredClone(like?.surface ?? this.defaultSurface()),
@@ -420,7 +421,7 @@ export class EditorApp {
     this.state.design.roads.push(road);
     this.state.select({ kind: "road", id: road.id });
     this.setMode("draw");
-    this.say("在地上点一下放一个点，一个一个点出赛道");
+    this.say(tr("在地上点一下放一个点，一个一个点出赛道"));
   }
 
   startDraw(): void {
@@ -488,7 +489,7 @@ export class EditorApp {
       // 点起点拱门：打开素材栏的拱门那一栏换样式
       this.state.select(undefined);
       this.dock.open("arch", true);
-      this.say("这是起点拱门：在下面挑一种换上，或者用“拆除”拆掉", 4000);
+      this.say(tr("这是起点拱门：在下面挑一种换上，或者用“拆除”拆掉"), 4000);
       return;
     }
     if (pieceId) {
@@ -532,10 +533,10 @@ export class EditorApp {
     if (first && road.points.length >= 3 && Math.hypot(point[0] - first.x, point[1] - first.y) < Math.max(8, road.width * 0.6)) {
       this.commitRoad(road.id, r => { r.closed = true; });
       this.setMode("select");
-      this.say("赛道连成一圈啦！");
+      this.say(tr("赛道连成一圈啦！"));
       return;
     }
-    if (road.points.length >= MAP_LIMITS.roadPoints) { this.say("这条路的点太多啦"); return; }
+    if (road.points.length >= MAP_LIMITS.roadPoints) { this.say(tr("这条路的点太多啦")); return; }
     const id = road.id;
     const rounded: Vec3 = [Math.round(point[0] * 10) / 10, Math.round(point[1] * 10) / 10, Math.round(point[2] * 10) / 10];
     this.state.commit(design => {
@@ -576,8 +577,8 @@ export class EditorApp {
       road.points = result.points;
     });
     if (result && (result.rounded || result.merged || result.lifted)) {
-      const parts = [result.rounded ? "急弯修圆了" : "", result.merged ? "挤在一起的点合并了" : "", result.lifted ? "太低太陡的地方垫平了" : ""].filter(Boolean);
-      this.say(`赛道自动修顺：${parts.join("，")}`, 3500);
+      const parts = [result.rounded ? tr("急弯修圆了") : "", result.merged ? tr("挤在一起的点合并了") : "", result.lifted ? tr("太低太陡的地方垫平了") : ""].filter(Boolean);
+      this.say(tr("赛道自动修顺：{value}", { value: String(parts.join("，")) }), 3500);
     }
   }
 
@@ -701,13 +702,13 @@ export class EditorApp {
         });
         this.state.select({ kind: "road", id: road.id, point: Math.min(index, road.points.length - 1) });
       } else {
-        modal("删除道路", `删除道路「${road.name}」？可以撤销。`, [["删除", () => {
+        modal(tr("删除道路"), tr("删除道路「{value}」？可以撤销。", { value: String(road.name) }), [[tr("删除"), () => {
           this.state.commit(design => {
             design.roads = design.roads.filter(r => r.id !== road.id);
             design.items.rows = design.items.rows.filter(row => row.road !== road.id);
           });
           this.state.select(undefined);
-        }], ["取消", () => undefined]]);
+        }], [tr("取消"), () => undefined]]);
       }
     }
   }
@@ -715,7 +716,7 @@ export class EditorApp {
   duplicateSelection(): void {
     const pieces = this.state.selectedPieces();
     if (!pieces.length) return;
-    if (this.state.design.pieces.length + pieces.length > MAP_LIMITS.pieces) { this.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`); return; }
+    if (this.state.design.pieces.length + pieces.length > MAP_LIMITS.pieces) { this.say(tr("一张地图最多放 {value} 样东西", { value: String(MAP_LIMITS.pieces) })); return; }
     const group = pieces.length > 1 ? this.state.newId("g") : undefined;
     const copies = pieces.map(piece => ({
       ...structuredClone(piece), id: this.state.newId("p"), group,
@@ -800,20 +801,20 @@ export class EditorApp {
   }
 
   applyTexture(texture: CatalogTexture): void {
-    const label = textureLabel(texture);
+    const label = tr(textureLabel(texture));
     if (texture.kind === "ground") {
       this.state.commit(design => {
         design.ground ??= { ...defaultGround(), size: this.groundSizeFor(design) };
         design.ground.texture = textureRef(texture);
       });
-      this.say(`地面换成「${label}」。`);
+      this.say(tr("地面换成「{value}」。", { value: String(label) }));
       return;
     }
     const road = this.targetRoad();
-    if (!road) { this.say("先在“赛道”里铺一条路。"); this.dock.open("shape"); return; }
+    if (!road) { this.say(tr("先在“赛道”里铺一条路。")); this.dock.open("shape"); return; }
     if (texture.kind === "surface") {
       this.state.commit(design => { design.roads.find(r => r.id === road.id)!.surface = surfaceRef(texture); });
-      this.say(`「${road.name}」的路面换成「${label}」。`);
+      this.say(tr("「{value}」的路面换成「{value2}」。", { value: String(road.name), value2: String(label) }));
     } else {
       this.state.commit(design => {
         const target = design.roads.find(r => r.id === road.id)!;
@@ -823,20 +824,20 @@ export class EditorApp {
         }
         for (const wall of [target.walls.left, target.walls.right]) if (wall) wall.texture = textureRef(texture);
       });
-      this.say(`「${road.name}」的护栏换成「${label}」。`);
+      this.say(tr("「{value}」的护栏换成「{value2}」。", { value: String(road.name), value2: String(label) }));
     }
   }
 
   /** 换起点拱门；null 是不要拱门。 */
   setArch(arch: CatalogArch | null): void {
     this.state.commit(design => { design.start.arch = arch ? archRef(arch) : null; });
-    if (!this.state.design.roads.some(road => road.route && road.closed)) this.say("铺好一圈赛道后，拱门会立在起跑线上", 3500);
-    else this.say(arch ? `起点拱门换成了「${themeTitle(arch.theme)} ${arch.label}」` : "拆掉了起点拱门", 2500);
+    if (!this.state.design.roads.some(road => road.route && road.closed)) this.say(tr("铺好一圈赛道后，拱门会立在起跑线上"), 3500);
+    else this.say(arch ? tr("起点拱门换成了「{value} {value2}」", { value: String(tr(themeTitle(arch.theme))), value2: String(arch.label) }) : tr("拆掉了起点拱门"), 2500);
   }
 
   applySky(sky: CatalogSky): void {
     this.state.commit(design => { design.sky = sky.track; });
-    this.say(`天空换成「${sky.label}」。`);
+    this.say(tr("天空换成「{value}」。", { value: String(sky.label) }));
   }
 
   /** 主题套装：天空、全部道路的路面和护栏、地面、背景音乐。 */
@@ -860,7 +861,7 @@ export class EditorApp {
         design.ground.texture = textureRef(ground);
       }
     });
-    this.say(`换上了${themeTitle(preset.theme)}主题。`);
+    this.say(tr("换上了{value}主题。", { value: String(tr(themeTitle(preset.theme))) }));
     this.dock.render();
   }
 
@@ -892,10 +893,10 @@ export class EditorApp {
       });
       this.state.select(undefined);
       this.frameRoute();
-      this.say(`铺好了「${template.title}」。拖白色圆点可以改形状，接下来在素材栏挑建筑和树摆上去。`, 8000);
+      this.say(tr("铺好了「{value}」。拖白色圆点可以改形状，接下来在素材栏挑建筑和树摆上去。", { value: tr(template.title) }), 8000);
     };
     if (route && route.points.length >= 3)
-      modal("换赛道形状", `把比赛路线「${route.name}」换成「${template.title}」吗？已经摆好的物件不会动，可以撤销。`, [["换", apply], ["取消", () => undefined]]);
+      modal(tr("换赛道形状"), tr("把比赛路线「{value}」换成「{value2}」吗？已经摆好的物件不会动，可以撤销。", { value: String(route.name), value2: tr(template.title) }), [[tr("换"), apply], [tr("取消"), () => undefined]]);
     else apply();
   }
 
@@ -916,7 +917,7 @@ export class EditorApp {
   /** 沿比赛路线每隔一段放一排道具箱。 */
   autoItems(): void {
     const route = this.state.design.roads.find(road => road.route && road.closed);
-    if (!route) { this.say("先铺好一条闭合的比赛路线。"); return; }
+    if (!route) { this.say(tr("先铺好一条闭合的比赛路线。")); return; }
     const total = Math.max(1, Math.floor(sampleRoad(route, 2).total));
     const spacing = Math.max(150, Math.min(400, total / 4));
     const startAhead = this.state.design.start.offset + 80;
@@ -927,13 +928,13 @@ export class EditorApp {
       design.items.rows = design.items.rows.slice(0, MAP_LIMITS.itemRows);
     });
     const rows = this.state.design.items.rows.filter(row => row.road === route.id).length;
-    this.say(`放了 ${rows} 排道具箱。发布后道具房也能选这张图。`);
+    this.say(tr("放了 {value} 排道具箱。发布后道具房也能选这张图。", { value: String(rows) }));
   }
 
   clearItems(): void {
     if (!this.state.design.items.rows.length) return;
     this.state.commit(design => { design.items.rows = []; });
-    this.say("道具箱已清除。");
+    this.say(tr("道具箱已清除。"));
   }
 
   /** 换一张设计（新建向导、打开）。 */
@@ -943,7 +944,7 @@ export class EditorApp {
       const floor = design.ground.z + ROAD_CLEARANCE;
       let lifted = 0;
       for (const road of design.roads) for (const point of road.points) if (point.z < floor) { point.z = Math.round(floor * 100) / 100; lifted++; }
-      if (lifted) setTimeout(() => this.say("已经把贴着地面的路抬高了一点，不会再露出草地", 4000), 0);
+      if (lifted) setTimeout(() => this.say(tr("已经把贴着地面的路抬高了一点，不会再露出草地"), 4000), 0);
     }
     // 旧地图没有记拱门：按主题补一个原版起点拱门
     const data = this.dock.catalog();
@@ -977,7 +978,7 @@ export class EditorApp {
   /** 在视角中心放一组官方物件，保持它们原来的相对位置。 */
   placePieces(track: string, infos: PieceInfo[], at?: Vec3): void {
     if (!infos.length) return;
-    if (this.state.design.pieces.length + infos.length > MAP_LIMITS.pieces) { this.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`); return; }
+    if (this.state.design.pieces.length + infos.length > MAP_LIMITS.pieces) { this.say(tr("一张地图最多放 {value} 样东西", { value: String(MAP_LIMITS.pieces) })); return; }
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     for (const info of infos) for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i]!, info.min[i]!); max[i] = Math.max(max[i]!, info.max[i]!); }
     const anchor: Vec3 = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, min[2]];
@@ -996,7 +997,7 @@ export class EditorApp {
     }));
     this.state.commit(design => { design.pieces.push(...pieces); });
     this.state.select({ kind: "pieces", ids: pieces.map(piece => piece.id) });
-    this.say(`已放入 ${pieces.length} 个物件${group ? "（一组，点击时整组选中，Ctrl+点击选单个）" : ""}。`);
+    this.say(tr("已放入 {value} 个物件{value2}。", { value: String(pieces.length), value2: String(group ? tr("（一组，点击时整组选中，Ctrl+点击选单个）") : "") }));
   }
 
   // ------------------------------------------------------------------ 取件视图
@@ -1012,7 +1013,7 @@ export class EditorApp {
   async openSource(track: SourceTrack): Promise<void> {
     this.hideSource();
     this.browsing = track;
-    this.say(`正在载入「${track.title}」…`, 20000);
+    this.say(tr("正在载入「{value}」…", { value: String(track.title) }), 20000);
     try {
       const [{ scene, model }, pieces] = await Promise.all([this.assets.assembleTrack(track.folder), this.assets.pieces(track.folder)]);
       if (this.browsing !== track) { scene.dispose(); return; }
@@ -1038,9 +1039,9 @@ export class EditorApp {
         for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i]!, piece.min[i]!); max[i] = Math.max(max[i]!, piece.max[i]!); }
       }
       if (Number.isFinite(min[0])) this.viewport.frameBounds(min, max);
-      this.say(`「${track.title}」：${pieces.length} 个物件。`);
+      this.say(tr("「{value}」：{value2} 个物件。", { value: String(track.title), value2: String(pieces.length) }));
     } catch (error) {
-      this.say(`官方赛道载入失败：${(error as Error).message}`);
+      this.say(tr("官方赛道载入失败：{value}", { value: String((error as Error).message) }));
     }
     this.queueRender();
   }

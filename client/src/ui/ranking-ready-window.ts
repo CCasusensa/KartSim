@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The 排位计时赛 window (TIMEATTACK.md), the release stage_rankingTimeAttackReady
  * layout drawn by the shared BML renderer: the track's 赛道排名 (top ten ranked
@@ -64,7 +65,7 @@ export class RankingReadyWindow {
   }
 
   static async open(options: RankingWindowOptions): Promise<RankingReadyWindow> {
-    const strings = new Map(Object.entries(FALLBACK_STRINGS));
+    const strings = new Map(Object.entries(FALLBACK_STRINGS).map(([key, value]) => [key, tr(value)]));
     for (const [key, value] of await loadStrings(options.library, FOLDER, "stage_stringBag")) strings.set(key, value);
     const window = new RankingReadyWindow(options, strings);
     await window.build();
@@ -119,7 +120,7 @@ export class RankingReadyWindow {
     if (this.disposed) return;
     this.view = await te.load({
       library, root: this.options.root, definition, roots: ROOTS, smoothImages: true, modal: true,
-      label: this.strings.get("timeAttack") ?? "排位计时赛",
+      label: this.strings.get("timeAttack") ?? tr("排位计时赛"),
       onCancel: () => this.options.onClose(),
       onConfirm: () => this.options.onStart(),
       state: (entry: Node) => this.state(entry),
@@ -152,7 +153,7 @@ export class RankingReadyWindow {
     if (line) {
       const index = Number(line[1]) - 1;
       const entryRow = this.ranking?.rows[index];
-      return entryRow?.hasReplay ? { action: () => this.options.onReplay(entryRow), label: `观看 ${entryRow.nickname} 的录像`,
+      return entryRow?.hasReplay ? { action: () => this.options.onReplay(entryRow), label: tr("观看 {name} 的录像", { name: entryRow.nickname }),
         hoverRegion: `row-${index}` } : {};
     }
     switch (name) {
@@ -161,31 +162,31 @@ export class RankingReadyWindow {
         const panel = this.panelOf(entry, ["gameSpeedBtnPanel", "teamBoosterBtnPanel", "shadowBtnPanel"]);
         if (panel === "gameSpeedBtnPanel") {
           const speed = name === "onBtn" ? 7 : 4;
-          return { checked: settings.speed === speed, label: speed === 7 ? "标准速度" : "无限",
+          return { checked: settings.speed === speed, label: speed === 7 ? tr("标准速度") : tr("无限"),
             action: settings.speed === speed ? undefined : () => this.change({ speed }) };
         }
         if (panel === "teamBoosterBtnPanel") {
           const booster = name === "onBtn" ? 1 : 0;
-          return { checked: settings.booster === booster, label: booster ? "组队赛" : "个人赛",
+          return { checked: settings.booster === booster, label: booster ? tr("组队赛") : tr("个人赛"),
             action: settings.booster === booster ? undefined : () => this.change({ booster }) };
         }
         if (panel === "shadowBtnPanel") {
           const show = name === "onBtn";
           const hasGhost = this.options.hasGhost(settings);
-          return { visible: hasGhost, checked: settings.showGhost === show, label: show ? "我的幻影 ON" : "我的幻影 OFF",
+          return { visible: hasGhost, checked: settings.showGhost === show, label: show ? tr("我的幻影 ON") : tr("我的幻影 OFF"),
             action: settings.showGhost === show ? undefined : () => this.change({ showGhost: show }) };
         }
         return {};
       }
       case "shadowdesc": return { visible: !this.options.hasGhost(settings) };
-      case "시작": return { label: "开始 (F5)", action: () => this.options.onStart() };
-      case "소모루찌": return { text: `${this.ranking?.fee ?? 500} 金币` };
-      case "내아이템": return { label: "我的物品", action: () => this.options.onItems() };
-      case "트랙": return { label: "选择赛道", action: () => this.options.onTrack() };
-      case "exit": return { label: "关闭", action: () => this.options.onClose() };
+      case "시작": return { label: tr("开始 (F5)"), action: () => this.options.onStart() };
+      case "소모루찌": return { text: tr("{fee} 金币", { fee: this.ranking?.fee ?? 500 }) };
+      case "내아이템": return { label: tr("我的物品"), action: () => this.options.onItems() };
+      case "트랙": return { label: tr("选择赛道"), action: () => this.options.onTrack() };
+      case "exit": return { label: tr("关闭"), action: () => this.options.onClose() };
       case "currentRecord": return { text: formatRecordTime(this.ranking?.ranked?.bestMs) };
       case "replayGameSpeed":
-        return { text: `${settings.speed === 7 ? "标准速度" : "无限"} / ${settings.booster ? "组队赛" : "个人赛"}` };
+        return { text: `${settings.speed === 7 ? tr("标准速度") : tr("无限")} / ${settings.booster ? tr("组队赛") : tr("个人赛")}` };
       case "replayKart": return { text: this.ranking?.ranked?.kart.name ?? "" };
       case "replayTrack": return { text: this.options.trackTitle };
       case "게임스피드": return { paint: this.icon(`timeAttack_main_iconMode${settings.speed === 7 ? 7 : 4}`) };
@@ -207,7 +208,7 @@ export class RankingReadyWindow {
           context.fillStyle = "rgba(220,231,242,1)";
           context.textAlign = "center";
           context.textBaseline = "top";
-          context.fillText(this.loading ? "正在读取赛道排名…" : this.error ?? "该赛道还没有排位纪录。",
+          context.fillText(this.loading ? tr("正在读取赛道排名…") : this.error ?? tr("该赛道还没有排位纪录。"),
             rect.x + rect.width / 2, rect.y + 24);
           context.restore();
         }

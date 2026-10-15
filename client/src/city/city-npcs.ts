@@ -1,3 +1,4 @@
+import { cityContentName } from "../i18n/catalogs/city-content-names";
 /**
  * 卡丁城 NPCs (server-go/CITY-NPC.md) for the city session: the node's
  * law-abiding traffic (city-traffic.ts), the lamps of the signals it obeys
@@ -193,7 +194,7 @@ export class CityNpcs {
       out.push({ id: `npc-car:${car.id}`, name: car.driver, position: car.position });
     for (const npc of this.tasks) {
       if (!npc.figure?.avatar || !npc.figure.root.visible || this.away.has(npc.definition.id)) continue;
-      out.push({ id: this.labelId(npc), name: npc.definition.name,
+      out.push({ id: this.labelId(npc), name: cityContentName(npc.definition.name),
         position: { x: npc.world.x, y: npc.world.y + HEAD_OFFSET, z: npc.world.z } });
     }
     return out;

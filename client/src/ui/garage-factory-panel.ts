@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GarageFactoryConfiguration } from "./garage-factory-commit";
 import type { FactoryDraftSlot, FactoryPickerRect } from "./garage-factory-picker";
 
@@ -59,7 +60,7 @@ function renderTutorialButton(host: GarageFactoryPanelHost,
   if (!node || !rect || !host.onTutorial) return;
   const button = document.createElement("button");
   button.type = "button";
-  button.setAttribute("aria-label", "改装车间教程");
+  button.setAttribute("aria-label", tr("改装车间教程"));
   button.onclick = host.onTutorial;
   const imageBase = dependencies.attribute(node, "autoLoadImage")!;
   const setState = (state: number) => {
@@ -167,7 +168,7 @@ function renderFactoryTabs(
 ): void {
   for (const [name, label, catalogTab] of [
     ["tab_kart", host.assets.strings.get("mqKarts"), true],
-    ["tab_parts", "自定义粒子效果", false],
+    ["tab_parts", tr("自定义粒子效果"), false],
   ] as const) {
     const button = document.createElement("button");
     button.type = "button";
@@ -183,7 +184,7 @@ function renderFactoryTabs(
     }
     button.onclick = () => {
       if (!catalogTab && !installed) {
-        host.onConfirm("请先装备粒子魔方/车辆后再进行自定义", () => {},
+        host.onConfirm(tr("请先装备粒子魔方/车辆后再进行自定义"), () => {},
           { singleAction: true });
         return;
       }
@@ -204,23 +205,23 @@ function renderFactoryAction(
 ): void {
   const abilityNames = configuration.abilities.map(id => {
     const ability = dependencies.abilityDescriptions.find(candidate => candidate.id === id);
-    return ability ? `${ability.label} · ${ability.level}级` : "属性为空";
+    return ability ? tr("{0} · {1}级", { "0": ability.label, "1": ability.level }) : tr("属性为空");
   });
   host.label(original ? host.assets.strings.get("equipPlotter") :
     host.assets.strings.get("emptyPlotter")!.replaceAll("|", "\n"),
   host.assets.rects.get("abilityTitle"), "abilityTitle");
-  host.label(original ? `${configuration.active ? "已激活" : "未激活"}\n${abilityNames.join("\n")}` : "",
+  host.label(original ? `${configuration.active ? tr("已激活") : tr("未激活")}\n${abilityNames.join("\n")}` : "",
     host.assets.rects.get("abilityDesc"), "abilityDesc");
 
   const action = original ? (configuration.active ? "reset" : "tunning") : "equip";
   const button = document.createElement("button");
   button.type = "button";
   button.dataset.factoryAction = action;
-  button.textContent = busy ? "正在提交……" :
-    host.assets.strings.get(action) ?? { equip: "装备", tunning: "激活", reset: "重置" }[action];
+  button.textContent = busy ? tr("正在提交……") :
+    host.assets.strings.get(action) ?? { equip: tr("装备"), tunning: tr("激活"), reset: tr("重置") }[action];
   button.disabled = !supported;
   if (!supported && !busy)
-    button.title = "当前车辆未满足本地改装适配条件；不代表官服无法装备魔方。";
+    button.title = tr("当前车辆未满足本地改装适配条件；不代表官服无法装备魔方。");
   Object.assign(button.style, {
     color: "white",
     font: `16px "${host.assets.fontFamily ?? "P3528 Source Han Sans CN Ready"}", sans-serif`,
@@ -228,17 +229,17 @@ function renderFactoryAction(
   button.onclick = () => {
     if (original) {
       if (configuration.active) {
-        host.onConfirm("立即重置当前车辆的粒子改记录？",
+        host.onConfirm(tr("立即重置当前车辆的粒子改记录？"),
           () => host.commit(dependencies.defaultConfiguration()));
       } else if (configuration.abilities.some(ability => ability === 0)) {
         host.catalog = false;
         host.onTabChange();
       } else {
-        host.onConfirm("激活所选三项改装功能并立即应用到当前车辆？不消耗道具。",
+        host.onConfirm(tr("激活所选三项改装功能并立即应用到当前车辆？不消耗道具。"),
           () => host.commit({ ...configuration, active: true }));
       }
     } else {
-      host.onConfirm("装备改装魔方并立即记录到当前车辆？不消耗官服道具。",
+      host.onConfirm(tr("装备改装魔方并立即记录到当前车辆？不消耗官服道具。"),
         () => host.commit(dependencies.defaultConfiguration()));
     }
   };

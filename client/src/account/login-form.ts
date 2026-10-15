@@ -1,4 +1,5 @@
 import type { AccountLoginOptions } from "../multiplayer/account-login-dialog";
+import { tr } from "../i18n/locale";
 
 /**
  * The startup login / register form without its look: which fields show,
@@ -94,7 +95,7 @@ export class LoginForm {
         const problem = this.options.confirmPassword && this.values.confirm !== this.values.password
           ? "两次输入的密码不一致。" : this.options.validate?.("register", fields);
         if (problem) {
-          this.error = problem;
+          this.error = tr(problem);
           return undefined;
         }
         const account = await this.requests.requestAccount("register", fields);
@@ -104,12 +105,12 @@ export class LoginForm {
       const fields = { username: this.values.username, password: this.values.password };
       const problem = this.options.validate?.("login", fields);
       if (problem) {
-        this.error = problem;
+        this.error = tr(problem);
         return undefined;
       }
       return await this.requests.requestAccount("login", fields);
     } catch (error) {
-      this.error = this.requests.formatError(error);
+      this.error = tr(this.requests.formatError(error));
       return undefined;
     } finally {
       this.busy = false;

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageUpgradeVehicle {
   itemId: number;
   engineGrade?: number;
@@ -95,7 +96,7 @@ export function requestGarageSkillSelection(
           host.setProgression(choice);
         if (!host.disposed)
           host.progressionPanel.element
-            .querySelector(`button[aria-label="更换第${slot + 1}栏技能"]`)?.focus();
+            .querySelector(`button[aria-label="${tr("更换第{0}栏技能", { "0": slot + 1 })}"]`)?.focus();
       },
     );
     host.controls.inert = true;
@@ -148,9 +149,9 @@ export function requestGarageExceedTypeChange(
             updated, host.options.speed);
           host.configuration = dependencies.writeConfiguration(
             host.configuration, selected.itemId, serial, updated);
-          const label = new Map([[2, "S"], [3, "B"], [4, "L"]]).get(type) ?? `类型 ${type}`;
+          const label = new Map([[2, "S"], [3, "B"], [4, "L"]]).get(type) ?? tr("类型 {0}", { "0": type });
           host.publishCurrentState();
-          host.status.textContent = `超负荷类型已变更为 ${label} 并立即生效。`;
+          host.status.textContent = tr("超负荷类型已变更为 {0} 并立即生效。", { "0": label });
         } catch (error) {
           host.status.textContent = error instanceof Error ? error.message : String(error);
         }

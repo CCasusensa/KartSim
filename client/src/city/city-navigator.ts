@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城导航: a destination picked on the M map, the route to it from
  * wherever the rider is (driving, walking or on a back seat), redrawn as
@@ -72,12 +73,12 @@ export class CityNavigator {
   async setDestination(x: number, z: number, label?: string): Promise<string | undefined> {
     const nav = await this.ready();
     if (this.disposed) return undefined;
-    if (!nav) return "导航数据未能载入，请稍后再试。";
+    if (!nav) return tr("导航数据未能载入，请稍后再试。");
     const goal = nav.nearest(x, z, DESTINATION_SNAP);
-    if (goal < 0) return "这里附近没有能开车到的路。";
+    if (goal < 0) return tr("这里附近没有能开车到的路。");
     const at = nav.point(goal);
     this.destination = { x: at.x, z: at.z, node: goal,
-      label: label ?? districtAt(at.x, at.z)?.name ?? "目的地" };
+      label: label ?? tr(districtAt(at.x, at.z)?.name ?? "目的地") };
     this.field = new NavField(nav, goal);
     this.route = [];
     this.remaining = 0;
@@ -107,7 +108,7 @@ export class CityNavigator {
     const pose = this.host.pose();
     if (!pose) return;
     if (Math.hypot(pose.x - destination.x, pose.z - destination.z) <= ARRIVE_RADIUS) {
-      this.host.notice(`已到达目的地：${destination.label}。`);
+      this.host.notice(tr("已到达目的地：{value0}。", { value0: destination.label }));
       this.clear();
       return;
     }
@@ -143,10 +144,10 @@ export class CityNavigator {
   /** One line for the map and the HUD. */
   statusText(): string {
     const destination = this.destination;
-    if (!destination) return "点击地图选择目的地";
+    if (!destination) return tr("点击地图选择目的地");
     switch (this.status) {
-      case "routing": return `${destination.label} · 正在规划路线…`;
-      case "off-road": return `${destination.label} · 离道路太远，先开回路上`;
+      case "routing": return tr("{value0} · 正在规划路线…", { value0: destination.label });
+      case "off-road": return tr("{value0} · 离道路太远，先开回路上", { value0: destination.label });
       default: return `${destination.label} · ${distanceLabel(this.remaining)}`;
     }
   }

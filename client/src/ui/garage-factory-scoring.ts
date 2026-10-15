@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface FactoryVehicle {
   kind: string;
   itemId: number;
@@ -75,7 +76,7 @@ export function updateGarageFactoryScores(
   const selectedKey = host.factoryVehicleKey(selected);
   if (!panel) return;
   if (!host.nativeFactoryAllowed(selected)) {
-    panel.updateScores(undefined, "当前车辆不支持车辆改装。");
+    panel.updateScores(undefined, tr("当前车辆不支持车辆改装。"));
     return;
   }
   let vehicle: unknown;
@@ -90,7 +91,7 @@ export function updateGarageFactoryScores(
   }
   const family = dependencies.scoreFamily(vehicle, selected.engineGrade);
   if (!family) {
-    panel.updateScores(undefined, "当前车辆缺少对应代际的 Factory 评分来源。");
+    panel.updateScores(undefined, tr("当前车辆缺少对应代际的 Factory 评分来源。"));
     return;
   }
   const sourceKind = family === "xun" ? "xun-body" : "x-v1";

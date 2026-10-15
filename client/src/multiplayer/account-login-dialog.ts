@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Login and invite registration dialog for the multiplayer account service. */
 
 export interface AccountLoginDependencies {
@@ -54,7 +55,7 @@ export class AccountLoginDialog {
     const form = dependencies.createElement("form") as HTMLFormElement;
     form.style.cssText = dependencies.panelStyle;
     const heading = dependencies.createElement("h2");
-    heading.textContent = options?.heading ?? "多人游戏账号";
+    heading.textContent = options?.heading ?? tr("多人游戏账号");
     heading.style.margin = "0 0 8px";
 
     const accountMode = options !== undefined;
@@ -66,21 +67,21 @@ export class AccountLoginDialog {
     // Only the startup gate asks twice; the release dialog has four inputs.
     const confirm = options?.confirmPassword
       ? dependencies.createElement("input") as HTMLInputElement : undefined;
-    username.placeholder = "账号名（3–24 位字母、数字或下划线）";
+    username.placeholder = tr("账号名（3–24 位字母、数字或下划线）");
     username.autocomplete = "username";
-    nickname.placeholder = accountMode ? "游戏昵称（1–16 字）" : "游戏昵称（注册时填写）";
+    nickname.placeholder = accountMode ? tr("游戏昵称（1–16 字）") : tr("游戏昵称（注册时填写）");
     nickname.hidden = true;
-    password.placeholder = accountMode ? "密码（至少 8 位）" : "密码（至少 12 位）";
+    password.placeholder = accountMode ? tr("密码（至少 8 位）") : tr("密码（至少 12 位）");
     password.type = "password";
     password.autocomplete = "current-password";
     if (confirm) {
-      confirm.placeholder = "再次输入密码";
+      confirm.placeholder = tr("再次输入密码");
       confirm.type = "password";
       confirm.autocomplete = "new-password";
       confirm.hidden = true;
     }
     invite.placeholder = inviteMode === "optional" || inviteMode === "collapsed"
-      ? "邀请码（可不填）" : "邀请码";
+      ? tr("邀请码（可不填）") : tr("邀请码");
     invite.hidden = true;
     // Open registration keeps the code out of the way until it is asked for.
     const inviteToggle = inviteMode === "collapsed"
@@ -102,18 +103,18 @@ export class AccountLoginDialog {
     errorText.style.cssText = "min-height:20px;color:#ffb3a9";
     const submit = dependencies.createElement("button") as HTMLButtonElement;
     submit.type = "submit";
-    submit.textContent = "登录";
+    submit.textContent = tr("登录");
     const mode = dependencies.createElement("button") as HTMLButtonElement;
     mode.type = "button";
-    const registerLabel = accountMode && inviteMode !== "required" ? "注册新账号" : "用邀请码注册";
+    const registerLabel = accountMode && inviteMode !== "required" ? tr("注册新账号") : tr("用邀请码注册");
     mode.textContent = registerLabel;
     const back = dependencies.createElement("button") as HTMLButtonElement;
     back.type = "button";
-    back.textContent = "返回";
+    back.textContent = tr("返回");
     dependencies.styleButtons(submit, mode, back);
     if (inviteToggle) {
       inviteToggle.type = "button";
-      inviteToggle.textContent = "有邀请码？";
+      inviteToggle.textContent = tr("有邀请码？");
       inviteToggle.dataset.accountInviteToggle = "";
       inviteToggle.hidden = true;
       inviteToggle.style.cssText = "justify-self:start;padding:0;background:none;border:0;" +
@@ -137,8 +138,8 @@ export class AccountLoginDialog {
       if (confirm) confirm.hidden = !registering;
       if (accountMode)
         password.autocomplete = registering ? "new-password" : "current-password";
-      submit.textContent = registering ? "注册并登录" : "登录";
-      mode.textContent = registering ? "已有账号，去登录" : registerLabel;
+      submit.textContent = registering ? tr("注册并登录") : tr("登录");
+      mode.textContent = registering ? tr("已有账号，去登录") : registerLabel;
     };
     mode.onclick = () => {
       registering = !registering;
@@ -160,7 +161,7 @@ export class AccountLoginDialog {
             fields.invite = invite.value;
           if (accountMode) {
             const problem = confirm && confirm.value !== password.value
-              ? "两次输入的密码不一致。" : options.validate?.("register", fields);
+              ? tr("两次输入的密码不一致。") : options.validate?.("register", fields);
             if (problem) {
               errorText.textContent = problem;
               return;
@@ -175,7 +176,7 @@ export class AccountLoginDialog {
           nickname.hidden = invite.hidden = true;
           if (inviteToggle) inviteToggle.hidden = true;
           if (confirm) confirm.hidden = true;
-          submit.textContent = "登录";
+          submit.textContent = tr("登录");
           mode.textContent = registerLabel;
         }
         const fields = { username: username.value, password: password.value };

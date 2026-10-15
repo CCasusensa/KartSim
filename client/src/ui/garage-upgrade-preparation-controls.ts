@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 import type { GaragePreparationRenderDependencies } from
   "./garage-upgrade-preparation-render";
@@ -58,7 +59,7 @@ export function addPreparationComparisonValue(host: GaragePreparationControlHost
     element.append(increase);
   }
   element.setAttribute("aria-label", increment > 0
-    ? value + "，增加 " + increment : String(value));
+    ? value + tr("，增加 ") + increment : String(value));
   placePreparationControl(host, element, host.assets!.rects.get(rectName)!);
 }
 
@@ -77,7 +78,7 @@ export function createPreparationButton(host: GaragePreparationControlHost,
 
 export function addPreparationCancelButton(host: GaragePreparationControlHost): void {
   const rect = host.assets?.rect ?? { x: 178, y: 56, width: 1244 };
-  const button = createPreparationButton(host, "关闭强化准备", {
+  const button = createPreparationButton(host, tr("关闭强化准备"), {
     x: rect.x + rect.width - 38, y: rect.y + 3, width: 30, height: 30,
   }, () => host.close(false));
   button.textContent = "×";

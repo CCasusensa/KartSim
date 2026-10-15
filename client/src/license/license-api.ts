@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The data service's 驾照考试 endpoints (server-go/RIDER_SCHOOL.md): the rider
  * school table and the account's standing (GET /api/license), a cleared step
@@ -144,7 +145,7 @@ const MESSAGES: Record<string, string> = {
 
 export function licenseErrorMessage(error: unknown): string {
   const code = typeof error === "string" ? error : errorCode(error) ?? "";
-  return MESSAGES[code] ?? `操作失败（${code || "未知错误"}），请稍后再试。`;
+  return MESSAGES[code] ? tr(MESSAGES[code]) : tr("操作失败（{error}），请稍后再试。", { error: code || tr("未知错误") });
 }
 
 type Json = Record<string, unknown>;

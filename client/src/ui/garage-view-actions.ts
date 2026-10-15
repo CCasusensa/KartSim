@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageViewActionKart {
   itemId: number;
   systemKey?: string;
@@ -117,7 +118,7 @@ export async function showGarageFactoryTutorial(host: GarageViewActionHost,
     if (host.disposed || host.pageMode !== "factory") close();
     else host.tutorialClose = close;
   } catch (error) {
-    if (!host.disposed) host.status.textContent = `教程加载失败：${String(error)}`;
+    if (!host.disposed) host.status.textContent = tr("教程加载失败：{0}", { "0": String(error) });
   } finally {
     host.tutorialLoading = false;
   }

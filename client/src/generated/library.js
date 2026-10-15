@@ -1,3 +1,5 @@
+import { tr as translateGeneratedLabel } from "../i18n/locale.ts";
+import { resourceText } from "../i18n/locale.ts";
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
 // Stable minified names are retained for behavioral parity.
@@ -590,7 +592,7 @@ class Ew {
     const i = this.canvas.getContext("2d");
     if (!i) throw new Error("无法创建多人大厅画面");
     ((this.context = i),
-      this.canvas.setAttribute("aria-label", "多人游戏大厅"),
+      this.canvas.setAttribute("aria-label", translateGeneratedLabel("多人游戏大厅")),
       (this.canvas.tabIndex = 0),
       Object.assign(this.canvas.style, {
         position: "absolute",
@@ -602,7 +604,8 @@ class Ew {
         pointerEvents: "auto",
       }),
       (this.element.dataset.uiLayer = "stage"),
-      this.element.setAttribute("aria-label", "多人游戏大厅"),
+      this.element.setAttribute("aria-label", translateGeneratedLabel("多人游戏大厅")),
+      (this.element.dataset.uiPage = "multiplayer-lobby"),
       Object.assign(this.element.style, {
         position: "absolute",
         inset: "0",
@@ -841,7 +844,7 @@ async function uQ(n, e) {
       .querySelectorAll("k")
       .forEach((p) => {
         const v = p.getAttribute("n"),
-          w = p.querySelector('m[c="cn"]')?.getAttribute("v");
+          w = resourceText(Array.from(p.children), (entry, key) => entry.getAttribute(key));
         v && w && h.set(v, w);
       });
     const f = new Map(
@@ -984,10 +987,8 @@ class Gw {
       ]),
       s = x1(r).root.children,
       o = (g) => {
-        const b = s
-            .find((x) => j0(x, "n") === g)
-            ?.children.find((x) => j0(x, "c") === "cn"),
-          A = b && j0(b, "v");
+        const b = s.find((x) => j0(x, "n") === g),
+          A = b && resourceText(b.children, j0);
         if (!A) throw new Error(`局内提示缺少原文：${g}`);
         return A;
       },

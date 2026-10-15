@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Server inventory applied to the garage (ECONOMY.md 4, 7.4): which catalog
  * items the account may equip, how long rentals have left, and the fallback
@@ -116,10 +117,10 @@ const HOUR_MS = 60 * 60 * 1000;
 export function remainingLabel(expiresAt: number | null, now: number): string | undefined {
   if (expiresAt === null) return undefined;
   const left = expiresAt - now;
-  if (left <= 0) return "已过期";
-  if (left >= DAY_MS) return `剩余 ${Math.floor(left / DAY_MS)} 天`;
-  if (left >= HOUR_MS) return `剩余 ${Math.floor(left / HOUR_MS)} 小时`;
-  return `剩余 ${Math.max(1, Math.ceil(left / 60_000))} 分钟`;
+  if (left <= 0) return tr("已过期");
+  if (left >= DAY_MS) return tr("剩余 {value} 天", { value: String(Math.floor(left / DAY_MS)) });
+  if (left >= HOUR_MS) return tr("剩余 {value} 小时", { value: String(Math.floor(left / HOUR_MS)) });
+  return tr("剩余 {value} 分钟", { value: String(Math.max(1, Math.ceil(left / 60_000))) });
 }
 
 export interface CatalogKart {

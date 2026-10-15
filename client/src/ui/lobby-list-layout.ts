@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Categories, filters and view state of the multiplayer room list page: three
  * tabs across the top (竞速赛, 道具赛, ETC), a category column on the left and
@@ -230,9 +231,10 @@ export function lobbyRoomModeLabel(room: LobbyListRoom): string {
   const infinit = room.speed === 4;
   const special = room.gameplay && room.gameplay !== "ordinary"
     ? GAMEPLAY_NAMES[room.gameplay] : undefined;
-  if (special) return `${team ? "组队" : "个人"}${special}${infinit ? "无限" : ""}`;
-  if (infinit) return team ? "无限团体" : "无限个人";
-  return team ? "团体赛" : "个人赛";
+  if (special) return tr(infinit ? "{team}{mode}无限" : "{team}{mode}",
+    { team: tr(team ? "组队" : "个人"), mode: tr(special) });
+  if (infinit) return tr(team ? "无限团体" : "无限个人");
+  return tr(team ? "团体赛" : "个人赛");
 }
 
 export function lobbyRoomJoinable(room: LobbyListRoom): boolean {

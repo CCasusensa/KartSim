@@ -5,6 +5,7 @@
 // handwritten replacements in ../src outside of src/generated.
 
 import { createHash } from "node:crypto";
+import { localizeGeneratedModule } from "./i18n-generated.mjs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -5834,6 +5835,7 @@ function pruneUnreferencedDeclarations(rendered) {
 
 await mkdir(outputDir, { recursive: true });
 async function writeIfChanged(filename, contents) {
+  contents = localizeGeneratedModule(filename, contents);
   const target = path.join(outputDir, filename);
   try {
     if (await readFile(target, "utf8") === contents) return;

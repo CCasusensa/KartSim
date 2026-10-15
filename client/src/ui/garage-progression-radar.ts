@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** One axis of the garage's before/after vehicle performance radar. */
 export interface GarageRadarValue {
   label: string;
@@ -66,7 +67,7 @@ export async function updateGarageProgressionRadar(
 
   const status = dependencies.createStatus();
   status.setAttribute("role", "img");
-  status.setAttribute("aria-label", "车辆性能雷达加载中");
+  status.setAttribute("aria-label", tr("车辆性能雷达加载中"));
   const previousContainer = host.activeContainer;
   host.activeContainer = host.classicContainer;
   host.place(status, host.rect("resultGraph"));
@@ -79,13 +80,13 @@ export async function updateGarageProgressionRadar(
     host.radar = dependencies.makeRadar(data.input, enhanced, data.weights);
     const summary = host.radar.map(value =>
       `${value.label}：${value.base.toFixed(1)} → ${value.enhanced.toFixed(1)}`).join("；");
-    status.setAttribute("aria-label", `车辆性能雷达，基础值与本地强化/改装值。${summary}`);
-    status.title = `原始车辆参数 / 本地强化及改装草稿（非比赛速度档位）\n${summary}`;
+    status.setAttribute("aria-label", tr("车辆性能雷达，基础值与本地强化/改装值。{0}", { "0": summary }));
+    status.title = tr("原始车辆参数 / 本地强化及改装草稿（非比赛速度档位）\n{0}", { "0": summary });
   } catch (error) {
     if (revision !== host.radarRevision) return;
     status.setAttribute("role", "status");
     status.removeAttribute("aria-label");
-    status.textContent = `性能雷达暂不可用：${error instanceof Error ? error.message : String(error)}`;
+    status.textContent = tr("性能雷达暂不可用：{0}", { "0": error instanceof Error ? error.message : String(error) });
   }
 }
 

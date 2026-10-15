@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export const RADAR_FIELDS = {
   DragFactor: "dragFactor",
   ForwardAccelForce: "forwardAccel",
@@ -11,8 +12,8 @@ export const RADAR_FIELDS = {
 } as const;
 
 const RADAR_LABELS = [
-  "集气速度", "加速时间", "加速最高速度", "竞速",
-  "弯道", "稳定性", "平衡", "强化力量",
+  tr("集气速度"), tr("加速时间"), tr("加速最高速度"), tr("竞速"),
+  tr("弯道"), tr("稳定性"), tr("平衡"), tr("强化力量"),
 ] as const;
 
 export interface GarageRadarWeights {
@@ -144,9 +145,9 @@ export function drawGarageRadar(context: CanvasRenderingContext2D,
   axes.forEach((axis, index) => {
     const point = garageRadarPoint(rect, index, 125);
     context.textAlign = point.x < rect.x + rect.width / 2 ? "right" : "left";
-    if (axis.label === "加速最高速度") {
-      context.fillText("加速", point.x, point.y - 10);
-      context.fillText("最高速度", point.x, point.y + 10);
+    if (index === 2) {
+      context.fillText(tr("加速"), point.x, point.y - 10);
+      context.fillText(tr("最高速度"), point.x, point.y + 10);
     } else context.fillText(axis.label, point.x, point.y);
   });
   context.restore();

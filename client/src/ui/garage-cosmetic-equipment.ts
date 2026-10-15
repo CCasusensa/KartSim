@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageCosmeticChoice {
   id: string | number;
   title: string;
@@ -60,7 +61,7 @@ export function requestGarageCoating(
   if (!host.requireCustomization()) return;
   const selected = host.selected;
   host.confirmation?.open(
-    `确定${choice ? `装备「${choice.title}」` : "卸下车膜，恢复车辆原有材质"}并立即生效？`,
+    tr("确定{0}并立即生效？", { "0": choice ? tr("装备「{0}」", { "0": choice.title }) : tr("卸下车膜，恢复车辆原有材质") }),
     () => {
       if (!host.disposed && host.selected === selected && host.coatingMode)
         void host.equipCoating(choice);
@@ -126,7 +127,7 @@ export function requestGarageCosmetic(
   const selected = host.selected;
   const slot = host.cosmeticSlot;
   host.confirmation?.open(
-    `确定${choice ? `装备「${choice.title}」` : "恢复此外观槽的原装效果"}并立即生效？\n不消耗库存。`,
+    tr("确定{0}并立即生效？\n不消耗库存。", { "0": choice ? tr("装备「{0}」", { "0": choice.title }) : tr("恢复此外观槽的原装效果") }),
     () => {
       if (!host.disposed && host.selected === selected && host.cosmeticSlot === slot)
         void host.equipCosmetic(choice);
@@ -177,7 +178,7 @@ export async function equipGarageCosmetic(
       host.configuration, selected.itemId, serial, committed);
     host.publishCurrentState();
     host.cosmeticPreview = undefined;
-    message = "外观部件已更新并立即生效。";
+    message = tr("外观部件已更新并立即生效。");
   } catch (error) {
     message = error instanceof Error ? error.message : String(error);
   } finally {

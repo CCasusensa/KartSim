@@ -1,3 +1,4 @@
+import { tr, gameLocale } from "../i18n/locale";
 /**
  * Pure shop logic: tabs and sub-tabs, search, sorting, paging, ownership,
  * offer selection and price formatting. The view renders only one page of
@@ -14,7 +15,7 @@ import {
 
 /** Wallet names as the lobby top bar shows them (ECONOMY.md 0). */
 export const CURRENCY_LABELS: Readonly<Record<Currency, string>> = {
-  coupon: "点券", lucci: "金币", koin: "K币",
+  coupon: tr("点券"), lucci: tr("金币"), koin: tr("K币"),
 };
 
 export const RECOMMEND_TAB = "recommend";
@@ -22,37 +23,37 @@ export const ALL_SUB_TAB = "all";
 
 /** Original stage_mqShop / itemCatTab names, used when the catalog omits one. */
 const TAB_NAMES: Record<string, string> = {
-  recommend: "推荐", kartBody: "卡丁车", character: "角色", equip: "装备",
+  recommend: tr("推荐"), kartBody: tr("卡丁车"), character: tr("角色"), equip: tr("装备"),
 };
 
 const SUB_TAB_NAMES: Record<string, string> = {
-  itemKart: "道具车", speedKart: "竞速车", character: "角色", pet: "宠物",
-  flyingPet: "飞行宠物", balloon: "气球", headBand: "头饰", goggle: "眼镜",
-  handGear: "手套", color: "喷漆", dye: "染色", aura: "光环", skidMark: "轨迹",
-  plate: "车牌", etc: "其他",
+  itemKart: tr("道具车"), speedKart: tr("竞速车"), character: tr("角色"), pet: tr("宠物"),
+  flyingPet: tr("飞行宠物"), balloon: tr("气球"), headBand: tr("头饰"), goggle: tr("眼镜"),
+  handGear: tr("手套"), color: tr("喷漆"), dye: tr("染色"), aura: tr("光环"), skidMark: tr("轨迹"),
+  plate: tr("车牌"), etc: tr("其他"),
 };
 
 /** stage_stringBag "total". */
-const ALL_SUB_TAB_NAME = "全部";
+const ALL_SUB_TAB_NAME = tr("全部");
 
 const KIND_LABELS: Record<string, string> = {
-  kart: "卡丁车", character: "角色", pet: "宠物", flyingPet: "飞行宠物",
-  balloon: "气球", headBand: "头饰", goggle: "眼镜", handGearL: "手套",
-  color: "喷漆", dye: "染色", aura: "光环", skidMark: "轨迹", plate: "车牌",
-  uniform: "服装", decal: "贴花", ridColor: "车手颜色", slotBg: "车手栏背景",
-  headPhone: "耳机", rpLucciBonus: "经验金币加成卡", goItemSkinCard: "道具皮肤卡",
-  tachometer: "仪表盘",
+  kart: tr("卡丁车"), character: tr("角色"), pet: tr("宠物"), flyingPet: tr("飞行宠物"),
+  balloon: tr("气球"), headBand: tr("头饰"), goggle: tr("眼镜"), handGearL: tr("手套"),
+  color: tr("喷漆"), dye: tr("染色"), aura: tr("光环"), skidMark: tr("轨迹"), plate: tr("车牌"),
+  uniform: tr("服装"), decal: tr("贴花"), ridColor: tr("车手颜色"), slotBg: tr("车手栏背景"),
+  headPhone: tr("耳机"), rpLucciBonus: tr("经验金币加成卡"), goItemSkinCard: tr("道具皮肤卡"),
+  tachometer: tr("仪表盘"),
 };
 
 /** etc_ engineGrade<N> strings of the CN garage. */
 const ENGINE_NAMES: Record<number, string> = {
-  1: "PRO引擎以下", 2: "SR引擎", 3: "Z7引擎", 4: "HT引擎", 5: "HT+引擎",
-  6: "JIU引擎", 7: "X引擎", 8: "V1引擎", 9: "迅引擎",
+  1: tr("PRO引擎以下"), 2: tr("SR引擎"), 3: tr("Z7引擎"), 4: tr("HT引擎"), 5: tr("HT+引擎"),
+  6: tr("JIU引擎"), 7: tr("X引擎"), 8: tr("V1引擎"), 9: tr("迅引擎"),
 };
 
 export function kindLabel(item: Pick<ShopItem, "kind" | "kartType">): string {
-  if (item.kind === "kart") return item.kartType === 1 ? "道具车" : item.kartType === 2 ? "竞速车" : "卡丁车";
-  return KIND_LABELS[item.kind] ?? "道具";
+  if (item.kind === "kart") return item.kartType === 1 ? tr("道具车") : item.kartType === 2 ? tr("竞速车") : tr("卡丁车");
+  return KIND_LABELS[item.kind] ?? tr("道具");
 }
 
 export function engineLabel(item: Pick<ShopItem, "kind" | "engineGrade">): string | undefined {
@@ -72,14 +73,14 @@ export function formatPrice(price: number, currency: Currency): string {
 
 /** "永久" or "30天". */
 export function formatPeriod(days: number): string {
-  return days === 0 ? "永久" : `${days}天`;
+  return days === 0 ? tr("永久") : tr("{0}天", { "0": days });
 }
 
 /** The term an offer grants: "30天", "永久", "100个", "50个·30天". */
 export function formatOfferTerm(offer: Pick<ShopOffer, "days" | "count">,
   item?: Pick<ShopItem, "isAdditional">): string {
   if (offer.count > 1 || item?.isAdditional) {
-    const count = `${offer.count}个`;
+    const count = tr("{0}个", { "0": offer.count });
     return offer.days === 0 ? count : `${count}·${formatPeriod(offer.days)}`;
   }
   return formatPeriod(offer.days);
@@ -87,7 +88,7 @@ export function formatOfferTerm(offer: Pick<ShopOffer, "days" | "count">,
 
 /** "需要经验 600". */
 export function formatExpRequirement(minExp: number): string {
-  return `需要经验 ${formatAmount(minExp)}`;
+  return tr("需要经验 {0}", { "0": formatAmount(minExp) });
 }
 
 const DAY = 86_400_000;
@@ -137,7 +138,7 @@ export function catalogTabId(tab: string | undefined): string {
  * (new / hotItem / event): the card marks the catalog carries.
  */
 export const RECOMMEND_MARK_TABS: readonly { mark: string; name: string }[] = [
-  { mark: "new", name: "新商品" }, { mark: "hot", name: "热门商品" }, { mark: "discount", name: "折扣" },
+  { mark: "new", name: tr("新商品") }, { mark: "hot", name: tr("热门商品") }, { mark: "discount", name: tr("折扣") },
 ];
 
 /**
@@ -147,13 +148,13 @@ export const RECOMMEND_MARK_TABS: readonly { mark: string; name: string }[] = [
 export function shopTabEntries(catalog: Pick<ShopCatalog, "tabs" | "items">): ShopTabEntry[] {
   const marks = new Set(catalog.items.flatMap(item => item.marks ?? []));
   const markTabs = RECOMMEND_MARK_TABS.filter(tab => marks.has(tab.mark))
-    .map(tab => ({ id: tab.mark, name: tab.name }));
+    .map(tab => ({ id: tab.mark, name: tr(tab.name) }));
   const tabs = catalog.tabs.map(tab => ({
     id: tab.id,
-    name: tab.name || TAB_NAMES[tab.id] || tab.id,
+    name: tr(tab.name || TAB_NAMES[tab.id] || tab.id),
     subTabs: tab.subTabs.length
       ? [{ id: ALL_SUB_TAB, name: ALL_SUB_TAB_NAME },
-        ...tab.subTabs.map(sub => ({ id: sub.id, name: sub.name || SUB_TAB_NAMES[sub.id] || sub.id }))]
+        ...tab.subTabs.map(sub => ({ id: sub.id, name: tr(sub.name || SUB_TAB_NAMES[sub.id] || sub.id) }))]
       : [],
   }));
   // Items may name a tab the tab list lacks; give them a tab rather than hide them.
@@ -178,13 +179,13 @@ export function shopTabEntries(catalog: Pick<ShopCatalog, "tabs" | "items">): Sh
 export function mallTabEntries(shopTabs: readonly ShopMallTab[]): ShopTabEntry[] {
   return shopTabs.map(tab => {
     const subTabs = [
-      ...(tab.allSubTab && tab.subTabs.length ? [{ id: ALL_SUB_TAB, name: tab.allSubTab }] : []),
-      ...tab.subTabs.map(sub => ({ id: sub.id, name: sub.name || SUB_TAB_NAMES[sub.id] || sub.id })),
+      ...(tab.allSubTab && tab.subTabs.length ? [{ id: ALL_SUB_TAB, name: tr(tab.allSubTab) }] : []),
+      ...tab.subTabs.map(sub => ({ id: sub.id, name: tr(sub.name || SUB_TAB_NAMES[sub.id] || sub.id) })),
     ];
     const fallback = subTabs[0]?.id ?? ALL_SUB_TAB;
     const defaultSubTab = subTabs.some(sub => sub.id === ALL_SUB_TAB) ? ALL_SUB_TAB
       : subTabs.some(sub => sub.id === tab.defaultSubTab) ? tab.defaultSubTab! : fallback;
-    return { id: catalogTabId(tab.id), name: tab.name || TAB_NAMES[catalogTabId(tab.id)] || tab.id,
+    return { id: catalogTabId(tab.id), name: tr(tab.name || TAB_NAMES[catalogTabId(tab.id)] || tab.id),
       subTabs, defaultSubTab };
   });
 }
@@ -218,11 +219,11 @@ export type ShopSort = "default" | "priceAsc" | "priceDesc" | "name" | "newest";
 export type ShopCurrencyFilter = Currency | "all";
 
 export const SHOP_SORTS: readonly { id: ShopSort; name: string }[] = [
-  { id: "default", name: "默认排序" },
-  { id: "newest", name: "最新上架" },
-  { id: "priceAsc", name: "价格从低到高" },
-  { id: "priceDesc", name: "价格从高到低" },
-  { id: "name", name: "按名称" },
+  { id: "default", name: tr("默认排序") },
+  { id: "newest", name: tr("最新上架") },
+  { id: "priceAsc", name: tr("价格从低到高") },
+  { id: "priceDesc", name: tr("价格从高到低") },
+  { id: "name", name: tr("按名称") },
 ];
 
 export function itemKey(category: number, itemId: number): string {
@@ -248,7 +249,7 @@ function markRank(item: ShopItem): number {
   return item.recommend?.length ? 3 : 4;
 }
 
-const collator = typeof Intl !== "undefined" ? new Intl.Collator("zh-CN") : undefined;
+const collator = typeof Intl !== "undefined" ? new Intl.Collator(gameLocale()) : undefined;
 
 /** The shop catalog with lists per tab and lazily cached sort orders. */
 export class ShopIndex {
@@ -545,12 +546,12 @@ export function ownershipLabel(item: Pick<ShopItem, "isAdditional">, ownership: 
   now: number): string {
   if (!ownership.owned) return "";
   if (item.isAdditional && ownership.quantity > 0) {
-    const count = `已拥有 ${formatAmount(ownership.quantity)}个`;
+    const count = tr("已拥有 {0}个", { "0": formatAmount(ownership.quantity) });
     return ownership.expiresAt === null ? count : `${count}·${formatRemaining(ownership.expiresAt, now)}`;
   }
-  if (ownership.permanent) return "已永久拥有";
+  if (ownership.permanent) return tr("已永久拥有");
   if (ownership.expiresAt !== null) return formatRemaining(ownership.expiresAt, now);
-  return "已拥有";
+  return tr("已拥有");
 }
 
 /** A permanently owned single item cannot be bought again (409 ALREADY_OWNED). */
@@ -574,9 +575,9 @@ export function ownedRental(item: Pick<ShopItem, "isAdditional">, ownership: Sho
 export function renewalNote(item: Pick<ShopItem, "isAdditional">, offer: Pick<ShopOffer, "days">,
   ownership: ShopOwnership, now: number): string | undefined {
   if (!ownedRental(item, ownership)) return undefined;
-  const current = `当前${formatRemaining(ownership.expiresAt, now)}`;
-  if (offer.days === 0) return `${current}，兑换后变为永久`;
-  return `${current}，兑换后到期 ${formatDateTime(Math.max(now, ownership.expiresAt) + offer.days * DAY)}`;
+  const current = tr("当前{0}", { "0": formatRemaining(ownership.expiresAt, now) });
+  if (offer.days === 0) return tr("{0}，兑换后变为永久", { "0": current });
+  return tr("{0}，兑换后到期 {1}", { "0": current, "1": formatDateTime(Math.max(now, ownership.expiresAt) + offer.days * DAY) });
 }
 
 // --- Offers -------------------------------------------------------------
@@ -605,11 +606,11 @@ export function offerAvailability(item: Pick<ShopItem, "isAdditional">, offer: S
   const after = balance === undefined ? undefined : balance - offer.price;
   const base = { offer, ...(balance === undefined ? {} : { balance, after }) };
   if (ownedForGood(item, context.ownership))
-    return { ...base, blocked: "owned", reason: "已永久拥有该道具，无需重复兑换" };
+    return { ...base, blocked: "owned", reason: tr("已永久拥有该道具，无需重复兑换") };
   if (offer.minExp && context.exp !== undefined && context.exp < offer.minExp)
-    return { ...base, blocked: "exp", reason: `经验不足，${formatExpRequirement(offer.minExp)}` };
+    return { ...base, blocked: "exp", reason: tr("经验不足，{0}", { "0": formatExpRequirement(offer.minExp) }) };
   if (after !== undefined && after < 0)
-    return { ...base, blocked: "funds", reason: `${CURRENCY_LABELS[offer.currency]}不足` };
+    return { ...base, blocked: "funds", reason: tr("{0}不足", { "0": CURRENCY_LABELS[offer.currency] }) };
   return base;
 }
 

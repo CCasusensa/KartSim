@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import {
   deleteGhostFromMenu, exportGhostFromMenu, importSelectedGhostFile,
   isCurrentGhostImport, switchToImportedGhostTrack,
@@ -33,8 +34,8 @@ export const GHOST_MENU_HINT =
 export class GhostMenuPanel implements GhostMenuHost, TouchMenuSection {
   readonly panel: HTMLDivElement;
   readonly input: HTMLInputElement;
-  readonly title = "影子记录";
-  readonly hint = GHOST_MENU_HINT;
+  readonly title = tr("影子记录");
+  readonly hint = tr(GHOST_MENU_HINT);
   disposed = false;
   importRevision = 0;
   pendingTrackSwitch?: Promise<unknown>;
@@ -71,17 +72,17 @@ export class GhostMenuPanel implements GhostMenuHost, TouchMenuSection {
   /** The SIM menu buttons, in the release panel's order. */
   menuEntries(): TouchMenuEntry[] {
     return [
-      { name: "ghost-import", text: "导入影子(.ksv)", action: this.openPicker },
-      { name: "ghost-export", text: "导出 KSV", action: this.onExportClick },
-      { name: "ghost-delete", text: "删除影子", action: this.onDeleteClick },
+      { name: "ghost-import", text: tr("导入影子(.ksv)"), action: this.openPicker },
+      { name: "ghost-export", text: tr("导出 KSV"), action: this.onExportClick },
+      { name: "ghost-delete", text: tr("删除影子"), action: this.onDeleteClick },
       { name: "ghost-sampling", text: this.samplingModeLabel(), action: this.onSamplingModeToggle },
-      { name: "ghost-reset-nickname", text: "重置车手名", action: () => this.options.resetNickname() },
+      { name: "ghost-reset-nickname", text: tr("重置车手名"), action: () => this.options.resetNickname() },
     ];
   }
 
   /** The mode in use (the release label was refreshed before the mode changed, one step behind). */
   samplingModeLabel(): string {
-    return `幽灵插值：${this.dependencies.samplingLabels[this.options.samplingMode()]}`;
+    return tr("幽灵插值：{value}", { value: tr(this.dependencies.samplingLabels[this.options.samplingMode()]) });
   }
 
   onSamplingModeToggle = (): void => {

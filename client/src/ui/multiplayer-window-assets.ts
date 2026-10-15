@@ -1,4 +1,4 @@
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 
 /** Resources needed by the reusable multiplayer BML window renderer. */
 export interface WindowNode {
@@ -144,8 +144,7 @@ export async function loadMultiplayerWindowAssets(
   new DOMParser().parseFromString(stringBag, "application/xml")
     .querySelectorAll("k").forEach(entry => {
       const name = entry.getAttribute("n");
-      const value = (entry.querySelector(`m[c="${resourceLocale()}"]`) ??
-        entry.querySelector('m[c="cn"]'))?.getAttribute("v");
+      const value = resourceText(Array.from(entry.querySelectorAll("m")), (node, key) => node.getAttribute(key) ?? undefined);
       if (name && value) host.strings.set(name, value);
     });
   for (const root of roots) {
@@ -154,9 +153,8 @@ export async function loadMultiplayerWindowAssets(
       if (candidates.length !== 1) continue;
       for (const entry of dependencies.parseBml(await candidates[0]!.bytes()).children) {
         const key = attribute(entry, "n");
-        const local = entry.children.find(child => attribute(child, "c") === resourceLocale()) ??
-          entry.children.find(child => attribute(child, "c") === "cn");
-        if (key && local) host.strings.set(key, attribute(local, "v") ?? "");
+        const value = resourceText(entry.children, attribute);
+        if (key && value) host.strings.set(key, value);
       }
     }
   }

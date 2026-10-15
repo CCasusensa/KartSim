@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { T } from "../generated/formats.js";
 import { F9 } from "../generated/library.js";
 import {
@@ -156,7 +157,7 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
     this.selected = this.view.missions[0]?.slot;
     this.canvas = new BmlCanvas({
       root: options.root, shared, folders: [MAIN, CREW, "dialog/itemDictionary", "stage_/common"],
-      label: this.text("expeditionCaption") ?? "赛车探险队",
+      label: this.text("expeditionCaption") ?? tr("赛车探险队"),
       paint: () => this.paint(),
       onKeyDown: event => this.onKeyDown(event),
       onWheel: (event, point) => this.onWheel(event, point),
@@ -182,13 +183,16 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
     this.options.onClose();
   }
 
-  private text(key: string): string | undefined { return this.shared.strings.get(key); }
+  private text(key: string): string | undefined {
+    const value = this.shared.strings.get(key);
+    return value === undefined ? undefined : tr(value);
+  }
   render(): void { this.canvas.render(); }
   private now(): number { return Date.now() + this.clockOffset; }
 
   private durationText(ms: number): string {
-    return expeditionDuration(ms, { day: this.text("day") ?? "天", hour: this.text("hour") ?? "小时",
-      minute: this.text("minute") ?? "分", lessThan1Minute: this.text("lessThan1Minute") ?? "不到1分钟" });
+    return expeditionDuration(ms, { day: this.text("day") ?? tr("天"), hour: this.text("hour") ?? tr("小时"),
+      minute: this.text("minute") ?? tr("分"), lessThan1Minute: this.text("lessThan1Minute") ?? tr("不到1分钟") });
   }
 
   /** A mission's state now (a running crew comes back on its own). */
@@ -426,8 +430,8 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
     if (name === "bonusDesc") {
       if (mission && this.stateOf(mission) === "done") {
         const item = mission.reward.items[0];
-        if (this.rewardKind === "rp") return `${this.text("rp") ?? "经验"} +${mission.exp}`;
-        if (this.rewardKind === "lucci") return `${this.text("lucci") ?? "金币"} +${mission.lucci}`;
+        if (this.rewardKind === "rp") return `${this.text("rp") ?? tr("经验")} +${mission.exp}`;
+        if (this.rewardKind === "lucci") return `${this.text("lucci") ?? tr("金币")} +${mission.lucci}`;
         if (this.rewardKind === "stock" && item)
           return `${item.name || this.name(item.category, item.itemId)}${item.count > 1 ? ` ×${item.count}` : ""}`;
         return null;
@@ -469,7 +473,7 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
 
   private mainButton(name: string, mission: ExpeditionMission | undefined, draft: Draft | undefined) {
     switch (name) {
-      case "close": return { activate: () => this.close(), label: this.text("close") ?? "关闭" };
+      case "close": return { activate: () => this.close(), label: this.text("close") ?? tr("关闭") };
       case "autoFillBtn": return mission && draft ? { activate: () => {
         draft.members = autoFillCrew(mission, this.crew, this.busyCrew());
         const friend = this.crew.friends.find(item => !item.usedToday && item.specific === mission.specific) ??
@@ -675,7 +679,7 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
           case "missionStateLbl": return this.text(state === "running" ? "inProgress" : state === "done" ? "complete"
             : state === "blocked" ? "cannotProgress" : "beforeStart") ?? null;
           case "missionTime": return state === "running" ? this.durationText(Math.max(0, mission.ends - this.now()))
-            : state === "done" ? this.text("complete") ?? "" : `${mission.hours}${this.text("time") ?? "小时"}`;
+            : state === "done" ? this.text("complete") ?? "" : `${mission.hours}${this.text("time") ?? tr("小时")}`;
           case "missionChangeBtn": return String(this.view.rules.basic.changeMissionTokens);
           case "bonusAmountLbl": return String(this.cardBonus === "rp" ? preview?.exp ?? mission.exp
             : preview?.lucci ?? mission.lucci);
@@ -1013,7 +1017,7 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
     try {
       await action();
     } catch (error) {
-      await this.options.notice(this.text("expeditionCaption") ?? "赛车探险队", this.errorText(error));
+      await this.options.notice(this.text("expeditionCaption") ?? tr("赛车探险队"), this.errorText(error));
     } finally {
       this.busy = false;
       if (!this.disposed) this.render();
@@ -1022,14 +1026,14 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
 
   private errorText(error: unknown): string {
     switch ((error as { code?: string }).code) {
-      case "ITEM_NOT_ENOUGH": return (this.text("insufficientRacingTokenDesc") ?? "持有的探险币不足。").split("|")[0]!;
-      case "NO_MATCHING_CREW": return this.text("expeditionStartCondition") ?? "需设置至少一项属性匹配的角色与卡丁车，才能出发探险。";
-      case "CREW_BUSY": return "队员正在进行其他探险。";
-      case "FRIEND_USED": return "这位好友今天已经参加过探险了。";
+      case "ITEM_NOT_ENOUGH": return (this.text("insufficientRacingTokenDesc") ?? tr("持有的探险币不足。")).split("|")[0]!;
+      case "NO_MATCHING_CREW": return this.text("expeditionStartCondition") ?? tr("需设置至少一项属性匹配的角色与卡丁车，才能出发探险。");
+      case "CREW_BUSY": return tr("队员正在进行其他探险。");
+      case "FRIEND_USED": return tr("这位好友今天已经参加过探险了。");
       case "MISSION_NOT_IN_PROGRESS":
-      case "MISSION_NOT_COMPLETE": return (this.text("racingTokenUseFailDesc") ?? "请重新尝试。").replace("|", "");
+      case "MISSION_NOT_COMPLETE": return (this.text("racingTokenUseFailDesc") ?? tr("请重新尝试。")).replace("|", "");
     }
-    return this.text("unknownError") ?? "发生未知的错误。";
+    return this.text("unknownError") ?? tr("发生未知的错误。");
   }
 
   private async start(mission: ExpeditionMission, draft: Draft): Promise<void> {
@@ -1050,8 +1054,8 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
     if (cost > this.view.tokens) {
       this.overlay = undefined;
       this.render();
-      await this.options.notice(this.text("insufficientRacingToken") ?? "探险币不足",
-        (this.text("insufficientRacingTokenDesc") ?? "持有的探险币不足。").split("|")[0]!);
+      await this.options.notice(this.text("insufficientRacingToken") ?? tr("探险币不足"),
+        (this.text("insufficientRacingTokenDesc") ?? tr("持有的探险币不足。")).split("|")[0]!);
       return;
     }
     await this.run(async () => {
@@ -1069,15 +1073,15 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
       this.apply(claim.expedition);
       this.options.onAccountChange();
       const parts: string[] = [];
-      if (claim.exp > 0) parts.push(`${this.text("rp") ?? "经验"} ${claim.exp}`);
-      if (claim.lucci > 0) parts.push(`${this.text("lucci") ?? "金币"} ${claim.lucci}`);
+      if (claim.exp > 0) parts.push(`${this.text("rp") ?? tr("经验")} ${claim.exp}`);
+      if (claim.lucci > 0) parts.push(`${this.text("lucci") ?? tr("金币")} ${claim.lucci}`);
       for (const item of claim.items) parts.push(`${item.name || this.name(item.category, item.itemId)}` +
         `${item.count > 1 ? ` ×${item.count}` : ""}`);
       try {
         this.crew = await this.options.api.crew();
       } catch { /* The list stays as it was. */ }
-      void this.options.notice(this.text("racingExpeditionReward") ?? "赛车探险奖励",
-        `${this.text("racingExpeditionSuccess") ?? "成功完成赛车探险！"} ${parts.join("，")}`);
+      void this.options.notice(this.text("racingExpeditionReward") ?? tr("赛车探险奖励"),
+        `${this.text("racingExpeditionSuccess") ?? tr("成功完成赛车探险！")} ${parts.join("，")}`);
     });
   }
 

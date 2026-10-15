@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 赛道对决 races (TIMEATTACK.md): the practice window's 开始对决 starts a story
  * style race against the stage's NPC, whose original recording plays as the
@@ -36,11 +37,11 @@ export async function duelNpcGhost(library: Pick<DuelLibrary, "exactCanonicalCan
   trackId: string, catalog: { karts: CatalogEntry[]; characters: CatalogEntry[] }): Promise<StoryGhostSource> {
   const { npc, ksv } = duel.stage;
   const file = ksv ? library.exactCanonicalCandidates(`${DUEL_KSV_ROOT}/${ksv}.ksv`)[0] : undefined;
-  if (!file) throw new Error(`缺少 ${npc.name} 的对决录像 ${ksv || "（未配置）"}。`);
+  if (!file) throw new Error(tr("缺少 {npc} 的对决录像 {replay}。", { npc: npc.name, replay: ksv || tr("（未配置）") }));
   const mission = { kind: "Shadow", track: trackId, laps: 0, timeLimitMs: 0, speed: duel.stage.speed,
     rival: { name: npc.name, kartId: npc.kartId, characterId: npc.characterId, ksv } } as StoryMission;
   const source = storyGhostSources(await file.bytes(), trackId, mission, catalog).sources[0];
-  if (!source) throw new Error(`${npc.name} 的对决录像里没有车手。`);
+  if (!source) throw new Error(tr("{npc} 的对决录像里没有车手。", { npc: npc.name }));
   source.equipment.kartPaint = npc.color || 0;
   source.equipment.characterColor = npc.dye || 0;
   const advantageMs = duel.stage.difficulties[duel.difficulty]?.advantageMs ?? 0;
@@ -64,7 +65,7 @@ export async function startDuelRace(controller: ReadyDuelController, selection: 
   // The duel runs on the event's track, whatever track the window shows.
   const tracks = await library.timeAttackTrackCatalog();
   const track = tracks.find(entry => entry.id.toLowerCase() === duel.event.trackId.toLowerCase());
-  if (!track) throw new Error(`赛道 ${duel.event.trackId} 不在本地资源中`);
+  if (!track) throw new Error(tr("赛道 {track} 不在本地资源中", { track: duel.event.trackId }));
   const npc = await duelNpcGhost(library, duel, track.id, catalog);
   const previous = host.getSelection();
   const restore = (): void => {
@@ -86,7 +87,7 @@ export async function startDuelRace(controller: ReadyDuelController, selection: 
   await controller.startRaceFromReady(raceSelection, raceOptions);
   if (!controller.disposed && host.shell.current === "Ready") {
     host.setReadyOptions(previousOptions);
-    message(controller, "比赛未能开始，请重试。");
+    message(controller, tr("比赛未能开始，请重试。"));
   }
 }
 
@@ -95,26 +96,24 @@ async function finishDuel(controller: ReadyDuelController, duel: DuelRaceRequest
   const session = activeBrowserSession();
   const npc = duel.stage.npc.name;
   if (!session) {
-    message(controller, outcome.finished && outcome.cleared !== false ? `对决胜利！战胜了 ${npc}。` : `对决失败，没有赢过 ${npc}。`);
+    message(controller, outcome.finished && outcome.cleared !== false ? tr("对决胜利！战胜了 {npc}。", { npc: npc }) : tr("对决失败，没有赢过 {npc}。", { npc: npc }));
     return;
   }
   try {
     const result = await settleDuelRace(session, { requestId: newRequestId(), key: duel.event.key, stage: duel.stage.stage,
       difficulty: duel.difficulty, elapsedMs: outcome.elapsedMs, finished: outcome.finished });
     const lines = result.won
-      ? [`对决胜利！用时 ${formatRecordTime(outcome.elapsedMs)}，战胜了 ${npc}（${formatRecordTime(result.targetMs)}）。`,
-        ...duel.stage.messages.win,
-        ...(result.firstWin ? ["胜利奖励已放入奖励箱。"] : []),
-        ...(result.bonus ? ["难度奖励已放入奖励箱。"] : [])]
-      : [outcome.finished ? `对决失败，用时 ${formatRecordTime(outcome.elapsedMs)}，没有赢过 ${npc}（${
-        formatRecordTime(result.targetMs)}）。` : `对决失败，没有完成比赛。`,
+      ? [tr("对决胜利！用时 {time}，战胜了 {npc}（{target}）。", { time: formatRecordTime(outcome.elapsedMs), npc: npc, target: formatRecordTime(result.targetMs) }),
+        ...duel.stage.messages.win.map(line => tr(line)),
+        ...(result.firstWin ? [tr("胜利奖励已放入奖励箱。")] : []),
+        ...(result.bonus ? [tr("难度奖励已放入奖励箱。")] : [])]
+      : [outcome.finished ? tr("对决失败，用时 {time}，没有赢过 {npc}（{target}）。", { time: formatRecordTime(outcome.elapsedMs), npc: npc, target: formatRecordTime(result.targetMs) }) : tr("对决失败，没有完成比赛。"),
       ...(result.difficulty > duel.difficulty && result.difficulty > 0
-        ? [`已连续落败 ${result.losses} 次：可在 难度设定 中让 ${npc} 晚 ${
-          duel.stage.difficulties[result.difficulty]?.advantageMs ?? 0 / 1000}秒 出发。`, ...duel.stage.messages.difficulty]
+        ? [tr("已连续落败 {losses} 次：可在 难度设定 中让 {npc} 晚 {seconds}秒 出发。", { losses: result.losses, npc: npc, seconds: (duel.stage.difficulties[result.difficulty]?.advantageMs ?? 0) / 1000 }), ...duel.stage.messages.difficulty.map(line => tr(line))]
         : [])];
     message(controller, lines.join("\n"));
   } catch (error) {
-    message(controller, `赛道对决结算失败：${timeAttackErrorMessage(error)}`);
+    message(controller, tr("赛道对决结算失败：{error}", { error: timeAttackErrorMessage(error) }));
   }
 }
 
@@ -125,7 +124,7 @@ function message(controller: ReadyDuelController, text: string): void {
   const abort = new AbortController();
   controller.duelMessage = abort;
   const home = controller as unknown as ReadyHomeController;
-  void openMessengerMessage(library as never, controller.host.root, TITLE, text.replaceAll("\n", "|"), {}, abort.signal)
+  void openMessengerMessage(library as never, controller.host.root, tr(TITLE), text.replaceAll("\n", "|"), {}, abort.signal)
     .catch(() => home.activeHome?.showNotice(text)).finally(() => {
       if (controller.duelMessage === abort) controller.duelMessage = undefined;
     });

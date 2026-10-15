@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 设计数据 → 游戏能直接加载的赛道包（track_custom_<id>.rho）。
  *
@@ -177,7 +178,7 @@ export async function buildRoad(road: RoadDesign, textures: TextureResolver, war
   const count = sample.closed ? m : m - 1;
   const label = road.name || road.id;
   const deckStem = await textures.resolve(road.surface.track, road.surface.name);
-  if (!deckStem) warnings.push(`道路「${label}」的路面贴图 ${road.surface.name} 找不到，路面不显示贴图。`);
+  if (!deckStem) warnings.push(tr("道路「{value}」的路面贴图 {value2} 找不到，路面不显示贴图。", { value: String(label), value2: String(road.surface.name) }));
   const deck = surfaceSlots(deckStem ?? textures.generated("kr_missing", TRANSPARENT_PNG),
     { road: road.surface.road, alpha: road.surface.alpha });
   const sStart = (i: number) => sample.s[i]!;
@@ -245,14 +246,14 @@ export async function buildRoad(road: RoadDesign, textures: TextureResolver, war
           [lift(edgeAt(sample, d1, -0.98)), [1, t1]], [lift(edgeAt(sample, d1, 0.98)), [0, t1]], [0, 0, 1]);
       }
       nodes.push(...meshNodes(`startline_${road.id}`, mesh, surfaceSlots(stem, {})));
-    } else warnings.push(`起跑线贴图 ${start.texture.name} 找不到，起点不画起跑线。`);
+    } else warnings.push(tr("起跑线贴图 {value} 找不到，起点不画起跑线。", { value: String(start.texture.name) }));
   }
 
   // 护墙：带碰撞（road 属性为空），面朝路面
   const wall = async (design: WallDesign | null, sideSign: 1 | -1) => {
     if (!design) return;
     const stem = design.visible ? await textures.resolve(design.texture.track, design.texture.name) : undefined;
-    if (design.visible && !stem) warnings.push(`道路「${label}」的护墙贴图 ${design.texture.name} 找不到，改为透明护墙。`);
+    if (design.visible && !stem) warnings.push(tr("道路「{value}」的护墙贴图 {value2} 找不到，改为透明护墙。", { value: String(label), value2: String(design.texture.name) }));
     const surface = surfaceSlots(stem ?? textures.generated("kr_collider", TRANSPARENT_PNG),
       { road: [], alpha: stem ? design.texture.alpha ?? "test" : "test", doubleSided: true });
     const mesh = new MeshBuilder();
@@ -467,13 +468,13 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   const trackId = customTrackId(design.id);
 
   // 道路
-  progress("生成道路");
+  progress(tr("生成道路"));
   const roads: { design: RoadDesign; built: BuiltRoad }[] = [];
   const startLine: RoadStartLine = { offset: design.start.offset, texture: startLineFor(design.theme) };
   for (const road of design.roads) roads.push({ design: road, built: await buildRoad(road, textures, warnings, { start: startLine }) });
 
   // 摆件：按来源赛道分组读取模型
-  progress("复制官方摆件");
+  progress(tr("复制官方摆件"));
   const pieceNodes: TrackNode[] = [];
   const bounds = { min: [Infinity, Infinity, Infinity] as Vec3, max: [-Infinity, -Infinity, -Infinity] as Vec3 };
   const grow = (p: Vec3) => { for (let i = 0; i < 3; i++) { bounds.min[i] = Math.min(bounds.min[i]!, p[i]!); bounds.max[i] = Math.max(bounds.max[i]!, p[i]!); } };
@@ -485,13 +486,13 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   for (const [track, pieces] of byTrack) {
     let model: any;
     try { model = await loadSourceModel(library, formats, track); }
-    catch (error) { warnings.push(`官方赛道 ${track} 读取失败，跳过 ${pieces.length} 个摆件：${(error as Error).message}`); continue; }
+    catch (error) { warnings.push(tr("官方赛道 {value} 读取失败，跳过 {value2} 个摆件：{value3}", { value: String(track), value2: String(pieces.length), value3: String((error as Error).message) })); continue; }
     const scene = model.scene;
     const renames = new Map<string, string | undefined>();
     const cloner = new PieceCloner(renames);
     for (const piece of pieces) {
       const target = nodeAtPath(scene, piece.path);
-      if (!target) { warnings.push(`摆件「${piece.label}」在 ${track} 里找不到，已跳过。`); continue; }
+      if (!target) { warnings.push(tr("摆件「{value}」在 {value2} 里找不到，已跳过。", { value: String(piece.label), value2: String(track) })); continue; }
       for (const name of textureNamesOf(target, new Set())) {
         if (!renames.has(name)) renames.set(name, await textures.resolve(track, name));
       }
@@ -515,7 +516,7 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
       placed++;
     }
   }
-  for (const missing of textures.missing) warnings.push(`贴图 ${missing} 找不到。`);
+  for (const missing of textures.missing) warnings.push(tr("贴图 {value} 找不到。", { value: String(missing) }));
 
   for (const { built } of roads) {
     for (let i = 0; i < built.sample.points.length; i++) {
@@ -525,7 +526,7 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   }
   const ground = design.ground;
   if (ground) { grow([-ground.size / 2, -ground.size / 2, ground.z]); grow([ground.size / 2, ground.size / 2, ground.z]); }
-  if (!Number.isFinite(bounds.min[0])) throw new Error("地图是空的。");
+  if (!Number.isFinite(bounds.min[0])) throw new Error(tr("地图是空的。"));
   const offset: Vec3 = [MARGIN - bounds.min[0], MARGIN - bounds.min[1], 0];
   const roadExtent = Math.ceil(Math.max(bounds.max[0] + offset[0], bounds.max[1] + offset[1]) + MARGIN);
 
@@ -533,7 +534,7 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   const groundNodes: TrackNode[] = [];
   if (ground) {
     const stem = await textures.resolve(ground.texture.track, ground.texture.name);
-    if (!stem) warnings.push(`地面贴图 ${ground.texture.name} 找不到。`);
+    if (!stem) warnings.push(tr("地面贴图 {value} 找不到。", { value: String(ground.texture.name) }));
     const surface = surfaceSlots(stem ?? textures.generated("kr_missing", TRANSPARENT_PNG), { road: ground.drivable ? [] : undefined });
     const tile = 40, half = ground.size / 2, n = Math.max(1, Math.ceil(ground.size / tile));
     const step = ground.size / n;
@@ -559,11 +560,11 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   const sceneRoot = makeNode("Relement", { name: "rootRelement", children: [makeNode("Relement", { name: "Scene Root", children: [content] })] });
 
   // 路线：从起点线开始的闭合路线
-  progress("生成路线和小地图");
+  progress(tr("生成路线和小地图"));
   const routeRoad = roads.find(r => r.design.route)!;
   const routeSample = rotateClosedSample(routeRoad.built.sample, design.start.offset);
   const records = routeRecords(routeSample, offset);
-  if (records.length < 4) throw new Error("比赛路线太短：至少需要 160 米。");
+  if (records.length < 4) throw new Error(tr("比赛路线太短：至少需要 160 米。"));
   const routeObject: TrackObjectRecord = { kind: "ToRoad", name: "route", property: undefined, cyclic: true, records };
 
   // 小地图只框住道路（官方小地图画的是路线）
@@ -581,7 +582,7 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   // 天空、雾、光照：取自 design.sky 那条赛道
   const skyPath = sourceTrackPath(design.sky);
   const skyModel = await loadSourceModel(library, formats, design.sky).catch(() => undefined);
-  if (!skyModel) warnings.push(`天空来源 ${design.sky} 读取失败，用默认雾色。`);
+  if (!skyModel) warnings.push(tr("天空来源 {value} 读取失败，用默认雾色。", { value: String(design.sky) }));
   const skyTrackObject = skyModel?.trackObjects?.find((o: any) => o.kind === "TrackObject" && o.name === "track");
   const skyProperty = skyTrackObject?.property as TrackXmlNode | undefined;
   const keep = (name: string) => skyProperty?.children?.find(child => child.name === name);
@@ -608,7 +609,7 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
     const root = sky.kind === "track" ? { ...sky, scene: cloner.clone(sky.scene) } : cloner.clone(sky);
     for (const key of ["sceneOccurrence", "trackObjectOccurrences"]) delete (root as any)[key];
     files.push({ path: "skydome.1s", bytes: encodeTrackModel(root as any) });
-  } else warnings.push(`${design.sky} 没有天空盒。`);
+  } else warnings.push(tr("{value} 没有天空盒。", { value: String(design.sky) }));
 
   files.push({ path: "track.xml", bytes: utf16("<?xml version='1.0' encoding='UTF-16'?>\n<trackInfo>\n\t<track filename='track'>\n\t\t<rainEffect enable='false' onStart='false'/>\n\t</track>\n</trackInfo>\n") });
   files.push({ path: "xt_minimap.png", bytes: minimapCanvas.png() });
@@ -617,11 +618,11 @@ export async function buildCustomTrack(design: MapDesign, options: BuildOptions)
   files.push({ path: "xt_trackCard.png", bytes: options.card ?? placeholderCard(352, 206, minimapCanvas, tint) });
   files.push({ path: "xt_trackThumb.png", bytes: options.thumb ?? placeholderCard(222, 130, minimapCanvas, tint) });
 
-  progress("复制贴图");
+  progress(tr("复制贴图"));
   const textureFiles = await textures.entries();
   files.push(...textureFiles);
 
-  progress("打包");
+  progress(tr("打包"));
   const containerName = `track_${trackId}.rho`;
   const container = await packRhoArchive(containerName, files);
   let meshes = 0, triangles = 0;

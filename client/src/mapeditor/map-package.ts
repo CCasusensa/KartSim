@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 地图包（.kartmap）：一张地图的全部文件打成一个 zip，导出后可以发给别人，
  * 导入编辑器继续修改，或直接在游戏的计时赛里玩（导入时登记成本机地图）。
@@ -65,21 +66,21 @@ export function isZip(bytes: Uint8Array): boolean {
 
 /** 解开并校验一个地图包；格式不对时抛出中文错误。 */
 export async function decodeMapPackage(bytes: Uint8Array): Promise<MapPackage> {
-  if (!isZip(bytes)) throw new Error("不是地图包文件。");
+  if (!isZip(bytes)) throw new Error(tr("不是地图包文件。"));
   let entries: Record<string, Uint8Array>;
-  try { entries = unzipSync(bytes); } catch { throw new Error("地图包已损坏，无法解开。"); }
+  try { entries = unzipSync(bytes); } catch { throw new Error(tr("地图包已损坏，无法解开。")); }
   const manifestBytes = entries["map.json"], designBytes = entries["design.json"];
-  if (!manifestBytes || !designBytes) throw new Error("地图包缺少 map.json 或 design.json。");
+  if (!manifestBytes || !designBytes) throw new Error(tr("地图包缺少 map.json 或 design.json。"));
   const manifest = JSON.parse(strFromU8(manifestBytes)) as { format?: string; version?: number; summary?: Partial<CustomMapSummary> };
-  if (manifest.format !== PACKAGE_FORMAT) throw new Error("不是地图工坊的地图包。");
-  if (manifest.version !== PACKAGE_VERSION) throw new Error(`不支持的地图包版本 ${String(manifest.version)}。`);
+  if (manifest.format !== PACKAGE_FORMAT) throw new Error(tr("不是地图工坊的地图包。"));
+  if (manifest.version !== PACKAGE_VERSION) throw new Error(tr("不支持的地图包版本 {value}。", { value: String(String(manifest.version)) }));
   const design = parseDesign(strFromU8(designBytes));
   const name = containerName(design.id);
   const container = entries[name];
-  if (!container) throw new Error(`地图包里没有赛道包 ${name}。`);
-  if (container.length > PACKAGE_CONTAINER_LIMIT) throw new Error("赛道包超过 40 MB。");
-  const files = await containerFiles(name, container).catch(() => { throw new Error("赛道包已损坏，无法读取。"); });
-  if (!files.some(file => file.path === "track.1s")) throw new Error("赛道包里没有 track.1s。");
+  if (!container) throw new Error(tr("地图包里没有赛道包 {value}。", { value: String(name) }));
+  if (container.length > PACKAGE_CONTAINER_LIMIT) throw new Error(tr("赛道包超过 40 MB。"));
+  const files = await containerFiles(name, container).catch(() => { throw new Error(tr("赛道包已损坏，无法读取。")); });
+  if (!files.some(file => file.path === "track.1s")) throw new Error(tr("赛道包里没有 track.1s。"));
   const declared = manifest.summary ?? {};
   const summary: CustomMapSummary = {
     id: design.id, name: design.name, author: typeof declared.author === "string" ? declared.author : "",

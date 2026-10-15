@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import type { LobbyRoom } from "./lobby-actions";
 import type { ChangingModal } from "./lobby-dialogs";
@@ -98,7 +99,7 @@ export async function chooseLobbyGarage(host: LobbyGarageHost,
     loaded = true;
     view.show();
   } catch (error) {
-    if (!host.disposed) host.options.status(`选择赛车：${formatMultiplayerError(error)}`, true);
+    if (!host.disposed) host.options.status(tr("选择赛车：{value}", { value: String(formatMultiplayerError(error)) }), true);
   } finally {
     host.finishChangingLoad(modal, loaded);
   }

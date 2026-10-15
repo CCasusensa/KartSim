@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Time attack rewards (server-go/ECONOMY.md 2.2, 7.7): a finished run is
  * settled by the data service, which decides the reward and "new record"
@@ -38,13 +39,13 @@ export const MIN_REWARDED_TIME_ATTACK_MS = 10_000;
 /** `POST /api/timeattack/settle` refusals beyond the shared account messages. */
 const SETTLE_ERROR_MESSAGES: Record<string, string> = {
   ...accountErrorMessages,
-  INVALID_ELAPSED_MS: "成绩时间无效，本次不发放奖励。",
-  NO_RANKED_ENTRY: "本局没有排位入场记录，成绩不计入排名。",
-  INVALID_REPLAY: "录像无效，本局成绩未能上传。",
-  INVALID_TRACK: "该赛道不发放计时赛奖励。",
-  INVALID_REQUEST_ID: "结算请求无效，请重新完成一次比赛。",
-  TOO_MANY_ATTEMPTS: "结算过于频繁，请稍后再试。",
-  REQUEST_ID_CONFLICT: "结算请求编号冲突，本次不发放奖励。",
+  INVALID_ELAPSED_MS: tr("成绩时间无效，本次不发放奖励。"),
+  NO_RANKED_ENTRY: tr("本局没有排位入场记录，成绩不计入排名。"),
+  INVALID_REPLAY: tr("录像无效，本局成绩未能上传。"),
+  INVALID_TRACK: tr("该赛道不发放计时赛奖励。"),
+  INVALID_REQUEST_ID: tr("结算请求无效，请重新完成一次比赛。"),
+  TOO_MANY_ATTEMPTS: tr("结算过于频繁，请稍后再试。"),
+  REQUEST_ID_CONFLICT: tr("结算请求编号冲突，本次不发放奖励。"),
 };
 
 /**
@@ -81,13 +82,13 @@ export async function settleTimeAttackRun(options: TimeAttackSettleOptions):
     }
   } catch (error) {
     if (NO_REWARD_CODES.has(errorCode(error) ?? "")) return undefined;
-    options.report?.(`计时赛奖励结算失败：${settleErrorMessage(error)}`);
+    options.report?.(tr("计时赛奖励结算失败：{0}", { "0": settleErrorMessage(error) }));
     return undefined;
   }
   options.result?.patch?.({ rewardExp: settlement.exp, rewardLucci: settlement.lucci });
   if (!settlement.summary) await session.refresh?.().catch(() => undefined);
   if (settlement.capped && settlement.exp === 0 && settlement.lucci === 0)
-    options.notify?.("今日计时赛奖励次数已用完，明天再来吧。");
+    options.notify?.(tr("今日计时赛奖励次数已用完，明天再来吧。"));
   return settlement;
 }
 

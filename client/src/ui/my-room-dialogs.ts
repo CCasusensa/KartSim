@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { T, m9 } from "../generated/formats.js";
 import { C8, F9, h2, te } from "../generated/library.js";
 import { decodeImage } from "../myroom/myroom-data";
@@ -101,15 +102,15 @@ export async function openFindRiderDialog(options: {
   };
   view = await te.load({
     library: options.library, root: options.root, definition, roots: [folder, "stage_/common"],
-    modal: true, label: FIND_RIDER_STRINGS.findRiderCaption, preserveDisplayPixels: true, smoothImages: true,
+    modal: true, label: tr(FIND_RIDER_STRINGS.findRiderCaption), preserveDisplayPixels: true, smoothImages: true,
     onCancel: cancel, onConfirm: confirm,
     state: (node: DialogNode) => {
-      if (node.name === "CaptionWindow") return { text: FIND_RIDER_STRINGS.findRiderCaption };
+      if (node.name === "CaptionWindow") return { text: tr(FIND_RIDER_STRINGS.findRiderCaption) };
       switch (nodeName(node)) {
         // The label has no textColor; the renderer's default white would vanish.
-        case "confirm_text": return { text: FIND_RIDER_STRINGS.inputRiderName, textColor: "rgb(42, 55, 80)" };
+        case "confirm_text": return { text: tr(FIND_RIDER_STRINGS.inputRiderName), textColor: "rgb(42, 55, 80)" };
         case "RiderEdit": return {
-          disabled: busy, label: FIND_RIDER_STRINGS.inputRiderName,
+          disabled: busy, label: tr(FIND_RIDER_STRINGS.inputRiderName),
           input: { value: nickname, maxLength: 16, submit: confirm,
             change: (value: string) => {
               nickname = value;
@@ -117,8 +118,8 @@ export async function openFindRiderDialog(options: {
             } },
         };
         case "cmbFriendList": return {
-          label: FIND_RIDER_STRINGS.friends, disabled: busy || friendValues.length <= 1,
-          select: { value: friend, valueText: friend === NO_FRIEND ? FIND_RIDER_STRINGS.friends : friend,
+          label: tr(FIND_RIDER_STRINGS.friends), disabled: busy || friendValues.length <= 1,
+          select: { value: friend, valueText: friend === NO_FRIEND ? tr(FIND_RIDER_STRINGS.friends) : friend,
             values: friendValues,
             change: (value: string) => {
               friend = value;
@@ -126,11 +127,11 @@ export async function openFindRiderDialog(options: {
               view?.render();
             } },
         };
-        case "okButton": return { disabled: busy || !nickname.trim(), label: FIND_RIDER_STRINGS.ok,
-          text: FIND_RIDER_STRINGS.ok, action: confirm };
+        case "okButton": return { disabled: busy || !nickname.trim(), label: tr(FIND_RIDER_STRINGS.ok),
+          text: tr(FIND_RIDER_STRINGS.ok), action: confirm };
         // setCloseButton="cancelButton" also names the caption's close button.
-        case "cancelButton": return { disabled: busy, label: FIND_RIDER_STRINGS.cancel,
-          ...(node.name === "TextButton" ? { text: FIND_RIDER_STRINGS.cancel } : {}), action: cancel };
+        case "cancelButton": return { disabled: busy, label: tr(FIND_RIDER_STRINGS.cancel),
+          ...(node.name === "TextButton" ? { text: tr(FIND_RIDER_STRINGS.cancel) } : {}), action: cancel };
       }
       return {};
     },
@@ -170,7 +171,7 @@ export async function askRoomPassword(options: {
       modal: true, label: options.label, preserveDisplayPixels: true, smoothImages: true,
       onCancel: () => finish(undefined), onConfirm: confirm,
       state: (node: DialogNode) => {
-        if (node.name === "CaptionWindow") return { text: "输入密码" };
+        if (node.name === "CaptionWindow") return { text: tr("输入密码") };
         switch (nodeName(node)) {
           case "passwordEdit": return { label: options.label,
             input: { value: password, password: true, maxLength: 12, submit: confirm,
@@ -178,9 +179,9 @@ export async function askRoomPassword(options: {
                 password = value;
                 view?.render();
               } } };
-          case "okButton": return { disabled: !password, label: "确定", text: "确定", action: confirm };
-          case "cancelButton": return { label: "取消",
-            ...(node.name === "TextButton" ? { text: "取消" } : {}), action: () => finish(undefined) };
+          case "okButton": return { disabled: !password, label: tr("确定"), text: tr("确定"), action: confirm };
+          case "cancelButton": return { label: tr("取消"),
+            ...(node.name === "TextButton" ? { text: tr("取消") } : {}), action: () => finish(undefined) };
         }
         return {};
       },

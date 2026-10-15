@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GarageCatalogEntry, EquipmentCatalogEntry } from "../resources/garage-catalog";
 import {
   FAVORITE_ITEM_LIMIT, ITEM_CATEGORY, canFavoriteItem,
@@ -43,15 +44,15 @@ const PROFILE_ONLY_KINDS = new Set([
 ]);
 
 export const ITEM_INVENTORY_GROUPS: ReadonlyArray<{ key: ItemInventoryGroup; label: string }> = [
-  { key: "favorite", label: "★ 星标道具" },
-  { key: "locked", label: "锁定" },
-  { key: "pcCafe", label: "网吧" },
-  { key: "kartBody", label: "赛车" },
-  { key: "lottery", label: "抽奖" },
-  { key: "character", label: "角色与宠物" },
-  { key: "equip", label: "装备" },
-  { key: "useful", label: "实用" },
-  { key: "deco", label: "装饰" },
+  { key: "favorite", label: tr("★ 星标道具") },
+  { key: "locked", label: tr("锁定") },
+  { key: "pcCafe", label: tr("网吧") },
+  { key: "kartBody", label: tr("赛车") },
+  { key: "lottery", label: tr("抽奖") },
+  { key: "character", label: tr("角色与宠物") },
+  { key: "equip", label: tr("装备") },
+  { key: "useful", label: tr("实用") },
+  { key: "deco", label: tr("装饰") },
 ];
 
 export interface ItemInventorySubcategory { key: string; label: string }
@@ -60,49 +61,49 @@ export interface ItemInventorySubcategory { key: string; label: string }
 const SUBCATEGORIES: Record<Exclude<ItemInventoryGroup, "all">,
   readonly ItemInventorySubcategory[]> = {
   favorite: [
-    { key: "whole", label: "全部" }, { key: "kartBody", label: "赛车" },
-    { key: "character", label: "角色" }, { key: "equip", label: "装备" },
-    { key: "useful", label: "实用" }, { key: "deco", label: "装饰" },
+    { key: "whole", label: tr("全部") }, { key: "kartBody", label: tr("赛车") },
+    { key: "character", label: tr("角色") }, { key: "equip", label: tr("装备") },
+    { key: "useful", label: tr("实用") }, { key: "deco", label: tr("装饰") },
   ],
-  locked: [{ key: "whole", label: "全部" }, { key: "kartBody", label: "赛车" }],
+  locked: [{ key: "whole", label: tr("全部") }, { key: "kartBody", label: tr("赛车") }],
   pcCafe: [
-    { key: "whole", label: "全部" }, { key: "kartBody", label: "赛车" },
-    { key: "character", label: "角色" }, { key: "pet", label: "宠物" },
+    { key: "whole", label: tr("全部") }, { key: "kartBody", label: tr("赛车") },
+    { key: "character", label: tr("角色") }, { key: "pet", label: tr("宠物") },
   ],
   kartBody: [
-    { key: "whole", label: "全部" }, { key: "itemKart", label: "道具车" },
-    { key: "speedkart", label: "竞速车" }, { key: "kartGear", label: "齿轮" },
-    { key: "strengthen", label: "强化" }, { key: "enhanceIngredient", label: "强化材料" },
+    { key: "whole", label: tr("全部") }, { key: "itemKart", label: tr("道具车") },
+    { key: "speedkart", label: tr("竞速车") }, { key: "kartGear", label: tr("齿轮") },
+    { key: "strengthen", label: tr("强化") }, { key: "enhanceIngredient", label: tr("强化材料") },
   ],
-  lottery: [{ key: "whole", label: "全部" }],
+  lottery: [{ key: "whole", label: tr("全部") }],
   character: [
-    { key: "whole", label: "全部" }, { key: "character", label: "角色" },
-    { key: "pet", label: "宠物" }, { key: "flyingPet", label: "飞行宠物" },
+    { key: "whole", label: tr("全部") }, { key: "character", label: tr("角色") },
+    { key: "pet", label: tr("宠物") }, { key: "flyingPet", label: tr("飞行宠物") },
   ],
   equip: [
-    { key: "whole", label: "全部" }, { key: "headband", label: "头饰" },
-    { key: "balloon", label: "气球" }, { key: "goggle", label: "护目镜" },
-    { key: "handGearL", label: "手部装备" }, { key: "rpLucciBonus", label: "加成" },
-    { key: "decal", label: "贴花" },
+    { key: "whole", label: tr("全部") }, { key: "headband", label: tr("头饰") },
+    { key: "balloon", label: tr("气球") }, { key: "goggle", label: tr("护目镜") },
+    { key: "handGearL", label: tr("手部装备") }, { key: "rpLucciBonus", label: tr("加成") },
+    { key: "decal", label: tr("贴花") },
   ],
   useful: [
-    { key: "whole", label: "全部" }, { key: "fishingItem", label: "钓鱼" },
-    { key: "specialKit", label: "特殊工具" }, { key: "slotChanger", label: "道具槽" },
-    { key: "guild", label: "车队" }, { key: "lucciCard", label: "金币卡" },
-    { key: "etc", label: "其他" },
+    { key: "whole", label: tr("全部") }, { key: "fishingItem", label: tr("钓鱼") },
+    { key: "specialKit", label: tr("特殊工具") }, { key: "slotChanger", label: tr("道具槽") },
+    { key: "guild", label: tr("车队") }, { key: "lucciCard", label: tr("金币卡") },
+    { key: "etc", label: tr("其他") },
   ],
   deco: [
-    { key: "whole", label: "全部" }, { key: "aura", label: "光环" },
-    { key: "paint", label: "喷漆" }, { key: "dye", label: "染色" },
-    { key: "skidMark", label: "轮胎印" }, { key: "ridColor", label: "车手颜色" },
-    { key: "plate", label: "车牌" }, { key: "uniform", label: "服装" },
-    { key: "slotBG", label: "车手栏背景" },
+    { key: "whole", label: tr("全部") }, { key: "aura", label: tr("光环") },
+    { key: "paint", label: tr("喷漆") }, { key: "dye", label: tr("染色") },
+    { key: "skidMark", label: tr("轮胎印") }, { key: "ridColor", label: tr("车手颜色") },
+    { key: "plate", label: tr("车牌") }, { key: "uniform", label: tr("服装") },
+    { key: "slotBG", label: tr("车手栏背景") },
   ],
 };
 
 export function itemInventorySubcategories(group: ItemInventoryGroup):
   readonly ItemInventorySubcategory[] {
-  return group === "all" ? [{ key: "whole", label: "全部" }] : SUBCATEGORIES[group];
+  return group === "all" ? [{ key: "whole", label: tr("全部") }] : SUBCATEGORIES[group];
 }
 
 export function itemInventoryGroup(item: ItemInventoryItem): Exclude<ItemInventoryGroup,

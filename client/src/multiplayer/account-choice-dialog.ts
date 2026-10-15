@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Signed-in account panel, nickname edit and logout flow. */
 
 export interface MultiplayerAccount {
@@ -35,7 +36,7 @@ export function chooseSignedInAccount(dependencies: AccountChoiceDependencies,
     overlay.style.cssText = dependencies.overlayStyle;
     panel.style.cssText = dependencies.panelStyle;
     const heading = dependencies.createElement("h2");
-    heading.textContent = `欢迎，${account.nickname}`;
+    heading.textContent = tr("欢迎，{value}", { value: String(account.nickname) });
     heading.style.margin = "0";
     const nickname = dependencies.createElement("input") as HTMLInputElement;
     nickname.value = account.nickname;
@@ -44,19 +45,19 @@ export function chooseSignedInAccount(dependencies: AccountChoiceDependencies,
     const status = dependencies.createElement("div");
     status.style.color = "#ffb3a9";
     const enter = dependencies.createElement("button") as HTMLButtonElement;
-    enter.textContent = "进入多人大厅";
+    enter.textContent = tr("进入多人大厅");
     const rename = dependencies.createElement("button") as HTMLButtonElement;
-    rename.textContent = "修改昵称";
+    rename.textContent = tr("修改昵称");
     const logout = dependencies.createElement("button") as HTMLButtonElement;
-    logout.textContent = "退出账号";
+    logout.textContent = tr("退出账号");
     const back = dependencies.createElement("button") as HTMLButtonElement;
-    back.textContent = "返回车库/单人游戏";
+    back.textContent = tr("返回车库/单人游戏");
     dependencies.styleButtons(enter, rename, logout, back);
     const adminLink = dependencies.createElement("a") as HTMLAnchorElement;
     adminLink.href = dependencies.endpoint("admin", dependencies.pageUrl());
     adminLink.target = "_blank";
     adminLink.rel = "noopener";
-    adminLink.textContent = "打开邀请码管理后台";
+    adminLink.textContent = tr("打开邀请码管理后台");
     adminLink.style.color = "#a7d6ff";
 
     const cleanup = () => {
@@ -78,8 +79,8 @@ export function chooseSignedInAccount(dependencies: AccountChoiceDependencies,
       try {
         account = await dependencies.requestAccount("nickname",
           { nickname: nickname.value });
-        heading.textContent = `欢迎，${account.nickname}`;
-        status.textContent = "昵称已更新";
+        heading.textContent = tr("欢迎，{value}", { value: String(account.nickname) });
+        status.textContent = tr("昵称已更新");
       } catch (error) {
         status.textContent = dependencies.formatError(error);
       } finally {

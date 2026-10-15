@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { ContainerMismatchError } from "../resources/container-store";
 import { ensureFeatureResources, showResourceFailureNotice } from "../ui/resource-panel";
 import { showAccountMessage, showAccountToast, type OverlayDocument } from "../account/account-dialogs";
@@ -134,7 +135,7 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
   try {
     if (cityLoading) await cityLoading.ready;
     if (controller.disposed) return;
-    cityLoading?.stage("正在准备联机资源…");
+    cityLoading?.stage(tr("正在准备联机资源…"));
     try {
       await ensureFeatureResources(host.root, "multiplayer");
     } catch { /* Pages read on demand. */ } finally {
@@ -212,16 +213,16 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
       onCityFailed: (reason: string, resources: boolean, mismatch?: ContainerMismatchError) => {
         const onActivate = () => host.getInterfaceAudio()?.playClick();
         if (mismatch) {
-          void showResourceFailureNotice(host.root, "进入卡丁城失败",
-            `服务器上的游戏资源 ${mismatch.file} 和当前游戏版本不一致\n` +
-            `（需要 ${mismatch.expectedBytes} 字节，服务器上是 ${mismatch.servedBytes} 字节），\n` +
-            "重新下载也无法解决。\n\n先点“刷新页面”再试；仍然这样时，\n" +
-            "请服务器管理员更新游戏资源（git pull、git lfs pull）后重启服务。", { reload: true, onActivate });
+          void showResourceFailureNotice(host.root, tr("进入卡丁城失败"),
+            tr("服务器上的游戏资源 {file} 和当前游戏版本不一致\n", { file: mismatch.file }) +
+            tr("（需要 {expected} 字节，服务器上是 {actual} 字节），\n", { expected: mismatch.expectedBytes, actual: mismatch.servedBytes }) +
+            tr("重新下载也无法解决。\n\n先点“刷新页面”再试；仍然这样时，\n") +
+            tr("请服务器管理员更新游戏资源（git pull、git lfs pull）后重启服务。"), { reload: true, onActivate });
           return;
         }
-        void showResourceFailureNotice(host.root, "进入卡丁城失败", resources
-          ? `${reason}\n\n可能是卡丁城资源下载出错。\n点“资源下载”删除卡丁城资源后重新下载，\n` +
-            "以后也可以在 设置 → 变更设置 里打开资源下载。"
+        void showResourceFailureNotice(host.root, tr("进入卡丁城失败"), resources
+          ? tr("{reason}\n\n可能是卡丁城资源下载出错。\n点“资源下载”删除卡丁城资源后重新下载，\n", { reason: reason }) +
+            tr("以后也可以在 设置 → 变更设置 里打开资源下载。")
           : reason, { ...(resources ? { group: "city" } : {}), onActivate });
       },
       // The lobby's status bar stays above the room, as in the original; its
@@ -241,8 +242,8 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
       onDisconnected: (kick?: CheatKick) => {
         if (controller.multiplayer !== lobby || controller.disposed) return;
         const document = host.root.ownerDocument as unknown as OverlayDocument;
-        if (kick) void showAccountMessage(document, "已被移出比赛", cheatKickMessage(kick), "确定");
-        else showAccountToast(document, "与联机服务器的连接已断开，已返回大厅。可以重新进入多人游戏。");
+        if (kick) void showAccountMessage(document, tr("已被移出比赛"), cheatKickMessage(kick), tr("确定"));
+        else showAccountToast(document, tr("与联机服务器的连接已断开，已返回大厅。可以重新进入多人游戏。"));
         void goReadyHome(controller as unknown as ReadyHomeController,
           () => controller.returnMultiplayerToSinglePlayer());
       },
@@ -289,7 +290,7 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
     controller.activeTimeAttackReady?.freeze();
 
     try {
-      cityLoading?.stage("正在连接大厅…");
+      cityLoading?.stage(tr("正在连接大厅…"));
       await lobby.open();
       if (controller.multiplayer !== lobby || controller.disposed) return;
       // A home quick entry opens straight onto its room list; 卡丁城 has none.
@@ -313,7 +314,7 @@ export async function openReadyMultiplayer(controller: ReadyMultiplayerControlle
         controller.activeTimeAttackReady?.show();
       }
       if (!cancelled) tellPlayer(host.hud,
-        `多人游戏：${error instanceof Error ? error.message : String(error)}`);
+        tr("多人游戏：{error}", { error: error instanceof Error ? error.message : String(error) }));
     }
   } finally {
     controller.multiplayerOpening = false;
@@ -374,6 +375,6 @@ export function applyReadyMultiplayerGarage(controller: ReadyMultiplayerControll
   try {
     host.saveProfile();
   } catch (error) {
-    tellPlayer(host.hud, `本次装备选择未保存：${String(error)}`);
+    tellPlayer(host.hud, tr("本次装备选择未保存：{error}", { error: String(error) }));
   }
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The purchase dialog, rebuilt after the original dialog2_buyItem.rho
  * mqBuyItem@cn (CaptionDialog 524×465): the item picture (img_slot2), 道具名称,
@@ -63,8 +64,8 @@ export interface BuyDialogDependencies {
   now?(): number;
 }
 
-export const PURCHASE_SUCCESS_MESSAGE = "兑换成功，已放入车库";
-export const PURCHASE_BUSY_MESSAGE = "正在兑换…";
+export const PURCHASE_SUCCESS_MESSAGE = tr("兑换成功，已放入车库");
+export const PURCHASE_BUSY_MESSAGE = tr("正在兑换…");
 
 /**
  * The note under a successful purchase: "* 已获得 尖锋6.5（30天）。", or for
@@ -75,22 +76,22 @@ export function purchaseSuccessNote(item: Pick<ShopItem, "name" | "isAdditional"
   offer: Pick<ShopOffer, "days" | "count">, before: ShopOwnership, result?: ShopPurchaseResult): string {
   if (ownedRental(item, before)) {
     const expiresAt = result ? result.item.expiresAt : offer.days === 0 ? null : undefined;
-    if (expiresAt === null) return `* ${item.name} 已变为永久。`;
-    return expiresAt === undefined ? `* 已续期 ${item.name}。` :
-      `* 已续期 ${item.name}，到期 ${formatDateTime(expiresAt)}。`;
+    if (expiresAt === null) return tr("* {0} 已变为永久。", { "0": item.name });
+    return expiresAt === undefined ? tr("* 已续期 {0}。", { "0": item.name }) :
+      tr("* 已续期 {0}，到期 {1}。", { "0": item.name, "1": formatDateTime(expiresAt) });
   }
-  return `* 已获得 ${item.name}（${formatOfferTerm(offer, item)}）。`;
+  return tr("* 已获得 {0}（{1}）。", { "0": item.name, "1": formatOfferTerm(offer, item) });
 }
 
 /** The message for a failed purchase of this offer. */
 export function purchaseFailureMessage(error: unknown, offer: Pick<ShopOffer, "currency" | "minExp">): string {
   if (!isShopApiError(error)) return shopErrorMessage("NETWORK_ERROR");
   if (error.code === "INSUFFICIENT_FUNDS")
-    return `${CURRENCY_LABELS[offer.currency]}不足，无法兑换该道具。`;
+    return tr("{0}不足，无法兑换该道具。", { "0": CURRENCY_LABELS[offer.currency] });
   if (error.code === "EXP_REQUIRED" && offer.minExp)
-    return `经验不足，${formatExpRequirement(offer.minExp)}。`;
+    return tr("经验不足，{0}。", { "0": formatExpRequirement(offer.minExp) });
   if (error.retryable && error.code !== "TOO_MANY_ATTEMPTS")
-    return `${error.message}重试不会重复扣费。`;
+    return tr("{0}重试不会重复扣费。", { "0": error.message });
   return error.message;
 }
 
@@ -282,9 +283,9 @@ export class BuyDialogView {
     this.dialog.classList.add("ks-shop-dialog");
     this.dialog.setAttribute("role", "dialog");
     this.dialog.setAttribute("aria-modal", "true");
-    this.dialog.setAttribute("aria-label", `兑换 ${item.name}`);
+    this.dialog.setAttribute("aria-label", tr("兑换 {0}", { "0": item.name }));
     // #sb(buyItem) is 获得活动道具 in the CN bag (a mistranslation of the KR 아이템 구입).
-    setText(this.dialog, "兑换道具");
+    setText(this.dialog, tr("兑换道具"));
 
     const art = element("div", "ks-shop-art ks-shop-art-large");
     tree.named("itemPanel").append(art);
@@ -333,9 +334,9 @@ export class BuyDialogView {
       const panel = tree.elements.get(node)!;
       const labels = node.children.map(child => tree.elements.get(child)!);
       const label = CURRENCY_LABELS[currency];
-      setText(labels[0]!, `我的${label}`);
+      setText(labels[0]!, tr("我的{0}", { "0": label }));
       setText(labels[2]!, label);
-      setText(labels[4]!, `剩余${label}`);
+      setText(labels[4]!, tr("剩余{0}", { "0": label }));
       setText(labels[6]!, label);
       labels[1]!.classList.add("ks-shop-dialog-amount");
       labels[5]!.classList.add("ks-shop-dialog-amount");
@@ -586,11 +587,11 @@ export class BuyDialogView {
     if (state.phase === "success") {
       note = purchaseSuccessNote(item, state.selected.offer, state.ownership, state.result);
     } else if (context?.reason) {
-      note = context.blocked === "owned" ? `* ${context.reason}。` : `* ${context.reason}，无法兑换。`;
+      note = context.blocked === "owned" ? `* ${context.reason}。` : tr("* {0}，无法兑换。", { "0": context.reason });
     } else if (renewal) {
-      note = `* ${renewal}。|适当娱乐，理性消费。`;
+      note = tr("* {0}。|适当娱乐，理性消费。", { "0": renewal });
     } else {
-      note = "* 要兑换所选道具吗？|兑换后道具将放入车库。适当娱乐，理性消费。";
+      note = tr("* 要兑换所选道具吗？|兑换后道具将放入车库。适当娱乐，理性消费。");
     }
     // The original "*" label stands before lblAskBuy.
     setText(this.note, note.replace(/^\* /, ""));
@@ -598,8 +599,8 @@ export class BuyDialogView {
     this.note.dataset.warning = String(Boolean(context?.reason));
     setText(this.message, state.message ?? "");
     this.message.dataset.kind = state.phase;
-    setText(this.okButton, state.phase === "busy" ? "请稍候…" :
-      state.phase === "error" && state.retryable && !state.stale && !state.selected.blocked ? "重试" :
+    setText(this.okButton, state.phase === "busy" ? tr("请稍候…") :
+      state.phase === "error" && state.retryable && !state.stale && !state.selected.blocked ? tr("重试") :
         SHOP_STRINGS.ok);
     this.okButton.disabled = state.phase === "success" ? false : !controller.canConfirm();
     this.cancelButton.hidden = state.phase === "success";

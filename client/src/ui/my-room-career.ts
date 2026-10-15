@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { G1, T, V0, f5, m9, s2, st } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
@@ -183,7 +184,7 @@ class CareerWindow implements MyRoomCareerWindow {
     this.element.dataset.uiLayer = "dialog";
     this.element.setAttribute("role", "dialog");
     this.element.setAttribute("aria-modal", "true");
-    this.element.setAttribute("aria-label", options.editable ? "成就" : `${this.summary.nickname} 的成就`);
+    this.element.setAttribute("aria-label", options.editable ? tr("成就") : tr("{name} 的成就", { name: this.summary.nickname }));
     this.element.tabIndex = -1;
     Object.assign(this.element.style, { position: "absolute", inset: "0", zIndex: "3" });
     Object.assign(this.canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
@@ -226,7 +227,10 @@ class CareerWindow implements MyRoomCareerWindow {
     this.options.onClose();
   }
 
-  private text(key: string): string | undefined { return this.strings.get(key); }
+  private text(key: string): string | undefined {
+    const value = this.strings.get(key);
+    return value === undefined ? undefined : tr(value);
+  }
 
   private texture(name: string | undefined): HTMLCanvasElement | undefined {
     return name ? this.images.get(`${FOLDER}/${name}.png`) : undefined;
@@ -354,9 +358,9 @@ class CareerWindow implements MyRoomCareerWindow {
   }
 
   private buttonLabel(name: string): string {
-    if (name === "cancelButton") return this.text("close") ?? "关闭";
-    if (name === "tab_SummaryButton") return this.text("careerSummary") ?? "成就概要";
-    if (name === "completeBtn") return `${this.text("achievementCareer") ?? "点击完成"} ${this.row?.info.title ?? ""}`;
+    if (name === "cancelButton") return this.text("close") ?? tr("关闭");
+    if (name === "tab_SummaryButton") return this.text("careerSummary") ?? tr("成就概要");
+    if (name === "completeBtn") return `${this.text("achievementCareer") ?? tr("点击完成")} ${this.row?.info.title ?? ""}`;
     const sub = Number(/^tab_(\d+)$/.exec(name)?.[1]);
     return this.tabTitle(sub) ?? name;
   }
@@ -444,7 +448,7 @@ class CareerWindow implements MyRoomCareerWindow {
     if (row) {
       if (name === "careerName") return row.info.title;
       if (name === "careerHelp") return row.progress.untracked
-        ? `${row.info.help}（当前版本暂不统计）` : row.info.help;
+        ? tr("{help}（当前版本暂不统计）", { help: row.info.help }) : row.info.help;
       if (name === "careerCompleteDate") return careerDate(row.progress.completedAt);
       const lines = this.conditionLines(row);
       if (name === "careerInfo") return lines[0]?.text;
@@ -550,7 +554,7 @@ class CareerWindow implements MyRoomCareerWindow {
     const thumbY = track.y + (track.height - thumbHeight) * (this.scroll / range);
     context.fillStyle = "rgba(84, 100, 129, 0.75)";
     context.fillRect(track.x + 2, thumbY, track.width - 4, thumbHeight);
-    this.regions.push({ key: "scrollTrack", rect: track, label: "滚动成就列表",
+    this.regions.push({ key: "scrollTrack", rect: track, label: tr("滚动成就列表"),
       activate: () => {
         const middle = thumbY + thumbHeight / 2;
         const step = list.height * 0.9;
@@ -580,7 +584,7 @@ class CareerWindow implements MyRoomCareerWindow {
     context.lineTo(rect.x + rect.width - 8, rect.y + rect.height / 2 - 3);
     context.lineTo(rect.x + rect.width - 13, rect.y + rect.height / 2 + 4);
     context.fill();
-    this.regions.push({ key: "combo", rect, label: "筛选成就",
+    this.regions.push({ key: "combo", rect, label: tr("筛选成就"),
       activate: () => { this.comboOpen = !this.comboOpen; this.render(); } });
   }
 
@@ -648,17 +652,17 @@ class CareerWindow implements MyRoomCareerWindow {
       this.busy = false;
       this.render();
       const message = error instanceof Error ? error.message : String(error);
-      await this.options.notice(this.text("achievementPopupTitle") ?? "完成成就",
-        message === "CAREER_ALREADY_COMPLETED" ? "成就已完成" : this.text("errorMsg") ?? message);
+      await this.options.notice(this.text("achievementPopupTitle") ?? tr("完成成就"),
+        message === "CAREER_ALREADY_COMPLETED" ? tr("成就已完成") : this.text("errorMsg") ?? message);
       return;
     }
     this.busy = false;
     this.render();
     // The release message box shows one line.
-    const parts = [`${row.info.title} ${this.text("completePopupString") ?? "成就已完成"}`];
-    if (completion.emblem) parts.push(`获得徽章：${this.emblems.get(completion.emblem)?.name ?? completion.emblem}`);
-    if (completion.point) parts.push(`成就积分 +${completion.point}`);
-    await this.options.notice(this.text("achievementPopupTitle") ?? "完成成就", parts.join("，"));
+    const parts = [`${row.info.title} ${this.text("completePopupString") ?? tr("成就已完成")}`];
+    if (completion.emblem) parts.push(tr("获得徽章：{emblem}", { emblem: this.emblems.get(completion.emblem)?.name ?? completion.emblem }));
+    if (completion.point) parts.push(tr("成就积分 +{points}", { points: completion.point }));
+    await this.options.notice(this.text("achievementPopupTitle") ?? tr("完成成就"), parts.join("，"));
   }
 
   private readonly onPointerMove = (event: PointerEvent): void => {

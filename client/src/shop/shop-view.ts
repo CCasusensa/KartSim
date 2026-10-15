@@ -1,3 +1,4 @@
+import { tr, gameLocale } from "../i18n/locale";
 /**
  * The shop (server-go/ECONOMY.md 7.6 and 8), rebuilt after the original CN
  * mall screen stage_mqShop.rho (MqShopStage, stage_window@cn) as the PC
@@ -53,7 +54,7 @@ import {
 } from "./shop-original";
 import { fetchSpendEvent, SpendEventPanel, type SpendEventReward } from "./shop-spend-event";
 import { SHOP_STYLES } from "./shop-styles";
-import { BmlTree, createNodeElement, editInput, element, place, setFrame, setText } from "./shop-widgets";
+import { BmlTree, createNodeElement, editInput, element, place, setFrame, setText, localizeImageCaption } from "./shop-widgets";
 
 export type ShopTab = "recommand" | "kartBody" | "character" | "equip";
 
@@ -156,20 +157,20 @@ export interface ShopOpenOptions {
 }
 
 /** The 点击获取点券 button's text (ECONOMY.md 2.5). */
-export const FREE_COUPON_LABEL = "点击获取点券";
+export const FREE_COUPON_LABEL = tr("点击获取点券");
 /**
  * The 累计消费活动 window is not shown (2026-10-11): the shop neither asks
  * /api/shop/spend-event nor draws the window. The service, the panel and
  * their tests stay for when it comes back.
  */
 export const SPEND_EVENT_SHOWN = false;
-const CURRENCY_NAMES: Record<"coupon" | "lucci" | "koin", string> = { coupon: "点券", lucci: "金币", koin: "K币" };
+const CURRENCY_NAMES: Record<"coupon" | "lucci" | "koin", string> = { coupon: tr("点券"), lucci: tr("金币"), koin: tr("K币") };
 
 /** "10,000 点券、5 金币": the amounts of a grant that are not zero. */
 export function grantText(grant: Record<"coupon" | "lucci" | "koin", number>): string {
   const parts = (["coupon", "lucci", "koin"] as const).filter(key => grant[key] > 0)
-    .map(key => `${grant[key].toLocaleString("zh-CN")} ${CURRENCY_NAMES[key]}`);
-  return parts.length ? parts.join("、") : "0 点券";
+    .map(key => `${grant[key].toLocaleString(gameLocale())} ${CURRENCY_NAMES[key]}`);
+  return parts.length ? parts.join("、") : tr("0 点券");
 }
 
 const SEARCH_DEBOUNCE_MS = 150;
@@ -216,8 +217,9 @@ export function discountMark(offer: Pick<ShopOffer, "price" | "originalPrice" | 
   if (!offer.originalPrice || offer.originalPrice <= offer.price) return undefined;
   const percent = offer.discountPercent ??
     Math.round((1 - offer.price / offer.originalPrice) * 100);
-  const label = offer.discountLabel ??
-    `${Math.round((100 - percent) / 10 * 10) / 10}${SHOP_STRINGS.discount}`;
+  const label = gameLocale() === "zh-CN"
+    ? offer.discountLabel ?? `${Math.round((100 - percent) / 10 * 10) / 10}${SHOP_STRINGS.discount}`
+    : gameLocale() === "ko" ? `${percent}% 할인` : `${percent}% off`;
   const tier = percent >= 60 ? 60 : percent >= 30 ? 30 : 10;
   const long = [...label].length > 2;
   return { mark: "discount", image: `discount${tier}${long ? "_long" : ""}@cn`,
@@ -537,7 +539,7 @@ class ShopView {
     });
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "true");
-    root.setAttribute("aria-label", "商城");
+    root.setAttribute("aria-label", tr("商城"));
     const taskbar = Math.max(0, Math.min(SHOP_SCREEN_HEIGHT, Math.floor(this.options.taskbarHeight ?? 0)));
     root.style.setProperty("--ks-shop-taskbar", `${taskbar}px`);
     const style = element("style");
@@ -633,13 +635,14 @@ class ShopView {
       this.claimButton = claim;
       claim.addEventListener("click", () => { void this.claimFreeCoupon(); });
     }
-    notice(this.tree.named("shopCoupon"), "兑奖券暂未开放");
+    notice(this.tree.named("shopCoupon"), tr("兑奖券暂未开放"));
     const gacha = this.tree.named("gachaOpenResult");
     gacha.setAttribute("aria-label", SHOP_STRINGS.gachaUseResult);
     gacha.title = SHOP_STRINGS.gachaUseResult;
-    notice(gacha, `${SHOP_STRINGS.gachaUseResult}暂未开放`);
+    localizeImageCaption(gacha, SHOP_STRINGS.gachaUseResult);
+    notice(gacha, tr("{0}暂未开放", { "0": SHOP_STRINGS.gachaUseResult }));
     const reset = this.tree.named("reset");
-    reset.title = "试穿的道具恢复为当前装备";
+    reset.title = tr("试穿的道具恢复为当前装备");
     reset.addEventListener("click", () => {
       this.options.onActivate?.();
       this.resetTryOn();
@@ -651,7 +654,7 @@ class ShopView {
   private buildTabs(): void {
     const row = this.tree.named("itemCatTab");
     row.setAttribute("role", "tablist");
-    row.setAttribute("aria-label", "商品分类");
+    row.setAttribute("aria-label", tr("商品分类"));
     for (const { node, tab } of CATEGORY_TABS) {
       const button = this.tree.named(node) as HTMLButtonElement;
       button.classList.add("ks-shop-tab");
@@ -664,15 +667,15 @@ class ShopView {
     // The template sub-tab buttons are replaced by the current tab's.
     this.subTabRow.replaceChildren();
     this.subTabRow.setAttribute("role", "tablist");
-    this.subTabRow.setAttribute("aria-label", "子分类");
+    this.subTabRow.setAttribute("aria-label", tr("子分类"));
   }
 
   private buildGrid(): void {
     const window = this.tree.named("shopItems");
     window.setAttribute("role", "region");
-    window.setAttribute("aria-label", "商品列表");
+    window.setAttribute("aria-label", tr("商品列表"));
     this.grid.classList.add("ks-shop-grid");
-    this.grid.setAttribute("aria-label", "商品");
+    this.grid.setAttribute("aria-label", tr("商品"));
     window.addEventListener("wheel", event => {
       if (this.dialog || Math.abs(event.deltaY) < 1) return;
       event.preventDefault();
@@ -748,7 +751,7 @@ class ShopView {
 
   private buildSearch(): void {
     const button = this.searchButton;
-    button.setAttribute("aria-label", "搜索道具");
+    button.setAttribute("aria-label", tr("搜索道具"));
     button.setAttribute("aria-expanded", "false");
     // The edit and its talk balloon hang below the button (searchBtn children).
     this.searchBox.hidden = true;
@@ -869,7 +872,7 @@ class ShopView {
     this.loadAbort?.abort();
     const abort = new AbortController();
     this.loadAbort = abort;
-    if (!this.index) this.showStatus("loading", "正在加载商城…");
+    if (!this.index) this.showStatus("loading", tr("正在加载商城…"));
     try {
       const catalog = await fetchShopCatalog(this.options.session, { signal: abort.signal });
       if (this.disposed || abort.signal.aborted) return;
@@ -886,7 +889,7 @@ class ShopView {
       this.index = shopIndex(catalog);
       this.validateTab();
       this.update();
-      if (reloaded) this.showToast("商城目录已更新");
+      if (reloaded) this.showToast(tr("商城目录已更新"));
       // First load: move focus from the overlay to the selected tab.
       if (document.activeElement === this.element || !this.element.contains(document.activeElement))
         this.tabButtons.get(this.query.tab)?.focus({ preventScroll: true });
@@ -898,7 +901,7 @@ class ShopView {
       if (code === "LOGIN_REQUIRED") {
         this.showStatus("error", shopErrorMessage(code), SHOP_STRINGS.close, () => this.closeByUser());
       } else if (!this.index) {
-        this.showStatus("error", message, "重试", () => void this.load());
+        this.showStatus("error", message, tr("重试"), () => void this.load());
       } else {
         this.showToast(message);
       }
@@ -943,8 +946,8 @@ class ShopView {
     button.hidden = !this.claimGrant;
     if (!this.claimGrant) return;
     setText(button, FREE_COUPON_LABEL);
-    const amounts = `每次 ${grantText(this.claimGrant)}`;
-    button.setAttribute("aria-label", `${FREE_COUPON_LABEL}（${amounts}）`);
+    const amounts = tr("每次 {0}", { "0": grantText(this.claimGrant) });
+    button.setAttribute("aria-label", tr("{0}（{1}）", { "0": FREE_COUPON_LABEL, "1": amounts }));
     button.title = amounts;
   }
 
@@ -958,7 +961,7 @@ class ShopView {
       // One requestId per click: a retry of this click could not credit twice.
       const result = await claimFreeCoupon(this.options.session, newRequestId());
       if (this.disposed) return;
-      this.showToast(result.duplicate ? "本次领取已经到账。" : `已获得 ${grantText(result.granted)}`);
+      this.showToast(result.duplicate ? tr("本次领取已经到账。") : tr("已获得 {0}", { "0": grantText(result.granted) }));
       void this.options.session.refresh().catch(() => {});
     } catch (error) {
       if (this.disposed) return;
@@ -1060,7 +1063,7 @@ class ShopView {
     const entry = this.tabEntry(tab);
     if (!entry || !this.index?.list(entry.id).length) {
       // 礼包 has nothing in this catalog.
-      if (this.index) this.showToast(`${button.textContent ?? ""}暂未开放`);
+      if (this.index) this.showToast(tr("{0}暂未开放", { "0": button.textContent ?? "" }));
       return;
     }
     const searching = normalizeSearch(this.query.search) !== "";
@@ -1190,7 +1193,7 @@ class ShopView {
         name: !mall && SUB_TAB_STRINGS[sub.id] ? SHOP_STRINGS[SUB_TAB_STRINGS[sub.id]!] : sub.name,
         selected: sub.id === this.query.subTab,
         empty: !!index && sub.id !== ALL_SUB_TAB && !index.list(tab.id, sub.id).length }))
-      : [{ id: "search", name: `搜索结果 ${formatAmount(this.results.length)}`, selected: true, empty: false }];
+      : [{ id: "search", name: tr("搜索结果 {0}", { "0": formatAmount(this.results.length) }), selected: true, empty: false }];
     // Older catalogs: a tab without sub-tabs still shows 全部.
     if (tab && !tab.subTabs.length && !mall)
       entries.push({ id: ALL_SUB_TAB, name: SHOP_STRINGS.whole, selected: true, empty: false });
@@ -1203,8 +1206,8 @@ class ShopView {
       sum + (character.charCodeAt(0) < 0x2e80 ? 9 : 16), 0);
     const fits = entries.length <= slots.length &&
       slots[entries.length - 1]!.x + slots[entries.length - 1]!.width <= searchLeft + 6 &&
-      entries.every((entry, position) => textWidth(entry.name) + 4 <= slots[position]!.width);
-    const widths = entries.map(entry => fits ? slots[0]!.width : textWidth(entry.name) + 14);
+      entries.every((entry, position) => textWidth(tr(entry.name)) + 4 <= slots[position]!.width);
+    const widths = entries.map(entry => fits ? slots[0]!.width : textWidth(tr(entry.name)) + 14);
     const room = searchLeft - slots[0]!.x;
     const total = widths.reduce((sum, width) => sum + width - 1, 1);
     const shrink = !fits && total > room ? room / total : 1;
@@ -1213,7 +1216,7 @@ class ShopView {
       const button = createNodeElement(template) as HTMLButtonElement;
       delete button.dataset.name;
       button.classList.add("ks-shop-subtab");
-      setText(button, entry.name);
+      setText(button, tr(entry.name));
       const width = fits ? slots[position]!.width : Math.floor(widths[position]! * shrink);
       place(button, fits ? slots[position]! : { x, y: slots[0]!.y, width, height: slots[0]!.height });
       x += width - 1;
@@ -1222,7 +1225,7 @@ class ShopView {
       button.setAttribute("aria-selected", String(entry.selected));
       if (entry.empty) button.setAttribute("aria-disabled", "true");
       button.tabIndex = entry.selected ? 0 : -1;
-      button.title = entry.empty ? `${entry.name}（暂无道具）` : entry.name;
+      button.title = entry.empty ? tr("{0}（暂无道具）", { "0": tr(entry.name) }) : tr(entry.name);
       if (entry.id === "search") button.addEventListener("click", () => this.closeSearch());
       else button.addEventListener("click", () => this.selectSubTab(entry.id));
       button.addEventListener("pointerenter", () => { if (!entry.empty) this.options.onHover?.(); });
@@ -1272,7 +1275,7 @@ class ShopView {
     this.renderScrollbar(view.lineCount);
     if (!view.total) {
       const searching = normalizeSearch(this.query.search) !== "";
-      this.showStatus("empty", searching ? "没有找到符合条件的道具，请换个名称试试。" : "暂无道具。");
+      this.showStatus("empty", searching ? tr("没有找到符合条件的道具，请换个名称试试。") : tr("暂无道具。"));
     } else {
       this.showStatus();
     }
@@ -1331,7 +1334,15 @@ class ShopView {
         label.style.top = "1px";
         label.style.width = `${mark.width - 23}px`;
       }
-      sprite.title = mark.label ?? { new: "新品", hot: "人气", limited: "限购" }[mark.mark] ?? "";
+      sprite.title = mark.label ?? { new: tr("新品"), hot: tr("人气"), limited: tr("限购") }[mark.mark] ?? "";
+      if (gameLocale() !== "zh-CN") {
+        sprite.classList.add("ks-shop-mark-localized");
+        sprite.style.removeProperty("--mark");
+        sprite.style.width = "auto";
+        sprite.style.height = "auto";
+        sprite.textContent = sprite.title;
+        label.hidden = true;
+      }
       tag.prepend(sprite);
     }
 
@@ -1360,7 +1371,7 @@ class ShopView {
     // The title bar's "i" where the original shows it; it pins the tooltip.
     detail.hidden = !cardHasDetail(item, shown);
     detail.classList.add("ks-card-detail");
-    detail.setAttribute("aria-label", "道具详情");
+    detail.setAttribute("aria-label", tr("道具详情"));
     detail.setAttribute("aria-pressed", "false");
     const selected = named("selected");
     selected.setAttribute("aria-hidden", "true");
@@ -1385,7 +1396,7 @@ class ShopView {
     });
     gift.addEventListener("click", () => {
       this.options.onActivate?.();
-      this.showToast("赠送暂未开放");
+      this.showToast(tr("赠送暂未开放"));
     });
     detail.addEventListener("click", () => {
       this.options.onActivate?.();
@@ -1429,17 +1440,17 @@ class ShopView {
     card.dataset.owned = forever ? "forever" : ownership.owned ? "yes" : "no";
     const owned = ownershipLabel(item, ownership, now);
     record.buy.disabled = forever;
-    record.buy.title = forever ? "已永久拥有" : "";
+    record.buy.title = forever ? tr("已永久拥有") : "";
     const tried = this.tried.get(tryOnSlot(item)) === entry.key;
     card.dataset.selected = String(tried);
     record.selected.hidden = !tried;
     record.face.setAttribute("aria-pressed", String(tried));
     const terms = orderedOffers(item).map(choice => stockLine(choice, item));
     const was = offer.originalPrice && offer.originalPrice > offer.price
-      ? `原价${formatAmount(offer.originalPrice)}，` : "";
+      ? tr("原价{0}，", { "0": formatAmount(offer.originalPrice) }) : "";
     record.face.setAttribute("aria-label", [item.name, kindLabel(item),
       `${was}${formatAmount(offer.price)}${CURRENCY_LABELS[offer.currency]}/${formatOfferTerm(offer, item)}`,
-      owned, tried ? "试穿中" : ""].filter(Boolean).join("，"));
+      owned, tried ? tr("试穿中") : ""].filter(Boolean).join("，"));
     record.buy.setAttribute("aria-label", `${SHOP_STRINGS.trade} ${item.name}`);
     record.face.title = [item.name, ...terms].join("\n");
   }
@@ -1535,7 +1546,7 @@ class ShopView {
       let accepted = true;
       try { accepted = this.stagePreview ? this.stagePreview.tryOn(request) : true; } catch { accepted = false; }
       if (!accepted) {
-        this.showToast("该道具暂时无法试穿预览");
+        this.showToast(tr("该道具暂时无法试穿预览"));
         return;
       }
       this.tried.set(slot, entry.key);

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { installResourceManager, type ResourceLibraryApi, type ResourceStoreApi } from "../resources/resource-manager";
 import type { Rho5PackSpec } from "../resources/resource-groups";
 import { isPrefetchStore, prefetchStartupReads } from "../resources/startup-reads";
@@ -158,10 +159,10 @@ function installHomeResources(mounted: MountedStartupSources, library: unknown,
     void manager.ready.then(() => {
       const home = manager.group("home");
       if (!home || !manager.missing(home.containers).length) return;
-      manager.download(home.containers, { label: "首页资源", priority: "low", groupId: "home" }).done
+      manager.download(home.containers, { label: tr("首页资源"), priority: "low", groupId: "home" }).done
         .catch(error => {
           if (error instanceof Error && error.message === "CANCELLED") return;
-          warn(`首页资源后台下载未完成（${error instanceof Error ? error.message : String(error)}），使用时按需读取。`);
+          warn(tr("首页资源后台下载未完成（{0}），使用时按需读取。", { "0": error instanceof Error ? error.message : String(error) }));
         });
     });
   };
@@ -224,17 +225,17 @@ export async function loadStartupResources(
           key,
           progress.loadedBytes,
           progress.totalBytes,
-          `正在加载 ${progress.file}`,
+          tr("正在加载 {0}", { "0": progress.file }),
         );
       },
       localSource,
     );
     if (!host.assets.isCurrent(generation)) return;
     const warm = warmStartupReads(mounted);
-    report("sources", 1, 1, "正在解析资源索引");
+    report("sources", 1, 1, tr("正在解析资源索引"));
 
     const library = await dependencies.loadLibrary(mounted.sources, mounted.archiveIndexes,
-      event => report("library", event.current, event.total, "正在解析资源索引"));
+      event => report("library", event.current, event.total, tr("正在解析资源索引")));
     if (!host.assets.isCurrent(generation)) return;
     if (library.files.length === 0) {
       throw new Error(library.errors[0] ?? "没有成功读取任何资源文件。");
@@ -246,27 +247,27 @@ export async function loadStartupResources(
     // (tracks when a race loads) or from the 资源下载 panel.
     const downloadHome = installHomeResources(mounted, library,
       message => host.hud.showDebugText(message, "error"));
-    report("library", 1, 1, "正在加载车辆与赛道目录");
+    report("library", 1, 1, tr("正在加载车辆与赛道目录"));
 
     const [garageCatalog, maps] = await Promise.all([
       library.timeAttackGarageCatalog().then(catalog => {
-        report("garage", 1, 1, "正在加载车辆与赛道目录");
+        report("garage", 1, 1, tr("正在加载车辆与赛道目录"));
         return catalog;
       }),
       library.mapCatalog().then(maps => {
-        report("maps", 1, 1, "正在加载车辆与赛道目录");
+        report("maps", 1, 1, tr("正在加载车辆与赛道目录"));
         return maps;
       }),
     ]);
     if (!host.assets.isCurrent(generation)) return;
 
     warm.home();
-    report("account", 0, 1, "正在连接账号服务，请完成登录");
+    report("account", 0, 1, tr("正在连接账号服务，请完成登录"));
     if (dependencies.ensureAccount) {
       await dependencies.ensureAccount();
       if (!host.assets.isCurrent(generation)) return;
     }
-    report("account", 1, 1, "正在读取车手档案");
+    report("account", 1, 1, tr("正在读取车手档案"));
     let profile = dependencies.loadProfile();
     if (profile instanceof Promise) {
       let loaded: RiderProfile | undefined;
@@ -292,31 +293,31 @@ export async function loadStartupResources(
     }
     if (dependencies.sanitizeProfile)
       host.userProfile = dependencies.sanitizeProfile(host.userProfile, garageCatalog);
-    report("profile", 1, 1, "正在初始化音频与游戏场景");
+    report("profile", 1, 1, tr("正在初始化音频与游戏场景"));
     const startup = dependencies.resolveSelection(garageCatalog, maps, host.userProfile);
     host.assets.install(library, mounted);
     releaseRaceMusic = holdRacePlaylists();
     await host.prepareStartupReady(library, startup.selection, startup.vehicleTitle,
-      (current, total) => report("ready", current, total, "正在初始化音频与游戏场景"));
+      (current, total) => report("ready", current, total, tr("正在初始化音频与游戏场景")));
     if (!host.assets.isCurrent(generation)) return;
-    report("ready", 1, 1, "游戏初始化完成");
+    report("ready", 1, 1, tr("游戏初始化完成"));
 
     if (library.errors[0]) host.hud.showDebugText(library.errors[0], "error");
     else if (library.warnings[0]) host.hud.showDebugText(library.warnings[0]);
     host.hud.showDebugText(
-      `已读取资源：${library.archives.length} 个容器，${library.files.length} 个文件`,
+      tr("已读取资源：{0} 个容器，{1} 个文件", { "0": library.archives.length, "1": library.files.length }),
     );
-    host.hud.showDebugText("已加载发布版档案索引，物理容器按需缓存");
+    host.hud.showDebugText(tr("已加载发布版档案索引，物理容器按需缓存"));
     if (localSource) {
       host.hud.showDebugText(
-        `优先读取本地 ${localSource.name}，不匹配的容器使用在线资源`,
+        tr("优先读取本地 {0}，不匹配的容器使用在线资源", { "0": localSource.name }),
       );
     }
     const equippedKartId = host.userProfile.equipment.itemIds[3];
     if (dependencies.isSpecialKartId(equippedKartId) &&
       startup.selection.vehicleItemId !== equippedKartId) {
       host.hud.showDebugText(
-        `${dependencies.displayKartName(equippedKartId)} 本次使用${startup.vehicleTitle}启动，未修改保存资料。`,
+        tr("{0} 本次使用{1}启动，未修改保存资料。", { "0": dependencies.displayKartName(equippedKartId), "1": startup.vehicleTitle }),
       );
     }
     host.hud.finishLoading();

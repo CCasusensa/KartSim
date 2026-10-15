@@ -1,4 +1,5 @@
 import { te } from "../generated/library.js";
+import { tr } from "../i18n/locale";
 import { clipToStage, node, nodeName, paintText, prepare, type BmlLibrary, type Node as BmlNode,
   type NodeState, type WindowView } from "../ui/bml-kit";
 import { gameRoot, gameWindowLibrary, popupLayer, type PopupLayer } from "../ui/game-popups";
@@ -57,7 +58,7 @@ export function layoutPanelDefinition(): BmlNode {
     ...frame ? { frame } : {},
   });
   return node("Container", { windowRect: "fullscreen" }, [
-    node("CaptionWindow", { name: "layoutPanel", frame: "CaptionDialog", caption: "调整按键", captionPos: "0 1",
+    node("CaptionWindow", { name: "layoutPanel", frame: "CaptionDialog", caption: tr("调整按键"), captionPos: "0 1",
       textRender: "bold",
       leftTopWH: `${LAYOUT_PANEL.x} ${LAYOUT_PANEL.y} ${LAYOUT_PANEL.width} ${LAYOUT_PANEL.height}` }, [
       node("Label", { name: "layoutHint", leftTopWH: `20 12 ${LAYOUT_PANEL.width - 76} 32` }),
@@ -230,7 +231,7 @@ export class TouchLayoutEditor {
     this.resizeHandle = document.createElement("button");
     this.resizeHandle.type = "button";
     this.resizeHandle.className = "touch-layout-resize-handle";
-    this.resizeHandle.setAttribute("aria-label", "调整按键大小");
+    this.resizeHandle.setAttribute("aria-label", tr("调整按键大小"));
     this.resizeHandle.innerHTML = resizeHandleMarkup;
     // A small square grip in the release blue on the selected key's corner.
     Object.assign(this.resizeHandle.style, { position: "fixed", zIndex: "4", width: "30px", height: "30px",
@@ -294,14 +295,14 @@ export class TouchLayoutEditor {
   panelState(entry: BmlNode): NodeState {
     const button = (text: string, action: () => void): NodeState => ({ text, label: text, action });
     switch (nodeName(entry)) {
-      case "layoutPanel": return { text: "调整按键" };
-      case "layoutHint": return paintText(LAYOUT_PANEL_HINT, { size: 20, bold: true, color: TEXT, align: "center",
+      case "layoutPanel": return { text: tr("调整按键") };
+      case "layoutHint": return paintText(tr(LAYOUT_PANEL_HINT), { size: 20, bold: true, color: TEXT, align: "center",
         middle: true });
       case "layoutStatus": return paintText(this.message, { size: 18, bold: this.messageIsError,
         color: this.messageIsError ? ERROR_TEXT : TEXT, align: "center", middle: true });
-      case "layoutSave": return button("保存", () => this.save());
-      case "layoutCancel": return button("取消", () => this.cancel());
-      case "layoutReset": return button("恢复默认", () => this.reset());
+      case "layoutSave": return button(tr("保存"), () => this.save());
+      case "layoutCancel": return button(tr("取消"), () => this.cancel());
+      case "layoutReset": return button(tr("恢复默认"), () => this.reset());
     }
     return {};
   }
@@ -315,7 +316,7 @@ export class TouchLayoutEditor {
     this.panelLayer = layer;
     void (te.load({
       library, root: layer.element, definition: prepare(library, layoutPanelDefinition(), ROOTS), roots: ROOTS,
-      smoothImages: true, modal: false, label: "调整按键",
+      smoothImages: true, modal: false, label: tr("调整按键"),
       onCancel: () => this.cancel(),
       state: (entry: BmlNode) => this.panelState(entry),
     } as never) as Promise<WindowView>).then(view => {
@@ -383,7 +384,7 @@ export class TouchLayoutEditor {
     try {
       localStorage.setItem(TOUCH_LAYOUT_STORAGE_KEY, JSON.stringify(this.draft));
     } catch {
-      this.setMessage("无法保存按键布局，请检查浏览器的本地存储设置后重试。", true);
+      this.setMessage(tr("无法保存按键布局，请检查浏览器的本地存储设置后重试。"), true);
       return;
     }
     this.saved = { ...this.draft };
@@ -395,7 +396,7 @@ export class TouchLayoutEditor {
     this.draft = {};
     this.apply(this.draft);
     this.selectButton(this.selected);
-    this.setMessage("已恢复默认，保存后生效。");
+    this.setMessage(tr("已恢复默认，保存后生效。"));
   }
 
   finish(): void {
@@ -419,7 +420,7 @@ export class TouchLayoutEditor {
       button.classList.toggle("is-layout-selected", candidate === id);
     const button = this.buttons.get(id)!;
     this.resizeHandle.setAttribute("aria-label",
-      `调整${button.dataset.actionName ?? "按键"}大小`);
+      tr("调整{action}大小", { action: button.dataset.actionName ?? tr("按键") }));
     this.positionResizeHandle();
   }
 

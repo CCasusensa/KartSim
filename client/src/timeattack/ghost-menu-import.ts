@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Import, export, and track-switch workflow for the Ghost menu. */
 
 export interface GhostImportSelection {
@@ -65,27 +66,27 @@ function errorMessage(error: unknown): string {
 export async function deleteGhostFromMenu(host: GhostMenuHost): Promise<void> {
   const key = host.options.currentGhostKey();
   if (!key) {
-    host.options.reportError("当前地图没有记录，无法删除影子。");
+    host.options.reportError(tr("当前地图没有记录，无法删除影子。"));
     return;
   }
   try {
     await host.options.deleteGhost(key);
   } catch (error) {
-    host.options.reportError(`删除失败：${errorMessage(error)}`);
+    host.options.reportError(tr("删除失败：{value}", { value: String(errorMessage(error)) }));
   }
 }
 
 export async function exportGhostFromMenu(host: GhostMenuHost): Promise<void> {
   const key = host.options.currentGhostKey();
   if (!key) {
-    host.options.reportError("当前地图没有记录，无法导出 KSV。 ");
+    host.options.reportError(tr("当前地图没有记录，无法导出 KSV。 "));
     return;
   }
   try {
-    if (!host.options.exportGhost) throw new Error("导出功能尚未就绪。 ");
+    if (!host.options.exportGhost) throw new Error(tr("导出功能尚未就绪。 "));
     await host.options.exportGhost(key);
   } catch (error) {
-    host.options.reportError(`导出失败：${errorMessage(error)}`);
+    host.options.reportError(tr("导出失败：{value}", { value: String(errorMessage(error)) }));
   }
 }
 
@@ -118,7 +119,7 @@ export async function importSelectedGhostFile(host: GhostMenuHost,
     await host.switchToImportedTrack(selection, zCeiling, frameCount, revision);
   } catch (error) {
     if (host.isCurrentImport(revision)) {
-      host.options.reportError(`导入失败：${errorMessage(error)}`);
+      host.options.reportError(tr("导入失败：{value}", { value: String(errorMessage(error)) }));
     }
   } finally {
     if (host.isCurrentImport(revision)) host.input.value = "";
@@ -133,13 +134,13 @@ export async function switchToImportedGhostTrack(host: GhostMenuHost,
   if (!host.isCurrentImport(revision)) return;
   if (!found) {
     host.options.reportError(
-      `已导入影子：地图 ${selection.trackId} 不在当前目录，无法自动切换 ${dependencies.selectionLabel(selection)}（zCeiling ${zCeiling}，${frameCount} 帧）`,
+      tr("已导入影子：地图 {value} 不在当前目录，无法自动切换 {value2}（zCeiling {value3}，{value4} 帧）", { value: String(selection.trackId), value2: String(dependencies.selectionLabel(selection)), value3: String(zCeiling), value4: String(frameCount) }),
     );
     return;
   }
   if (!found.selection) {
     host.options.reportError(
-      `已导入影子：${found.track.title} (${found.track.id})；READY 未就绪，未能自动切换 ${dependencies.selectionLabel(selection)}（zCeiling ${zCeiling}，${frameCount} 帧）`,
+      tr("已导入影子：{value} ({value2})；READY 未就绪，未能自动切换 {value3}（zCeiling {value4}，{value5} 帧）", { value: String(found.track.title), value2: String(found.track.id), value3: String(dependencies.selectionLabel(selection)), value4: String(zCeiling), value5: String(frameCount) }),
     );
     return;
   }

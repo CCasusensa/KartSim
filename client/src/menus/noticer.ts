@@ -2,6 +2,7 @@ import { te } from "../generated/library.js";
 import { clipToStage, loadBml, mapTree, node, nodeName, paintText, prepare, withAttributes, type BmlLibrary,
   type Node, type NodeState, type WindowView } from "../ui/bml-kit";
 import type { MenusApi, MiniNotice } from "./menus-api";
+import { gameLocale, tr } from "../i18n/locale";
 
 /**
  * 迷你提示窗 (dialog2_noticer noticer@zz): the bubble over the taskbar's
@@ -16,6 +17,26 @@ const ROOTS = [FOLDER, "stage_/common"];
 /** Over the noticer button (tray leftTopTex 168 10 on the 834-high taskbar row). */
 const BUBBLE = { x: 56, y: 674, width: 266, height: 148 };
 const POLL_MS = 60_000;
+
+/** Only service-generated reminders are localized; authored announcements stay intact. */
+export function localizeMiniNotice(notice: MiniNotice): MiniNotice {
+  if (gameLocale() === "zh-CN" || notice.kind === "notice") return notice;
+  if (notice.kind === "rewardBox") {
+    const count = /^奖励箱中有(\d+)个道具。\|/.exec(notice.message)?.[1];
+    if (count) return { ...notice, title: tr("奖励箱"), message: tr(
+      "奖励箱中有{count}个道具。|保管的道具在保管时间结束后将自动删除，请在到期前领取道具。", { count }) };
+  }
+  if (notice.kind === "quest") {
+    const count = /^还有(\d+)个任务可以进行，\|点击任务按钮查看详情。$/.exec(notice.message)?.[1];
+    if (count) return { ...notice, title: tr(notice.title), message: tr(
+      "还有{count}个任务可以进行，|点击任务按钮查看详情。", { count }) };
+    const suffix = "|任务已完成。请在奖励箱中确认奖励~！";
+    if (notice.message.endsWith(suffix)) return { ...notice, title: tr(notice.title),
+      message: notice.message.slice(0, -suffix.length).split("、").map(text => tr(text)).join(", ") +
+        "|" + tr("任务已完成。请在奖励箱中确认奖励~！") };
+  }
+  return notice;
+}
 
 export interface NoticerOptions {
   library: BmlLibrary;
@@ -121,7 +142,7 @@ export class Noticer {
     const prepared = prepare(library, definition, ROOTS);
     const view = await te.load({
       library, root: this.options.root, definition: prepared, roots: ROOTS, smoothImages: true, modal: false,
-      label: "迷你提示窗", onCancel: () => this.hide(), state: (entry: Node) => this.state(entry),
+      label: tr("迷你提示窗"), onCancel: () => this.hide(), state: (entry: Node) => this.state(entry),
     }) as WindowView;
     if (this.disposed) {
       view.dispose();
@@ -136,18 +157,19 @@ export class Noticer {
   }
 
   private state(entry: Node): NodeState {
-    const notice = this.notices[this.page];
+    const rawNotice = this.notices[this.page];
+    const notice = rawNotice && localizeMiniNotice(rawNotice);
     switch (nodeName(entry)) {
-      case "noticerClose": return { label: "关闭", action: () => this.hide() };
+      case "noticerClose": return { label: tr("关闭"), action: () => this.hide() };
       case "noticePageInfo": return { text: this.notices.length ? `${this.page + 1}/${this.notices.length}` : "0/0" };
-      case "scrollLeft": return { label: "上一条", action: () => this.turn(-1) };
-      case "scrollRight": return { label: "下一条", action: () => this.turn(1) };
+      case "scrollLeft": return { label: tr("上一条"), action: () => this.turn(-1) };
+      case "scrollRight": return { label: tr("下一条"), action: () => this.turn(1) };
       case "noticeTitle": return paintText(notice?.title ?? "", { size: 14, bold: true, align: "center", middle: true,
         color: "rgb(84,100,129)" });
       case "noticeMsg": {
         const open = notice?.kind === "rewardBox" ? this.options.onRewardBox
           : notice?.kind === "quest" ? this.options.onQuests : undefined;
-        const text = paintText(notice?.message ?? "没有新的提示。", { size: 14, align: "center", middle: true,
+        const text = paintText(notice?.message ?? tr("没有新的提示。"), { size: 14, align: "center", middle: true,
           color: "rgb(84,100,129)", lineGap: 5 });
         return open ? { ...text, label: notice!.title, action: () => { this.hide(); open(); } } : text;
       }

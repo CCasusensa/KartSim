@@ -4,6 +4,7 @@ import { F9, U1 } from "../generated/library.js";
 import { ImageCache, type MyRoomDataLibrary } from "../myroom/myroom-data";
 import { myRoomHudColor, myRoomHudTextRender, readMyRoomStringBag, type MyRoomHudNode } from "./my-room-hud";
 import { readStringBag } from "./item-hud-assets";
+import { tr } from "../i18n/locale";
 
 /**
  * A release BML window drawn on one canvas (1600×900 stage stretched over
@@ -178,7 +179,10 @@ export class BmlCanvas {
     this.previousFocus?.isConnected && this.previousFocus.focus();
   }
 
-  text(key: string): string | undefined { return this.shared.strings.get(key); }
+  text(key: string): string | undefined {
+    const value = this.shared.strings.get(key);
+    return value === undefined ? undefined : tr(value);
+  }
 
   /** A release texture of the window's folders: the cn variant of an @zz name first. */
   texture(name: string | undefined): HTMLCanvasElement | undefined {
@@ -314,7 +318,7 @@ export class BmlCanvas {
       const frame = this.frame(frameName);
       const caption = attribute(node, "caption");
       const text = caption && (/^#sb\(([^)]+)\)$/.exec(caption)?.[1] ? this.text(/^#sb\(([^)]+)\)$/.exec(caption)![1]!)
-        : caption);
+        : tr(caption));
       const custom = hooks.label?.(node, name);
       const shownCaption = custom === null ? undefined : custom ?? text;
       if (frame && shownCaption) {
@@ -366,7 +370,7 @@ export class BmlCanvas {
     const key = /^#sb\(([^)]+)\)$/.exec(raw)?.[1];
     if (key) return this.text(key);
     // Template placeholders (Korean samples, "0(-)", "000") are not shown.
-    return /[가-힣]|^\[?\w+\]?$|^0\(-\)$|^\s*$/.test(raw) && !/^\d+$/.test(raw) ? undefined : raw;
+    return /[가-힣]|^\[?\w+\]?$|^0\(-\)$|^\s*$/.test(raw) && !/^\d+$/.test(raw) ? undefined : tr(raw);
   }
 
   /** Draws a label of a node with its textRender, colors and textAlign. */

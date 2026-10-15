@@ -1,3 +1,4 @@
+import { tr, gameLocale } from "../i18n/locale";
 import type { LocalProfile } from "./local-profile";
 import {
   ITEM_INVENTORY_GROUPS, filterItemInventory, itemInventoryCanEquip,
@@ -21,23 +22,23 @@ export interface ItemInventoryViewOptions {
 }
 
 const KIND_LABELS: Record<string, string> = {
-  kart: "卡丁车", character: "角色", flyingPet: "飞行宠物",
-  headBand: "头饰", balloon: "气球", goggle: "护目镜", handGearL: "手部装备",
-  aura: "光环", color: "喷漆", dye: "染色", skidMark: "轮胎印", plate: "车牌",
-  pet: "宠物", unknown: "未收录",
-  uniform: "服装", decal: "贴花", ridColor: "车手颜色", slotBg: "车手栏背景",
-  headPhone: "耳机", rpLucciBonus: "经验金币加成",
-  goItemSkinCard: "道具皮肤卡", tachometer: "仪表盘卡",
+  kart: tr("卡丁车"), character: tr("角色"), flyingPet: tr("飞行宠物"),
+  headBand: tr("头饰"), balloon: tr("气球"), goggle: tr("护目镜"), handGearL: tr("手部装备"),
+  aura: tr("光环"), color: tr("喷漆"), dye: tr("染色"), skidMark: tr("轮胎印"), plate: tr("车牌"),
+  pet: tr("宠物"), unknown: tr("未收录"),
+  uniform: tr("服装"), decal: tr("贴花"), ridColor: tr("车手颜色"), slotBg: tr("车手栏背景"),
+  headPhone: tr("耳机"), rpLucciBonus: tr("经验金币加成"),
+  goItemSkinCard: tr("道具皮肤卡"), tachometer: tr("仪表盘卡"),
 };
 
 const PROFILE_ONLY_EFFECTS: Record<string, string> = {
-  rpLucciBonus: "经验金币加成暂未计算",
-  goItemSkinCard: "道具皮肤暂未应用",
-  tachometer: "仪表盘外观暂未呈现",
+  rpLucciBonus: tr("经验金币加成暂未计算"),
+  goItemSkinCard: tr("道具皮肤暂未应用"),
+  tachometer: tr("仪表盘外观暂未呈现"),
 };
 
 function profileOnlyLimit(item: ItemInventoryItem): string {
-  return PROFILE_ONLY_EFFECTS[item.kind] ?? "场景外观暂无";
+  return tr(PROFILE_ONLY_EFFECTS[item.kind] ?? "场景外观暂无");
 }
 
 const STYLE = `
@@ -125,26 +126,26 @@ export class ItemInventoryView {
     this.element.setAttribute("role", "presentation");
     this.window.setAttribute("role", "dialog");
     this.window.setAttribute("aria-modal", "true");
-    this.window.setAttribute("aria-label", "我的物品");
+    this.window.setAttribute("aria-label", tr("我的物品"));
     const style = node("style");
     style.textContent = STYLE;
     this.element.append(style);
 
     const header = node("header", "item-inventory-header");
     const title = node("div");
-    title.append(node("h2", undefined, "我的物品"),
-      node("p", undefined, "按原版小屋仓库分类浏览并装备资源目录物品"));
+    title.append(node("h2", undefined, tr("我的物品")),
+      node("p", undefined, tr("按原版小屋仓库分类浏览并装备资源目录物品")));
     header.append(title, node("div", "item-inventory-spacer"),
       button("×", () => this.close(), "item-inventory-close"));
     const tools = node("div", "item-inventory-tools");
     this.tabs.setAttribute("role", "tablist");
-    this.tabs.setAttribute("aria-label", "道具分类");
+    this.tabs.setAttribute("aria-label", tr("道具分类"));
     this.search.type = "search";
-    this.search.placeholder = "请输入道具名称";
-    this.search.setAttribute("aria-label", "搜索道具");
+    this.search.placeholder = tr("请输入道具名称");
+    this.search.setAttribute("aria-label", tr("搜索道具"));
     this.search.maxLength = 14;
     this.search.addEventListener("input", () => this.render());
-    this.kind.setAttribute("aria-label", "细分类别");
+    this.kind.setAttribute("aria-label", tr("细分类别"));
     this.kind.addEventListener("change", () => {
       this.kindFilter = this.kind.value;
       this.render();
@@ -217,7 +218,7 @@ export class ItemInventoryView {
 
   private renderTabs(): void {
     this.tabs.replaceChildren(...ITEM_INVENTORY_GROUPS.map(group => {
-      const tab = button(group.label, () => {
+      const tab = button(tr(group.label), () => {
         this.group = group.key;
         this.kindFilter = "whole";
         this.selectedKey = undefined;
@@ -231,7 +232,7 @@ export class ItemInventoryView {
     if (!subcategories.some(entry => entry.key === this.kindFilter))
       this.kindFilter = "whole";
     this.kind.replaceChildren(...subcategories.map(entry => {
-      const option = node("option", undefined, entry.label);
+      const option = node("option", undefined, tr(entry.label));
       option.value = entry.key;
       return option;
     }));
@@ -239,11 +240,11 @@ export class ItemInventoryView {
   }
 
   private itemState(item: ItemInventoryItem): string {
-    if (item.expiresAt !== undefined && item.expiresAt <= Date.now()) return "已过期";
+    if (item.expiresAt !== undefined && item.expiresAt <= Date.now()) return tr("已过期");
     if (itemInventoryIsEquipped(item, this.profile)) return itemInventoryProfileOnly(item)
-      ? `● 已装备到档案 · ${profileOnlyLimit(item)}` : "● 使用中";
-    if (itemInventoryProfileOnly(item)) return `可装备到档案 · ${profileOnlyLimit(item)}`;
-    return item.quantity === undefined ? "资源可用" : "数量 " + item.quantity + " 个";
+      ? tr("● 已装备到档案 · {0}", { "0": profileOnlyLimit(item) }) : tr("● 使用中");
+    if (itemInventoryProfileOnly(item)) return tr("可装备到档案 · {0}", { "0": profileOnlyLimit(item) });
+    return item.quantity === undefined ? tr("资源可用") : tr("数量 ") + item.quantity + tr(" 个");
   }
 
   private renderCard(item: ItemInventoryItem): HTMLElement {
@@ -255,27 +256,27 @@ export class ItemInventoryView {
       this.render();
     }, "item-inventory-card-title");
     const meta = node("div", "item-inventory-card-meta",
-      (KIND_LABELS[item.kind] ?? "道具") + " · #" + item.itemId +
-      (item.serial ? " · 实例 " + item.serial : ""));
+      tr(KIND_LABELS[item.kind] ?? "道具") + " · #" + item.itemId +
+      (item.serial ? tr(" · 实例 ") + item.serial : ""));
     const equipped = itemInventoryIsEquipped(item, this.profile);
     const state = node("div", "item-inventory-card-meta", this.itemState(item));
     if (equipped) state.classList.add("item-inventory-equipped");
     const actions = node("div", "item-inventory-card-actions");
     const favorite = button(itemInventoryIsFavorite(item, this.profile) ? "★" : "☆",
       () => this.toggleFavorite(item), "item-inventory-favorite");
-    favorite.title = itemInventoryIsFavorite(item, this.profile) ? "取消星标" : "加入星标";
+    favorite.title = itemInventoryIsFavorite(item, this.profile) ? tr("取消星标") : tr("加入星标");
     favorite.setAttribute("aria-label", favorite.title + " " + item.title);
     favorite.disabled = !itemInventoryCanFavorite(item) || this.busy;
     actions.append(favorite);
     if (itemInventoryCanLock(item)) {
-      const lock = button(item.locked ? "解锁" : "锁定", () => this.toggleLock(item));
+      const lock = button(item.locked ? tr("解锁") : tr("锁定"), () => this.toggleLock(item));
       lock.disabled = this.busy;
       actions.append(lock);
     }
     const canUnequip = equipped && itemInventoryCanUnequip(item);
     const canEquip = itemInventoryCanEquip(item);
-    const equip = button(canUnequip ? "卸下" : equipped ? "使用中" :
-      canEquip ? "装备" : "暂不可用",
+    const equip = button(canUnequip ? tr("卸下") : equipped ? tr("使用中") :
+      canEquip ? tr("装备") : tr("暂不可用"),
       () => void this.equip(item, canUnequip ? "unequip" : "equip"));
     equip.disabled = (equipped && !canUnequip) || this.busy ||
       (!canUnequip && !canEquip);
@@ -287,31 +288,31 @@ export class ItemInventoryView {
   private renderDetail(item: ItemInventoryItem | undefined): void {
     this.detail.replaceChildren();
     if (!item) {
-      this.detail.append(node("h3", undefined, "我的物品"),
-        node("p", undefined, "选择一件物品查看详情和装备状态。"));
+      this.detail.append(node("h3", undefined, tr("我的物品")),
+        node("p", undefined, tr("选择一件物品查看详情和装备状态。")));
       return;
     }
     this.detail.append(node("h3", undefined, item.title),
-      node("p", undefined, "类别：" + (KIND_LABELS[item.kind] ?? "道具")),
-      node("p", undefined, "道具编号：" + item.itemId));
-    if (item.serial) this.detail.append(node("p", undefined, "实例编号：" + item.serial));
+      node("p", undefined, tr("类别：") + tr(KIND_LABELS[item.kind] ?? "道具")),
+      node("p", undefined, tr("道具编号：") + item.itemId));
+    if (item.serial) this.detail.append(node("p", undefined, tr("实例编号：") + item.serial));
     if (item.quantity !== undefined)
-      this.detail.append(node("p", undefined, "持有数量：" + item.quantity));
+      this.detail.append(node("p", undefined, tr("持有数量：") + item.quantity));
     if (item.expiresAt !== undefined)
       this.detail.append(node("p", undefined,
-        "有效期至：" + new Date(item.expiresAt).toLocaleString("zh-CN")));
-    if (item.locked) this.detail.append(node("p", undefined, "已锁定"));
-    if (item.pcCafe) this.detail.append(node("p", undefined, "网吧专属"));
+        tr("有效期至：") + new Date(item.expiresAt).toLocaleString(gameLocale())));
+    if (item.locked) this.detail.append(node("p", undefined, tr("已锁定")));
+    if (item.pcCafe) this.detail.append(node("p", undefined, tr("网吧专属")));
     if (itemInventoryProfileOnly(item))
       this.detail.append(node("p", undefined,
-        `可保存原版装备类别与编号；当前 Web 版${profileOnlyLimit(item)}。`));
+        tr("可保存原版装备类别与编号；当前 Web 版{0}。", { "0": profileOnlyLimit(item) })));
     this.detail.append(node("p", undefined, this.itemState(item)));
-    const favorite = button(itemInventoryIsFavorite(item, this.profile) ? "取消星标" : "加入星标",
+    const favorite = button(itemInventoryIsFavorite(item, this.profile) ? tr("取消星标") : tr("加入星标"),
       () => this.toggleFavorite(item));
     favorite.disabled = !itemInventoryCanFavorite(item) || this.busy;
     this.detail.append(favorite);
     if (itemInventoryCanLock(item)) {
-      const lock = button(item.locked ? "解除锁定" : "锁定这件道具",
+      const lock = button(item.locked ? tr("解除锁定") : tr("锁定这件道具"),
         () => this.toggleLock(item));
       lock.disabled = this.busy;
       this.detail.append(lock);
@@ -319,8 +320,8 @@ export class ItemInventoryView {
     const equipped = itemInventoryIsEquipped(item, this.profile);
     const canUnequip = equipped && itemInventoryCanUnequip(item);
     const canEquip = itemInventoryCanEquip(item);
-    const equip = button(canUnequip ? "卸下这件道具" : equipped ? "使用中" :
-      canEquip ? "装备这件道具" : "暂不可用",
+    const equip = button(canUnequip ? tr("卸下这件道具") : equipped ? tr("使用中") :
+      canEquip ? tr("装备这件道具") : tr("暂不可用"),
       () => void this.equip(item, canUnequip ? "unequip" : "equip"));
     equip.disabled = (equipped && !canUnequip) || this.busy ||
       (!canUnequip && !canEquip);
@@ -331,12 +332,12 @@ export class ItemInventoryView {
     this.renderTabs();
     const filtered = filterItemInventory(this.items, this.profile,
       this.group, this.search.value, this.kindFilter);
-    this.count.textContent = "我的物品 · " + filtered.length + " 件";
+    this.count.textContent = tr("我的物品 · ") + filtered.length + tr(" 件");
     const visible = filtered.slice(0, this.visibleCount);
     const gridNodes = visible.length > 0 ? visible.map(item => this.renderCard(item)) :
-      [node("div", "item-inventory-empty", "当前分类没有可显示的物品。")];
+      [node("div", "item-inventory-empty", tr("当前分类没有可显示的物品。"))];
     if (visible.length < filtered.length)
-      gridNodes.push(button("加载更多", () => {
+      gridNodes.push(button(tr("加载更多"), () => {
         this.visibleCount += 48;
         this.render();
       }));
@@ -354,8 +355,8 @@ export class ItemInventoryView {
       if (next === this.profile) return;
       this.options.onProfileChange(next);
       this.profile = next;
-      this.setStatus(itemInventoryIsFavorite(item, next) ? `已收藏 ${item.title}` :
-        `已取消收藏 ${item.title}`);
+      this.setStatus(itemInventoryIsFavorite(item, next) ? tr("已收藏 {0}", { "0": item.title }) :
+        tr("已取消收藏 {0}", { "0": item.title }));
       this.render();
     } catch (error) {
       this.setStatus(error instanceof Error ? error.message : String(error));
@@ -370,7 +371,7 @@ export class ItemInventoryView {
       this.options.onProfileChange(next);
       this.profile = next;
       this.items = this.withLocks(this.catalogItems, next);
-      this.setStatus(item.locked ? "已解锁 " + item.title : "已锁定 " + item.title);
+      this.setStatus(item.locked ? tr("已解锁 ") + item.title : tr("已锁定 ") + item.title);
       this.render();
     } catch (error) {
       this.setStatus(error instanceof Error ? error.message : String(error));
@@ -382,15 +383,15 @@ export class ItemInventoryView {
     if (this.busy || (action === "equip" && equipped) ||
         (action === "unequip" && (!equipped || !itemInventoryCanUnequip(item)))) return;
     this.busy = true;
-    this.setStatus(`正在${action === "unequip" ? "卸下" : "装备"} ${item.title}…`);
+    this.setStatus(tr("正在{0} {1}…", { "0": action === "unequip" ? tr("卸下") : tr("装备"), "1": item.title }));
     this.render();
     try {
       const profile = await this.options.onEquip(item, action);
       if (this.disposed) return;
       if (profile) this.profile = profile;
       this.setStatus(itemInventoryProfileOnly(item) && action === "equip"
-        ? `已将 ${item.title} 装备到档案；当前 Web 版${profileOnlyLimit(item)}。`
-        : `已${action === "unequip" ? "卸下" : "装备"} ${item.title}`);
+        ? tr("已将 {0} 装备到档案；当前 Web 版{1}。", { "0": item.title, "1": profileOnlyLimit(item) })
+        : tr("已{0} {1}", { "0": action === "unequip" ? tr("卸下") : tr("装备"), "1": item.title }));
     } catch (error) {
       if (!this.disposed)
         this.setStatus(error instanceof Error ? error.message : String(error));

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { cheatKickMessage, cheatKickOf, type CheatKick } from "./cheat-kick";
 import type { LobbyRoom } from "./lobby-actions";
 import { disposeNodeClients, dropNodeClients, enterRaceHost, measureForRoom, roomCameHome,
@@ -95,7 +96,7 @@ export function bindLobbyClient(host: LobbyLifecycleHost): void {
     const kick = host.cheatKick;
     if (host.options.onDisconnected) host.options.onDisconnected(kick);
     else if (kick) host.options.status(cheatKickMessage(kick), true);
-    else host.options.status("联机服务已断开。请返回单人游戏，再重新进入多人游戏。", true);
+    else host.options.status(tr("联机服务已断开。请返回单人游戏，再重新进入多人游戏。"), true);
   });
 }
 
@@ -190,7 +191,7 @@ export function handleRoomShortcut(host: LobbyLifecycleHost,
   if (event.code === "KeyP") {
     const enabled = host.options.toggleAutoReady?.();
     if (enabled !== undefined) {
-      host.options.status(`自动准备已${enabled ? "开启" : "关闭"}。`);
+      host.options.status(tr(enabled ? "自动准备已开启。" : "自动准备已关闭。"));
       host.render();
     }
     return true;

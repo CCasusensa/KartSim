@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城地图 (M): the city's own minimap image (track_kartcity/xt_minimap.png,
  * the SurfaceMinimap the importer writes) in a release CaptionDialog, with
@@ -226,7 +227,7 @@ export function paintCityMap(context: CanvasRenderingContext2D, rect: Rect, stat
   for (const station of FUEL_STATIONS) {
     const p = at(station.x, station.z), big = station === hovered;
     paintPump(context, p.x - (big ? 8 : 6), p.y - (big ? 11 : 8), big ? 18 : 14, big ? "#ffc06a" : "#ff9a3c");
-    if (big || view.zoom >= 3) label(context, station.name, p.x, p.y - 18, 12, "#ffe0b0");
+    if (big || view.zoom >= 3) label(context, tr(station.name), p.x, p.y - 18, 12, "#ffe0b0");
   }
   if (markers.kart) {
     const p = at(markers.kart.x, markers.kart.z);
@@ -237,7 +238,7 @@ export function paintCityMap(context: CanvasRenderingContext2D, rect: Rect, stat
     context.roundRect?.(p.x - 9, p.y - 6, 18, 12, 3);
     context.fill();
     context.stroke();
-    label(context, markers.kart.driven ? "我的车（有人在开）" : markers.kart.locked ? "我的车 · 已上锁" : "我的车", p.x, p.y - 16, 13, "#ffb0b0");
+    label(context, markers.kart.driven ? tr("我的车（有人在开）") : markers.kart.locked ? tr("我的车 · 已上锁") : tr("我的车"), p.x, p.y - 16, 13, "#ffb0b0");
   }
   if (markers.quest) {
     const area = markers.quest.area;
@@ -355,24 +356,24 @@ function paintNavInfo(context: CanvasRenderingContext2D, rect: Rect, navigator: 
   context.textBaseline = "top";
   context.fillStyle = "white";
   context.font = `bold 17px ${FONT}`;
-  context.fillText("导航", rect.x + 14, rect.y + 12);
+  context.fillText(tr("导航"), rect.x + 14, rect.y + 12);
   const destination = navigator?.destination;
   context.font = `bold 15px ${FONT}`;
   if (!destination) {
     context.fillStyle = "rgb(200, 220, 255)";
-    context.fillText("点击地图上的一点，", rect.x + 14, rect.y + 48);
-    context.fillText("小地图会显示绿色路线。", rect.x + 14, rect.y + 72);
+    context.fillText(tr("点击地图上的一点，"), rect.x + 14, rect.y + 48);
+    context.fillText(tr("小地图会显示绿色路线。"), rect.x + 14, rect.y + 72);
   } else {
     paintPin(context, rect.x + 22, rect.y + 58, 9);
     context.fillStyle = "#b8ffc0";
     context.fillText(destination.label, rect.x + 38, rect.y + 47);
     context.fillStyle = "white";
     context.font = `bold 22px ${FONT}`;
-    const text = navigator!.status === "routing" ? "规划中…" : navigator!.status === "off-road" ? "离道路太远" : distanceLabel(navigator!.remaining);
+    const text = navigator!.status === "routing" ? tr("规划中…") : navigator!.status === "off-road" ? tr("离道路太远") : distanceLabel(navigator!.remaining);
     context.fillText(text, rect.x + 14, rect.y + 80);
     context.font = `13px ${FONT}`;
     context.fillStyle = "rgb(200, 220, 255)";
-    context.fillText(navigator!.status === "off-road" ? "开回路上就会显示路线" : "按小地图上的绿线开", rect.x + 14, rect.y + 114);
+    context.fillText(navigator!.status === "off-road" ? tr("开回路上就会显示路线") : tr("按小地图上的绿线开"), rect.x + 14, rect.y + 114);
   }
   context.restore();
 }
@@ -393,29 +394,29 @@ function paintHelp(context: CanvasRenderingContext2D, rect: Rect): void {
   row((x, cy) => {
     context.beginPath(); context.moveTo(x, cy - 8); context.lineTo(x + 6, cy + 6); context.lineTo(x, cy + 3); context.lineTo(x - 6, cy + 6); context.closePath();
     context.fillStyle = "#5fe3ff"; context.fill(); context.strokeStyle = "rgba(4,14,36,.9)"; context.lineWidth = 1.5; context.stroke();
-  }, "我");
-  row((x, cy) => { context.fillStyle = "#ff5c5c"; context.beginPath(); context.roundRect?.(x - 8, cy - 5, 16, 10, 3); context.fill(); }, "我的车");
-  row((x, cy) => paintPump(context, x - 6, cy - 8, 14, "#ff9a3c"), "加油站（可点击）");
-  row((x, cy) => { context.fillStyle = "#ffd23f"; context.beginPath(); context.arc(x, cy, 4, 0, Math.PI * 2); context.fill(); }, "其他玩家");
-  row((x, cy) => paintPin(context, x, cy - 3, 8), "目的地");
-  row((x, cy) => paintMark(context, "?", x, cy + 8, 22), "任务目标");
-  row((x, cy) => paintMark(context, "★", x, cy + 7, 18), "收集点");
+  }, tr("我"));
+  row((x, cy) => { context.fillStyle = "#ff5c5c"; context.beginPath(); context.roundRect?.(x - 8, cy - 5, 16, 10, 3); context.fill(); }, tr("我的车"));
+  row((x, cy) => paintPump(context, x - 6, cy - 8, 14, "#ff9a3c"), tr("加油站（可点击）"));
+  row((x, cy) => { context.fillStyle = "#ffd23f"; context.beginPath(); context.arc(x, cy, 4, 0, Math.PI * 2); context.fill(); }, tr("其他玩家"));
+  row((x, cy) => paintPin(context, x, cy - 3, 8), tr("目的地"));
+  row((x, cy) => paintMark(context, "?", x, cy + 8, 22), tr("任务目标"));
+  row((x, cy) => paintMark(context, "★", x, cy + 7, 18), tr("收集点"));
   row((x, cy) => {
     context.beginPath(); context.arc(x, cy, 7, 0, Math.PI * 2);
     context.fillStyle = "rgba(255, 210, 31, 0.25)"; context.fill();
     context.setLineDash([3, 3]); context.strokeStyle = "#d9a400"; context.lineWidth = 2; context.stroke(); context.setLineDash([]);
-  }, "寻物范围");
+  }, tr("寻物范围"));
   row((x, cy) => {
     context.lineCap = "round";
     context.strokeStyle = `#${ROUTE_RIM.toString(16).padStart(6, "0")}`; context.lineWidth = 7;
     context.beginPath(); context.moveTo(x - 8, cy); context.lineTo(x + 8, cy); context.stroke();
     context.strokeStyle = `#${ROUTE_CORE.toString(16).padStart(6, "0")}`; context.lineWidth = 4;
     context.beginPath(); context.moveTo(x - 8, cy); context.lineTo(x + 8, cy); context.stroke();
-  }, "行驶路线");
+  }, tr("行驶路线"));
   y += 8;
   context.fillStyle = "rgb(110, 120, 140)";
   context.font = `13px ${FONT}`;
-  for (const line of ["＋ － 或滚轮缩放，拖动平移", "点击地图自动导航到那里", "右键清除导航"]) { context.fillText(line, rect.x + 16, y); y += 22; }
+  for (const line of [tr("＋ － 或滚轮缩放，拖动平移"), tr("点击地图自动导航到那里"), tr("右键清除导航")]) { context.fillText(line, rect.x + 16, y); y += 22; }
   context.restore();
 }
 
@@ -426,21 +427,21 @@ export function cityMapWindowDefinition(): Node {
         : { textColor: "255 64 75 95", overTextColor: "255 106 120 147", clickedTextColor: "255 35 41 52", disabledTextColor: "255 131 131 131" }) });
   return node("Container", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "cityMapWnd", frame: "CaptionDialog", leftTopWH: "0 0 900 852",
-      caption: "卡丁城地图", captionColor: "black", align: "center" }, [
+      caption: tr("卡丁城地图"), captionColor: "black", align: "center" }, [
       node("Panel", { name: "cityMap", leftTopWH: "22 10 600 760" }),
       // Zoom buttons over the map's top right corner (the wheel zooms too).
       node("TextButton", { name: "zoomInButton", leftTopWH: "572 22 40 40", text: "＋", textRender: "bold16",
         textColor: "255 64 75 95", overTextColor: "255 106 120 147", clickedTextColor: "255 35 41 52", disabledTextColor: "255 170 170 170" }),
       node("TextButton", { name: "zoomOutButton", leftTopWH: "572 68 40 40", text: "－", textRender: "bold16",
         textColor: "255 64 75 95", overTextColor: "255 106 120 147", clickedTextColor: "255 35 41 52", disabledTextColor: "255 170 170 170" }),
-      node("TextButton", { name: "locateButton", leftTopWH: "552 114 60 36", text: "定位", textRender: "bold16",
+      node("TextButton", { name: "locateButton", leftTopWH: "552 114 60 36", text: tr("定位"), textRender: "bold16",
         textColor: "255 64 75 95", overTextColor: "255 106 120 147", clickedTextColor: "255 35 41 52", disabledTextColor: "255 170 170 170" }),
       node("Panel", { name: "navInfo", leftTopWH: "636 10 236 140" }),
-      button("kartButton", 162, "去我的车"),
-      button("stationButton", 214, "去最近的加油站"),
-      button("clearButton", 266, "清除导航"),
+      button("kartButton", 162, tr("去我的车")),
+      button("stationButton", 214, tr("去最近的加油站")),
+      button("clearButton", 266, tr("清除导航")),
       node("Panel", { name: "mapHelp", leftTopWH: "636 326 236 350" }),
-      button("okButton", 728, "关闭", true),
+      button("okButton", 728, tr("关闭"), true),
       node("Panel", { name: "closeKey", leftTopWH: "800 739 44 20" }),
     ]),
   ]);
@@ -506,7 +507,7 @@ export async function showCityMapWindow(options: CityMapWindowOptions): Promise<
 
   windowView = await loadView({
     library: options.library, root: options.root, definition: cityMapWindowDefinition(), roots: ROOTS,
-    preserveDisplayPixels: true, smoothImages: true, modal: true, label: "卡丁城地图",
+    preserveDisplayPixels: true, smoothImages: true, modal: true, label: tr("卡丁城地图"),
     onCancel: () => options.close(), onConfirm: () => options.close(),
     state: (entry: Node) => {
       switch (nodeName(entry)) {
@@ -520,23 +521,23 @@ export async function showCityMapWindow(options: CityMapWindowOptions): Promise<
         case "mapHelp": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintHelp(context, rect) };
         case "kartButton": {
           const kart = options.markers().kart;
-          return { disabled: !navigator || !kart, label: "导航到我的车",
-            action: () => { if (kart) void go(kart.x, kart.z, "我的车"); } };
+          return { disabled: !navigator || !kart, label: tr("导航到我的车"),
+            action: () => { if (kart) void go(kart.x, kart.z, tr("我的车")); } };
         }
-        case "stationButton": return { disabled: !navigator, label: "导航到最近的加油站", action: () => {
+        case "stationButton": return { disabled: !navigator, label: tr("导航到最近的加油站"), action: () => {
           const me = options.markers().me;
           const nearest = me ? nearestStation(me.x, me.z) : undefined;
           if (nearest) void go(nearest.station.park.x, nearest.station.park.z, nearest.station.name);
         } };
-        case "zoomInButton": return { disabled: view.zoom >= MAX_ZOOM, label: "放大地图", action: () => zoomBy(ZOOM_STEP) };
-        case "zoomOutButton": return { disabled: view.zoom <= MIN_ZOOM, label: "缩小地图", action: () => zoomBy(1 / ZOOM_STEP) };
-        case "locateButton": return { disabled: !options.markers().me, label: "回到我的位置", action: () => {
+        case "zoomInButton": return { disabled: view.zoom >= MAX_ZOOM, label: tr("放大地图"), action: () => zoomBy(ZOOM_STEP) };
+        case "zoomOutButton": return { disabled: view.zoom <= MIN_ZOOM, label: tr("缩小地图"), action: () => zoomBy(1 / ZOOM_STEP) };
+        case "locateButton": return { disabled: !options.markers().me, label: tr("回到我的位置"), action: () => {
           const me = options.markers().me;
           if (me && mapRect) { view = clampView({ cx: me.x, cz: me.z, zoom: Math.max(view.zoom, 2) }, mapRect); render(); }
         } };
-        case "clearButton": return { disabled: !navigator?.destination, label: "清除导航",
+        case "clearButton": return { disabled: !navigator?.destination, label: tr("清除导航"),
           action: () => { navigator?.clear(); render(); } };
-        case "okButton": return { label: "关闭（M）", action: () => options.close() };
+        case "okButton": return { label: tr("关闭（M）"), action: () => options.close() };
         case "closeKey": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintKeyBadge(context, rect, "M") };
       }
       return {};

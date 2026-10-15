@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { Cr, xw } from "../generated/formats.js";
 import { E20, GI, p5 } from "../generated/library.js";
 import { selectLocalKart, type LocalProfile } from "../ui/local-profile";
@@ -83,7 +84,7 @@ export async function equipReadyInventoryItem(
     host.saveProfile();
   } catch (error) {
     tellPlayer(host.hud,
-      `本次装备已应用，但未保存：${error instanceof Error ? error.message : String(error)}`);
+      tr("本次装备已应用，但未保存：{0}", { "0": error instanceof Error ? error.message : String(error) }));
   }
   return nextProfile;
 }

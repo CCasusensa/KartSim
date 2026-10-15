@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import type { LobbyRoom } from "./lobby-actions";
 import { brawlAiIds } from "./lobby-brawl-mode";
@@ -52,7 +53,7 @@ export function syncRaceLoadingView(host: LobbyLoadingHost,
       })
       .catch(error => {
         host.loadingViewFailed = true;
-        if (!host.disposed) host.options.status(`比赛加载画面资源失败：${formatMultiplayerError(error)}`, true);
+        if (!host.disposed) host.options.status(tr("比赛加载画面资源失败：{value}", { value: String(formatMultiplayerError(error)) }), true);
       })
       .finally(() => {
         host.loadingViewPending = undefined;

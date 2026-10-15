@@ -1,3 +1,4 @@
+import { tr } from "../../i18n/locale";
 /**
  * 底部素材栏（像模拟城市的建造菜单）：上面一排大类，下面是该类的素材卡片，
  * 每张卡片都有缩略图；右边是选中素材的大预览。点物件卡片后在地图上点击放置，
@@ -22,13 +23,13 @@ interface DockTab {
 }
 
 const TABS: DockTab[] = [
-  { id: "track", title: "赛道", subs: [["shape", "形状"], ["surface", "路面"], ["wall", "护栏"], ["arch", "起点拱门"]] },
-  { id: "building", title: "建筑", subs: [["building", "建筑"]] },
-  { id: "nature", title: "自然", subs: [["tree", "树木"], ["flower", "花草"], ["rock", "山石"]] },
-  { id: "roadside", title: "路边", subs: [["fence", "围栏"], ["light", "路灯"], ["sign", "路标旗帜"], ["ad", "广告牌"]] },
-  { id: "special", title: "机关道具", subs: [["booster", "加速跳台"], ["items", "道具箱"]] },
-  { id: "decor", title: "装饰", subs: [["vehicle", "交通工具"], ["creature", "动物人物"], ["decor", "装饰"]] },
-  { id: "world", title: "环境", subs: [["preset", "主题套装"], ["sky", "天空"], ["ground", "地面"]] },
+  { id: "track", title: tr("赛道"), subs: [["shape", tr("形状")], ["surface", tr("路面")], ["wall", tr("护栏")], ["arch", tr("起点拱门")]] },
+  { id: "building", title: tr("建筑"), subs: [["building", tr("建筑")]] },
+  { id: "nature", title: tr("自然"), subs: [["tree", tr("树木")], ["flower", tr("花草")], ["rock", tr("山石")]] },
+  { id: "roadside", title: tr("路边"), subs: [["fence", tr("围栏")], ["light", tr("路灯")], ["sign", tr("路标旗帜")], ["ad", tr("广告牌")]] },
+  { id: "special", title: tr("机关道具"), subs: [["booster", tr("加速跳台")], ["items", tr("道具箱")]] },
+  { id: "decor", title: tr("装饰"), subs: [["vehicle", tr("交通工具")], ["creature", tr("动物人物")], ["decor", tr("装饰")]] },
+  { id: "world", title: tr("环境"), subs: [["preset", tr("主题套装")], ["sky", tr("天空")], ["ground", tr("地面")]] },
 ];
 
 const PIECE_SUBS = new Set<string>(PIECE_CATEGORIES.map(category => category.id));
@@ -114,7 +115,7 @@ export class Dock {
     this.shelf = h("div", { class: "ed-shelf" });
     this.previewBox = h("div", { class: "ed-preview" });
     this.element = h("section", { class: "ed-dock k-dialog" },
-      h("div", { class: "k-caption" }, "素材栏"), this.filterRow, this.shelf, this.previewBox);
+      h("div", { class: "k-caption" }, tr("素材栏")), this.filterRow, this.shelf, this.previewBox);
     this.preview = new AssetPreview(app.assets, app.viewport);
     this.shelf.addEventListener("mouseleave", () => this.hover(undefined));
   }
@@ -184,20 +185,20 @@ export class Dock {
     const marks = new Map<string, string>();
     const app = this.app;
     const design = app.state.design;
-    for (const piece of app.state.selectedPieces()) marks.set(`${piece.track}:${piece.path.join(".")}`, "已选中");
-    marks.set(`sky:${design.sky}`, "使用中");
+    for (const piece of app.state.selectedPieces()) marks.set(`${piece.track}:${piece.path.join(".")}`, tr("已选中"));
+    marks.set(`sky:${design.sky}`, tr("使用中"));
     const road = app.state.selectedRoad() ?? design.roads.find(item => item.route) ?? design.roads[0];
     if (road) {
-      marks.set(`surface:${road.surface.track}:${road.surface.name}`, "使用中");
+      marks.set(`surface:${road.surface.track}:${road.surface.name}`, tr("使用中"));
       const wall = road.walls.left?.texture ?? road.walls.right?.texture;
-      if (wall) marks.set(`wall:${wall.track}:${wall.name}`, "使用中");
+      if (wall) marks.set(`wall:${wall.track}:${wall.name}`, tr("使用中"));
     }
-    if (design.ground) marks.set(`ground:${design.ground.texture.track}:${design.ground.texture.name}`, "使用中");
-    if (design.start.arch) marks.set(archIdOf(design.start.arch), "使用中");
-    else if (design.start.arch === null) marks.set("tool:arch-none", "使用中");
+    if (design.ground) marks.set(`ground:${design.ground.texture.track}:${design.ground.texture.name}`, tr("使用中"));
+    if (design.start.arch) marks.set(archIdOf(design.start.arch), tr("使用中"));
+    else if (design.start.arch === null) marks.set("tool:arch-none", tr("使用中"));
     const preset = this.data?.presets.find(item => item.theme === design.theme && this.data!.skies.find(sky => sky.id === item.sky)?.track === design.sky);
-    if (preset) marks.set(`preset:${preset.theme}`, "使用中");
-    if (this.active) marks.set(this.active.id, this.active.kind === "piece" ? "放置中" : this.active.kind === "tool" ? "使用中" : marks.get(this.active.id) ?? "已选");
+    if (preset) marks.set(`preset:${preset.theme}`, tr("使用中"));
+    if (this.active) marks.set(this.active.id, this.active.kind === "piece" ? tr("放置中") : this.active.kind === "tool" ? tr("使用中") : marks.get(this.active.id) ?? tr("已选"));
     return marks;
   }
 
@@ -246,8 +247,8 @@ export class Dock {
         },
       }, this.tabIcon(tab), tab.title));
     }
-    this.tabsRow.append(button(this.collapsed ? "展开 ▲" : "收起 ▼", () => { this.collapsed = !this.collapsed; this.render(); },
-      { class: "ed-catbar-fold", title: "收起素材栏，地图看得更大" }));
+    this.tabsRow.append(button(this.collapsed ? tr("展开 ▲") : tr("收起 ▼"), () => { this.collapsed = !this.collapsed; this.render(); },
+      { class: "ed-catbar-fold", title: tr("收起素材栏，地图看得更大") }));
   }
 
   private renderFilter(): void {
@@ -261,14 +262,14 @@ export class Dock {
     const data = this.data;
     const themed = PIECE_SUBS.has(this.sub) || ["surface", "wall", "arch", "ground", "sky"].includes(this.sub);
     if (data && themed) {
-      const select = h("select", { class: "k-combo", title: "只看某个主题的素材" }, h("option", { value: "" }, "全部主题"));
-      for (const theme of catalogThemes(data)) select.append(h("option", { value: theme }, themeTitle(theme)));
+      const select = h("select", { class: "k-combo", title: tr("只看某个主题的素材") }, h("option", { value: "" }, tr("全部主题")));
+      for (const theme of catalogThemes(data)) select.append(h("option", { value: theme }, tr(themeTitle(theme))));
       select.value = this.theme;
       select.addEventListener("change", () => { this.theme = select.value; this.renderShelf(); this.updateCount(); });
       this.filterRow.append(select);
     }
     if (PIECE_SUBS.has(this.sub)) {
-      const search = h("input", { class: "k-edit", type: "search", placeholder: "搜索素材" });
+      const search = h("input", { class: "k-edit", type: "search", placeholder: tr("搜索素材") });
       search.value = this.search;
       search.addEventListener("keydown", event => event.stopPropagation());
       search.addEventListener("input", () => { this.search = search.value; this.renderShelf(); this.updateCount(); });
@@ -282,14 +283,14 @@ export class Dock {
     const count = this.filterRow.querySelector(".ed-count");
     if (!count) return;
     const hint: Partial<Record<Sub, string>> = {
-      shape: "点一种形状铺出比赛路线，或者自己画",
-      surface: "点一下换上选中道路的路面", wall: "点一下换上道路两侧的护栏",
-      ground: "点一下换上地面", sky: "点一下换上天空和雾", preset: "一键换上整套主题",
-      items: "道具箱让这张图也能开道具赛",
-      arch: "点一种拱门立在起跑线上方，或者不要拱门",
+      shape: tr("点一种形状铺出比赛路线，或者自己画"),
+      surface: tr("点一下换上选中道路的路面"), wall: tr("点一下换上道路两侧的护栏"),
+      ground: tr("点一下换上地面"), sky: tr("点一下换上天空和雾"), preset: tr("一键换上整套主题"),
+      items: tr("道具箱让这张图也能开道具赛"),
+      arch: tr("点一种拱门立在起跑线上方，或者不要拱门"),
     };
     count.textContent = PIECE_SUBS.has(this.sub)
-      ? `${this.shelf.querySelectorAll(".ed-card").length} 种 · 点卡片后在地图上点击放置`
+      ? tr("{value} 种 · 点卡片后在地图上点击放置", { value: String(this.shelf.querySelectorAll(".ed-card").length) })
       : hint[this.sub] ?? "";
   }
 
@@ -313,19 +314,19 @@ export class Dock {
         return byTheme(data.presets).map(preset => ({ kind: "preset", id: `preset:${preset.theme}`, preset }));
       case "arch":
         return [
-          { kind: "tool", id: "tool:arch-none", title: "不要拱门", glyph: "✕", description: "起跑线上方不放拱门。", run: () => this.app.setArch(null) },
+          { kind: "tool", id: "tool:arch-none", title: tr("不要拱门"), glyph: "✕", description: tr("起跑线上方不放拱门。"), run: () => this.app.setArch(null) },
           ...byTheme((data.arches ?? []).filter(arch => !theme || arch.theme === theme)).map(arch => ({ kind: "arch" as const, id: arch.id, arch })),
         ];
       case "shape":
         return [
-          { kind: "tool", id: "tool:draw", title: "自己画", glyph: "✎", description: "在地上一个点一个点地点出赛道，点回绿色起点就连成一圈。", run: () => this.app.startRoad() },
+          { kind: "tool", id: "tool:draw", title: tr("自己画"), glyph: "✎", description: tr("在地上一个点一个点地点出赛道，点回绿色起点就连成一圈。"), run: () => this.app.startRoad() },
           ...TRACK_TEMPLATES.map(template => ({ kind: "template" as const, id: `template:${template.id}`, template })),
         ];
       case "items":
         return [
-          { kind: "tool", id: "tool:items-auto", title: "自动布置", glyph: "★", description: "沿比赛路线每隔一段放一排道具箱（每排 4 个）。", run: () => this.app.autoItems() },
-          { kind: "tool", id: "tool:items-place", title: "点路放一排", glyph: "?", description: "在比赛路线上点哪里，就在哪里横着放一排道具箱。", run: () => this.app.setTool({ kind: "items" }) },
-          { kind: "tool", id: "tool:items-clear", title: "全部清除", glyph: "✕", description: "清掉所有道具箱（只能竞速）。", run: () => this.app.clearItems() },
+          { kind: "tool", id: "tool:items-auto", title: tr("自动布置"), glyph: "★", description: tr("沿比赛路线每隔一段放一排道具箱（每排 4 个）。"), run: () => this.app.autoItems() },
+          { kind: "tool", id: "tool:items-place", title: tr("点路放一排"), glyph: "?", description: tr("在比赛路线上点哪里，就在哪里横着放一排道具箱。"), run: () => this.app.setTool({ kind: "items" }) },
+          { kind: "tool", id: "tool:items-clear", title: tr("全部清除"), glyph: "✕", description: tr("清掉所有道具箱（只能竞速）。"), run: () => this.app.clearItems() },
         ];
       default:
         return [];
@@ -337,21 +338,21 @@ export class Dock {
     let label: string;
     let badge: string | undefined;
     switch (item.kind) {
-      case "piece": image = this.sprite(item.piece.slot, 96); label = item.piece.label; badge = this.theme ? undefined : themeTitle(item.piece.theme); break;
-      case "texture": image = this.sprite(item.texture.slot, 96); label = textureLabel(item.texture); badge = themeTitle(item.texture.theme); break;
+      case "piece": image = this.sprite(item.piece.slot, 96); label = item.piece.label; badge = this.theme ? undefined : tr(themeTitle(item.piece.theme)); break;
+      case "texture": image = this.sprite(item.texture.slot, 96); label = tr(textureLabel(item.texture)); badge = tr(themeTitle(item.texture.theme)); break;
       case "sky": image = this.sprite(item.sky.slot, 96); label = item.sky.label; break;
       case "preset": {
         const sky = this.data!.skies.find(entry => entry.id === item.preset.sky);
         image = sky ? this.sprite(sky.slot, 96) : h("div", { class: "ed-sprite" });
-        label = themeTitle(item.preset.theme);
+        label = tr(themeTitle(item.preset.theme));
         break;
       }
       case "template": image = drawTemplate(item.template, 96); image.classList.add("ed-sprite"); label = item.template.title; break;
-      case "arch": image = this.sprite(item.arch.slot, 96); label = item.arch.label; badge = themeTitle(item.arch.theme); break;
+      case "arch": image = this.sprite(item.arch.slot, 96); label = item.arch.label; badge = tr(themeTitle(item.arch.theme)); break;
       case "tool": image = h("div", { class: "ed-sprite" }, item.glyph); label = item.title; break;
     }
     const card = h("button", { class: `k-row ed-card ${item.kind === "tool" ? "ed-tool" : ""}`,
-      type: "button", title: label }, image, h("span", { class: "ed-label" }, label), badge ? h("span", { class: "ed-badge" }, badge) : undefined);
+      type: "button", title: tr(label) }, image, h("span", { class: "ed-label" }, tr(label)), badge ? h("span", { class: "ed-badge" }, badge) : undefined);
     card.addEventListener("click", () => this.choose(item));
     card.addEventListener("mouseenter", () => this.hover(item));
     return card;
@@ -360,9 +361,9 @@ export class Dock {
   private renderShelf(): void {
     clear(this.shelf);
     this.cards.clear();
-    if (!this.data) { this.shelf.append(h("div", { class: "ed-empty" }, "正在读取素材目录…")); return; }
+    if (!this.data) { this.shelf.append(h("div", { class: "ed-empty" }, tr("正在读取素材目录…"))); return; }
     const items = this.items();
-    if (!items.length) { this.shelf.append(h("div", { class: "ed-empty" }, "这个主题里没有这类素材，换个主题看看。")); return; }
+    if (!items.length) { this.shelf.append(h("div", { class: "ed-empty" }, tr("这个主题里没有这类素材，换个主题看看。"))); return; }
     const marks = this.marks();
     for (const item of items) {
       const card = this.card(item);
@@ -406,8 +407,8 @@ export class Dock {
     box.append(stage);
     if (!item) {
       this.preview.show(undefined);
-      stage.append(h("div", { class: "ed-empty", style: "display:flex;align-items:center;justify-content:center;font-size:12px" }, "把鼠标移到素材上看预览"));
-      box.append(h("div", { class: "ed-meta" }, "选一样素材：物件在地图上点击放置，贴图、天空、形状点一下就换上。"));
+      stage.append(h("div", { class: "ed-empty", style: "display:flex;align-items:center;justify-content:center;font-size:12px" }, tr("把鼠标移到素材上看预览")));
+      box.append(h("div", { class: "ed-meta" }, tr("选一样素材：物件在地图上点击放置，贴图、天空、形状点一下就换上。")));
       return;
     }
     const meta = (...lines: string[]) => h("div", { class: "ed-meta" }, ...lines.flatMap((line, i) => i ? [h("br"), line] : [line]));
@@ -419,12 +420,12 @@ export class Dock {
         this.preview.show(piece, fallback);
         const size = pieceSize(piece);
         box.append(h("div", { class: "ed-title" }, piece.label),
-          meta(`${themeTitle(piece.theme)} · ${categoryInfo(piece.category).title}`,
-            `约 ${size[0].toFixed(0)}×${size[1].toFixed(0)}×${size[2].toFixed(0)} 米`,
-            "点地图放置；滚轮转方向，长按上下拖调高度"));
+          meta(`${tr(themeTitle(piece.theme))} · ${tr(categoryInfo(piece.category).title)}`,
+            tr("约 {value}×{value2}×{value3} 米", { value: String(size[0].toFixed(0)), value2: String(size[1].toFixed(0)), value3: String(size[2].toFixed(0)) }),
+            tr("点地图放置；滚轮转方向，长按上下拖调高度")));
         void this.app.assets.track(piece.track).then(track => {
           const line = box.querySelector(".ed-meta");
-          if (track && line && this.preview && box.contains(line)) line.append(h("br"), `来自「${track.title}」`);
+          if (track && line && this.preview && box.contains(line)) line.append(h("br"), tr("来自「{value}」", { value: String(track.title) }));
         });
         return;
       }
@@ -432,26 +433,26 @@ export class Dock {
         const texture = item.texture;
         this.preview.show(undefined);
         stage.append(this.sprite(texture.slot, 160));
-        const what = texture.kind === "surface" ? "路面" : texture.kind === "wall" ? "护栏" : "地面";
-        box.append(h("div", { class: "ed-title" }, `${textureLabel(texture)}${what === "路面" ? "" : ` · ${what}`}`),
-          meta(`${themeTitle(texture.theme)} · ${texture.name}`, texture.kind === "surface"
-            ? "点一下就换上（换的是选中的路，没选就换赛道）" : texture.kind === "wall" ? "点一下就给赛道换上这种护栏" : "点一下就换上这种地面"),
-          h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
+        const what = texture.kind === "surface" ? tr("路面") : texture.kind === "wall" ? tr("护栏") : tr("地面");
+        box.append(h("div", { class: "ed-title" }, `${tr(textureLabel(texture))}${what === tr("路面") ? "" : ` · ${what}`}`),
+          meta(`${tr(themeTitle(texture.theme))} · ${texture.name}`, texture.kind === "surface"
+            ? tr("点一下就换上（换的是选中的路，没选就换赛道）") : texture.kind === "wall" ? tr("点一下就给赛道换上这种护栏") : tr("点一下就换上这种地面")),
+          h("div", { class: "ed-actions" }, button(tr("换上"), () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       }
       case "sky":
         this.preview.show(undefined);
         stage.append(this.sprite(item.sky.slot, 160));
-        box.append(h("div", { class: "ed-title" }, item.sky.label), meta(`${themeTitle(item.sky.theme)} · 天空和雾`),
-          h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
+        box.append(h("div", { class: "ed-title" }, item.sky.label), meta(tr("{value} · 天空和雾", { value: String(tr(themeTitle(item.sky.theme))) })),
+          h("div", { class: "ed-actions" }, button(tr("换上"), () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       case "preset": {
         this.preview.show(undefined);
         const sky = this.data!.skies.find(entry => entry.id === item.preset.sky);
         if (sky) stage.append(this.sprite(sky.slot, 160));
-        box.append(h("div", { class: "ed-title" }, `${themeTitle(item.preset.theme)}主题`),
-          meta("一键换上这个主题的天空、路面、护栏、地面和背景音乐。"),
-          h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
+        box.append(h("div", { class: "ed-title" }, tr("{value}主题", { value: String(tr(themeTitle(item.preset.theme))) })),
+          meta(tr("一键换上这个主题的天空、路面、护栏、地面和背景音乐。")),
+          h("div", { class: "ed-actions" }, button(tr("换上"), () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       }
       case "arch": {
@@ -460,9 +461,9 @@ export class Dock {
         stage.append(fallback, this.preview.canvas);
         this.preview.show(arch, fallback);
         const size = pieceSize(arch);
-        box.append(h("div", { class: "ed-title" }, `${themeTitle(arch.theme)} ${arch.label}`),
-          meta(`约 ${size[0].toFixed(0)}×${size[1].toFixed(0)}×${size[2].toFixed(0)} 米，会按路宽自动缩放`, "立在起跑线正上方，拖动起跑线时跟着走"),
-          h("div", { class: "ed-actions" }, button("换上", () => this.choose(item), { class: "ed-small ed-primary" })));
+        box.append(h("div", { class: "ed-title" }, `${tr(themeTitle(arch.theme))} ${arch.label}`),
+          meta(tr("约 {value}×{value2}×{value3} 米，会按路宽自动缩放", { value: String(size[0].toFixed(0)), value2: String(size[1].toFixed(0)), value3: String(size[2].toFixed(0)) }), tr("立在起跑线正上方，拖动起跑线时跟着走")),
+          h("div", { class: "ed-actions" }, button(tr("换上"), () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       }
       case "template": {
@@ -470,8 +471,8 @@ export class Dock {
         const canvas = drawTemplate(item.template, 160);
         canvas.setAttribute("style", `${canvas.getAttribute("style") ?? ""};inset:2px auto auto 50%;transform:translateX(-50%)`);
         stage.append(canvas);
-        box.append(h("div", { class: "ed-title" }, item.template.title), meta(item.template.description, "橙点是起点。铺好后可以拖白色圆点改形状。"),
-          h("div", { class: "ed-actions" }, button("用这个形状", () => this.choose(item), { class: "ed-small ed-primary" })));
+        box.append(h("div", { class: "ed-title" }, tr(item.template.title)), meta(tr(item.template.description), tr("橙点是起点。铺好后可以拖白色圆点改形状。")),
+          h("div", { class: "ed-actions" }, button(tr("用这个形状"), () => this.choose(item), { class: "ed-small ed-primary" })));
         return;
       }
       case "tool":

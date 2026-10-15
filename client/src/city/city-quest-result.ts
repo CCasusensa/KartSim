@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 送货结算窗口 (server-go/CITY-QUESTS.md): after the mission result plays,
  * a release CaptionDialog (built with bml-kit like the M map) lists the
@@ -49,11 +50,11 @@ export function questResultDefinition(result: QuestResult): Node {
   const height = panelHeight + 120;
   return node("Container", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "questResultWnd", frame: "CaptionDialog", leftTopWH: `0 0 ${WIDTH} ${height}`,
-      caption: result.success ? "任务成功" : "任务失败", captionColor: "black", align: "center" }, [
+      caption: result.success ? tr("任务成功") : tr("任务失败"), captionColor: "black", align: "center" }, [
       node("Panel", { name: "questResult", leftTopWH: `0 12 ${panelWidth} ${panelHeight}`, align: "hcenter" }),
       node("Window", { frame: "HSection", leftTopWH: `0 0 ${panelWidth} 1`, align: "hcenter;bottom", adjust: "0 64" }),
       node("TextButton", { name: "okButton", leftTopWH: "0 0 155 42", align: "hcenter;bottom", adjust: "0 12",
-        text: "确定", textRender: "bold16", textColor: "white", overTextColor: "white",
+        text: tr("确定"), textRender: "bold16", textColor: "white", overTextColor: "white",
         clickedTextColor: "255 24 55 104", disabledTextColor: "255 220 220 220" }),
     ]),
   ]);
@@ -107,12 +108,12 @@ export async function showQuestResultWindow(options: { library: BmlLibrary; root
   Promise<WindowView & { readonly disposed: boolean }> {
   const view = await loadView({
     library: options.library, root: options.root, definition: questResultDefinition(result), roots: ROOTS,
-    preserveDisplayPixels: true, smoothImages: true, modal: true, label: result.success ? "任务成功" : "任务失败",
+    preserveDisplayPixels: true, smoothImages: true, modal: true, label: result.success ? tr("任务成功") : tr("任务失败"),
     onCancel: () => close(), onConfirm: () => close(),
     state: (entry: Node) => {
       switch (nodeName(entry)) {
         case "questResult": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintQuestResult(context, rect, result) };
-        case "okButton": return { label: "确定", action: () => close() };
+        case "okButton": return { label: tr("确定"), action: () => close() };
       }
       return {};
     },

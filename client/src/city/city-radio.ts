@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城收音机：光线飞车（RayCity）车载电台的 22 首韩国歌曲（曲目表是原版
  * Data/sound/bgm/main/list.xml，歌在 mirror/ui/radio，见
@@ -318,7 +319,7 @@ export class CityRadio {
       console.warn(`卡丁城收音机：${song.file} 播放失败`, error);
       if (++this.failures >= MAX_FAILURES) {
         this.failures = 0;
-        this.options.notice?.("收音机没有信号：歌曲文件下载失败，换回城市音乐。");
+        this.options.notice?.(tr("收音机没有信号：歌曲文件下载失败，换回城市音乐。"));
         this.turnOff();
         return;
       }

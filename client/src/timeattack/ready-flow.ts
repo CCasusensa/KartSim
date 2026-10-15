@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { MessengerLibrary } from "../ui/messenger-art";
 import { messengerTrayAlert } from "../ui/messenger-tray";
 import { suspendMessengerWindow, toggleMessengerWindow, type MessengerWindowOptions } from "../ui/messenger-window";
@@ -282,7 +283,7 @@ export async function enterTimeAttackReady(
           onHover: () => host.getInterfaceAudio()?.playHover(),
           onActivate: () => host.getInterfaceAudio()?.playClick(),
         }).catch(error => tellPlayer(host.hud,
-          `好友聊天系统：${error instanceof Error ? error.message : String(error)}`));
+          tr("好友聊天系统：{0}", { "0": error instanceof Error ? error.message : String(error) })));
       },
       onClub: () => { void openReadyClub(controller as unknown as ReadyClubController); },
       onRewardBox: () => { void openReadyRewardBox(controller as ReadyMenusController); },
@@ -318,7 +319,7 @@ export async function enterTimeAttackReady(
       // 赛道对决 (TIMEATTACK.md): the practice window's 开始对决.
       onDuel: (options: ReadyOptions, duel: DuelRaceRequest) => {
         void startDuelRace(controller as ReadyDuelController, selection, options, duel).catch(error =>
-          tellPlayer(host.hud, `赛道对决：${error instanceof Error ? error.message : String(error)}`));
+          tellPlayer(host.hud, tr("赛道对决：{0}", { "0": error instanceof Error ? error.message : String(error) })));
       },
       // The track picker's WindowNotice takes a rectangle and a painter, not a line of text.
       onNotice: (text: string) => tellPlayer(host.hud, text, "info"),

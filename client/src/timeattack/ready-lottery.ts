@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { ensureFeatureResources } from "../ui/resource-panel";
 /**
  * Opening the lottery screens (src/lottery: 寻宝 and the 精品道具场) from the
@@ -43,7 +44,7 @@ export async function openReadyLottery(controller: ReadyLotteryController, scree
   if (controller.disposed || controller.activeLottery || controller.lotteryOpening) return;
   const session = activeBrowserSession();
   if (!session) {
-    report(controller, "抽奖活动需要登录账号。");
+    report(controller, tr("抽奖活动需要登录账号。"));
     return;
   }
   const library = controller.host.getLibrary();
@@ -84,7 +85,7 @@ export async function openReadyLottery(controller: ReadyLotteryController, scree
     };
   } catch (error) {
     release();
-    report(controller, `${screen === "treasureHunt" ? "寻宝活动" : "精品道具场"}：${
+    report(controller, `${screen === "treasureHunt" ? tr("寻宝活动") : tr("精品道具场")}：${
       error instanceof Error ? error.message : String(error)}`);
   } finally {
     controller.lotteryOpening = false;

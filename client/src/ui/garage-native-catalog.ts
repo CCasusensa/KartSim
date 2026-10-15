@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export const garagePartCategoryIds = {
   engine: 43, handle: 44, wheel: 45, booster: 46,
 };
@@ -91,8 +92,8 @@ export const garageLayoutProfiles = {
     partsTab: "6_partsTab", equippedRoot: "equipedParts",
     performanceRoot: "textPerformList", slotSize: 44,
     cosmeticTabs: [
-      { node: "partsCoating", label: "车膜" },
-      { node: "partsTailLamp", label: "车灯" },
+      { node: "partsCoating", label: tr("车膜") },
+      { node: "partsTailLamp", label: tr("车灯") },
     ],
   },
   xun: {
@@ -100,9 +101,9 @@ export const garageLayoutProfiles = {
     partsTab: "7_partsTab", equippedRoot: "equipedParts_12",
     performanceRoot: "textPerformList_12", slotSize: 50,
     cosmeticTabs: [
-      { node: "partsCoating12", label: "车膜" },
-      { node: "partsTailLamp12", label: "车灯" },
-      { node: "partsBoosterEffect12", label: "加速器特效" },
+      { node: "partsCoating12", label: tr("车膜") },
+      { node: "partsTailLamp12", label: tr("车灯") },
+      { node: "partsBoosterEffect12", label: tr("加速器特效") },
     ],
   },
 };
@@ -168,9 +169,9 @@ export const garageScoreXmlAttributes = {
 };
 
 export const garageScoreDisplayRows = [
-  ["加速度", "TransAccelFactor", "transAccelFactor"],
-  ["弯道", "SteerConstraint", "cornerDrawFactor"],
-  ["漂移", "DriftEscapeForce", "driftEscapeForce"],
-  ["加速时间", "NormalBoosterTime", "normalBoosterTime"],
-  ["集气速度", "DriftMaxGauge", "boosterGauge"],
+  [tr("加速度"), "TransAccelFactor", "transAccelFactor"],
+  [tr("弯道"), "SteerConstraint", "cornerDrawFactor"],
+  [tr("漂移"), "DriftEscapeForce", "driftEscapeForce"],
+  [tr("加速时间"), "NormalBoosterTime", "normalBoosterTime"],
+  [tr("集气速度"), "DriftMaxGauge", "boosterGauge"],
 ];

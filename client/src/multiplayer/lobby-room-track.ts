@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Resolves and paints the current room's selected or random track card. */
 
 import { itemTrackCatalog, type TrackLibrary } from "../resources/track-catalog";
@@ -64,11 +65,11 @@ export async function loadLobbyRoomTrack(host: LobbyRoomTrackHost,
   host.trackReverseStamp = undefined;
   host.trackIcon = undefined;
   host.trackDifficulty = undefined;
-  host.trackTitle = trackId ? "正在加载赛道…" : "尚未选择赛道";
+  host.trackTitle = trackId ? tr("正在加载赛道…") : tr("尚未选择赛道");
 
   if (random) {
     host.trackTitle = dependencies.mode(host.room) === "lte"
-      ? "全部随机（LTE限定3张）" : random.title;
+      ? tr("全部随机（LTE限定3张）") : tr(random.title);
     try {
       const token = dependencies.mode(host.room) === "lte"
         ? "lteRandom@zz" : random.cardToken;
@@ -102,20 +103,20 @@ export async function loadLobbyRoomTrack(host: LobbyRoomTrackHost,
     if (!track && isCustomTrackId(trackId) && await ensurePublishedMap(host.library, trackId)) {
       track = (await host.library.timeAttackTrackCatalog()).find(candidate => candidate.id === trackId);
     }
-    if (!track) throw new Error("本地资源中没有房主选择的赛道");
+    if (!track) throw new Error(tr("本地资源中没有房主选择的赛道"));
     const resource = host.library.get(track.path);
-    if (!resource) throw new Error("赛道资源缺失");
+    if (!resource) throw new Error(tr("赛道资源缺失"));
     const canonical = (resource.canonicalPath ?? resource.virtualPath)
       .replaceAll("\\", "/");
     const card = host.library.resolveContainerPath(track.path,
       `${canonical.slice(0, canonical.lastIndexOf("/") + 1)}xt_trackCard.png`);
     if (card.status !== "found") {
-      throw new Error("赛道卡片资源缺失或不唯一");
+      throw new Error(tr("赛道卡片资源缺失或不唯一"));
     }
     const metadata = await host.library.trackMetadata(trackId);
     const theme = metadata && dependencies.theme(metadata);
     if (!theme || metadata?.difficulty === undefined) {
-      throw new Error("赛道主题或难度资源缺失");
+      throw new Error(tr("赛道主题或难度资源缺失"));
     }
     const [trackImage, icon, reverse] = await Promise.all([
       dependencies.decodePng(await card.entry.bytes()),
@@ -137,7 +138,7 @@ export async function loadLobbyRoomTrack(host: LobbyRoomTrackHost,
     host.view.render();
   } catch (error) {
     if (!host.disposed && generation === host.trackLoad) {
-      host.trackTitle = "赛道资源不可用";
+      host.trackTitle = tr("赛道资源不可用");
       host.view.render();
       host.actions.onError?.(error);
     }

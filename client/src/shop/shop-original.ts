@@ -297,32 +297,32 @@ export const BUY_DIALOG: ShopNode = (() => {
  */
 export const SHOP_STRINGS = {
   // stage_mqShop.rho stage_stringBag
-  trade: "兑换", giveGift: "赠送", reset: "初始状态", buyAll: "兑换预览道具",
-  recommand: "推荐", kartBody: "卡丁车", shopCoupon: "输入兑奖券", rechargeGCoin: "充值",
-  gcoinCharge: "充值", charge: "充值", search: "搜索", searchTooltip: "请输入道具名称",
-  kItemPrice: "道具价格", notAllowEnchant: "不可改装", new: "新商品", selected: "目前装备中",
-  headBand: "电磁波头带", color: "喷漆", etc: "其它", gachaUseResult: "精品道具全服记录",
-  discount: "折", tcCashEvent1: "累计消费活动", tcCashPoint1: "累计消费电池数",
-  tcCashEventHelp1: "活动期间消费一定电池，即可获得相应奖励！",
-  tcCashEventPeriod: "活动期间 : %s", tcCashEventRewardPeriod: "奖励领取期间 : %s",
-  tcCashEventClose1: "累计消费活动已结束。",
+  trade: tr("兑换"), giveGift: tr("赠送"), reset: tr("初始状态"), buyAll: tr("兑换预览道具"),
+  recommand: tr("推荐"), kartBody: tr("卡丁车"), shopCoupon: tr("输入兑奖券"), rechargeGCoin: tr("充值"),
+  gcoinCharge: tr("充值"), charge: tr("充值"), search: tr("搜索"), searchTooltip: tr("请输入道具名称"),
+  kItemPrice: tr("道具价格"), notAllowEnchant: tr("不可改装"), new: tr("新商品"), selected: tr("目前装备中"),
+  headBand: tr("电磁波头带"), color: tr("喷漆"), etc: tr("其它"), gachaUseResult: tr("精品道具全服记录"),
+  discount: tr("折"), tcCashEvent1: tr("累计消费活动"), tcCashPoint1: tr("累计消费电池数"),
+  tcCashEventHelp1: tr("活动期间消费一定电池，即可获得相应奖励！"),
+  tcCashEventPeriod: tr("活动期间 : %s"), tcCashEventRewardPeriod: tr("奖励领取期间 : %s"),
+  tcCashEventClose1: tr("累计消费活动已结束。"),
   // etc_/baseStringBag
-  character: "角色", package: "礼包", equip: "装备", useful: "使用", whole: "全部",
-  itemKart: "道具", speedkart: "竞速", hotItem: "热门商品", event: "活动", balloon: "气球",
-  goggle: "防尘眼镜", dye: "染色剂", pet: "宠物", flyingPet: "飞行宠物", aura: "炫光",
-  skidMark: "漂移痕迹", plate: "车牌", ok: "确定", cancel: "取消", close: "关闭",
-  unlimited: "无限制", countFormat: "%d 个", periodFormat: "%d 天",
+  character: tr("角色"), package: tr("礼包"), equip: tr("装备"), useful: tr("使用"), whole: tr("全部"),
+  itemKart: tr("道具"), speedkart: tr("竞速"), hotItem: tr("热门商品"), event: tr("活动"), balloon: tr("气球"),
+  goggle: tr("防尘眼镜"), dye: tr("染色剂"), pet: tr("宠物"), flyingPet: tr("飞行宠物"), aura: tr("炫光"),
+  skidMark: tr("漂移痕迹"), plate: tr("车牌"), ok: tr("确定"), cancel: tr("取消"), close: tr("关闭"),
+  unlimited: tr("无限制"), countFormat: tr("%d 个"), periodFormat: tr("%d 天"),
   // dialog2_buyItem.rho buyItem_stringBag
-  itemName: "道具名称", itemPrice: "道具价格", selectStr: "选择期限",
-  selectError: "请选择要兑换道具的使用期限",
+  itemName: tr("道具名称"), itemPrice: tr("道具价格"), selectStr: tr("选择期限"),
+  selectError: tr("请选择要兑换道具的使用期限"),
 } as const satisfies Record<string, string>;
 
 export type ShopStringKey = keyof typeof SHOP_STRINGS;
 
 /** Resolves #sb(key) references; unknown keys stay empty like the release renderer. */
 export function shopText(value: string | undefined): string {
-  return (value ?? "").replace(/#sb\(([^)]+)\)/g, (_whole, key: string) =>
-    tr((SHOP_STRINGS as Record<string, string>)[key] ?? ""));
+  return tr((value ?? "").replace(/#sb\(([^)]+)\)/g, (_whole, key: string) =>
+    tr((SHOP_STRINGS as Record<string, string>)[key] ?? "")));
 }
 
 // --- Text styles --------------------------------------------------------

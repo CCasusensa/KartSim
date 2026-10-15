@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { currentResourceManager, FEATURES, onResourceManager,
   type ResourceManager } from "../resources/resource-manager";
 import type { BmlLibrary } from "./bml-kit";
@@ -90,8 +91,8 @@ export async function showResourceFailureNotice(root: HTMLElement, title: string
   const manager = currentResourceManager();
   const library = manager && windowLibrary(manager);
   if (!manager || !library) return false;
-  const action = options.reload ? { label: "刷新页面", run: () => { globalThis.location?.reload(); } }
-    : options.group ? { label: "资源下载", run: () => { void openResourcePanel(root, manager, options); } }
+  const action = options.reload ? { label: tr("刷新页面"), run: () => { globalThis.location?.reload(); } }
+    : options.group ? { label: tr("资源下载"), run: () => { void openResourcePanel(root, manager, options); } }
     : undefined;
   try {
     await showResourceFailure(library, root, { title, message, onActivate: options.onActivate, action });
@@ -115,13 +116,13 @@ export async function ensureFeatureResources(root: HTMLElement, feature: string)
   const { required, background } = manager.featureContainers(feature);
   const startBackground = () => {
     if (manager.missing(background).length)
-      manager.download(background, { label: `${need.title}资源`, priority: "low" });
+      manager.download(background, { label: tr("{title}资源", { title: tr(need.title) }), priority: "low" });
   };
   if (!manager.missing(required).length) {
     startBackground();
     return;
   }
-  const job = manager.download(required, { label: `${need.title}资源`, priority: "high" });
+  const job = manager.download(required, { label: tr("{title}资源", { title: tr(need.title) }), priority: "high" });
   const library = windowLibrary(manager);
   if (library) await waitForResources(library, root, manager, job, need.title);
   else await job.done.catch(() => undefined);
@@ -139,10 +140,10 @@ export function resourceButtonState(manager: Pick<ResourceManager, "activeJobs" 
   if (jobs.length) {
     const total = jobs.reduce((sum, job) => sum + job.totalBytes, 0);
     const done = jobs.reduce((sum, job) => sum + job.doneBytes(), 0);
-    return { hidden: false, text: `下载中 ${total ? Math.floor(done / total * 100) : 0}%` };
+    return { hidden: false, text: tr("下载中 {progress}", { progress: `${total ? Math.floor(done / total * 100) : 0}%` }) };
   }
   const totals = manager.totals();
-  return { hidden: totals.totalBytes > 0 && totals.cachedBytes >= totals.totalBytes, text: "资源下载" };
+  return { hidden: totals.totalBytes > 0 && totals.cachedBytes >= totals.totalBytes, text: tr("资源下载") };
 }
 
 /**
@@ -157,9 +158,9 @@ export function createResourceButton(root: HTMLElement, options: ResourcePanelOp
   node.type = "button";
   node.innerHTML = DOWNLOAD_ICON;
   const label = doc.createElement("span");
-  label.textContent = "资源下载";
+  label.textContent = tr("资源下载");
   node.append(label);
-  node.setAttribute("aria-label", "资源下载");
+  node.setAttribute("aria-label", tr("资源下载"));
   let release: (() => void) | undefined;
   const watch = (manager: ResourceManager | undefined) => {
     release?.();
@@ -200,7 +201,7 @@ export function bindLoadingBadge(root: HTMLElement): void {
   badge.dataset.resourcePanel = "1";
   badge.style.cursor = "pointer";
   badge.style.pointerEvents = "auto";
-  badge.title = "查看资源下载";
+  badge.title = tr("查看资源下载");
   badge.addEventListener("click", () => {
     const manager = currentResourceManager();
     if (manager && !isResourceWindowOpen()) void openResourcePanel(root, manager);

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Race rewards (ECONOMY.md 2, 7.7): multiplayer `race.rewards` from the game
  * node and the time attack settlement on the data service.
@@ -40,10 +41,10 @@ export function formatRaceReward(reward: RaceReward): string {
 
 /** ["+85经验", "+120金币 +100点券"]: the reward on two lines; the per-race grant joins the second. */
 export function formatRaceRewardLines(reward: RaceReward): [string, string] {
-  const money = [`+${reward.lucci}金币`];
-  if (reward.coupon) money.push(`+${reward.coupon}点券`);
-  if (reward.koin) money.push(`+${reward.koin}K币`);
-  return [`+${reward.exp}经验`, money.join(" ")];
+  const money = [tr("+{amount}金币", { amount: reward.lucci })];
+  if (reward.coupon) money.push(tr("+{amount}点券", { amount: reward.coupon }));
+  if (reward.koin) money.push(tr("+{amount}K币", { amount: reward.koin }));
+  return [tr("+{amount}经验", { amount: reward.exp }), money.join(" ")];
 }
 
 export interface TimeAttackSettlement {

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GarageAssetNode, GarageAssetRect, GarageAssetEntry } from
   "./garage-asset-bundle";
 
@@ -164,9 +165,9 @@ export async function loadGarageClassicUpgradeResult(
           const text = dependencies.attribute(node, "text");
           const lines = name === "kartName" ? [title] :
             name === "kartDesc" ? [
-              `等级 Lv.${summary.beforeLevel} → Lv.${summary.afterLevel}`,
-              `可用强化点 ${summary.beforePoints} → ${summary.afterPoints}`,
-            ] : text === "#sb(levelUpResult)" ? ["升级结果"] : [];
+              tr("等级 Lv.{0} → Lv.{1}", { "0": summary.beforeLevel, "1": summary.afterLevel }),
+              tr("可用强化点 {0} → {1}", { "0": summary.beforePoints, "1": summary.afterPoints }),
+            ] : text === "#sb(levelUpResult)" ? [tr("升级结果")] : [];
           if (lines.length === 0) continue;
           context.save();
           context.fillStyle = "white";

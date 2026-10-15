@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The application side of the account (server-go/ECONOMY.md 7): the startup
  * login gate, equipment fallback for unowned or expired items, the account
@@ -48,7 +49,7 @@ function pageDocument(host: AccountStartupHost): OverlayDocument {
 function formatAccountError(error: unknown): string {
   const code = errorCode(error);
   return code && accountErrorMessages[code]
-    ? accountErrorMessages[code]!
+    ? tr(accountErrorMessages[code]!)
     : error instanceof Error ? error.message : String(error);
 }
 
@@ -99,15 +100,15 @@ export function attachAccountSession(host: AccountStartupHost,
     scheduleEquipmentRepair(host);
   });
   session.onLevelUp(change => {
-    const glove = change.summary.progress.gloveName;
+    const glove = tr(change.summary.progress.gloveName);
     showAccountToast(pageDocument(host),
-      `升级啦！Lv.${change.to}${glove ? ` · ${glove}` : ""}`, 5_000);
+      tr("升级啦！Lv.{value}{value2}", { value: String(change.to), value2: String(glove ? ` · ${glove}` : "") }), 5_000);
   });
   session.onExpired(reason => {
     stopMessenger();
     void returnToLogin(host.root, reason === "replaced"
-      ? "您的账号已在其他地方登录，这里的登录已失效。如果不是您本人操作，请尽快修改密码。"
-      : "登录已失效，请重新登录。");
+      ? tr("您的账号已在其他地方登录，这里的登录已失效。如果不是您本人操作，请尽快修改密码。")
+      : tr("登录已失效，请重新登录。"));
   });
   setEquipmentRepairHandler(() => repairAccountEquipment(host));
   // 好友聊天系统: friends see this account online from now on.
@@ -133,7 +134,7 @@ export async function returnToLogin(root: HTMLElement, message?: string): Promis
   if (expiryTimer !== undefined) clearInterval(expiryTimer);
   expiryTimer = undefined;
   setEquipmentRepairHandler(undefined);
-  if (message) await showLoginMessage(root, "账号", message, "重新登录");
+  if (message) await showLoginMessage(root, tr("账号"), message, tr("重新登录"));
   await ensureAccountSession(browserLoginGateDependencies(root));
   window.location.reload();
 }
@@ -146,8 +147,8 @@ export async function returnToLogin(root: HTMLElement, message?: string): Promis
 export async function retryStartupProfile(host: AccountStartupHost,
   error: unknown): Promise<void> {
   if (!activeBrowserSession()) return new Promise<void>(() => {});
-  await showAccountMessage(pageDocument(host), "账号档案",
-    `无法读取账号档案：${formatAccountError(error)}`, "重试");
+  await showAccountMessage(pageDocument(host), tr("账号档案"),
+    tr("无法读取账号档案：{value}", { value: String(formatAccountError(error)) }), tr("重试"));
 }
 
 /**
@@ -304,12 +305,12 @@ export async function repairAccountEquipment(host: AccountStartupHost,
   try {
     saveLiveProfile?.(next);
   } catch (error) {
-    tellPlayer(host.hud, `装备修正未保存：${String(error)}`);
+    tellPlayer(host.hud, tr("装备修正未保存：{value}", { value: String(String(error)) }));
   }
   if (selectionFor(host, catalog, next.equipment)) {
-    showAccountToast(pageDocument(host), "部分装备已到期，已换回默认装备。");
+    showAccountToast(pageDocument(host), tr("部分装备已到期，已换回默认装备。"));
     if (rebuildReady && !lobby) await host.enterTimeAttackReady().catch(error => host.hud.showDebugText(
-      `装备到期后刷新失败：${error instanceof Error ? error.message : String(error)}`, "error"));
+      tr("装备到期后刷新失败：{value}", { value: String(error instanceof Error ? error.message : String(error)) }), "error"));
   }
 }
 
@@ -339,7 +340,7 @@ export async function registerAccountRider(host: AccountStartupHost,
   if (session.summary()?.onboarded) {
     // Already registered (for example the ghost menu's nickname reset): keep the account name.
     if (account) rememberNickname(host, account.nickname);
-    tellPlayer(host.hud, "账号昵称请在大厅点击头像，在账号面板中修改。", "info");
+    tellPlayer(host.hud, tr("账号昵称请在大厅点击头像，在账号面板中修改。"), "info");
     return;
   }
   const library = host.rhoLibrary;
@@ -348,7 +349,7 @@ export async function registerAccountRider(host: AccountStartupHost,
   const kart = catalog.karts.find(item => item.itemId === STARTER.kart.itemId &&
     (item as { systemKey?: string }).systemKey === STARTER.kart.systemKey) ??
     catalog.karts.find(item => item.itemId === host.session.selection?.vehicleItemId);
-  if (!kart) throw new Error("新车手注册缺少练习用卡丁车资源。");
+  if (!kart) throw new Error(tr("新车手注册缺少练习用卡丁车资源。"));
   const starterColors = (kind: string) => catalog.equipment
     .filter(item => item.kind === kind && (STARTER.colors as readonly number[]).includes(item.itemId))
     .map(({ itemId, title }) => ({ itemId, title }));
@@ -384,7 +385,7 @@ export async function registerAccountRider(host: AccountStartupHost,
           await session.refresh().catch(() => undefined);
           if (session.summary()?.onboarded) break;
         }
-        await showAccountMessage(document, "新车手注册", formatAccountError(error), "重新填写");
+        await showAccountMessage(document, tr("新车手注册"), formatAccountError(error), tr("重新填写"));
       }
     }
     if (!session.summary()?.onboarded)
@@ -412,7 +413,7 @@ export async function registerAccountRider(host: AccountStartupHost,
     host.localNickname = choice.name;
     selectionFor(host, catalog, host.userProfile.equipment);
     await host.enterTimeAttackReady();
-    showAccountToast(document, "新手礼包已放入车库：练习用卡丁车、角色与喷漆染色。", 5_000);
+    showAccountToast(document, tr("新手礼包已放入车库：练习用卡丁车、角色与喷漆染色。"), 5_000);
   } finally {
     host.newRiderDialog?.dispose();
     host.newRiderDialog = undefined;
@@ -423,7 +424,7 @@ export async function registerAccountRider(host: AccountStartupHost,
   // so the migrated favorites and My Room settings would be lost at the next login.
   const sync = accountProfileSync();
   if (sync && !(await sync.settled())) {
-    showAccountToast(document, PROFILE_NOT_SAVED_MESSAGE, 6_000);
-    host.hud.showDebugText(PROFILE_NOT_SAVED_MESSAGE, "error");
+    showAccountToast(document, tr(PROFILE_NOT_SAVED_MESSAGE), 6_000);
+    host.hud.showDebugText(tr(PROFILE_NOT_SAVED_MESSAGE), "error");
   }
 }

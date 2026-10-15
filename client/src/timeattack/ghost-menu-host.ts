@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Connects the Ghost menu to the local recording library and track catalog. */
 
 export interface GhostMenuRecordSummary {
@@ -88,7 +89,7 @@ export async function importGhostMenuRecord(bridge: GhostMenuBridge,
       await bridge.host.library.save(key, sources, storedSummary);
     }
   } catch (error) {
-    bridge.host.reportError(`影子导入失败：${error instanceof Error ? error.message : String(error)}`);
+    bridge.host.reportError(tr("影子导入失败：{value}", { value: String(error instanceof Error ? error.message : String(error)) }));
     throw error;
   }
 }
@@ -119,6 +120,6 @@ export async function exportGhostMenuRecord(bridge: GhostMenuBridge,
   key: string,
   download: (bytes: Uint8Array, filename: string) => void): Promise<void> {
   const exported = await bridge.host.library.exportKsv(key);
-  if (!exported) throw new Error("录像不存在或缺少可导出的 replay 数据。 ");
+  if (!exported) throw new Error(tr("录像不存在或缺少可导出的 replay 数据。 "));
   download(exported.bytes, exported.filename);
 }

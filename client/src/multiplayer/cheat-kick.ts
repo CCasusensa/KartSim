@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The game node's anti-cheat kick (server-go/ANTICHEAT.md 3): an unsolicited
  * {"type":"error","code":"CHEAT_DETECTED","check":…} right before the
@@ -32,6 +33,6 @@ export function cheatKickOf(event: unknown): CheatKick | undefined {
 
 /** What the player is told after the kick. */
 export function cheatKickMessage(kick: CheatKick): string {
-  const label = CHECK_LABELS[kick.check] ?? "数据异常";
-  return `服务器检测到异常操作（${label}），你已被移出比赛并断开联机。如有疑问请联系管理员。`;
+  const label = tr(CHECK_LABELS[kick.check] ?? "数据异常");
+  return tr("服务器检测到异常操作（{value}），你已被移出比赛并断开联机。如有疑问请联系管理员。", { value: String(label) });
 }

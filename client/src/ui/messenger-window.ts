@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 好友聊天系统: the release stage_messengerSystem window (messenger@zz),
  * docked above the taskbar's tray like the original, with its 好友 page
@@ -54,30 +55,30 @@ const PRESENCE_IMAGE: Record<Presence, string> = {
 
 /** Release strings for the data service's error codes. */
 function errorText(art: MessengerArt, error: unknown): string {
-  const s = (key: string, fallback: string) => art.strings.get(key) ?? fallback;
+  const s = (key: string, fallback: string) => tr(art.strings.get(key) ?? fallback);
   switch (errorCode(error)) {
-    case "PLAYER_NOT_FOUND": return "无法找到该车手。";
-    case "FRIEND_REQUESTS_BLOCKED": return s("blockRequsetUser", "对方车手已关闭好友请求功能。");
+    case "PLAYER_NOT_FOUND": return tr("无法找到该车手。");
+    case "FRIEND_REQUESTS_BLOCKED": return s("blockRequsetUser", tr("对方车手已关闭好友请求功能。"));
     case "FRIEND_LIMIT":
-    case "TARGET_FRIEND_LIMIT": return s("userHaveMaxFriend", "对方或我的好友数量已达上限，无法添加好友。");
+    case "TARGET_FRIEND_LIMIT": return s("userHaveMaxFriend", tr("对方或我的好友数量已达上限，无法添加好友。"));
     case "ALREADY_FRIENDS":
-    case "REQUEST_PENDING": return s("alreadyFriend", "已发送好友申请或已经是好友了。");
-    case "REQUEST_LIMIT": return s("overMaxRequestNum", "已超过请求好友数量上限，无法再发送好友请求。");
-    case "REQUEST_COOLDOWN": return "对方已拒绝好友请求，|到次日上午6点前无法再次申请。";
-    case "CANNOT_ADD_SELF": return "不能将自己添加为好友。";
-    case "CANNOT_BLOCK_SELF": return "不能屏蔽自己。";
-    case "BLOCKED_TARGET": return "已屏蔽该车手。|请先在管理 → 屏蔽管理中解除屏蔽。";
-    case "BLOCK_LIMIT": return "屏蔽人数已达上限。";
+    case "REQUEST_PENDING": return s("alreadyFriend", tr("已发送好友申请或已经是好友了。"));
+    case "REQUEST_LIMIT": return s("overMaxRequestNum", tr("已超过请求好友数量上限，无法再发送好友请求。"));
+    case "REQUEST_COOLDOWN": return tr("对方已拒绝好友请求，|到次日上午6点前无法再次申请。");
+    case "CANNOT_ADD_SELF": return tr("不能将自己添加为好友。");
+    case "CANNOT_BLOCK_SELF": return tr("不能屏蔽自己。");
+    case "BLOCKED_TARGET": return tr("已屏蔽该车手。|请先在管理 → 屏蔽管理中解除屏蔽。");
+    case "BLOCK_LIMIT": return tr("屏蔽人数已达上限。");
     case "REQUEST_NOT_FOUND":
     case "FRIEND_NOT_FOUND":
-    case "BLOCK_NOT_FOUND": return s("informExpireMsg3", "该请求已过期或无法处理，将删除此信息");
-    case "NOT_FRIENDS": return s("nobodyChat2", "没有可进行对话的对象。");
-    case "CHAT_FLOOD": return s("chat_warn10secBlock", "为防止刷屏，聊天禁止10秒。");
+    case "BLOCK_NOT_FOUND": return s("informExpireMsg3", tr("该请求已过期或无法处理，将删除此信息"));
+    case "NOT_FRIENDS": return s("nobodyChat2", tr("没有可进行对话的对象。"));
+    case "CHAT_FLOOD": return s("chat_warn10secBlock", tr("为防止刷屏，聊天禁止10秒。"));
     case "TOO_MANY_ATTEMPTS":
-    case "RATE_LIMITED": return "操作过于频繁，请稍后再试。";
+    case "RATE_LIMITED": return tr("操作过于频繁，请稍后再试。");
     case "DATA_SERVICE_UNAVAILABLE":
-    case "MESSENGER_OFFLINE": return "无法连接数据服务，请稍后重试。";
-    default: return s("normalError", "发生错误。|请重试。");
+    case "MESSENGER_OFFLINE": return tr("无法连接数据服务，请稍后重试。");
+    default: return s("normalError", tr("发生错误。|请重试。"));
   }
 }
 
@@ -307,7 +308,7 @@ export class MessengerWindow {
     this.layer.dataset.uiLayer = "dialog";
     this.layer.dataset.art = "true";
     this.layer.setAttribute("role", "dialog");
-    this.layer.setAttribute("aria-label", art.strings.get("messenger") ?? "好友聊天系统");
+    this.layer.setAttribute("aria-label", art.strings.get("messenger") ?? tr("好友聊天系统"));
     if (art.font) this.layer.style.setProperty("--ks-msgr-font",
       `"${art.font}","Source Han Sans SC","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif`);
     const style = element("style");
@@ -577,13 +578,13 @@ export class MessengerWindow {
     this.click(named("bulkDeleteBtn"), () => void this.clearOutbox());
 
     const search = editInput(named("friendSearchEdit"));
-    search.setAttribute("aria-label", strings.get("searchFriend") ?? "搜索我的好友");
+    search.setAttribute("aria-label", strings.get("searchFriend") ?? tr("搜索我的好友"));
     search.addEventListener("input", () => {
       this.search = search.value;
       this.render();
     });
     const chatInput = editInput(named("chatInput"));
-    chatInput.setAttribute("aria-label", "聊天内容");
+    chatInput.setAttribute("aria-label", tr("聊天内容"));
     chatInput.addEventListener("input", () => {
       const room = this.service?.store.activeRoom;
       if (room) room.draft = chatInput.value;
@@ -674,14 +675,14 @@ export class MessengerWindow {
   private notice(message: string): Promise<boolean> {
     if (this.suspended || this.disposed) return Promise.resolve(false);
     return openMessengerMessage(this.options.library, this.options.root,
-      this.art.strings.get("messenger") ?? "好友聊天系统", message, {}, this.dialogs.signal)
+      this.art.strings.get("messenger") ?? tr("好友聊天系统"), message, {}, this.dialogs.signal)
       .catch(() => false);
   }
 
   private confirm(title: string, message: string): Promise<boolean> {
     if (this.suspended || this.disposed) return Promise.resolve(false);
     return openMessengerMessage(this.options.library, this.options.root, title, message,
-      { yes: "确定", no: this.art.strings.get("cancel") ?? "取消" }, this.dialogs.signal)
+      { yes: tr("确定"), no: this.art.strings.get("cancel") ?? tr("取消") }, this.dialogs.signal)
       .catch(() => false);
   }
 
@@ -696,7 +697,7 @@ export class MessengerWindow {
         void service.api.requestFriend(nickname).then(async () => {
           dialog.close();
           void service.connection.sync();
-          await this.notice(this.art.strings.get("successAddFriend") ?? "已完成好友申请。");
+          await this.notice(this.art.strings.get("successAddFriend") ?? tr("已完成好友申请。"));
         }, async error => {
           dialog.setBusy(false);
           await this.notice(errorText(this.art, error));
@@ -709,7 +710,7 @@ export class MessengerWindow {
   }
 
   private async respond(accountId: string, accept: boolean): Promise<void> {
-    if (!accept && !await this.confirm(this.art.strings.get("refuse") ?? "拒绝",
+    if (!accept && !await this.confirm(this.art.strings.get("refuse") ?? tr("拒绝"),
       this.art.strings.get("refuseConfirm") ?? "")) return;
     await this.run(service => service.api.respond(accountId, accept));
   }
@@ -719,17 +720,17 @@ export class MessengerWindow {
   }
 
   private async clearOutbox(): Promise<void> {
-    if (!await this.confirm(this.art.strings.get("bulkDelete") ?? "整理发件箱",
+    if (!await this.confirm(this.art.strings.get("bulkDelete") ?? tr("整理发件箱"),
       this.art.strings.get("bulkDeleteConfirm") ?? "")) return;
     const deleted = await this.run(service => service.api.clearOutbox());
     if (deleted !== undefined)
-      await this.notice(formatString(this.art.strings.get("bulkDeleteResult") ?? "已删除%d条信息。", deleted));
+      await this.notice(formatString(this.art.strings.get("bulkDeleteResult") ?? tr("已删除%d条信息。"), deleted));
   }
 
   private async block(friend: { accountId: string }): Promise<void> {
     const { confirmStrings, strings } = this.art;
-    if (!await this.confirm(confirmStrings.get("blockFriend") ?? "屏蔽好友",
-      strings.get("inquireBlockFriend") ?? "要屏蔽好友吗？")) return;
+    if (!await this.confirm(confirmStrings.get("blockFriend") ?? tr("屏蔽好友"),
+      strings.get("inquireBlockFriend") ?? tr("要屏蔽好友吗？"))) return;
     const blocked = await this.run(async service => {
       await service.api.block(friend.accountId);
       return true;
@@ -739,15 +740,15 @@ export class MessengerWindow {
 
   private async unblock(accountId: string): Promise<void> {
     const { strings } = this.art;
-    if (!await this.confirm(strings.get("blockCancel") ?? "解除屏蔽",
-      strings.get("inquireBlockCancel") ?? "要解除屏蔽吗？")) return;
+    if (!await this.confirm(strings.get("blockCancel") ?? tr("解除屏蔽"),
+      strings.get("inquireBlockCancel") ?? tr("要解除屏蔽吗？"))) return;
     await this.run(service => service.api.unblock(accountId));
   }
 
   private async remove(friend: Friend): Promise<void> {
     const { confirmStrings, strings } = this.art;
-    if (!await this.confirm(confirmStrings.get("deleteFriend") ?? "删除好友",
-      strings.get("inquireDeleteFriend") ?? "要删除好友吗？")) return;
+    if (!await this.confirm(confirmStrings.get("deleteFriend") ?? tr("删除好友"),
+      strings.get("inquireDeleteFriend") ?? tr("要删除好友吗？"))) return;
     await this.run(service => service.api.removeFriend(friend.accountId));
   }
 
@@ -775,7 +776,7 @@ export class MessengerWindow {
     const existing = service.store.room(friend.accountId);
     const room = service.store.openRoom(friend.accountId, friend.nickname);
     if (!room) {
-      void this.notice(this.art.strings.get("maxChatRoom") ?? "聊天房间已达最大数量，|无法再创建房间。");
+      void this.notice(this.art.strings.get("maxChatRoom") ?? tr("聊天房间已达最大数量，|无法再创建房间。"));
       return;
     }
     this.mainTab = "chatPage";
@@ -792,14 +793,14 @@ export class MessengerWindow {
     const store = this.service!.store;
     const { strings } = this.art;
     if (created) {
-      store.addSystemLine(room.peerId, strings.get("createInitChat") ?? "聊天房间已创建。", "notice");
+      store.addSystemLine(room.peerId, strings.get("createInitChat") ?? tr("聊天房间已创建。"), "notice");
       for (const key of ["chatAlertGuide1", "chatAlertGuide2", "chatAlertGuide3", "chatAlertGuide4"]) {
         const line = strings.get(key);
         if (line) store.addSystemLine(room.peerId, line);
       }
     }
     if (store.friend(room.peerId)?.presence === "offline")
-      store.addSystemLine(room.peerId, formatString(strings.get("offlineChat") ?? "%s处于离线状态", room.nickname));
+      store.addSystemLine(room.peerId, formatString(strings.get("offlineChat") ?? tr("%s处于离线状态"), room.nickname));
   }
 
   /** A room became the active one: its release lines and its history. */
@@ -852,13 +853,13 @@ export class MessengerWindow {
       return;
     }
     const { store } = service;
-    const warn = this.art.strings.get("chat_warn10secBlock") ?? "为防止刷屏，聊天禁止10秒。";
+    const warn = this.art.strings.get("chat_warn10secBlock") ?? tr("为防止刷屏，聊天禁止10秒。");
     if (store.mutedUntil > Date.now()) {
       store.addSystemLine(room.peerId, warn, "warning");
       return;
     }
     if (!store.isFriend(room.peerId)) {
-      store.addSystemLine(room.peerId, this.art.strings.get("nobodyChat1") ?? "聊天对象不在房间内，无法再进行对话。", "warning");
+      store.addSystemLine(room.peerId, this.art.strings.get("nobodyChat1") ?? tr("聊天对象不在房间内，无法再进行对话。"), "warning");
       return;
     }
     const clientId = newClientId();
@@ -1015,7 +1016,7 @@ export class MessengerWindow {
     const me = state?.me;
     this.setGlove(named("myLevelMark"), me?.glove);
     setText(named("myLevelStr"), me ? `Lv.${me.level}` : "");
-    setText(named("myRid"), me?.nickname ?? (store?.connection === "replaced" ? "已在其他窗口登录" : "连接中…"));
+    setText(named("myRid"), me?.nickname ?? (store?.connection === "replaced" ? tr("已在其他窗口登录") : tr("连接中…")));
     const invisible = state?.settings.invisible ?? false;
     const online = store?.connection === "online";
     setText(named("myStatusStr"), strings.get(online && !invisible ? "online" : "offline") ?? "");
@@ -1041,7 +1042,7 @@ export class MessengerWindow {
       named(tab, "TabPage").hidden = this.settingTab !== tab;
     }
     const rooms = store?.rooms ?? [];
-    setText(named("chatPage", "ImageButton"), formatString(strings.get("chat") ?? "对话(%d)", rooms.length));
+    setText(named("chatPage", "ImageButton"), formatString(strings.get("chat") ?? tr("对话(%d)"), rooms.length));
 
     // The unread chain.
     const incoming = store?.incomingCount ?? 0;
@@ -1089,13 +1090,13 @@ export class MessengerWindow {
     const favorite = shown.filter(friend => friend.favorite);
     const groups: Array<{ key: GroupKey; title: string; friends: Friend[] }> = [];
     if (favorite.length) groups.push({ key: "favorite", friends: favorite,
-      title: formatString(strings.get("favoriteList") ?? "特别关注 (%d)", favorite.length) });
+      title: formatString(strings.get("favoriteList") ?? tr("特别关注 (%d)"), favorite.length) });
     const onlineFriends = shown.filter(friend => !friend.favorite && friend.presence !== "offline");
     const offlineFriends = shown.filter(friend => !friend.favorite && friend.presence === "offline");
     groups.push({ key: "online", friends: onlineFriends,
-      title: formatString(strings.get("onlineList") ?? "在线好友 (%d)", onlineFriends.length) });
+      title: formatString(strings.get("onlineList") ?? tr("在线好友 (%d)"), onlineFriends.length) });
     groups.push({ key: "offline", friends: offlineFriends,
-      title: formatString(strings.get("offlineList") ?? "离线好友 (%d)", offlineFriends.length) });
+      title: formatString(strings.get("offlineList") ?? tr("离线好友 (%d)"), offlineFriends.length) });
     return groups;
   }
 
@@ -1155,7 +1156,7 @@ export class MessengerWindow {
             this.fillPerson(row, current);
             setText(part(row, "friendStatusStr"), this.presenceText(current.presence));
             setTexture(this.art, part(row, "friendStatusMark"), PRESENCE_IMAGE[current.presence]);
-            row.title = `${current.nickname}（双击对话，右键更多）`;
+            row.title = tr("{name}（双击对话，右键更多）", { name: current.nickname });
           },
         });
       }
@@ -1177,8 +1178,8 @@ export class MessengerWindow {
           setTexture(this.art, part(row, "icon"), "msg_icon_friend_0");
           this.click(part(row, "acceptBtn"), () => void this.respond(request.accountId, true));
           this.click(part(row, "refuseBtn"), () => void this.respond(request.accountId, false));
-          part(row, "acceptBtn").setAttribute("aria-label", strings.get("accept") ?? "同意");
-          part(row, "refuseBtn").setAttribute("aria-label", strings.get("refuse") ?? "拒绝");
+          part(row, "acceptBtn").setAttribute("aria-label", strings.get("accept") ?? tr("同意"));
+          part(row, "refuseBtn").setAttribute("aria-label", strings.get("refuse") ?? tr("拒绝"));
           return row;
         },
         update: row => {
@@ -1200,7 +1201,7 @@ export class MessengerWindow {
         const row = this.templates.send.create();
         const cancel = part(row, "addCancelBtn");
         this.click(cancel, () => void this.cancelRequest(request.accountId));
-        cancel.setAttribute("aria-label", "撤回好友请求");
+        cancel.setAttribute("aria-label", tr("撤回好友请求"));
         return row;
       },
       update: row => this.fillOutgoing(row, request, now),
@@ -1242,7 +1243,7 @@ export class MessengerWindow {
           create: () => {
             const row = templates.optTitle1.create();
             this.click(part(row, "blockFriendRequest"), () => void this.toggleSetting("blockFriendRequests"));
-            part(row, "blockFriendRequest").setAttribute("aria-label", strings.get("blockAddFriend") ?? "不接收好友请求");
+            part(row, "blockFriendRequest").setAttribute("aria-label", strings.get("blockAddFriend") ?? tr("不接收好友请求"));
             return row;
           },
           update: row => check(row, "blockFriendRequest", state?.settings.blockFriendRequests ?? false),
@@ -1252,7 +1253,7 @@ export class MessengerWindow {
           create: () => {
             const row = templates.optTitle2.create();
             this.click(part(row, "blockGameInvite"), () => void this.toggleSetting("blockGameInvites"));
-            part(row, "blockGameInvite").setAttribute("aria-label", strings.get("bolckInviteGame") ?? "不接收游戏邀请");
+            part(row, "blockGameInvite").setAttribute("aria-label", strings.get("bolckInviteGame") ?? tr("不接收游戏邀请"));
             return row;
           },
           update: row => check(row, "blockGameInvite", state?.settings.blockGameInvites ?? false),
@@ -1271,9 +1272,9 @@ export class MessengerWindow {
               this.click(part(row, "addFavoriteOpt"), () => { const f = current(); if (f) void this.setFavorite(f, true); });
               this.click(part(row, "deleteFavoriteOpt"), () => { const f = current(); if (f) void this.setFavorite(f, false); });
               this.click(part(row, "addBlockOpt"), () => { const f = current(); if (f) void this.block(f); });
-              part(row, "addFavoriteOpt").setAttribute("aria-label", strings.get("addFavorite") ?? "特别关注");
-              part(row, "deleteFavoriteOpt").setAttribute("aria-label", strings.get("deleteFavorite") ?? "取消特别关注");
-              part(row, "addBlockOpt").setAttribute("aria-label", strings.get("blockFriend") ?? "屏蔽");
+              part(row, "addFavoriteOpt").setAttribute("aria-label", strings.get("addFavorite") ?? tr("特别关注"));
+              part(row, "deleteFavoriteOpt").setAttribute("aria-label", strings.get("deleteFavorite") ?? tr("取消特别关注"));
+              part(row, "addBlockOpt").setAttribute("aria-label", strings.get("blockFriend") ?? tr("屏蔽"));
               return row;
             },
             update: row => {
@@ -1294,7 +1295,7 @@ export class MessengerWindow {
     const blocks = [...(state?.blocks ?? [])].sort(byNickname);
     const open = !this.collapsed.has("blocks:all");
     const rows: Row[] = [this.headerRow("blocks", "all",
-      formatString(strings.get("blockList") ?? "屏蔽管理 (%d)", blocks.length), open, true)];
+      formatString(strings.get("blockList") ?? tr("屏蔽管理 (%d)"), blocks.length), open, true)];
     if (open) for (const blocked of blocks) {
       rows.push({
         key: `block:${blocked.accountId}`,
@@ -1302,7 +1303,7 @@ export class MessengerWindow {
           const row = templates.blockOpt.create();
           const unblock = part(row, "deleteBlockOpt");
           this.click(unblock, () => void this.unblock(blocked.accountId));
-          unblock.setAttribute("aria-label", strings.get("blockCancel") ?? "解除屏蔽");
+          unblock.setAttribute("aria-label", strings.get("blockCancel") ?? tr("解除屏蔽"));
           return row;
         },
         update: row => {
@@ -1361,7 +1362,7 @@ export class MessengerWindow {
         part(slot, "selected").hidden = !selected;
         part(slot, "new").hidden = selected || current.unread === 0;
         part(slot, "notice_alert").hidden = current.unread === 0;
-        setText(part(slot, "shortRoomName"), formatString(strings.get("shortChatTitle1") ?? "%s的对话", current.nickname));
+        setText(part(slot, "shortRoomName"), formatString(strings.get("shortChatTitle1") ?? tr("%s的对话"), current.nickname));
         slot.title = current.nickname;
       },
     })));
@@ -1398,7 +1399,7 @@ export class MessengerWindow {
     if (room.hasMore) rows.push({
       key: "more",
       create: () => {
-        const more = element("button", "ks-m-more", "查看更早的消息");
+        const more = element("button", "ks-m-more", tr("查看更早的消息"));
         more.type = "button";
         more.addEventListener("click", event => {
           event.stopPropagation();
@@ -1462,13 +1463,13 @@ export class MessengerWindow {
     if (popup.hidden) return;
     const friends = [...(this.service?.store.state?.friends ?? [])].sort(byNickname);
     const { strings } = this.art;
-    setText(this.dom.named("enableInviteNum"), formatString(strings.get("UserNum") ?? "%d人", 1));
+    setText(this.dom.named("enableInviteNum"), formatString(strings.get("UserNum") ?? tr("%d人"), 1));
     (this.dom.named("addInviteOk") as HTMLButtonElement).disabled = !this.inviteSelection;
     const rows: Row[] = [];
     const groups: Array<[string, Friend[]]> = [
-      [formatString(strings.get("onlineList") ?? "在线好友 (%d)", friends.filter(f => f.presence !== "offline").length),
+      [formatString(strings.get("onlineList") ?? tr("在线好友 (%d)"), friends.filter(f => f.presence !== "offline").length),
         friends.filter(f => f.presence !== "offline")],
-      [formatString(strings.get("offlineList") ?? "离线好友 (%d)", friends.filter(f => f.presence === "offline").length),
+      [formatString(strings.get("offlineList") ?? tr("离线好友 (%d)"), friends.filter(f => f.presence === "offline").length),
         friends.filter(f => f.presence === "offline")],
     ];
     groups.forEach(([title, members], index) => {

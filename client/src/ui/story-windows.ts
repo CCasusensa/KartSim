@@ -1,3 +1,4 @@
+import { gameLocale, tr } from "../i18n/locale";
 import { T, V0, p2 } from "../generated/formats.js";
 import { C8, F9, U1, _w, h2, te } from "../generated/library.js";
 import { showLobbyMessageBox } from "../multiplayer/lobby-dialog-views";
@@ -200,7 +201,7 @@ export function chapterHeaderShift(chapterX: number, divideX: number,
 /** States for the frame's "chapter", "divide" and "title" labels. */
 function chapterHeader(definition: StoryNode, chapter: StoryChapter):
   (key: string) => Record<string, unknown> | undefined {
-  const label = chapter.subTitle ?? CHAPTER_LABEL;
+  const label = chapter.subTitle ?? tr(CHAPTER_LABEL);
   const chapterX = adjustX(findNode(definition, "chapter"));
   const divideX = adjustX(findNode(definition, "divide"));
   let shift: number | undefined;
@@ -209,9 +210,10 @@ function chapterHeader(definition: StoryNode, chapter: StoryChapter):
     windowTextWidth(label, 20));
   return key => {
     switch (key) {
-      case "chapter": return chapter.subTitle ? { text: chapter.subTitle } : {};
+      case "chapter": return { text: label };
       case "divide": return { offsetX: offset() };
-      case "title": return { text: chapter.title, offsetX: offset() };
+      case "title": return { ...storyMenuLabelState(findNode(definition, "title") ?? definition,
+        chapter.title), offsetX: offset() };
     }
     return undefined;
   };
@@ -230,25 +232,37 @@ export function storyColor(value: string | undefined, fallback = "white"): strin
  * textRender size, outline in textColor2, textColor, textAlign and lineGap,
  * glyph by glyph in the window font. The renderer itself does not wrap.
  */
-function paintLabel(context: CanvasRenderingContext2D, node: StoryNode, text: string,
-  rect: Rect): void {
+export function paintStoryLabel(context: CanvasRenderingContext2D, node: StoryNode, text: string,
+  rect: Rect, fit = false): void {
   const render = (T(node, "textRender") as string | undefined) ?? "";
-  const size = Number(/\d+/.exec(render)?.[0] ?? 16);
+  let size = Number(/\d+/.exec(render)?.[0] ?? 16);
   const stroke = /^outline/.test(render) ? 1 : 0;
   const align = (T(node, "textAlign") as string | undefined) ?? "left";
   const horizontal = align.includes("hcenter") || align === "center" ? 0.5
     : align.includes("right") ? 1 : 0;
   const middle = align.includes("vcenter") || align === "center";
-  const gap = Number(T(node, "lineGap") ?? 0) || 0;
+  let gap = Number(T(node, "lineGap") ?? 0) || 0;
   context.save();
   context.font = `${size}px "${WINDOW_FONT}"`;
   context.fontKerning = "none";
   const advance = (character: string): number => context.measureText(character).width + stroke * 2;
   const width = (line: string): number =>
     Array.from(line).reduce((total, character) => total + advance(character), 0);
-  const lines = wrapStoryText({ measureText: (line: string) => ({ width: width(line) }) } as never,
+  let lines = wrapStoryText({ measureText: (line: string) => ({ width: width(line) }) } as never,
     text, rect.width);
-  const lineHeight = Math.trunc(1.448 * size) + stroke * 2 + gap;
+  let lineHeight = Math.trunc(1.448 * size) + stroke * 2 + gap;
+  // Menu translations are often longer than Chinese. Reflow before clipping;
+  // narrative scene pages keep their original font and paging behavior.
+  if (fit && gameLocale() !== "zh-CN") {
+    while (size > 10 && lines.length * lineHeight - gap > rect.height) {
+      size--;
+      gap = Math.max(0, gap - 1);
+      context.font = `${size}px "${WINDOW_FONT}"`;
+      lines = wrapStoryText({ measureText: (line: string) => ({ width: width(line) }) } as never,
+        text, rect.width);
+      lineHeight = Math.trunc(1.448 * size) + stroke * 2 + gap;
+    }
+  }
   const ascent = Math.trunc(1.16 * size) + stroke;
   const visible = lines.slice(0, Math.max(1, Math.floor((rect.height + gap) / lineHeight)));
   let y = rect.y + (middle ? Math.max(0, (rect.height - (visible.length * lineHeight - gap)) / 2) : 0);
@@ -268,6 +282,13 @@ function paintLabel(context: CanvasRenderingContext2D, node: StoryNode, text: st
     y += lineHeight;
   }
   context.restore();
+}
+
+function storyMenuLabelState(node: StoryNode, text: string): Record<string, unknown> {
+  return gameLocale() === "zh-CN" ? { text } : {
+    text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
+      paintStoryLabel(context, node, text, rect, true),
+  };
 }
 
 async function openWindow(options: {
@@ -293,7 +314,7 @@ export async function openStoryMessage(options: {
   const dialog = await showLobbyMessageBox(
     () => ({ busy: false, view: undefined as unknown as WindowView }),
     { library: options.library, root: options.root, cancel: options.onClose },
-    options.title, options.message, options.onClose, { yes: "确定" }, true, {
+    options.title, options.message, options.onClose, { yes: tr("确定") }, true, {
       loadMessageTemplate: library => _w(library),
       loadDefinition: (library, folder, file) => F9(library, folder, file),
       decorateDefinition: (library, definition, folder) => C8(library, definition, folder),
@@ -511,7 +532,7 @@ export async function openStoryMap(options: StoryMapOptions): Promise<StoryMapWi
     render();
   };
   view = await openWindow({
-    library, root: options.root, definition, roots, label: `故事模式：${chapter.title}`,
+    library, root: options.root, definition, roots, label: tr("故事模式：{title}", { title: chapter.title }),
     onCancel: options.onClose,
     state: node => {
       const key = name(node);
@@ -561,14 +582,14 @@ export async function openStoryMap(options: StoryMapOptions): Promise<StoryMapWi
         case "start": return { offsetX: -offset(), visible: visibleOn(startRect) };
         case "dao": return { offsetX: -offset(), visible: visibleOn(currentRect) };
         case "static": return { visible: false };
-        case "goBackButton": return { label: "关闭", action: () => {
+        case "goBackButton": return { label: tr("关闭"), action: () => {
           options.onActivate?.(); options.onClose(); } };
         case "scrLeft": return page > 0
-          ? { label: "上一页", action: () => turn(-1) } : { visible: false };
+          ? { label: tr("上一页"), action: () => turn(-1) } : { visible: false };
         case "scrRight": return page < pages.length - 1
-          ? { label: "下一页", action: () => turn(1) } : { visible: false };
+          ? { label: tr("下一页"), action: () => turn(1) } : { visible: false };
         case "story": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintLabel(context, node, chapter.desc, rect) };
+          paintStoryLabel(context, node, chapter.desc, rect, true) };
         case "chapterClear": return { visible: options.chapterCleared() };
       }
       return {};
@@ -724,11 +745,11 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
     options.onStart();
   };
   return openWindow({
-    library, root: options.root, definition, roots, label: `故事关卡：${step.title}`,
+    library, root: options.root, definition, roots, label: tr("故事关卡：{title}", { title: step.title }),
     onCancel: options.onClose, onConfirm: start,
     state: node => {
       switch (name(node)) {
-        case "scenarioChapterTitle": return { text: chapter.title };
+        case "scenarioChapterTitle": return storyMenuLabelState(node, chapter.title);
         case "step": return badge ? {} : { paint: (context: CanvasRenderingContext2D, rect: Rect) => {
           context.save();
           context.fillStyle = "rgba(16,38,104,.85)";
@@ -736,15 +757,15 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
           context.roundRect(rect.x, rect.y, rect.width, rect.height, 8);
           context.fill();
           context.restore();
-          paintBadge(context, options.badgeText ?? `第 ${step.id} 关`, rect);
+          paintBadge(context, options.badgeText ?? tr("第 {stage} 关", { stage: step.id }), rect);
         } };
-        case "scenarioTitle": return { text: step.title };
+        case "scenarioTitle": return storyMenuLabelState(node, step.title);
         case "synopsis": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintLabel(context, node, step.synopsis, rect) };
+          paintStoryLabel(context, node, step.synopsis, rect, true) };
         case "howtoClear": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintLabel(context, node, step.howToClear, rect) };
+          paintStoryLabel(context, node, step.howToClear, rect, true) };
         case "missionText": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintLabel(context, node, storyMissionText(step.missionText, options.cleared), rect) };
+          paintStoryLabel(context, node, storyMissionText(step.missionText, options.cleared), rect, true) };
         case "trackInfoCard": return options.trackCard ? {
           paint: (context: CanvasRenderingContext2D, rect: Rect) => {
             const card = options.trackCard!;
@@ -760,14 +781,14 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
             context.drawImage(options.trackCard!.themeIcon!.image, rect.x, rect.y,
               rect.width, rect.height) } : { visible: false };
         case "lblPrize": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintLabel(context, node, step.prize ?? "", rect) };
+          paintStoryLabel(context, node, step.prize ?? "", rect) };
         case "clearStep": return { visible: options.cleared };
         case "itemPanel":
         case "emblem": return { visible: false };
-        case "시작": return { label: options.startLabel ?? "开始", disabled: !playable,
+        case "시작": return { label: options.startLabel ?? tr("开始"), disabled: !playable,
           action: playable ? start : undefined };
         case "아이템배틀": return { visible: false };
-        case "goBackButton": return { label: options.closeLabel ?? "关闭", action: () => {
+        case "goBackButton": return { label: options.closeLabel ?? tr("关闭"), action: () => {
           options.onActivate?.(); options.onClose(); } };
       }
       return {};
@@ -870,7 +891,7 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
   };
   const header = chapterHeader(definition, options.chapter);
   view = await openWindow({
-    library, root: options.root, definition, roots, label: "故事剧情",
+    library, root: options.root, definition, roots, label: tr("故事剧情"),
     onCancel: finish, onConfirm: advance,
     state: node => {
       const page = pages[index];
@@ -881,7 +902,7 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
         case "Background2": return { paint: background(2) };
         case "sceneContainer": return {
           // Clicking the picture also turns the page, as in the release.
-          action: advance, label: "下一句",
+          action: advance, label: tr("下一句"),
           paint: (context: CanvasRenderingContext2D, rect: Rect) => {
             for (const character of page?.characters ?? []) {
               const sprite = spriteName(character.id, character.emotion);
@@ -903,12 +924,12 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
           } };
         case "msgName": return { text: page?.speaker ?? "" };
         case "msg": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintLabel(context, node, page?.text ?? "", rect) };
+          paintStoryLabel(context, node, page?.text ?? "", rect) };
         // The release 확인버튼 (确认), drawn with its own four states.
-        case "next": return { label: index >= pages.length - 1 ? options.lastLabel ?? "开始比赛" : "下一句",
+        case "next": return { label: index >= pages.length - 1 ? options.lastLabel ?? tr("开始比赛") : tr("下一句"),
           action: advance };
         case "script": return { visible: false };
-        case "goBackButton": return { label: options.skipLabel ?? "跳过剧情", action: () => {
+        case "goBackButton": return { label: options.skipLabel ?? tr("跳过剧情"), action: () => {
           options.onActivate?.(); finish(); } };
       }
       return {};

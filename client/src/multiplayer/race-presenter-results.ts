@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Ends live multiplayer presentation and opens the race result scene. */
 import { showAccountToast, type OverlayDocument } from "../account/account-dialogs";
 import { activeBrowserSession, refreshAccountAfterRace } from "../account/account-runtime";
@@ -14,7 +15,7 @@ export function announceRoadblockReward(rewards: unknown, playerId: unknown,
       showAccountToast(document as unknown as OverlayDocument, message, 6_000);
   }): void {
   const reward = parseRaceRewards(rewards).get(String(playerId));
-  if (reward) show(`本局奖励 ${formatRaceReward(reward)}`);
+  if (reward) show(tr("本局奖励 {value}", { value: String(formatRaceReward(reward)) }));
 }
 
 /**
@@ -149,13 +150,13 @@ export function showRacePresenterResults(host: RacePresenterResultsHost,
 
   const results = host.runtime.resultSnapshot();
   if (!results || !host.resultView) {
-    throw new Error("本局结果展示资源未就绪。");
+    throw new Error(tr("本局结果展示资源未就绪。"));
   }
   const snapshot = host.runtime.raceSnapshot();
   if (snapshot.roadblock) {
     host.roadblockHud?.hide();
     if (!host.roadblockResult) {
-      throw new Error("挡人专属结算场景未就绪。");
+      throw new Error(tr("挡人专属结算场景未就绪。"));
     }
     for (const participant of host.assets.participants) {
       resetResultParticipant(participant, nowMs, dependencies);
@@ -173,7 +174,7 @@ export function showRacePresenterResults(host: RacePresenterResultsHost,
     return;
   }
 
-  if (!host.award) throw new Error("本局颁奖资源未就绪。");
+  if (!host.award) throw new Error(tr("本局颁奖资源未就绪。"));
   const winners = dependencies.winningPlayers(host.assets.mode ?? "individual",
     snapshot.roster, results, snapshot.winningTeam);
   for (const result of results) {

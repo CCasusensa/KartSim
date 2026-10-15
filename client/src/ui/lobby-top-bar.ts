@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { AccountSession, AccountSummary } from "../account/account-session";
 import { loadLevelGloveArt, loadLobbyTopBarArt, type LobbyTopBarArt, type TopBarArtLibrary } from "./lobby-top-bar-assets";
 
@@ -194,8 +195,8 @@ export class LobbyTopBar {
     const fill = element("i");
     fill.style.width = `${(ratio * 100).toFixed(1)}%`;
     bar.replaceChildren(fill, element("b", undefined, text));
-    bar.title = `经验 ${text}`;
-    bar.setAttribute("aria-label", `经验 ${text}`);
+    bar.title = tr("经验 {value}", { value: text });
+    bar.setAttribute("aria-label", tr("经验 {value}", { value: text }));
   }
 
   private bindSound(button: HTMLElement): void {
@@ -208,8 +209,8 @@ export class LobbyTopBar {
     const player = element(onAccount ? "button" : "div", "ks-lobby-player");
     if (onAccount) {
       (player as HTMLButtonElement).type = "button";
-      player.setAttribute("aria-label", "账号信息");
-      player.title = "账号信息";
+      player.setAttribute("aria-label", tr("账号信息"));
+      player.title = tr("账号信息");
       this.bindSound(player);
       player.addEventListener("click", () => {
         this.options.onActivate?.();
@@ -238,9 +239,9 @@ export class LobbyTopBar {
     };
     const money = this.options.wallet ?? {};
     // 充值 is not offered: the release's "+" beside 点券 and K币 is left out.
-    wallet.append(coin("cash", "coupon", ICONS.coupon, "点券", money.coupon),
-      coin("lucci", "lucci", ICONS.lucci, "金币", money.lucci),
-      coin("koin", "koin", ICONS.koin, "K币", money.koin));
+    wallet.append(coin("cash", "coupon", ICONS.coupon, tr("点券"), money.coupon),
+      coin("lucci", "lucci", ICONS.lucci, tr("金币"), money.lucci),
+      coin("koin", "koin", ICONS.koin, tr("K币"), money.koin));
     bar.append(player, wallet);
   }
 }
@@ -270,7 +271,7 @@ export function followAccountTopBar(session: Pick<AccountSession, "summary" | "s
     const summary = session.summary();
     if (!summary || released) return;
     const key = summary.progress.glove;
-    const name = summary.progress.gloveName || key;
+    const name = tr(summary.progress.gloveName || key);
     apply(lobbyAccountInfo(summary, glove?.key === key ? { image: glove.image, name } : undefined));
     if (key && library && glove?.key !== key) {
       void loadLevelGloveArt(library, key).then(image => {

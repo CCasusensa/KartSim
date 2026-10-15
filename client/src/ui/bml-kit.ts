@@ -72,7 +72,7 @@ export function resolveStrings(definition: Node, strings: Map<string, string>): 
     const changes: Record<string, string> = {};
     for (const key of ["text", "caption"]) {
       const raw = attribute(entry, key);
-      if (!raw?.includes("#sb(")) continue;
+      if (!raw) continue;
       // Every key must be known; otherwise the window loader's bag resolves it.
       let known = true;
       const value = raw.replace(/#sb\(([^)]+)\)/g, (whole, name: string) => {
@@ -192,12 +192,11 @@ export interface PaintTextOptions {
 /** A state painting wrapped text in the node's rectangle. */
 export function paintText(text: string, options: PaintTextOptions) {
   return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
-    const localized = tr(text);
     const size = options.size ?? 14;
     context.save();
     context.font = `${options.bold ? "bold " : ""}${size}px ${FONT}`;
     context.textBaseline = "top";
-    const lines = wrapText(context, localized, rect.width);
+    const lines = wrapText(context, text, rect.width);
     const step = size + (options.lineGap ?? 4);
     const top = options.middle ? rect.y + (rect.height - lines.length * step) / 2 : rect.y;
     const align = options.align ?? "left";

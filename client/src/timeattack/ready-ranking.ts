@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 排位计时赛 (TIMEATTACK.md): the ranking window over the 单人游戏 page, the
  * ranked entry fee, the ranked run (a solo race carrying a RankedRaceRequest)
@@ -88,7 +89,7 @@ export async function openRankingWindow(controller: ReadyRankingController): Pro
   controller.rankingBusy = true;
   try {
     const track = await currentTrack(controller, lib);
-    if (!track) throw new Error("请先在计时赛选好赛道。");
+    if (!track) throw new Error(tr("请先在计时赛选好赛道。"));
     controller.rankingTrack = track;
     const settings = settingsOf(controller);
     controller.rankingSettings = settings;
@@ -111,7 +112,7 @@ export async function openRankingWindow(controller: ReadyRankingController): Pro
     void loadRanking(controller);
     void loadPreview(controller, lib, window);
   } catch (error) {
-    message(controller, `排位计时赛：${error instanceof Error ? error.message : String(error)}`);
+    message(controller, tr("排位计时赛：{error}", { error: error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.rankingBusy = false;
   }
@@ -123,7 +124,7 @@ async function loadRanking(controller: ReadyRankingController): Promise<void> {
   const settings = controller.rankingSettings;
   if (!window || !track || !settings) return;
   const session = activeBrowserSession();
-  if (!session) { window.setRanking(undefined, "登录后可查看赛道排名。"); return; }
+  if (!session) { window.setRanking(undefined, tr("登录后可查看赛道排名。")); return; }
   window.setLoading();
   try {
     const ranking = await fetchTimeAttackRanking(session, track.id, settings.speed, settings.booster);
@@ -177,7 +178,7 @@ async function pickTrack(controller: ReadyRankingController): Promise<void> {
       onConfirm: (choice: TrackChoice) => {
         controller.rankingTrackSelect?.dispose();
         controller.rankingTrackSelect = undefined;
-        if (choice.kind !== "track") { message(controller, "排位计时赛不能选择随机赛道。"); return; }
+        if (choice.kind !== "track") { message(controller, tr("排位计时赛不能选择随机赛道。")); return; }
         void lib.trackMetadata(choice.track.id).catch(() => undefined).then(metadata => {
           controller.rankingTrack = { id: choice.track.id, path: choice.track.path,
             title: metadata?.cnTitle ?? choice.track.id };
@@ -186,13 +187,13 @@ async function pickTrack(controller: ReadyRankingController): Promise<void> {
       },
       onCancel: () => { controller.rankingTrackSelect?.dispose(); controller.rankingTrackSelect = undefined; },
       onInteraction: () => controller.host.getAudioContext()?.resume(),
-      onError: (error: unknown) => message(controller, `选择赛道：${error instanceof Error ? error.message : String(error)}`),
+      onError: (error: unknown) => message(controller, tr("选择赛道：{error}", { error: error instanceof Error ? error.message : String(error) })),
       onNotice: () => {},
     });
     controller.rankingTrackSelect = view;
     view.show();
   } catch (error) {
-    message(controller, `选择赛道：${error instanceof Error ? error.message : String(error)}`);
+    message(controller, tr("选择赛道：{error}", { error: error instanceof Error ? error.message : String(error) }));
   }
 }
 
@@ -203,12 +204,12 @@ async function startRankedRun(controller: ReadyRankingController): Promise<void>
   const session = activeBrowserSession();
   const host = controller.host;
   if (!lib || !track || !settings || controller.rankingBusy) return;
-  if (!session) { message(controller, "请先登录后再进行排位计时赛。"); return; }
+  if (!session) { message(controller, tr("请先登录后再进行排位计时赛。")); return; }
   const previous = host.getSelection();
   if (!previous) return;
   const fee = 500;
   const agreed = await openMessengerMessage(lib as never, host.root, TITLE,
-    `进行排位计时赛需要${fee}金币，确定要进行吗？`, { yes: "确定", no: "取消" }).catch(() => false);
+    tr("进行排位计时赛需要{fee}金币，确定要进行吗？", { fee: fee }), { yes: tr("确定"), no: tr("取消") }).catch(() => false);
   if (!agreed || controller.disposed) return;
   controller.rankingBusy = true;
   const requestId = newRequestId();
@@ -216,7 +217,7 @@ async function startRankedRun(controller: ReadyRankingController): Promise<void>
     await enterRankedTimeAttack(session, { requestId, trackId: track.id, speed: settings.speed, booster: settings.booster });
   } catch (error) {
     controller.rankingBusy = false;
-    message(controller, `排位计时赛：${timeAttackErrorMessage(error)}`);
+    message(controller, tr("排位计时赛：{error}", { error: timeAttackErrorMessage(error) }));
     return;
   }
   controller.rankingBusy = false;
@@ -240,7 +241,7 @@ async function startRankedRun(controller: ReadyRankingController): Promise<void>
   if (!controller.disposed && host.shell.current === "Ready") {
     host.setSelection(previous);
     host.setReadyOptions(previousOptions);
-    message(controller, "比赛未能开始，入场费已扣除；请重试。");
+    message(controller, tr("比赛未能开始，入场费已扣除；请重试。"));
   }
 }
 
@@ -253,15 +254,13 @@ async function returnToRanking(controller: ReadyRankingController, outcome: Stor
   controller.activeHome?.setPage("single");
   controller.activeHome?.selectCategory("cat_timeAttack");
   await openRankingWindow(controller);
-  if (!outcome.finished) message(controller, "没有完成比赛，本次排位成绩不计。");
+  if (!outcome.finished) message(controller, tr("没有完成比赛，本次排位成绩不计。"));
   else if (settlement) {
     message(controller, settlement.modeNewRecord
-      ? `新的排位纪录 ${formatRecordTime(outcome.elapsedMs)}！当前排名第 ${settlement.rank} 名${
-        settlement.topTen ? "，录像已保存到赛道排名。" : "。"}`
-      : `用时 ${formatRecordTime(outcome.elapsedMs)}，没有刷新排位纪录（${formatRecordTime(settlement.modeBestMs)}），当前排名第 ${
-        settlement.rank} 名。`);
+      ? tr("新的排位纪录 {time}！当前排名第 {rank} 名{suffix}", { time: formatRecordTime(outcome.elapsedMs), rank: settlement.rank, suffix: settlement.topTen ? tr("，录像已保存到赛道排名。") : "。" })
+      : tr("用时 {time}，没有刷新排位纪录（{best}），当前排名第 {rank} 名。", { time: formatRecordTime(outcome.elapsedMs), best: formatRecordTime(settlement.modeBestMs), rank: settlement.rank }));
   } else {
-    message(controller, `用时 ${formatRecordTime(outcome.elapsedMs)}，成绩未能上传到赛道排名。`);
+    message(controller, tr("用时 {time}，成绩未能上传到赛道排名。", { time: formatRecordTime(outcome.elapsedMs) }));
   }
 }
 
@@ -274,7 +273,7 @@ async function watchReplay(controller: ReadyRankingController, row: RankingRow):
     await openRankedReplay(controller, { track, settings, row, resume: () => openRankingWindow(controller),
       close: () => closeRankingWindow(controller) });
   } catch (error) {
-    message(controller, `观看录像：${error instanceof Error ? error.message : String(error)}`);
+    message(controller, tr("观看录像：{error}", { error: error instanceof Error ? error.message : String(error) }));
   } finally {
     controller.rankingBusy = false;
   }

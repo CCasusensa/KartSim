@@ -1,3 +1,4 @@
+import { tr, gameLocale } from "../i18n/locale";
 /**
  * The mall's 累计消费活动 (server-go/ECONOMY.md 3.4 and 6): GET
  * /api/shop/spend-event, strictly validated, drawn as the original
@@ -266,7 +267,13 @@ export class SpendEventPanel {
     root.hidden = true;
     this.element = root;
     const title = this.tree.named("title");
-    setTexture(title, TITLE_IMAGE);
+    setTexture(title, gameLocale() === "zh-CN" ? TITLE_IMAGE : undefined);
+    if (gameLocale() !== "zh-CN") {
+      setText(title, SHOP_STRINGS.tcCashEvent1);
+      title.style.setProperty("--fz", "21px");
+      title.dataset.align = "center";
+      title.dataset.valign = "center";
+    }
     title.setAttribute("role", "heading");
     title.setAttribute("aria-level", "2");
     title.setAttribute("aria-label", SHOP_STRINGS.tcCashEvent1);
@@ -334,9 +341,9 @@ export class SpendEventPanel {
     (button as HTMLButtonElement).disabled = true;
     button.tabIndex = -1;
     const label = spendRewardLabel(step.reward);
-    const status = reached ? "已达成" : active ? "未达成" : "活动结束";
+    const status = reached ? tr("已达成") : active ? tr("未达成") : tr("活动结束");
     button.setAttribute("aria-label", `${step.value} ${step.reward.name} ${label} ${status}`);
-    button.title = `${step.reward.name}（${label}）\n累计消费 ${step.value} 个电池${reached ? "，已达成" : ""}`;
+    button.title = tr("{0}（{1}）\n累计消费 {2} 个电池{3}", { "0": step.reward.name, "1": label, "2": step.value, "3": reached ? tr("，已达成") : "" });
     const item = slot.named("rewardStockItem");
     item.hidden = false;
     item.classList.add("ks-shop-spend-item");
@@ -355,7 +362,14 @@ export class SpendEventPanel {
     slot.named("close").hidden = active || reached;
     for (const name of ["complete", "close"]) {
       const node = find(TC_CASH_SLOT, name);
-      setTexture(slot.named(name), attr(node, "texture"));
+      const panel = slot.named(name);
+      setTexture(panel, gameLocale() === "zh-CN" ? attr(node, "texture") : undefined);
+      if (gameLocale() !== "zh-CN") {
+        setText(panel, name === "complete" ? tr("已达成") : tr("活动结束"));
+        panel.dataset.align = panel.dataset.valign = "center";
+        panel.style.backgroundColor = "#193755e6";
+        panel.style.setProperty("--fz", "12px");
+      }
     }
     slot.named("effect").hidden = true;
     return root;

@@ -1,5 +1,5 @@
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText, tr } from "../i18n/locale";
 import type { TaskbarAssets, TaskbarImage, TaskbarButton } from "./taskbar";
 import type { UiRectangle } from "./scrollbar";
 
@@ -142,19 +142,18 @@ function buttonLabels(definition: BinaryXmlNode, xml: string): Map<string, strin
   const document = new DOMParser().parseFromString(xml, "application/xml");
   const stringBag = new Map(Array.from(document.querySelectorAll("k")).map(node => [
     node.getAttribute("n"),
-    (node.querySelector(`m[c="${resourceLocale()}"]`) ??
-      node.querySelector('m[c="cn"]'))?.getAttribute("v") ?? "",
+    resourceText(Array.from(node.children), (entry, key) => entry.getAttribute(key)) ?? "",
   ]));
   const labels = new Map<string, string>();
   function visit(node: BinaryXmlNode): void {
     const raw = attribute(node, "altText") ?? attribute(node, "text") ?? "";
     const key = /^#sb\(([^)]+)\)$/.exec(raw)?.[1];
     const label = key && stringBag.get(key);
-    if (label) labels.set(attribute(node, "name") ?? "", label);
+    if (label) labels.set(attribute(node, "name") ?? "", tr(label));
     node.children.forEach(visit);
   }
   visit(definition);
-  labels.set("goKartPass", stringBag.get("kartPass") || "通行证");
+  labels.set("goKartPass", tr(stringBag.get("kartPass") || "通行证"));
   return labels;
 }
 

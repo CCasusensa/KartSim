@@ -1,6 +1,6 @@
 import type { GarageAssetNode, GarageAssetRect, GarageAssetEntry,
   GarageAssetBitmap } from "./garage-asset-bundle";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 
 export interface GarageUpgradeAssetsLibrary {
   exactCanonicalCandidates(path: string): GarageAssetEntry[];
@@ -91,12 +91,10 @@ export async function loadGarageUpgradeAssets(
       "etc_/baseStringBag.xml")[0];
     if (baseStrings)
       for (const row of dependencies.parseXml(await baseStrings.bytes()).root.children) {
-        const localized = row.children.find(node =>
-          dependencies.xmlAttribute(node, "c") === resourceLocale()) ?? row.children.find(node =>
-          dependencies.xmlAttribute(node, "c") === "cn");
+        const localized = resourceText(row.children, dependencies.xmlAttribute);
         if (localized)
           strings.set(dependencies.xmlAttribute(row, "n"),
-            dependencies.xmlAttribute(localized, "v") ?? "");
+            localized);
       }
     const colorTable = library.exactCanonicalCandidates(
       "etc_/itemInfoColorByLevel.xml")[0];
@@ -110,12 +108,10 @@ export async function loadGarageUpgradeAssets(
     }
   }
   for (const row of stageStrings.children) {
-    const localized = row.children.find(node =>
-      dependencies.attribute(node, "c") === resourceLocale()) ?? row.children.find(node =>
-      dependencies.attribute(node, "c") === "cn");
+    const localized = resourceText(row.children, dependencies.attribute);
     if (localized)
       strings.set(dependencies.attribute(row, "n"),
-        dependencies.attribute(localized, "v") ?? "");
+        localized);
   }
 
   const rects = new Map<string, GarageAssetRect>();

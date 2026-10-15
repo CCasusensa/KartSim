@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { node, nodeName, type BmlLibrary, type Node, type NodeState } from "./bml-kit";
 import { confirmGame } from "./game-popups";
 import { openGarageReleaseWindow, type GarageReleaseWindow,
@@ -42,17 +43,17 @@ const ROOTS = [FOLDER, "dialog2_/kart12SkillTuning", "stage_/common"];
 
 /** exceedTypeChange_stringBag (cn). */
 export const EXCEED_STRINGS = {
-  caption: "超负荷类型变更",
-  targetKart: "变更车辆",
-  type: "类型",
-  exceedAccel: "超负荷加速度",
-  exceedTime: "超负荷时间",
+  caption: tr("超负荷类型变更"),
+  targetKart: tr("变更车辆"),
+  type: tr("类型"),
+  exceedAccel: tr("超负荷加速度"),
+  exceedTime: tr("超负荷时间"),
 };
 
 export const EXCEED_CHOICES: readonly GarageExceedChoice[] = [2, 3, 4, "random"];
 /** The type whose icon stands for 随机 (icon_exceedB_5, the question mark). */
 const RANDOM_TYPE = 5;
-const TYPE_NAMES = new Map([[2, "S"], [3, "B"], [4, "L"], [RANDOM_TYPE, "随机"]]);
+const TYPE_NAMES = new Map([[2, "S"], [3, "B"], [4, "L"], [RANDOM_TYPE, tr("随机")]]);
 
 /** The release layout's text outline colour (a r g b). */
 const OUTLINE = "255 42 55 80";
@@ -103,21 +104,21 @@ export function exceedChoiceDefinition(textures: { current: number; choices: num
         label("kartName", "35 45 480 25", "", "outline16", "white"),
         node("Container", { name: "choices", leftTopWH: "25 82 500 146" },
           textures.choices.map((texture, index) => card(index, texture))),
-        label("choosePrompt", "75 268 400 30", "请选择超负荷类型", "bold16", "255 187 198 215"),
+        label("choosePrompt", "75 268 400 30", tr("请选择超负荷类型"), "bold16", "255 187 198 215"),
         node("Container", { name: "compare", leftTopWH: "15 244 520 110" }, [
           ...icons("currentType", typeIcons, "106 5 76 76"),
-          label("currentCaption", "84 78 120 25", `当前${EXCEED_STRINGS.type}`, "outline16", "white"),
+          label("currentCaption", "84 78 120 25", tr("当前{0}", { "0": EXCEED_STRINGS.type }), "outline16", "white"),
           node("CharPanel", { name: "compareArrow", leftTopWH: "224 32 72 28", fontSize: "72 28", fontStr: "012",
             text: "1", texture: "tuning_arrow_b", alphaBlend: "true" }),
           ...icons("newType", typeIcons, "338 5 76 76"),
-          label("newCaption", "316 78 120 25", `变更${EXCEED_STRINGS.type}`, "outline16", "white"),
+          label("newCaption", "316 78 120 25", tr("变更{0}", { "0": EXCEED_STRINGS.type }), "outline16", "white"),
         ]),
         ...row("accel", 380, EXCEED_STRINGS.exceedAccel),
         ...row("time", 420, EXCEED_STRINGS.exceedTime),
-        node("TextButton", { name: "okButton", leftTopWH: "122 478 146 42", text: "确定", textRender: "bold16",
+        node("TextButton", { name: "okButton", leftTopWH: "122 478 146 42", text: tr("确定"), textRender: "bold16",
           textColor: "white", overTextColor: "white", clickedTextColor: "255 24 55 104",
           disabledTextColor: "255 220 220 220" }),
-        node("TextButton", { name: "cancelButton", leftTopWH: "280 478 146 42", text: "取消",
+        node("TextButton", { name: "cancelButton", leftTopWH: "280 478 146 42", text: tr("取消"),
           textColor: "255 64 75 95", textRender: "bold16", overTextColor: "255 106 120 147",
           overTextRender: "bold16", clickedTextColor: "255 34 41 52", clickedTextRender: "bold16",
           disabledTextColor: "255 131 131 131", disabledTextRender: "bold16" }),
@@ -151,7 +152,7 @@ export class GarageExceedTypeDialog {
   }
 
   typeName(type: number): string {
-    return TYPE_NAMES.get(type) ?? `类型 ${type}`;
+    return TYPE_NAMES.get(type) ?? tr("类型 {0}", { "0": type });
   }
 
   choiceType(choice: GarageExceedChoice): number {
@@ -165,7 +166,7 @@ export class GarageExceedTypeDialog {
     });
     try {
       const window = await (this.dependencies.openWindow ?? openGarageReleaseWindow)({
-        library: this.library, definition, roots: ROOTS, closeButtonFolder: FOLDER, label: "选择超负荷类型",
+        library: this.library, definition, roots: ROOTS, closeButtonFolder: FOLDER, label: tr("选择超负荷类型"),
         onCancel: () => { if (!this.confirming) this.close(undefined); },
         state: entry => this.state(entry),
       });
@@ -196,7 +197,7 @@ export class GarageExceedTypeDialog {
       switch (card[1]) {
         case undefined:
           this.cards.set(index, entry);
-          return { label: choice === "random" ? "随机（在 S / B / L 中随机选择）" : this.typeName(choice),
+          return { label: choice === "random" ? tr("随机（在 S / B / L 中随机选择）") : this.typeName(choice),
             checked: picked, disabled: this.confirming, action: () => this.choose(choice) };
         case "Hover": {
           const face = this.cards.get(index);
@@ -226,12 +227,12 @@ export class GarageExceedTypeDialog {
       case "compare": return { visible: this.selected !== undefined };
       case "accelRandom":
       case "timeRandom": return { visible: this.selected === "random" };
-      case "okButton": return { text: "确定", label: "确定变更超负荷类型",
+      case "okButton": return { text: tr("确定"), label: tr("确定变更超负荷类型"),
         disabled: this.selected === undefined || this.confirming,
         action: () => { if (this.selected !== undefined) this.showConfirmation(this.selected); } };
-      case "cancelButton": return { text: "取消", label: "取消", disabled: this.confirming,
+      case "cancelButton": return { text: tr("取消"), label: tr("取消"), disabled: this.confirming,
         action: () => this.close(undefined) };
-      case "closeButton": return { label: "关闭超负荷类型选择", disabled: this.confirming,
+      case "closeButton": return { label: tr("关闭超负荷类型选择"), disabled: this.confirming,
         action: () => this.close(undefined) };
     }
     return {};
@@ -245,8 +246,8 @@ export class GarageExceedTypeDialog {
 
   confirmationText(choice: GarageExceedChoice): string {
     return choice === "random"
-      ? "将随机变更超负荷类型。|确定继续吗？"
-      : `确定将当前车辆的超负荷类型变更为 ${this.typeName(choice)} 吗？`;
+      ? tr("将随机变更超负荷类型。|确定继续吗？")
+      : tr("确定将当前车辆的超负荷类型变更为 {0} 吗？", { "0": this.typeName(choice) });
   }
 
   /** 变更超负荷类型 in the release message box: 确定 changes the type, 取消 returns to the choices. */
@@ -255,9 +256,9 @@ export class GarageExceedTypeDialog {
     this.confirming = true;
     this.window?.render();
     const ask = this.dependencies.confirm ?? ((title, message, options) =>
-      confirmGame(title, message, "确定", "取消", { signal: options.signal,
+      confirmGame(title, message, tr("确定"), tr("取消"), { signal: options.signal,
         library: options.library as BmlLibrary | undefined }));
-    void ask("变更超负荷类型", this.confirmationText(choice), { library: this.library, signal: this.question.signal })
+    void ask(tr("变更超负荷类型"), this.confirmationText(choice), { library: this.library, signal: this.question.signal })
       .catch(error => {
         console.error("超负荷类型确认窗口打开失败", error);
         return false;

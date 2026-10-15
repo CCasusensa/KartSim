@@ -1,3 +1,5 @@
+import { cityContentName } from "../i18n/catalogs/city-content-names";
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城任务（server-go/CITY-QUESTS.md）：送货、载客、收集、寻物。走到任务点
  * 人物旁按 T 对话：没有任务在身时，人物用故事模式的对话窗口（stage_scene）讲
@@ -25,7 +27,7 @@ import { showQuestResultWindow, type QuestResult } from "./city-quest-result";
 import {
   QUEST_BY_ID, QUEST_NPCS, QUEST_RULES, compass, failureResult, failureText, formatDuration, limitShort, limitText,
   offerPages, playerSprite, progressText, questGoal, questLabel, questMarks, questMissionImage, questReady, questsOf,
-  rewardText, shortName, successResult, thanksPages, type QuestDef, type QuestProgress,
+  rewardText, shortName, npcName, questTitle, questSynopsis, successResult, thanksPages, type QuestDef, type QuestProgress,
 } from "./city-quest-data";
 
 interface Vec3 { x: number; y: number; z: number }
@@ -108,7 +110,7 @@ export class CityQuests {
     this.story = new StoryResources(host.library as never);
     this.hud = document.createElement("div");
     this.hud.className = "kartcity-quest";
-    this.hud.setAttribute("aria-label", "卡丁城任务");
+    this.hud.setAttribute("aria-label", tr("卡丁城任务"));
     Object.assign(this.hud.style, {
       position: "absolute", left: "50%", top: "48px", transform: "translateX(-50%)", padding: "4px 14px",
       borderRadius: "14px", background: "rgba(40, 24, 4, 0.62)", color: "#ffe9a8",
@@ -136,7 +138,7 @@ export class CityQuests {
     if (!active) return undefined;
     const quest = active.quest;
     const area = quest.type === "search" && !active.progress.found && quest.area
-      ? { x: quest.area.x, z: quest.area.z, radius: quest.area.radius, label: `寻物范围 · ${quest.area.name}` }
+      ? { x: quest.area.x, z: quest.area.z, radius: quest.area.radius, label: tr("寻物范围 · {value0}", { value0: cityContentName(quest.area.name) }) }
       : undefined;
     return { marks: questMarks(quest, active.progress), ...(area ? { area } : {}) };
   }
@@ -160,8 +162,8 @@ export class CityQuests {
       if (npcId === quest.receiver && ready) { void this.deliver(); return; }
       if (npcId === quest.giver) { await this.confirmAbandon(); return; }
       const receiver = shortName(QUEST_NPCS[quest.receiver]);
-      this.host.say(npcId, npcId === quest.receiver ? `${quest.item}还没${quest.type === "collect" ? "收齐" : "找到"}呢，加油！`
-        : `你还有「${quest.title}」没做完呢，${receiver}在等你！`);
+      this.host.say(npcId, npcId === quest.receiver ? tr("{value0}还没{value1}呢，加油！", { value0: cityContentName(quest.item), value1: quest.type === "collect" ? tr("收齐") : tr("找到") })
+        : tr("你还有「{value0}」没做完呢，{value1}在等你！", { value0: questTitle(quest), value1: receiver }));
       return;
     }
     const driving = this.host.isDriving();
@@ -169,8 +171,8 @@ export class CityQuests {
     if (!quest) {
       // Only rides are left: they need the member at the wheel.
       if (!driving && questsOf(npcId).length) {
-        this.host.say(npcId, "你得开着车来接我呀！");
-        this.host.notice("载客任务要坐在驾驶座上才能接。");
+        this.host.say(npcId, tr("你得开着车来接我呀！"));
+        this.host.notice(tr("载客任务要坐在驾驶座上才能接。"));
       }
       return;
     }
@@ -183,13 +185,13 @@ export class CityQuests {
       const pages = offerPages(quest, { withStory: !this.seenStory.has(npcId), playerName: this.host.playerName(),
         playerSprite: playerSprite(this.host.playerCharacter()) });
       this.seenStory.add(npcId);
-      const read = await this.dialogue(pages, emotions, "查看委托");
+      const read = await this.dialogue(pages, emotions, tr("查看委托"));
       if (!read || this.disposed) return;
       const accepted = await this.offer(quest, emotions);
       if (accepted) await this.accept(quest);
     } catch (error) {
       console.warn("送货任务对话失败", error);
-      this.host.notice(`任务对话打开失败：${formatMultiplayerError(error)}`);
+      this.host.notice(tr("任务对话打开失败：{value0}", { value0: formatMultiplayerError(error) }));
     } finally {
       this.busy = false;
       if (!this.disposed) this.host.pauseDriving(false);
@@ -205,7 +207,7 @@ export class CityQuests {
 
   /** Plays dialogue pages in the story window; false when skipped. */
   private dialogue(pages: StoryScenePage[], emotions: Map<string, Map<string, string[]>>, lastLabel: string,
-    skipLabel = "不了，下次吧"): Promise<boolean> {
+    skipLabel = tr("不了，下次吧")): Promise<boolean> {
     return new Promise((resolve, reject) => {
       let finished = false;
       let view: WindowView | undefined;
@@ -215,7 +217,7 @@ export class CityQuests {
         if (view) { this.windows.delete(view); view.dispose(); }
         resolve(completed);
       };
-      openStoryScene({ library: this.host.library as never, root: this.host.root, chapter: CHAPTER, pages, emotions,
+      openStoryScene({ library: this.host.library as never, root: this.host.root, chapter: { ...CHAPTER, title: tr(CHAPTER.title), subTitle: tr(CHAPTER.subTitle ?? "") }, pages, emotions,
         lastLabel, skipLabel, onDone: completed => done(completed === true) })
         .then(opened => { view = opened; if (finished) opened.dispose(); else this.windows.add(opened); })
         .catch(reject);
@@ -226,7 +228,7 @@ export class CityQuests {
   private async offer(quest: QuestDef, emotions: Map<string, Map<string, string[]>>): Promise<boolean> {
     const receiver = QUEST_NPCS[quest.receiver]!;
     const step: StoryStep = {
-      id: 1, title: quest.title, synopsis: quest.synopsis,
+      id: 1, title: questTitle(quest), synopsis: questSynopsis(quest),
       howToClear: questGoal(quest),
       missionText: limitShort(quest), readyStage: "", preConditionIds: [], otherWayLockIds: [], isFinalStep: false,
       type: 30, mode: "single", prize: rewardText(quest),
@@ -234,7 +236,7 @@ export class CityQuests {
     const mission: StoryMission = { kind: "Delivery", track: "", laps: 1, timeLimitMs: quest.timeLimitMs ?? 0, speed: 7 };
     // The receiver stands where the release shows the track card.
     const portrait = await loadStoryPortrait(this.host.library as never, emotions, receiver.background, receiver.sprite,
-      receiver.name).catch(() => undefined);
+      npcName(receiver)).catch(() => undefined);
     return new Promise((resolve, reject) => {
       let view: WindowView | undefined;
       let settled = false;
@@ -245,9 +247,9 @@ export class CityQuests {
         resolve(accepted);
       };
       openStoryReady({
-        library: this.host.library as never, root: this.host.root, chapter: CHAPTER, step, mission,
-        trackTitle: receiver.name, cleared: false, badgeText: questLabel(quest), missionImage: questMissionImage(quest),
-        startLabel: "接受任务", closeLabel: "再想想", playable: true, portrait,
+        library: this.host.library as never, root: this.host.root, chapter: { ...CHAPTER, title: tr(CHAPTER.title), subTitle: tr(CHAPTER.subTitle ?? "") }, step, mission,
+        trackTitle: npcName(receiver), cleared: false, badgeText: questLabel(quest), missionImage: questMissionImage(quest),
+        startLabel: tr("接受任务"), closeLabel: tr("再想想"), playable: true, portrait,
         onStart: () => finish(true), onClose: () => finish(false),
       }).then(opened => {
         view = opened;
@@ -264,12 +266,12 @@ export class CityQuests {
       if (this.disposed) return;
       this.active = { quest, run, collisions: run.collisions, delivering: false, triedAt: 0,
         progress: { collected: run.collected, found: run.found, signal: run.signal, satisfaction: run.satisfaction } };
-      if (quest.type !== "passenger") this.host.say(quest.giver, "拜托你啦，路上小心！");
+      if (quest.type !== "passenger") this.host.say(quest.giver, tr("拜托你啦，路上小心！"));
       this.host.notice(acceptText(quest));
       if (quest.kind === "time") void this.loadTimer();
       void this.loadAction();
     } catch (error) {
-      this.host.notice(`接任务失败：${questError(error)}`);
+      this.host.notice(tr("接任务失败：{value0}", { value0: questError(error) }));
     }
   }
 
@@ -286,8 +288,8 @@ export class CityQuests {
         if (view) { this.windows.delete(view); view.dispose(); }
         resolve(value);
       };
-      openStoryConfirm({ library: this.host.library as never, root: this.host.root, title: "放弃任务",
-        message: `要放弃「${active.quest.title}」吗？放弃后没有报酬。`, yes: "放弃任务", no: "继续任务",
+      openStoryConfirm({ library: this.host.library as never, root: this.host.root, title: tr("放弃任务"),
+        message: tr("要放弃「{value0}」吗？放弃后没有报酬。", { value0: questTitle(active.quest) }), yes: tr("放弃任务"), no: tr("继续任务"),
         onYes: () => finish(true), onNo: () => finish(false) })
         .then(opened => { view = opened; if (settled) opened.dispose(); else this.windows.add(opened); })
         .catch(reject);
@@ -296,9 +298,9 @@ export class CityQuests {
     try {
       await this.host.network()?.abandonQuest();
       this.clear();
-      this.host.notice(`已放弃任务「${active.quest.title}」。`);
+      this.host.notice(tr("已放弃任务「{value0}」。", { value0: questTitle(active.quest) }));
     } catch (error) {
-      this.host.notice(`放弃失败：${questError(error)}`);
+      this.host.notice(tr("放弃失败：{value0}", { value0: questError(error) }));
     }
   }
 
@@ -324,7 +326,7 @@ export class CityQuests {
       active.delivering = false;
       const code = (error as { code?: string })?.code;
       // A pose a frame behind is still "too far": the next update tries again.
-      if (code !== "TOO_FAR") this.host.notice(`交付失败：${questError(error)}`);
+      if (code !== "TOO_FAR") this.host.notice(tr("交付失败：{value0}", { value0: questError(error) }));
     }
   }
 
@@ -337,11 +339,11 @@ export class CityQuests {
     try {
       await ensureFeatureResources(this.host.root, "story").catch(() => undefined);
       const emotions = await this.story.loadEmotions();
-      await this.dialogue(thanksPages(quest), emotions, "领取报酬", "领取报酬");
+      await this.dialogue(thanksPages(quest), emotions, tr("领取报酬"), tr("领取报酬"));
       await this.resultWindow(successResult(quest, done));
     } catch (error) {
       console.warn("任务结算窗口失败", error);
-      this.host.notice(`「${quest.title}」完成！获得 金币 ${done.lucci}、经验 ${done.exp}。`);
+      this.host.notice(tr("「{value0}」完成！获得 金币 {value1}、经验 {value2}。", { value0: questTitle(quest), value1: done.lucci, value2: done.exp }));
     } finally {
       this.busy = false;
       if (!this.disposed) this.host.pauseDriving(false);
@@ -375,7 +377,7 @@ export class CityQuests {
     const quest = QUEST_BY_ID.get(event.quest);
     if (active && active.quest.id === event.quest) this.clear();
     this.showResult(false);
-    this.host.notice(`任务失败：${failureText(quest, event.reason)}`);
+    this.host.notice(tr("任务失败：{value0}", { value0: failureText(quest, event.reason) }));
     void this.explainFailure(failureResult(quest, event.reason, event.collisions));
   }
 
@@ -401,16 +403,16 @@ export class CityQuests {
       signal: event.signal ?? before.signal, satisfaction: event.satisfaction ?? before.satisfaction };
     if (collided && quest.kind === "collision") {
       const left = (quest.maxCollisions ?? 0) - event.collisions;
-      const what = quest.type === "passenger" ? quest.item : "货物";
-      this.host.notice(left > 0 ? `小心！碰撞 ${event.collisions}/${quest.maxCollisions} 次，再撞 ${left + 1} 次${what}就受不了了。`
-        : `碰撞已经 ${event.collisions}/${quest.maxCollisions} 次，不能再撞了！`);
+      const what = quest.type === "passenger" ? cityContentName(quest.item) : tr("货物");
+      this.host.notice(left > 0 ? tr("小心！碰撞 {value0}/{value1} 次，再撞 {value2} 次{value3}就受不了了。", { value0: event.collisions, value1: quest.maxCollisions ?? 0, value2: left + 1, value3: what })
+        : tr("碰撞已经 {value0}/{value1} 次，不能再撞了！", { value0: event.collisions, value1: quest.maxCollisions ?? 0 }));
     }
     if (quest.type === "passenger" && event.satisfaction !== undefined && before.satisfaction !== undefined) {
       // A complaint for a collision, and each time the mood drops past a step of 20.
       const step = (value: number) => Math.floor(value / 20);
-      if (collided && quest.kind !== "collision") this.host.notice(`${quest.item}：哎哟！慢点开～（满意度 ${event.satisfaction}%）`);
+      if (collided && quest.kind !== "collision") this.host.notice(tr("{value0}：哎哟！慢点开～（满意度 {value1}%）", { value0: cityContentName(quest.item), value1: event.satisfaction }));
       else if (step(event.satisfaction) < step(before.satisfaction))
-        this.host.notice(`${quest.item}：开太快啦，我有点怕……（满意度 ${event.satisfaction}%）`);
+        this.host.notice(tr("{value0}：开太快啦，我有点怕……（满意度 {value1}%）", { value0: cityContentName(quest.item), value1: event.satisfaction }));
     }
     if (quest.type === "collect" && event.collected) {
       const got = event.collected.filter(Boolean).length;
@@ -418,12 +420,12 @@ export class CityQuests {
       if (got > was) {
         const stop = quest.stops?.find((_, i) => event.collected![i] && !before.collected?.[i]);
         this.host.notice(got >= event.collected.length
-          ? `收齐了！把${quest.item}交给${QUEST_NPCS[quest.receiver]?.name}。`
-          : `拿到了「${stop?.name ?? quest.item}」（${got}/${event.collected.length}）。`);
+          ? tr("收齐了！把{value0}交给{value1}。", { value0: cityContentName(quest.item), value1: npcName(QUEST_NPCS[quest.receiver]) })
+          : tr("拿到了「{value0}」（{value1}/{value2}）。", { value0: cityContentName(stop?.name ?? quest.item), value1: got, value2: event.collected.length }));
       }
     }
     if (quest.type === "search" && event.found && !before.found)
-      this.host.notice(`找到${quest.item}了！把它交给${QUEST_NPCS[quest.receiver]?.name}。`);
+      this.host.notice(tr("找到{value0}了！把它交给{value1}。", { value0: cityContentName(quest.item), value1: npcName(QUEST_NPCS[quest.receiver]) }));
   }
 
   private clear(): void {
@@ -496,17 +498,17 @@ export class CityQuests {
       if (status) parts.push(status);
       if (quest.kind === "speed" && local) {
         const kmh = Math.round(local.speed * 3.6);
-        parts.push(kmh > (quest.maxKmh ?? 0) ? `⚠ 超速！${kmh}/${quest.maxKmh} km/h` : `车速 ${kmh}/${quest.maxKmh} km/h`);
+        parts.push(kmh > (quest.maxKmh ?? 0) ? tr("⚠ 超速！{value0}/{value1} km/h", { value0: kmh, value1: quest.maxKmh ?? 0 }) : tr("车速 {value0}/{value1} km/h", { value0: kmh, value1: quest.maxKmh ?? 0 }));
       }
-      if (quest.kind === "collision") parts.push(`碰撞 ${active.collisions}/${quest.maxCollisions}`);
+      if (quest.kind === "collision") parts.push(tr("碰撞 {value0}/{value1}", { value0: active.collisions, value1: quest.maxCollisions ?? 0 }));
       if (quest.kind === "time") {
         const left = Math.max(0, active.run.deadline - this.host.serverNow());
         this.timer?.set(left);
-        parts.push(`剩余 ${formatDuration(left)}`);
+        parts.push(tr("剩余 {value0}", { value0: formatDuration(left) }));
       }
       text = parts.join(" · ");
     } else if (this.nearest && !this.windowOpen) {
-      text = `T 与${shortName(QUEST_NPCS[this.nearest])}对话`;
+      text = tr("T 与{value0}对话", { value0: shortName(QUEST_NPCS[this.nearest]) });
     }
     if (text !== this.lastHud) {
       this.lastHud = text;
@@ -562,12 +564,12 @@ function npcWorld(id: string): Vec3 {
 
 /** The HUD line's start: the quest's type, what and to whom. */
 function hudHead(quest: QuestDef, progress: QuestProgress): string {
-  const receiver = QUEST_NPCS[quest.receiver]!.name;
+  const receiver = npcName(QUEST_NPCS[quest.receiver]);
   switch (quest.type) {
-    case "passenger": return `载客：${quest.item} → ${receiver}`;
-    case "collect": return questReady(quest, progress) ? `收集：${quest.item} → ${receiver}` : `收集：${quest.item}`;
-    case "search": return progress.found ? `寻物：${quest.item} → ${receiver}` : `寻物：${quest.item} · ${quest.area?.name ?? ""}`;
-    default: return `送货：${quest.item} → ${receiver}`;
+    case "passenger": return tr("载客：{value0} → {value1}", { value0: cityContentName(quest.item), value1: receiver });
+    case "collect": return questReady(quest, progress) ? tr("收集：{value0} → {value1}", { value0: cityContentName(quest.item), value1: receiver }) : tr("收集：{value0}", { value0: cityContentName(quest.item) });
+    case "search": return progress.found ? tr("寻物：{value0} → {value1}", { value0: cityContentName(quest.item), value1: receiver }) : tr("寻物：{value0} · {value1}", { value0: cityContentName(quest.item), value1: cityContentName(quest.area?.name ?? "") });
+    default: return tr("送货：{value0} → {value1}", { value0: cityContentName(quest.item), value1: receiver });
   }
 }
 
@@ -591,33 +593,33 @@ function hudGoal(quest: QuestDef, progress: QuestProgress, here: { x: number; z:
 
 /** The notice when a quest is accepted. */
 function acceptText(quest: QuestDef): string {
-  const receiver = QUEST_NPCS[quest.receiver]!.name;
+  const receiver = npcName(QUEST_NPCS[quest.receiver]);
   const limit = quest.kind === "normal" ? "" : `${limitText(quest)}。`;
   switch (quest.type) {
     case "passenger":
-      return `接受载客任务「${quest.title}」：${quest.item}上车了，送到${receiver}那里。${limit}开得平稳，乘客满意会给小费。`;
+      return tr("接受载客任务「{value0}」：{value1}上车了，送到{value2}那里。{value3}开得平稳，乘客满意会给小费。", { value0: questTitle(quest), value1: cityContentName(quest.item), value2: receiver, value3: limit });
     case "collect":
-      return `接受收集任务「${quest.title}」：到地图上标“★”的 ${quest.stops?.length ?? 0} 个地方收集${quest.item}，再交给${receiver}。${limit}`;
+      return tr("接受收集任务「{value0}」：到地图上标“★”的 {value1} 个地方收集{value2}，再交给{value3}。{value4}", { value0: questTitle(quest), value1: quest.stops?.length ?? 0, value2: cityContentName(quest.item), value3: receiver, value4: limit });
     case "search":
-      return `接受寻物任务「${quest.title}」：${quest.item}在${quest.area?.name ?? "附近"}，靠得越近信号越强（M 地图上的圆圈是搜索范围）。${limit}`;
+      return tr("接受寻物任务「{value0}」：{value1}在{value2}，靠得越近信号越强（M 地图上的圆圈是搜索范围）。{value3}", { value0: questTitle(quest), value1: cityContentName(quest.item), value2: cityContentName(quest.area?.name ?? tr("附近")), value3: limit });
     default:
-      return `接受送货任务「${quest.title}」：把${quest.item}送到${receiver}。${limit}`;
+      return tr("接受送货任务「{value0}」：把{value1}送到{value2}。{value3}", { value0: questTitle(quest), value1: cityContentName(quest.item), value2: receiver, value3: limit });
   }
 }
 
 function questError(error: unknown): string {
   const code = (error as { code?: string })?.code;
   switch (code) {
-    case "TOO_FAR": return "离人物太远了，再靠近一点。";
-    case "QUEST_ACTIVE": return "你已经有一个任务了。";
-    case "PASSENGER": return "坐在后座不能接任务。";
-    case "NOT_DRIVING": return "载客任务要坐在驾驶座上才能接。";
-    case "SEAT_TAKEN": return "后座已经有人了，载不了乘客。";
-    case "NOT_COLLECTED": return "还没收集齐。";
-    case "NOT_FOUND": return "还没找到东西。";
-    case "CITY_QUESTS_OFF": return "城市任务暂时关闭。";
-    case "NO_QUEST": return "现在没有任务。";
-    case "QUEST_FAILED": return "任务已经失败了。";
+    case "TOO_FAR": return tr("离人物太远了，再靠近一点。");
+    case "QUEST_ACTIVE": return tr("你已经有一个任务了。");
+    case "PASSENGER": return tr("坐在后座不能接任务。");
+    case "NOT_DRIVING": return tr("载客任务要坐在驾驶座上才能接。");
+    case "SEAT_TAKEN": return tr("后座已经有人了，载不了乘客。");
+    case "NOT_COLLECTED": return tr("还没收集齐。");
+    case "NOT_FOUND": return tr("还没找到东西。");
+    case "CITY_QUESTS_OFF": return tr("城市任务暂时关闭。");
+    case "NO_QUEST": return tr("现在没有任务。");
+    case "QUEST_FAILED": return tr("任务已经失败了。");
   }
   return formatMultiplayerError(error);
 }

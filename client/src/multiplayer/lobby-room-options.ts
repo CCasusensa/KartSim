@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Gameplay channel names and the original room creation dropdown template. */
 
 import { BRAWL_LABEL } from "./lobby-brawl-mode";
@@ -18,35 +19,35 @@ export interface RoomDropdownDependencies {
 export function roomChannelNames(mode: string,
   ordinary: Record<string, string>, rp: Record<string, string>):
     Record<string, string> {
-  if (mode === "roadblock") return { speedIndiCombine: "挡人模式（Web）" };
+  if (mode === "roadblock") return { speedIndiCombine: tr("挡人模式（Web）") };
   if (mode === "item") return {
-    itemIndiCombine: itemModeLabel(false),
-    itemTeamCombine: itemModeLabel(true),
+    itemIndiCombine: tr(itemModeLabel(false)),
+    itemTeamCombine: tr(itemModeLabel(true)),
   };
-  if (mode === "giant") return { speedIndiCombine: "巨人模式" };
-  if (mode === "brawl") return { speedIndiCombine: BRAWL_LABEL };
-  if (mode === "rp") return rp;
+  if (mode === "giant") return { speedIndiCombine: tr("巨人模式") };
+  if (mode === "brawl") return { speedIndiCombine: tr(BRAWL_LABEL) };
+  if (mode === "rp") return Object.fromEntries(Object.entries(rp).map(([key, value]) => [key, tr(value)]));
   if (mode === "lte") return {
-    speedIndiCombine: "个人LTE Web试玩",
-    speedTeamCombine: "组队LTE Web试玩",
+    speedIndiCombine: tr("个人LTE Web试玩"),
+    speedTeamCombine: tr("组队LTE Web试玩"),
   };
-  if (mode === "ordinary") return ordinary;
+  if (mode === "ordinary") return Object.fromEntries(Object.entries(ordinary).map(([key, value]) => [key, tr(value)]));
   if (mode === "shadow") return {
-    speedIndiCombine: "个人幽灵标准",
-    speedTeamCombine: "组队幽灵标准",
-    speedIndiInfinit: "个人幽灵无限加速",
-    speedTeamInfinit: "组队幽灵无限加速",
+    speedIndiCombine: tr("个人幽灵标准"),
+    speedTeamCombine: tr("组队幽灵标准"),
+    speedIndiInfinit: tr("个人幽灵无限加速"),
+    speedTeamInfinit: tr("组队幽灵无限加速"),
   };
-  const name = mode === "grip" ? "抓地" : "幽灵";
-  return { speedIndiCombine: `个人${name}`,
-    speedTeamCombine: `组队${name}` };
+  const name = mode === "grip" ? tr("抓地") : tr("幽灵");
+  return { speedIndiCombine: tr("个人{value}", { value: String(name) }),
+    speedTeamCombine: tr("组队{value}", { value: String(name) }) };
 }
 
 export function roomChannelKey(value: string,
   channels: Record<string, string>): string {
   const key = Object.keys(channels).find(candidate =>
     channels[candidate] === value);
-  if (!key) throw new Error("无效的普通竞速类别");
+  if (!key) throw new Error(tr("无效的普通竞速类别"));
   return key;
 }
 
@@ -59,7 +60,7 @@ export function roomStyleDropdown(combo: RoomOptionNode,
   const listFrame = dependencies.attribute(template, "listFrame");
   if (combo.name !== "ComboBox" || !skip || !rows ||
     rows.length < values.length || !values.length || !frame || !listFrame) {
-    throw new Error("缺少普通建房的下拉选项模板");
+    throw new Error(tr("缺少普通建房的下拉选项模板"));
   }
   return dependencies.clone(combo, {
     windowRect: "0 0 184 26",

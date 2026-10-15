@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type {
   GaragePreparationResult, GarageProgressionCandidate,
   GarageUpgradePreparationState,
@@ -35,7 +36,7 @@ export function initializeGaragePreparation(
   host.element.className = "garage-upgrade-preparation";
   host.element.setAttribute("role", "dialog");
   host.element.setAttribute("aria-modal", "true");
-  host.element.setAttribute("aria-label", "迅车辆强化准备");
+  host.element.setAttribute("aria-label", tr("迅车辆强化准备"));
   const canvas = document.createElement("canvas");
   canvas.width = 1600;
   canvas.height = 900;
@@ -44,7 +45,7 @@ export function initializeGaragePreparation(
   host.context = context;
   host.status.className = "garage-preparation-status";
   host.status.setAttribute("role", "status");
-  host.status.textContent = "正在加载原版强化窗口…";
+  host.status.textContent = tr("正在加载原版强化窗口…");
   // The release left this box unsized (0 px high, its controls are absolute):
   // the Garage overlay rasterizer skips a zero-size box with everything in it,
   // so no caption, label or button of the dialog was drawn. Span the dialog.

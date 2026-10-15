@@ -1,3 +1,4 @@
+import { tr } from "../../i18n/locale";
 /** 小型 DOM 构造助手。 */
 
 type Child = Node | string | number | false | null | undefined;
@@ -70,7 +71,7 @@ export function checkField(label: string, value: boolean, commit: (value: boolea
 
 export function selectField(label: string, value: string, choices: Array<[string, string]>, commit: (value: string) => void): HTMLElement {
   const select = h("select", { class: "k-combo" });
-  for (const [key, text] of choices) select.append(h("option", { value: key }, text));
+  for (const [key, text] of choices) select.append(h("option", { value: key }, tr(text)));
   select.value = value;
   select.addEventListener("change", () => commit(select.value));
   return h("label", { class: "ed-field ed-wide" }, h("span", {}, label), select);

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 
 export interface GarageBuildControlsHost {
@@ -55,14 +56,14 @@ export interface GarageBuildControlsDependencies {
 }
 
 function buildGaragePageMenu(host: GarageBuildControlsHost): void {
-  const parts = host.nativeButton("partsInstall", "部件", () => host.selectPage("parts"));
+  const parts = host.nativeButton("partsInstall", tr("部件"), () => host.selectPage("parts"));
   parts.dataset.garageCommon = "parts";
   parts.classList.add("selected", "garage-menu-button");
-  for (const [name, label] of [["kartLevelUp", "升级"], ["partsFactory", "改装"]]) {
+  for (const [name, label] of [["kartLevelUp", tr("升级")], ["partsFactory", tr("改装")]]) {
     const button = host.nativeButton(name!, label!, () =>
       host.selectPage(name === "partsFactory" ? "factory" : "level"));
     button.dataset.garageCommon = name === "kartLevelUp" ? "level" : "factory";
-    button.title = name === "partsFactory" ? "车辆改装（本地测试）" : "车辆升级";
+    button.title = name === "partsFactory" ? tr("车辆改装（本地测试）") : tr("车辆升级");
     button.classList.add("garage-menu-button");
   }
 }
@@ -116,7 +117,7 @@ function buildGaragePartInventory(
       host.inventoryScroll.up((event as PointerEvent).pointerId));
   host.controls.append(host.inventoryScrollHit);
   host.inventory.setAttribute("role", "region");
-  host.inventory.setAttribute("aria-label", "部件列表");
+  host.inventory.setAttribute("aria-label", tr("部件列表"));
   host.inventory.addEventListener("wheel", event => {
     host.inventoryPointer = { x: event.clientX, y: event.clientY };
     if (host.inventoryScroll.page(event.deltaY < 0 ? -1 : 1)) event.preventDefault();
@@ -134,13 +135,13 @@ function buildGaragePartActions(
 ): void {
   host.skin(host.removePart, "buttonRed_");
   host.removePart.classList.add("garage-danger-button");
-  host.removePart.textContent = "拆除";
-  host.removePart.setAttribute("aria-label", "拆除部件");
+  host.removePart.textContent = tr("拆除");
+  host.removePart.setAttribute("aria-label", tr("拆除部件"));
   host.place(host.removePart, dependencies.removeButtonRect);
   host.skin(host.cancelPreview, "garage_btn_equip_");
   host.place(host.cancelPreview, { x: 300, y: 590, width: 110, height: 32 });
   host.cancelPreview.hidden = true;
-  const restore = host.button("恢复原装", () => host.requestRestoreDefaults());
+  const restore = host.button(tr("恢复原装"), () => host.requestRestoreDefaults());
   host.skin(restore, "garage_btn_equip_");
   restore.dataset.garageRestore = "true";
   host.place(restore, { x: 185, y: 590, width: 100, height: 32 });
@@ -151,7 +152,7 @@ function buildGarageCatalog(
   dependencies: GarageBuildControlsDependencies,
 ): void {
   for (const [name, label, filter] of [
-    ["allKart", "全部", 0], ["speedKart", "竞速车", 2], ["itemKart", "道具车", 1],
+    ["allKart", tr("全部"), 0], ["speedKart", tr("竞速车"), 2], ["itemKart", tr("道具车"), 1],
   ] as const) {
     const button = host.nativeButton(name, label, () => {
       host.filter = filter;
@@ -163,14 +164,14 @@ function buildGarageCatalog(
     button.dataset.garageSelector = "true";
   }
 
-  host.search.placeholder = "搜索车辆";
+  host.search.placeholder = tr("搜索车辆");
   host.search.maxLength = 14;
-  host.search.setAttribute("aria-label", "搜索车辆");
+  host.search.setAttribute("aria-label", tr("搜索车辆"));
   host.search.dataset.garageCommon = "true";
   host.search.dataset.garageSelector = "true";
   host.search.oninput = () => { host.page = 0; host.updateCards(); };
   host.place(host.search, host.rect("kartKeyword"));
-  const clearSearch = host.nativeButton("resetKeyword", "清除搜索", () => {
+  const clearSearch = host.nativeButton("resetKeyword", tr("清除搜索"), () => {
     host.search.value = "";
     host.page = 0;
     host.updateCards();
@@ -188,7 +189,7 @@ function buildGarageCatalog(
   host.cards.style.setProperty("--garage-kart-card-gap", `${host.assets.kartCardLayout.gapX}px`);
   host.place(host.cards, dependencies.cardsRect(host.assets));
 
-  const previous = host.nativeButton("leftKartPage", "上一页", () => {
+  const previous = host.nativeButton("leftKartPage", tr("上一页"), () => {
     host.page = Math.max(0, host.page - 1);
     host.updateCards();
   });
@@ -196,7 +197,7 @@ function buildGarageCatalog(
   previous.dataset.garageCommon = "true";
   previous.dataset.garageCatalog = "leftKartPage";
   previous.dataset.garageSelector = "true";
-  const next = host.nativeButton("rightKartPage", "下一页", () => {
+  const next = host.nativeButton("rightKartPage", tr("下一页"), () => {
     host.page++;
     host.updateCards();
   });

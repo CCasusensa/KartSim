@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城 session: joins a city line on the lobby's game connection, then
  * drives the multiplayer race pipeline with a fabricated one-racer "race"
@@ -171,9 +172,9 @@ export class CitySession {
     try {
       await loading.ready;
       if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
-      host.options.status("正在进入卡丁城…");
+      host.options.status(tr("正在进入卡丁城…"));
       registerCityTrack();
-      loading.stage("正在下载城市地图…", CITY_TRACK_ID);
+      loading.stage(tr("正在下载城市地图…"), CITY_TRACK_ID);
       // The city downloads whole (read nearly all, kept for the next visit);
       // the race basics are read by range as in a race (resource-manager).
       const endCityLoad = beginRaceLoad();
@@ -183,7 +184,7 @@ export class CitySession {
         endCityLoad();
       }
       if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
-      loading.stage("正在加入卡丁城线路…");
+      loading.stage(tr("正在加入卡丁城线路…"));
       this.raceId = uuid();
       const network = new CityNetwork(host.client, this.raceId, {
         onEvent: event => this.onEvent(event),
@@ -194,10 +195,10 @@ export class CitySession {
       const snapshot = await network.join();
       if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
       this.snapshot = snapshot;
-      host.options.status(`已进入 ${snapshot.name}，正在装配城市…`);
+      host.options.status(tr("已进入 {value0}，正在装配城市…", { value0: snapshot.name }));
       const equipment = host.options.currentEquipment?.() ?? host.options.initialEquipment;
       this.ownEquipment = equipment;
-      const { room, race } = fabricateCityRace(snapshot, host.playerId, host.accountNickname ?? "车手", equipment);
+      const { room, race } = fabricateCityRace(snapshot, host.playerId, host.accountNickname ?? tr("车手"), equipment);
       this.raceId = race.raceId;
       // The network re-frames incoming frames with the encoder's race tag, so it must share the race id.
       network.dispose();
@@ -212,7 +213,7 @@ export class CitySession {
         onChat: listener => { this.chatListeners.add(listener); return () => { this.chatListeners.delete(listener); }; },
         allowMotion: () => this.onFoot?.allowRaceMotion() ?? true,
       });
-      loading.stage("正在准备城市、车辆和界面…");
+      loading.stage(tr("正在准备城市、车辆和界面…"));
       this.loadingResources = true;
       // The kerbs karts climb (city-kerbs.ts), fetched while the city loads.
       const kerbs = loadCityKerbs().catch((error: unknown) => { console.warn("卡丁城路缘数据未能载入", error); return undefined; });
@@ -239,13 +240,13 @@ export class CitySession {
       host.lobby?.hide?.();
       host.options.onRaceVisibility?.(true);
       // Start seven seconds in the past: the countdown has already happened.
-      loading.stage("正在显示卡丁城…");
+      loading.stage(tr("正在显示卡丁城…"));
       const rendered = firstCityFrame(stage, this.abort.signal);
       stage.scheduleStart(performance.now() - 7000);
       await rendered;
       if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
-      host.options.status(`欢迎来到${snapshot.name}。H 操作说明，Enter 聊天，G 车库，P 收音机，Esc 离开。`);
-      stage.chat?.notice?.("按 H 查看卡丁城操作说明，按 G 打开车库换车换装");
+      host.options.status(tr("欢迎来到{value0}。H 操作说明，Enter 聊天，G 车库，P 收音机，Esc 离开。", { value0: snapshot.name }));
+      stage.chat?.notice?.(tr("按 H 查看卡丁城操作说明，按 G 打开车库换车换装"));
       // The 操作说明 opens by itself the first time.
       if (!helpSeen()) { markHelpSeen(); void this.toggleHelp(); }
     } finally {
@@ -283,7 +284,7 @@ export class CitySession {
         const kart = runtime.local.physics.body.position;
         const local = onFoot?.footWorld() ?? (onFoot?.seat === "passenger" ? undefined : kart);
         const heads = local
-          ? [{ id: this.host.playerId, name: this.host.accountNickname ?? "我", position: { x: local.x, y: local.y, z: local.z } }]
+          ? [{ id: this.host.playerId, name: this.host.accountNickname ?? tr("我"), position: { x: local.x, y: local.y, z: local.z } }]
           : [];
         for (const peer of this.fleet!.peers.values()) {
           const walking = onFoot?.headOf(peer.playerId);
@@ -347,7 +348,7 @@ export class CitySession {
       balloonHeight: (npcId, now) => this.labels?.balloonHeight(`npc-task:${npcId}`, now) ?? 0,
       isDriving: () => !this.onFoot || this.onFoot.seat === "driver",
       notice: text => stage.chat?.notice?.(text),
-      playerName: () => this.host.accountNickname ?? "我",
+      playerName: () => this.host.accountNickname ?? tr("我"),
       playerCharacter: () => Number((this.host.options.currentEquipment?.() as { itemIds?: Record<string, number> } | undefined)
         ?.itemIds?.[1]) || undefined,
       pauseDriving: paused => this.pauseDriving(paused),
@@ -358,7 +359,7 @@ export class CitySession {
     // a city window: its Enter belongs to the window's OK button.
     const chat = stage.chat;
     if (chat) {
-      chat.element?.setAttribute("aria-label", "卡丁城聊天");
+      chat.element?.setAttribute("aria-label", tr("卡丁城聊天"));
       const setAllowed = chat.setAllowed.bind(chat);
       this.chatAllowed = setAllowed;
       chat.setAllowed = () => setAllowed(!this.windowOpen());
@@ -425,7 +426,7 @@ export class CitySession {
     }
 
     this.onFoot = new CityOnFoot({
-      library: this.host.options.library, playerId: this.host.playerId, name: this.host.accountNickname ?? "车手",
+      library: this.host.options.library, playerId: this.host.playerId, name: this.host.accountNickname ?? tr("车手"),
       stage: () => this.stage,
       network: () => this.network,
       fleet: () => this.fleet,
@@ -487,7 +488,7 @@ export class CitySession {
         if (this.fuel?.windowOpen) return;
         event.preventDefault();
         if (this.onFoot && (this.onFoot.seat !== "driver" || this.onFoot.localKartVehicle !== this.onFoot.myId)) {
-          this.stage?.chat?.notice?.("坐回自己的车里才能打开车库。");
+          this.stage?.chat?.notice?.(tr("坐回自己的车里才能打开车库。"));
           return;
         }
         void this.openGarage();
@@ -506,12 +507,12 @@ export class CitySession {
       const now = performance.now();
       if (now - this.lastEscape < 2000) {
         this.lastEscape = -Infinity;
-        this.host.options.status("正在离开卡丁城…");
+        this.host.options.status(tr("正在离开卡丁城…"));
         void this.leave();
       } else {
         this.lastEscape = now;
-        this.host.options.status("再按一次 Esc 离开卡丁城。");
-        this.stage?.chat?.notice?.("再按一次 Esc 离开卡丁城");
+        this.host.options.status(tr("再按一次 Esc 离开卡丁城。"));
+        this.stage?.chat?.notice?.(tr("再按一次 Esc 离开卡丁城"));
       }
     };
     window.addEventListener("keydown", this.escapeListener);
@@ -546,7 +547,7 @@ export class CitySession {
     const stage = this.stage;
     if (this.disposed || !stage || this.garageView || this.garageOpening) return;
     if (!garage || !host.cityGarageView || !host.normalizeCityEquipment) {
-      stage.chat?.notice?.("这里暂时不能打开车库");
+      stage.chat?.notice?.(tr("这里暂时不能打开车库"));
       return;
     }
     this.garageOpening = true;
@@ -570,7 +571,7 @@ export class CitySession {
       view.show();
     } catch (error) {
       console.warn("卡丁城车库打开失败", error);
-      stage.chat?.notice?.(`车库打开失败：${formatMultiplayerError(error)}`);
+      stage.chat?.notice?.(tr("车库打开失败：{value0}", { value0: formatMultiplayerError(error) }));
       this.pauseDriving(false);
     } finally {
       this.garageOpening = false;
@@ -599,7 +600,7 @@ export class CitySession {
     let loaded: any;
     try {
       const equipment = host.normalizeCityEquipment(profile, choice);
-      loaded = await loadLocalKart(stage, host.playerId, host.accountNickname ?? "车手", equipment);
+      loaded = await loadLocalKart(stage, host.playerId, host.accountNickname ?? tr("车手"), equipment);
       if (this.disposed || this.stage !== stage || this.garageView !== view) return;
       await this.network.equip(equipment);
       if (this.disposed || this.stage !== stage || this.garageView !== view) return;
@@ -611,10 +612,10 @@ export class CitySession {
       this.ownEquipment = equipment;
       this.closeGarage();
       void loadLocalFlyingPet(stage, host.options.library).catch(error => console.warn("飞宠载入失败", error));
-      stage.chat?.notice?.("已换上新的装备");
+      stage.chat?.notice?.(tr("已换上新的装备"));
     } catch (error) {
       console.warn("卡丁城换装失败", error);
-      if (!this.disposed) stage.chat?.notice?.(`换装失败：${formatMultiplayerError(error)}`);
+      if (!this.disposed) stage.chat?.notice?.(tr("换装失败：{value0}", { value0: formatMultiplayerError(error) }));
       if (this.garageView === view) view.unfreeze();
     } finally {
       if (loaded) discardLocalKart(loaded);
@@ -737,8 +738,8 @@ export class CitySession {
       const design = this.localDesignPose();
       const district = design ? districtAt(design.x, design.z) : undefined;
       if (state) {
-        const weather = state.weather === "rain" ? " · 雨" : state.weather === "snow" ? " · 雪" : "";
-        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1} · G 车库 · P 收音机 · H 说明`);
+        const weather = state.weather === "rain" ? tr(" · 雨") : state.weather === "snow" ? tr(" · 雪") : "";
+        this.showStatus(tr("{value0} · {value1} · {value2}{value3} · 在线 {value4} · G 车库 · P 收音机 · H 说明", { value0: this.snapshot?.name ?? tr("卡丁城"), value1: tr(district?.name ?? "城外"), value2: clockLabel(state.timeOfDay), value3: weather, value4: (this.fleet?.peers.size ?? 0) + 1 }));
       }
     }
   }
@@ -749,7 +750,7 @@ export class CitySession {
     if (!this.statusLine) {
       const line = document.createElement("div");
       line.className = "kartcity-status";
-      line.setAttribute("aria-label", "卡丁城状态");
+      line.setAttribute("aria-label", tr("卡丁城状态"));
       Object.assign(line.style, {
         position: "absolute", left: "50%", top: "12px", transform: "translateX(-50%)",
         padding: "4px 14px", borderRadius: "14px", background: "rgba(10, 20, 40, 0.55)",
@@ -784,7 +785,7 @@ export class CitySession {
     this.fuel?.jump();
     if (notify) void this.network?.respawn(pose).catch((error: unknown) => {
       if (error instanceof Error && error.message === "FUEL_EMPTY")
-        this.stage?.chat?.notice?.("油箱空了，车已熄火，请按 F 呼叫道路救援。");
+        this.stage?.chat?.notice?.(tr("油箱空了，车已熄火，请按 F 呼叫道路救援。"));
     });
   }
 
@@ -820,7 +821,7 @@ export class CitySession {
     road ??= nearestRoadPoint(design.x, design.z);
     // A stalled kart may only reset nearby (the node refuses farther, FUEL.md 4.3).
     if (this.fuel?.fuel.empty && Math.hypot(road.x - design.x, road.z - design.z) > 140) {
-      this.stage?.chat?.notice?.("油箱空了，车已熄火，请按 F 呼叫道路救援。");
+      this.stage?.chat?.notice?.(tr("油箱空了，车已熄火，请按 F 呼叫道路救援。"));
       return false;
     }
     const heading = ((Math.atan2(road.tx, -road.tz) * 180) / Math.PI + 360) % 360;
@@ -828,7 +829,7 @@ export class CitySession {
     this.teleportLocal({ x: road.x, y: road.y, z: road.z, heading });
     local.lowSpeedResetStartedAtMs = 0;
     local.resetSoundPending = true;
-    this.host.options.status("已复位到最近的道路。");
+    this.host.options.status(tr("已复位到最近的道路。"));
     return true;
   }
 
@@ -838,7 +839,7 @@ export class CitySession {
       case "city-joined":
         this.fleet?.add(event.member);
         this.onFoot?.memberJoined(event.member, event.vehicle);
-        this.pushChat(`${event.member.name} 进入了卡丁城`);
+        this.pushChat(tr("{value0} 进入了卡丁城", { value0: event.member.name }));
         break;
       case "city-left":
         this.onFoot?.memberLeft(event.id, event.playerId);
@@ -881,7 +882,7 @@ export class CitySession {
         this.quests?.onEvent(event);
         break;
       case "city-kicked":
-        this.host.options.status(`已离开卡丁城：${event.reason}`, true);
+        this.host.options.status(tr("已离开卡丁城：{value0}", { value0: event.reason }), true);
         void this.cleanup();
         break;
       default:
@@ -889,7 +890,7 @@ export class CitySession {
     }
   }
 
-  private pushChat(text: string, playerId = "system", name = "系统", channel?: string): void {
+  private pushChat(text: string, playerId = "system", name = tr("系统"), channel?: string): void {
     const message = { sequence: ++this.chatSequence, playerId, name, text, channel };
     for (const listener of this.chatListeners) {
       try { listener(message); } catch (error) { console.warn("聊天显示失败", error); }
@@ -952,7 +953,7 @@ export class CitySession {
     this.host.lobby?.show();
     this.host.render();
     this.host.options.onPageAudio?.("lobby");
-    this.host.options.status("已返回多人大厅。");
+    this.host.options.status(tr("已返回多人大厅。"));
   }
 }
 
@@ -970,7 +971,7 @@ export async function enterCity(host: CityLobbyHost): Promise<void> {
     if (!host.disposed && !session.disposed && !session.abort.signal.aborted) {
       console.error("进入卡丁城失败", error);
       const reason = error instanceof Error ? error.message : String(error);
-      host.options.status(`进入卡丁城失败：${reason}`, true);
+      host.options.status(tr("进入卡丁城失败：{value0}", { value0: reason }), true);
       host.options.onCityFailed?.(reason, session.loadingResources, containerMismatch(error));
     }
     await session.cleanup();

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Multiplayer account API requests and the account entry gate. */
 
 import { formatBanMessage } from "./account-ui-support";
@@ -31,7 +32,7 @@ export async function requestMultiplayerAccount(
       headers: dependencies.authorizationHeaders() });
   const payload = await response.json();
   if (!response.ok || !payload.account) {
-    const code = payload.error ?? "账号服务暂不可用";
+    const code = payload.error ?? tr("账号服务暂不可用");
     if (code === "LOGIN_REQUIRED") {
       dependencies.clearToken(dependencies.backendOrigin());
     }
@@ -41,7 +42,7 @@ export async function requestMultiplayerAccount(
   }
   if (action === "login") {
     if (!payload.token) {
-      throw new Error("联机后端尚未更新到跨域账号版本。");
+      throw new Error(tr("联机后端尚未更新到跨域账号版本。"));
     }
     dependencies.saveToken(dependencies.backendOrigin(), payload.token);
   }
@@ -70,12 +71,12 @@ export async function enterMultiplayerAccount(
     dependencies.endpoint("auth/config", dependencies.pageUrl()),
     { credentials: "same-origin" });
   if (!response.ok) {
-    throw new Error("联机后端尚未更新到账号版本。");
+    throw new Error(tr("联机后端尚未更新到账号版本。"));
   }
   const { loginRequired, backendOrigin: configuredOrigin } = await response.json();
   if (configuredOrigin !== backendOrigin &&
     (backendOrigin !== dependencies.pageOrigin() || configuredOrigin !== null)) {
-    throw new Error("联机前后端地址配置不匹配，请联系站点管理员。");
+    throw new Error(tr("联机前后端地址配置不匹配，请联系站点管理员。"));
   }
   if (!loginRequired) {
     try {

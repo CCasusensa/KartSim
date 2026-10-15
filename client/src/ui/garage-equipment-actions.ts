@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { sameGaragePart, type GaragePart, type GaragePartSlot } from "./garage-parts-business";
 
 export interface GarageEquipmentVehicle {
@@ -52,7 +53,7 @@ export function requireGarageCustomization(
   host: GarageEquipmentHost, canCustomize: GarageEquipmentDependencies["canCustomize"],
 ): boolean {
   if (canCustomize(host.selected.itemId)) return true;
-  host.status.textContent = "练习车不支持部件、强化、改装或外观修改。";
+  host.status.textContent = tr("练习车不支持部件、强化、改装或外观修改。");
   return false;
 }
 
@@ -102,7 +103,7 @@ export function requestGaragePartEquip(
   } else {
     const family = dependencies.partFamily(host.base(), selected.engineGrade);
     host.confirmation?.open(
-      `将${dependencies.slotLabel(slot, family)}恢复为原装配置并立即生效？`, confirm);
+      tr("将{0}恢复为原装配置并立即生效？", { "0": dependencies.slotLabel(slot, family) }), confirm);
   }
 }
 

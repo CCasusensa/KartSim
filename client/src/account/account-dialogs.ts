@@ -8,6 +8,7 @@ import {
   accountOverlayStyle, accountPanelStyle, styleAccountButtons,
 } from "../multiplayer/account-ui-support";
 import { confirmGame, gameRoot, gameWindowLibrary, showGameMessage, showGameStatus, showGameToast } from "../ui/game-popups";
+import { tr } from "../i18n/locale";
 
 export interface OverlayDocument {
   body: HTMLElement;
@@ -46,7 +47,7 @@ export function showAccountStatus(document: OverlayDocument, title: string,
 
 /** A blocking message with one button; resolves when it is pressed. */
 export function showAccountMessage(document: OverlayDocument, title: string,
-  message: string, buttonText = "重试"): Promise<void> {
+  message: string, buttonText = tr("重试")): Promise<void> {
   const library = gameWindowLibrary();
   if (library) return showGameMessage(title, message, { library, root: gameRoot(document as Document),
     yes: buttonText }).then(() => undefined);
@@ -67,7 +68,7 @@ export function showAccountMessage(document: OverlayDocument, title: string,
 
 /** A message with two choices; resolves true for the first. */
 export function confirmAccountAction(document: OverlayDocument, title: string,
-  message: string, accept: string, cancel = "取消"): Promise<boolean> {
+  message: string, accept: string, cancel = tr("取消")): Promise<boolean> {
   const library = gameWindowLibrary();
   if (library) return confirmGame(title, message, accept, cancel, { library, root: gameRoot(document as Document) });
   const view = overlay(document, title, message);

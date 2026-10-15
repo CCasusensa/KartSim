@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * Blocking status view while multiplayer account services are checked: the
  * game's status box (shown only when the check takes a moment) and, on
@@ -54,13 +55,13 @@ export function showAccountServiceProgress(root: AccountProgressRoot,
   panel.style.cssText = dependencies.panelStyle;
   panel.setAttribute("role", "status");
   const heading = root.ownerDocument!.createElement("h2");
-  heading.textContent = "多人游戏";
+  heading.textContent = tr("多人游戏");
   heading.style.margin = "0";
   const message = root.ownerDocument!.createElement("div");
-  message.textContent = "正在检查联机服务…";
+  message.textContent = tr("正在检查联机服务…");
   const back = root.ownerDocument!.createElement("button");
   back.type = "button";
-  back.textContent = "返回";
+  back.textContent = tr("返回");
   back.hidden = true;
   dependencies.styleButtons(back);
   panel.append(heading, message, back);
@@ -92,7 +93,7 @@ export function showAccountServiceProgress(root: AccountProgressRoot,
 }
 
 function gameProgress(root: HTMLElement, signal: AccountProgressSignal | undefined): AccountProgressSession {
-  const status = showGameStatus("多人游戏", "正在检查联机服务…", { root });
+  const status = showGameStatus(tr("多人游戏"), tr("正在检查联机服务…"), { root });
   let closed = false;
   const abort = new AbortController();
   const close = () => {
@@ -108,7 +109,7 @@ function gameProgress(root: HTMLElement, signal: AccountProgressSignal | undefin
     fail: async error => {
       if (closed) return;
       status.close();
-      await showGameMessage("多人游戏", error, { root, yes: "返回", signal: abort.signal }).catch(() => undefined);
+      await showGameMessage(tr("多人游戏"), error, { root, yes: tr("返回"), signal: abort.signal }).catch(() => undefined);
       close();
     },
   };

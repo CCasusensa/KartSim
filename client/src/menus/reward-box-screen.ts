@@ -1,5 +1,6 @@
 import { C8, te } from "../generated/library.js";
 import type { AccountSession } from "../account/account-session";
+import { gameLocale, tr } from "../i18n/locale";
 import { clone, drawFitted, indexRows, loadBml, loadStrings, mapTree, node, nodeName, paintText, prepare,
   resolveStrings, withAttributes, type BmlLibrary, type Node, type NodeState, type Rect,
   type WindowView } from "../ui/bml-kit";
@@ -37,6 +38,8 @@ export interface RewardBoxScreenOptions {
 
 /** "1,000金币" for a currency entry, "道具 ×3" for items. */
 export function rewardTitle(entry: Pick<RewardBoxEntry, "name" | "count" | "currency">): string {
+  if (entry.currency && gameLocale() !== "zh-CN")
+    return `${entry.count.toLocaleString(gameLocale())} ${tr(CURRENCY_NAMES[entry.currency] ?? entry.name)}`;
   if (entry.currency) return /\d/.test(entry.name) ? entry.name : `${entry.count.toLocaleString("en-US")}${entry.name}`;
   return entry.count > 1 ? `${entry.name} ×${entry.count}` : entry.name;
 }
@@ -51,22 +54,25 @@ export function formatBoxTime(ms: number): string {
 /** 保管时间 left: whole days, or hours on the last day. */
 export function storageLeft(expiresAt: number, now: number): string {
   const left = Math.max(0, expiresAt - now);
-  if (left >= DAY) return `${Math.floor(left / DAY)}天`;
-  return `${Math.max(1, Math.ceil(left / (60 * 60 * 1000)))}小时`;
+  if (left >= DAY) return tr("{count}天", { count: Math.floor(left / DAY) });
+  return tr("{count}小时", { count: Math.max(1, Math.ceil(left / (60 * 60 * 1000))) });
 }
 
 export function rewardDescription(entry: RewardBoxEntry): string {
   if (entry.currency) {
-    return `${entry.count.toLocaleString("en-US")} ${CURRENCY_NAMES[entry.currency] ?? entry.name}|领取后直接存入账户。`;
+    return tr("{count} {currency}|领取后直接存入账户。", {
+      count: entry.count.toLocaleString(gameLocale()), currency: tr(CURRENCY_NAMES[entry.currency] ?? entry.name) });
   }
-  return `数量：${entry.count}个|使用期限：${entry.days > 0 ? `${entry.days}天` : "永久"}`;
+  return tr("数量：{count}个|使用期限：{duration}", { count: entry.count,
+    duration: entry.days > 0 ? tr("{count}天", { count: entry.days }) : tr("永久") });
 }
 
 /** "已成功领取：A、B等3个道具。" and the release hint where to find them. */
 export function claimedMessage(names: string[]): string {
-  let list = names.join("、");
-  if ([...list].length > 22) list = `${[...names[0] ?? ""].slice(0, 16).join("")}等${names.length}个道具`;
-  return `已成功领取：${list}。|（领取的道具可以在我的道具中确认。）`;
+  let list = names.join(gameLocale() === "zh-CN" ? "、" : ", ");
+  if ([...list].length > 22) list = tr("{name}等{count}个道具", {
+    name: [...names[0] ?? ""].slice(0, 16).join(""), count: names.length });
+  return tr("已成功领取：{items}。|（领取的道具可以在我的道具中确认。）", { items: list });
 }
 
 export class RewardBoxScreen {
@@ -159,7 +165,7 @@ export class RewardBoxScreen {
     if (this.disposed) return;
     const view = await te.load({
       library, root: this.options.root, definition: prepared, roots: ROOTS, smoothImages: true, modal: true,
-      label: strings.get("rewardBox") ?? "奖励箱", onCancel: () => this.options.onClose(),
+      label: strings.get("rewardBox") ?? tr("奖励箱"), onCancel: () => this.options.onClose(),
       state: (entry: Node) => this.state(entry, rows),
     }) as WindowView;
     if (this.disposed) {
@@ -180,20 +186,20 @@ export class RewardBoxScreen {
     const row = rows.get(entry);
     if (row !== undefined) return this.cardState(name, row);
     switch (name) {
-      case "garageWindow": return { text: this.strings.get("rewardBox") ?? "奖励箱" };
-      case "cancelButton": return { label: "关闭", action: () => this.options.onClose() };
+      case "garageWindow": return { text: this.strings.get("rewardBox") ?? tr("奖励箱") };
+      case "cancelButton": return { label: tr("关闭"), action: () => this.options.onClose() };
       case "Label": return paintText(this.strings.get("helpMessage")?.trim() ?? "", { size: 14, align: "center",
         color: "rgb(207,221,240)", outline: true, middle: true, lineGap: 6 });
       case "btnPageReceive": {
         const ids = Array.from({ length: PER_PAGE }, (_unused, index) => this.entry(index)?.id)
           .filter((id): id is number => id !== undefined);
-        return { label: this.strings.get("pageReceive") ?? "领取本页道具", disabled: !ids.length || this.busy,
+        return { label: this.strings.get("pageReceive") ?? tr("领取本页道具"), disabled: !ids.length || this.busy,
           action: () => void this.claim(ids) };
       }
       case "page": return { text: `${this.page + 1} / ${this.pages}` };
-      case "prevPage": return this.page > 0 ? { label: "上一页", action: () => this.turn(-1) } : { label: "上一页" };
-      case "nextPage": return this.page < this.pages - 1 ? { label: "下一页", action: () => this.turn(1) }
-        : { label: "下一页" };
+      case "prevPage": return this.page > 0 ? { label: tr("上一页"), action: () => this.turn(-1) } : { label: tr("上一页") };
+      case "nextPage": return this.page < this.pages - 1 ? { label: tr("下一页"), action: () => this.turn(1) }
+        : { label: tr("下一页") };
     }
     return {};
   }
@@ -210,11 +216,11 @@ export class RewardBoxScreen {
         const icon = this.icons.icon(reward);
         if (icon) drawFitted(context, icon, rect, reward.currency ? 2 : 1);
       } };
-      case "lblRider": return { text: this.strings.get("storagePeriod") ?? "保管时间" };
+      case "lblRider": return { text: this.strings.get("storagePeriod") ?? tr("保管时间") };
       case "lblRiderBody": return { text: storageLeft(reward.expiresAt, this.now()) };
       case "storageType": return { text: reward.currency ? "" : reward.days > 0
-        ? (this.strings.get("storageDay") ?? "%d 天").replace("%d", String(reward.days)) : "永久" };
-      case "btnReceive": return { label: `领取 ${rewardTitle(reward)}`, disabled: this.busy,
+        ? tr(this.strings.get("storageDay") ?? "%d 天").replace("%d", String(reward.days)) : tr("永久") };
+      case "btnReceive": return { label: tr("领取 {item}", { item: rewardTitle(reward) }), disabled: this.busy,
         action: () => void this.claim([reward.id]) };
       case "giftItemNameI": return { text: rewardTitle(reward) };
       case "lblReceivedTime": return { text: formatBoxTime(reward.createdAt) };
@@ -248,11 +254,11 @@ export class RewardBoxScreen {
       this.entries = result.entries;
       this.page = Math.min(this.page, this.pages - 1);
       this.options.onChanged?.(this.entries.length);
-      this.notice(this.strings.get("receiveRewardItemSuccess") ?? "成功领取道具",
+      this.notice(this.strings.get("receiveRewardItemSuccess") ?? tr("成功领取道具"),
         claimedMessage(result.claimed.map(rewardTitle)));
     } catch (error) {
       if (this.disposed) return;
-      this.notice(this.strings.get("receiveRewardItemFail") ?? "领取道具失败", menuErrorMessage(error));
+      this.notice(this.strings.get("receiveRewardItemFail") ?? tr("领取道具失败"), menuErrorMessage(error));
       // Taken elsewhere or expired: show what is left.
       try {
         this.entries = (await this.options.api.rewardBox()).entries;

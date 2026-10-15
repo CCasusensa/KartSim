@@ -6,7 +6,7 @@
  */
 
 import type { ItemAimPhase, ItemTeamColor } from "./item-hud-state";
-import { resourceLocale } from "../i18n/locale";
+import { resourceText } from "../i18n/locale";
 import type { SlotImage, SlotNode, SlotRect } from "./item-slot-hud";
 
 export type HudNode = SlotNode;
@@ -522,9 +522,9 @@ export function readStringBag(xml: string): Map<string, string> {
   const strings = new Map<string, string>();
   for (const match of xml.matchAll(/<k n=['"]([^'"]+)['"]>([\s\S]*?)<\/k>/g)) {
     const entries = [...match[2]!.matchAll(/<m c=['"]([^'"]+)['"] v=(?:'([^']*)'|"([^"]*)")/g)];
-    const local = entries.find(entry => entry[1] === resourceLocale()) ??
-      entries.find(entry => entry[1] === "cn");
-    if (local) strings.set(match[1]!, unescapeXml(local[2] ?? local[3] ?? ""));
+    const local = resourceText(entries, (entry, key) => key === "c" ? entry[1] :
+      unescapeXml(entry[2] ?? entry[3] ?? ""));
+    if (local !== undefined) strings.set(match[1]!, local);
   }
   return strings;
 }

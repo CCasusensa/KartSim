@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** In-race chat overlay: room/race messages, input gates, drawing, and cleanup. */
 
 import { brawlAiIds } from "./lobby-brawl-mode";
@@ -59,7 +60,7 @@ function enterKey(event: KeyboardEvent): boolean {
 
 function loadingLine(room: RaceChatRoom): string | undefined {
   return room.phase === "loading" && room.race
-    ? `已加载 ${room.race.loadedIds.filter(id => !brawlAiIds(room.race).has(id as string)).length}/${room.members.length} 人，等待统一起跑`
+    ? tr("已加载 {value}/{value2} 人，等待统一起跑", { value: String(room.race.loadedIds.filter(id => !brawlAiIds(room.race).has(id as string)).length), value2: String(room.members.length) })
     : undefined;
 }
 
@@ -102,12 +103,12 @@ export class RaceChatOverlay {
     this.emotions = emotions;
     this.dependencies = dependencies;
     if (!connection.sendRaceChat || !connection.subscribeRaceChat) {
-      throw new Error("本局连接缺少聊天通道。");
+      throw new Error(tr("本局连接缺少聊天通道。"));
     }
 
     this.element.className = "multiplayer-race-chat";
     this.element.dataset.uiLayer = "dialog";
-    this.element.setAttribute("aria-label", "比赛聊天");
+    this.element.setAttribute("aria-label", tr("比赛聊天"));
     this.element.hidden = true;
     this.log.className = "multiplayer-race-chat-log";
     this.log.setAttribute("aria-live", "polite");
@@ -124,7 +125,7 @@ export class RaceChatOverlay {
       const select = document.createElement("select");
       this.channelSelect = select;
       select.className = "multiplayer-race-chat-channel";
-      select.setAttribute("aria-label", "聊天频道");
+      select.setAttribute("aria-label", tr("聊天频道"));
       select.hidden = true;
       // A switch beside the input, like the chat box's own fields: a click or a
       // key steps to the next scope instead of opening the browser's option list.
@@ -316,7 +317,7 @@ export class RaceChatOverlay {
     const channel = this.connection.chatChannels?.find(entry => entry.id === this.channelSelect?.value);
     if (!channel) return;
     this.input.placeholder = channel.description;
-    this.input.setAttribute("aria-label", `${channel.label}聊天内容`);
+    this.input.setAttribute("aria-label", tr("{value}聊天内容", { value: String(channel.label) }));
     this.channelSelect!.title = channel.description;
   }
 
@@ -382,10 +383,10 @@ export class RaceChatOverlay {
         const reason = error instanceof Error ? error.message : String(error);
         if (reason === "RACE_CHAT_CLOSED") this.setAllowed(false);
         this.status(reason === "CHAT_RATE_LIMIT" || reason === "CHAT_MUTED"
-          ? "发送过快，请稍后重试。"
+          ? tr("发送过快，请稍后重试。")
           : reason === "RACE_CHAT_CLOSED"
-            ? "当前阶段不能发送文字消息。"
-            : `${this.channelSelect ? "卡丁城" : "比赛"}聊天发送失败：${reason}`, true);
+            ? tr("当前阶段不能发送文字消息。")
+            : tr("{value}聊天发送失败：{value2}", { value: String(this.channelSelect ? tr("卡丁城") : tr("比赛")), value2: String(reason) }), true);
       })
       .finally(() => { this.sending = false; });
   };

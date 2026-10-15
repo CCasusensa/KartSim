@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { T } from "../generated/formats.js";
 import { C8, F9, h2, te } from "../generated/library.js";
 import type { FavoriteItem, MyRoomProfile } from "./local-profile";
@@ -47,7 +48,7 @@ const nodeName = (node: MyRoomAdminNode): string | undefined =>
 export function myRoomAdminKartChoices(karts: readonly MyRoomAdminKart[]):
   Array<{ label: string; kart?: MyRoomAdminKart }> {
   const seen = new Map<string, number>();
-  return [{ label: NONE }, ...karts.map(kart => {
+  return [{ label: tr(NONE) }, ...karts.map(kart => {
     const count = (seen.get(kart.title) ?? 0) + 1;
     seen.set(kart.title, count);
     return { label: count === 1 ? kart.title : `${kart.title} (${count})`, kart };
@@ -104,7 +105,7 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
   const choices = myRoomAdminKartChoices(options.karts);
   const chosen = [0, 1].map(index => {
     const saved = room.displayKarts?.[index];
-    return choices.find(choice => sameFavorite(choice.kart?.item, saved))?.label ?? NONE;
+    return choices.find(choice => sameFavorite(choice.kart?.item, saved))?.label ?? tr(NONE);
   });
   let busy = false;
 
@@ -112,7 +113,7 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
   const template = findTemplate(raw);
   if (!template) throw new Error("缺少原版管理下拉模板");
   const environmentTitles = options.environments.map(item => item.title);
-  const bgmTitles = [BGM_DEFAULT, ...options.bgmChoices.map(choice => choice.label)];
+  const bgmTitles = [tr(BGM_DEFAULT), ...options.bgmChoices.map(choice => choice.label)];
   const values: Record<string, string[]> = {
     myRoomBgm: bgmTitles, chatTrack: environmentTitles,
     reserveKart_1: choices.map(choice => choice.label),
@@ -155,29 +156,29 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
     library: options.library, root: options.root, definition,
     roots: [FOLDER, "stage_/common", "stage_/myRoom"],
     preserveDisplayPixels: true, smoothImages: true,
-    modal: true, label: "小屋管理",
+    modal: true, label: tr("小屋管理"),
     onCancel: () => { if (!busy) options.onClose(); },
     onConfirm: () => { void save(); },
     state: (node: MyRoomAdminNode) => {
       const name = nodeName(node);
       const render = () => view.render();
       switch (name) {
-        case "closeMyRoom": return { label: "设置小屋访问密码", checked: passwordOn,
+        case "closeMyRoom": return { label: tr("设置小屋访问密码"), checked: passwordOn,
           disabled: busy, action: () => { passwordOn = !passwordOn; render(); } };
-        case "passMyRoom": return { label: "小屋密码", disabled: busy || !passwordOn,
+        case "passMyRoom": return { label: tr("小屋密码"), disabled: busy || !passwordOn,
           input: { value: password, password: true, maxLength: 12,
             change: (value: string) => { password = value; } } };
-        case "closeEtc": return { label: "设置车库等公开密码", checked: etcOn,
+        case "closeEtc": return { label: tr("设置车库等公开密码"), checked: etcOn,
           disabled: busy, action: () => { etcOn = !etcOn; render(); } };
-        case "passEtc": return { label: "车库等公开密码", disabled: busy || !etcOn,
+        case "passEtc": return { label: tr("车库等公开密码"), disabled: busy || !etcOn,
           input: { value: etcPassword, password: true, maxLength: 12,
             change: (value: string) => { etcPassword = value; } } };
-        case "btnMyRoomChat": return { label: "允许聊天", checked: chatAllowed,
+        case "btnMyRoomChat": return { label: tr("允许聊天"), checked: chatAllowed,
           disabled: busy, action: () => { chatAllowed = !chatAllowed; render(); } };
         case "myRoomBgm": {
           // 默认 plays the room environment's own music (myroom/my-room-bgm.ts).
-          const current = options.bgmChoices.find(choice => choice.id === bgmId)?.label ?? BGM_DEFAULT;
-          return { label: "设置音乐", disabled: busy, select: {
+          const current = options.bgmChoices.find(choice => choice.id === bgmId)?.label ?? tr(BGM_DEFAULT);
+          return { label: tr("设置音乐"), disabled: busy, select: {
             value: current, valueText: current, values: bgmTitles,
             change: (value: string) => {
               bgmId = options.bgmChoices.find(choice => choice.label === value)?.id ?? 0;
@@ -186,7 +187,7 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
         }
         case "chatTrack": {
           const current = options.environments.find(item => item.id === environmentId);
-          return { label: "小屋环境设定", disabled: busy, select: {
+          return { label: tr("小屋环境设定"), disabled: busy, select: {
             value: current?.title ?? environmentTitles[0]!, valueText: current?.title,
             values: environmentTitles,
             change: (value: string) => {
@@ -198,12 +199,12 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
         case "reserveKart_1":
         case "reserveKart_2": {
           const index = name === "reserveKart_1" ? 0 : 1;
-          return { label: `代表卡丁车 ${index + 1}`, disabled: busy, select: {
+          return { label: tr("代表卡丁车 {slot}", { slot: index + 1 }), disabled: busy, select: {
             value: chosen[index]!, valueText: chosen[index], values: values[name]!,
             change: (value: string) => {
               chosen[index] = value;
               // The two slots show different karts.
-              if (value !== NONE && chosen[1 - index] === value) chosen[1 - index] = NONE;
+              if (value !== tr(NONE) && chosen[1 - index] === value) chosen[1 - index] = tr(NONE);
               render();
             } } };
         }
@@ -211,8 +212,8 @@ export async function openMyRoomAdmin(options: MyRoomAdminOptions): Promise<MyRo
         // combos scroll through the karts (comboListLength) instead.
         case "searchBtn_1":
         case "searchBtn_2": return { visible: false };
-        case "OK": return { label: "确定", disabled: busy, action: () => { void save(); } };
-        case "Close": return { label: "关闭", disabled: busy,
+        case "OK": return { label: tr("确定"), disabled: busy, action: () => { void save(); } };
+        case "Close": return { label: tr("关闭"), disabled: busy,
           action: () => { if (!busy) options.onClose(); } };
       }
       return {};

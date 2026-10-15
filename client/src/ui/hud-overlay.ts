@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { connectedServerLabel, measureGameServerLatency } from "../multiplayer/server-latency";
 import { formatDiagnosticsLines } from "./engine-diagnostics";
 import { gameWindowLibrary, showGameMessage } from "./game-popups";
@@ -51,7 +52,7 @@ function sumProgress(entries: Iterable<{ loaded: number; total: number }>) {
 export function formatNetStats(latencyMs: number | null | undefined, fps: number, server?: string): string {
   const frames = `FPS ${Math.round(fps)}`;
   if (latencyMs === undefined) return frames;
-  const latency = `延迟 ${latencyMs === null ? "--" : `${Math.round(latencyMs)} ms`}  ${frames}`;
+  const latency = tr("延迟 {latency}  {frames}", { latency: latencyMs === null ? "--" : `${Math.round(latencyMs)} ms`, frames: frames });
   return server ? `${server}  ${latency}` : latency;
 }
 
@@ -72,7 +73,7 @@ export async function copyHudText(value: string): Promise<void> {
   textarea.select();
   const copied = document.execCommand("copy");
   textarea.remove();
-  if (!copied) throw new Error("浏览器拒绝了剪贴板写入");
+  if (!copied) throw new Error(tr("浏览器拒绝了剪贴板写入"));
 }
 
 /**
@@ -86,7 +87,7 @@ export function captureUiTransition(root: HTMLElement): () => void {
   canvas.width = Math.max(1, Math.round(rootRect.width * pixelRatio));
   canvas.height = Math.max(1, Math.round(rootRect.height * pixelRatio));
   const context = canvas.getContext("2d");
-  if (!context) throw new Error("无法保存页面切换画面。");
+  if (!context) throw new Error(tr("无法保存页面切换画面。"));
   context.scale(pixelRatio, pixelRatio);
   const layers = [...root.querySelectorAll<HTMLCanvasElement>("canvas[data-ui-layer]")]
     .map(source => ({
@@ -176,7 +177,7 @@ export class HudOverlay {
       <aside class="debug-panel" data-hud="debug-engine" style="left:25px;right:auto;">
         <div class="debug-panel-actions">
           <strong>F3 ENGINE / GRAPHICS / MEMORY · v${frontendVersion}</strong>
-          <button type="button" data-action="copy-engine">复制</button>
+          <button type="button" data-action="copy-engine">${tr("复制")}</button>
         </div>
         <pre data-hud="debug-engine-output"></pre>
       </aside>
@@ -185,26 +186,26 @@ export class HudOverlay {
     this.systemElement.dataset.uiLayer = "system";
     this.systemElement.innerHTML = `
       <div class="pause-overlay">
-        <strong>运行已停止</strong>
+        <strong>${tr("运行已停止")}</strong>
         <div class="pause-actions">
-          <button type="button" data-action="return-ready">返回 READY</button>
+          <button type="button" data-action="return-ready">${tr("返回 READY")}</button>
         </div>
       </div>
       <div class="startup-loading" data-hud="startup-loading" role="status" aria-live="polite">
         <div class="startup-loading-copy">
-          <strong class="startup-loading-label" role="progressbar" aria-label="加载进度">LOADING</strong>
-          <small class="startup-frontend-version">前端 v${frontendVersion}</small>
+          <strong class="startup-loading-label" role="progressbar" aria-label="${tr("加载进度")}">LOADING</strong>
+          <small class="startup-frontend-version">${tr("前端 v{version}", { version: frontendVersion })}</small>
           <p data-hud="startup-loading-error" role="alert" hidden></p>
           <div class="startup-resource-choice" data-hud="resource-choice" hidden>
-            <span>资源来源</span>
-            <button type="button" data-action="local-rho">选择本地 Data 文件夹</button>
-            <button type="button" data-action="online-rho">使用在线资源</button>
+            <span>${tr("资源来源")}</span>
+            <button type="button" data-action="local-rho">${tr("选择本地 Data 文件夹")}</button>
+            <button type="button" data-action="online-rho">${tr("使用在线资源")}</button>
           </div>
         </div>
       </div>
       <div class="loading-fab" data-hud="loading-fab" role="status" aria-live="polite" hidden>
-        <span class="loading-fab-copy" data-hud="loading-fab-copy">正在加载资源</span>
-        <span class="loading-fab-ring" role="progressbar" aria-label="后台加载进度"></span>
+        <span class="loading-fab-copy" data-hud="loading-fab-copy">${tr("正在加载资源")}</span>
+        <span class="loading-fab-ring" role="progressbar" aria-label="${tr("后台加载进度")}"></span>
       </div>
     `;
     root.append(this.element);
@@ -323,8 +324,8 @@ export class HudOverlay {
     } else if (library && !this.haltMessage) {
       const abort = new AbortController();
       this.haltMessage = abort;
-      void showGameMessage("运行已停止", "游戏运行出错，已经停止。|请返回大厅后重新开始。",
-        { library, yes: "返回大厅", signal: abort.signal }).then(chosen => {
+      void showGameMessage(tr("运行已停止"), tr("游戏运行出错，已经停止。|请返回大厅后重新开始。"),
+        { library, yes: tr("返回大厅"), signal: abort.signal }).then(chosen => {
         if (this.haltMessage !== abort) return;
         this.haltMessage = undefined;
         if (chosen) this.callbacks.returnToReady();
@@ -361,7 +362,7 @@ export class HudOverlay {
     delete this.loadingView.dataset.downloadPercent;
     delete this.loadingView.dataset.downloadLoaded;
     delete this.loadingView.dataset.downloadTotal;
-    this.setStartupProgress(0, "正在读取资源清单");
+    this.setStartupProgress(0, tr("正在读取资源清单"));
   }
 
   setStartupProgress(percent: number, message: string): void {
@@ -378,7 +379,7 @@ export class HudOverlay {
   finishLoading(): void {
     if (this.startupLoading) {
       setProgress(this.loadingLabel, 100);
-      this.loadingLabel.setAttribute("aria-valuetext", "加载完成");
+      this.loadingLabel.setAttribute("aria-valuetext", tr("加载完成"));
       this.startupLoading = false;
     }
     delete this.loadingView.dataset.downloadItem;
@@ -392,7 +393,7 @@ export class HudOverlay {
   }
 
   setLoadingProgress(key: unknown, loaded: number, total: number,
-    label = "正在加载资源"): void {
+    label = tr("正在加载资源")): void {
     // Downloads are discovered on demand. Their byte totals describe the
     // background badge, not completion of parsing, login or scene setup.
     if (this.startupLoading) {
@@ -416,7 +417,7 @@ export class HudOverlay {
   /** A failed download leaves the badge, which otherwise stayed up at its last percent. */
   dropLoadingProgress(key: unknown): void {
     if (this.startupLoading || !this.loadingProgress.delete(key)) return;
-    this.refreshLoadingBadge(this.loadingFabCopy.textContent ?? "正在加载资源");
+    this.refreshLoadingBadge(this.loadingFabCopy.textContent ?? tr("正在加载资源"));
   }
 
   private refreshLoadingBadge(label: string): void {
@@ -511,9 +512,9 @@ export class HudOverlay {
     const value = this.debugEngineOutput.textContent ?? "";
     copyHudText(value).then(() => {
       window.clearTimeout(this.copyLabelTimer);
-      button.textContent = "已复制";
+      button.textContent = tr("已复制");
       this.copyLabelTimer = window.setTimeout(() => {
-        button.textContent = "复制";
+        button.textContent = tr("复制");
       }, 1_500);
     }).catch(error => {
       const message = error instanceof Error ? error.message : String(error);

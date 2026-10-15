@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The data service's 练习计时赛 / 排位计时赛 endpoints (server-go/TIMEATTACK.md):
  * a track's 赛道排名 with the viewer's records (GET /api/timeattack/ranking),
@@ -161,7 +162,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export function timeAttackErrorMessage(error: unknown): string {
-  return formatAccountServiceError(error, ERROR_MESSAGES);
+  return tr(formatAccountServiceError(error, ERROR_MESSAGES));
 }
 
 function record(value: unknown, what: string): Record<string, unknown> {

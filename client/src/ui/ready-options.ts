@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** The Ready screen's mutable choices; unrelated fields are retained on updates. */
 export interface ReadyOptions {
   speed: number;
@@ -111,7 +112,7 @@ export function readyNodeVisible(
   return attribute(node, "visible") !== "false" || name === "training";
 }
 
-/** Chinese labels displayed for the packaged random track groups. */
+/** Localized labels displayed for the packaged random track groups. */
 export function randomTrackGroupName(group: RandomTrackGroup): string {
   const names: Record<string, string> = {
     hot1: "人气随机（极易）",
@@ -127,8 +128,8 @@ export function randomTrackGroupName(group: RandomTrackGroup): string {
     crazy: "疯狂随机",
   };
   const named = names[group.randomType];
-  if (named?.startsWith("人气随机")) return named;
-  if (group.cardToken === "speedAllRandom_TimeAttack@zz") return "竞速随机";
-  return named ??
+  if (named?.startsWith("人气随机")) return tr(named);
+  if (group.cardToken === "speedAllRandom_TimeAttack@zz") return tr("竞速随机");
+  return named ? tr(named) :
     (group.level === undefined ? group.randomType : `${group.randomType}:${group.level}`);
 }

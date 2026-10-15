@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The 卡丁城 加油 and 道路救援 windows, drawn by the release window renderer
  * like the 踢出投票 window: a CaptionDialog with painted boards and
@@ -74,7 +75,7 @@ export function paintRefuelGauge(context: CanvasRenderingContext2D, rect: Rect, 
   paintPump(context, x + 14, y + 12, 34, "#5fe3ff");
   context.font = `bold 16px ${FONT}`;
   text(context, fuel.kartName, x + 58, y + 22, 16, "white");
-  text(context, `${tankClassName(fuel.sizeClass)}油箱 · ${liters(fuel.capacityMl)} L`, x + width - 14, y + 22, 13,
+  text(context, tr("{value0}油箱 · {value1} L", { value0: tankClassName(fuel.sizeClass), value1: liters(fuel.capacityMl) }), x + width - 14, y + 22, 13,
     "#bfe6ff", "right");
   const barX = x + 14, barY = y + 52, barWidth = width - 28, barHeight = 22;
   context.fillStyle = "#0b2554";
@@ -86,8 +87,8 @@ export function paintRefuelGauge(context: CanvasRenderingContext2D, rect: Rect, 
   context.fillRect(barX + 2, barY + 2, (barWidth - 4) * now, barHeight - 4);
   context.fillStyle = "rgba(95, 227, 255, 0.85)";
   context.fillRect(barX + 2 + (barWidth - 4) * now, barY + 2, (barWidth - 4) * (after - now), barHeight - 4);
-  text(context, `当前 ${liters(fuel.fuelMl)} L`, x + 14, y + 92, 14, "white");
-  text(context, `加油后 ${liters(fuel.fuelMl + addMl)} L`, x + width - 14, y + 92, 14, "#5fe3ff", "right");
+  text(context, tr("当前 {value0} L", { value0: liters(fuel.fuelMl) }), x + 14, y + 92, 14, "white");
+  text(context, tr("加油后 {value0} L", { value0: liters(fuel.fuelMl + addMl) }), x + width - 14, y + 92, 14, "#5fe3ff", "right");
   context.restore();
 }
 
@@ -97,12 +98,12 @@ export function paintRefuelCost(context: CanvasRenderingContext2D, rect: Rect, f
   const cost = refuelCost(addMl, fuel.pricePerLiter);
   const short = cost > fuel.lucci;
   const middle = rect.y + rect.height / 2;
-  text(context, "加油量", rect.x + 6, middle - 13, 14);
+  text(context, tr("加油量"), rect.x + 6, middle - 13, 14);
   text(context, `${liters(addMl)} L`, rect.x + 6, middle + 13, 20, BLUE);
-  text(context, `单价 ${fuel.pricePerLiter} 金币/L`, rect.x + rect.width / 2, middle - 13, 13, TEXT, "center");
-  text(context, `费用 ${amount(cost)} 金币`, rect.x + rect.width / 2, middle + 13, 16, short ? RED : TEXT, "center");
-  text(context, "余额", rect.x + rect.width - 6, middle - 13, 14, TEXT, "right");
-  text(context, `${amount(fuel.lucci)} 金币`, rect.x + rect.width - 6, middle + 13, 16, short ? RED : TEXT, "right");
+  text(context, tr("单价 {value0} 金币/L", { value0: fuel.pricePerLiter }), rect.x + rect.width / 2, middle - 13, 13, TEXT, "center");
+  text(context, tr("费用 {value0} 金币", { value0: amount(cost) }), rect.x + rect.width / 2, middle + 13, 16, short ? RED : TEXT, "center");
+  text(context, tr("余额"), rect.x + rect.width - 6, middle - 13, 14, TEXT, "right");
+  text(context, tr("{value0} 金币", { value0: amount(fuel.lucci) }), rect.x + rect.width - 6, middle + 13, 16, short ? RED : TEXT, "right");
   context.restore();
 }
 
@@ -120,13 +121,13 @@ export function refuelWindowDefinition(stationName: string): Node {
       node("Container", { leftTopWH: "0 136 470 42", align: "hcenter" }, [
         button("lessButton", 0, 0, 150, "－5 L", false),
         button("moreButton", 160, 0, 150, "＋5 L", false),
-        button("fullButton", 320, 0, 150, "加满", false),
+        button("fullButton", 320, 0, 150, tr("加满"), false),
       ]),
       node("Panel", { name: "refuelCost", leftTopWH: "0 190 470 66", align: "hcenter" }),
       node("Window", { frame: "HSection", leftTopWH: "0 0 470 1", align: "hcenter;bottom", adjust: "0 64" }),
       node("Container", { leftTopWH: "0 0 330 42", align: "hcenter;bottom", adjust: "0 12" }, [
-        button("okButton", 0, 0, 155, "加油", true),
-        button("cancelButton", 175, 0, 155, "取消", false),
+        button("okButton", 0, 0, 155, tr("加油"), true),
+        button("cancelButton", 175, 0, 155, tr("取消"), false),
         node("Panel", { name: "okKey", leftTopWH: "101 11 48 20" }),
         node("Panel", { name: "cancelKey", leftTopWH: "284 11 38 20" }),
       ]),
@@ -172,15 +173,15 @@ export async function showRefuelWindow(options: FuelWindowOptions, stationName: 
           paintRefuelGauge(context, rect, current, addMl) };
         case "refuelCost": return { paint: (context: CanvasRenderingContext2D, rect: Rect) =>
           paintRefuelCost(context, rect, current, addMl) };
-        case "lessButton": return { disabled: window.busy || addMl <= 0, label: "少加 5 升",
+        case "lessButton": return { disabled: window.busy || addMl <= 0, label: tr("少加 5 升"),
           action: () => change(stepRefuelMl(current, addMl, -5)) };
-        case "moreButton": return { disabled: window.busy || addMl >= defaultRefuelMl(current), label: "多加 5 升",
+        case "moreButton": return { disabled: window.busy || addMl >= defaultRefuelMl(current), label: tr("多加 5 升"),
           action: () => change(stepRefuelMl(current, addMl, 5)) };
-        case "fullButton": return { disabled: window.busy || addMl >= defaultRefuelMl(current), label: "加满",
+        case "fullButton": return { disabled: window.busy || addMl >= defaultRefuelMl(current), label: tr("加满"),
           action: () => change(defaultRefuelMl(current)) };
         case "okButton": return { disabled: window.busy || addMl <= 0 || tankFull(current) ||
-          refuelCost(addMl, current.pricePerLiter) > current.lucci, label: "加油（Enter）", action: confirm };
-        case "cancelButton": return { disabled: window.busy, label: "取消（Esc）", action: () => cancel() };
+          refuelCost(addMl, current.pricePerLiter) > current.lucci, label: tr("加油（Enter）"), action: confirm };
+        case "cancelButton": return { disabled: window.busy, label: tr("取消（Esc）"), action: () => cancel() };
         case "okKey": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintKeyBadge(context, rect, "ENTER") };
         case "cancelKey": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintKeyBadge(context, rect, "ESC") };
       }
@@ -228,17 +229,17 @@ export function paintTowTruck(context: CanvasRenderingContext2D, rect: Rect): vo
 export function rescueWindowDefinition(): Node {
   return node("Container", { windowRect: "fullscreen" }, [
     node("CaptionWindow", { name: "rescueWnd", frame: "CaptionDialog", leftTopWH: "0 0 520 370",
-      caption: "道路救援", captionColor: "black", align: "center" }, [
+      caption: tr("道路救援"), captionColor: "black", align: "center" }, [
       node("Panel", { name: "rescueIcon", leftTopWH: "0 12 150 62", align: "hcenter" }),
       node("Panel", { name: "rescueText", leftTopWH: "0 84 470 76", align: "hcenter" }),
       node("Panel", { name: "rescueFee", leftTopWH: "0 168 440 58", align: "hcenter" }),
       node("Window", { frame: "HSection", leftTopWH: "0 0 470 1", align: "hcenter;bottom", adjust: "0 64" }),
       // 呼叫救援 is twice as long as 加油: a wider button keeps it clear of the ENTER badge.
       node("Container", { leftTopWH: "0 0 365 42", align: "hcenter;bottom", adjust: "0 12" }, [
-        node("TextButton", { name: "okButton", leftTopWH: "0 0 190 42", text: "呼叫救援", textRender: "bold16",
+        node("TextButton", { name: "okButton", leftTopWH: "0 0 190 42", text: tr("呼叫救援"), textRender: "bold16",
           textColor: "white", overTextColor: "white", clickedTextColor: "255 24 55 104",
           disabledTextColor: "255 220 220 220" }),
-        node("TextButton", { name: "cancelButton", leftTopWH: "210 0 155 42", text: "取消", textRender: "bold16",
+        node("TextButton", { name: "cancelButton", leftTopWH: "210 0 155 42", text: tr("取消"), textRender: "bold16",
           textColor: "255 64 75 95", overTextColor: "255 106 120 147", clickedTextColor: "255 35 41 52",
           disabledTextColor: "255 131 131 131" }),
         node("Panel", { name: "okKey", leftTopWH: "136 11 48 20" }),
@@ -254,13 +255,13 @@ export function paintRescueFee(context: CanvasRenderingContext2D, rect: Rect, fu
   blueBoard(context, rect);
   const middle = rect.y + rect.height / 2;
   if (fuel.rescueFee <= 0) {
-    text(context, "本次救援免费", rect.x + rect.width / 2, middle, 18, "white", "center");
+    text(context, tr("本次救援免费"), rect.x + rect.width / 2, middle, 18, "white", "center");
   } else if (fuel.lucci < fuel.rescueFee) {
-    text(context, `救援费用 ${amount(fuel.rescueFee)} 金币`, rect.x + rect.width / 2, middle - 12, 16, "white", "center");
-    text(context, "金币不足，本次免费救援", rect.x + rect.width / 2, middle + 12, 14, "#ffd23f", "center");
+    text(context, tr("救援费用 {value0} 金币", { value0: amount(fuel.rescueFee) }), rect.x + rect.width / 2, middle - 12, 16, "white", "center");
+    text(context, tr("金币不足，本次免费救援"), rect.x + rect.width / 2, middle + 12, 14, "#ffd23f", "center");
   } else {
-    text(context, `救援费用 ${amount(fuel.rescueFee)} 金币`, rect.x + 18, middle, 18, "white");
-    text(context, `余额 ${amount(fuel.lucci)} 金币`, rect.x + rect.width - 18, middle, 14, "#bfe6ff", "right");
+    text(context, tr("救援费用 {value0} 金币", { value0: amount(fuel.rescueFee) }), rect.x + 18, middle, 18, "white");
+    text(context, tr("余额 {value0} 金币", { value0: amount(fuel.lucci) }), rect.x + rect.width - 18, middle, 14, "#bfe6ff", "right");
   }
   context.restore();
 }
@@ -278,7 +279,7 @@ export async function showRescueWindow(options: FuelWindowOptions, fuel: () => C
   const confirm = () => { if (!window.busy) call(); };
   view = await loadView({
     library: options.library, root: options.root, definition: rescueWindowDefinition(), roots: ROOTS,
-    preserveDisplayPixels: true, smoothImages: true, modal: true, label: "道路救援",
+    preserveDisplayPixels: true, smoothImages: true, modal: true, label: tr("道路救援"),
     onCancel: () => { if (!window.busy) cancel(); }, onConfirm: confirm,
     state: (entry: Node) => {
       switch (nodeName(entry)) {
@@ -286,14 +287,14 @@ export async function showRescueWindow(options: FuelWindowOptions, fuel: () => C
         case "rescueText": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => {
           const target = destination();
           const middle = rect.x + rect.width / 2;
-          text(context, "油箱空了，车已熄火。", middle, rect.y + 14, 16, TEXT, "center");
-          text(context, "救援车会把你的车拖到最近的加油站：", middle, rect.y + 40, 15, TEXT, "center");
-          text(context, target ? `${target.name}（约 ${distanceText(target.distance)}）` : "最近的加油站", middle,
+          text(context, tr("油箱空了，车已熄火。"), middle, rect.y + 14, 16, TEXT, "center");
+          text(context, tr("救援车会把你的车拖到最近的加油站："), middle, rect.y + 40, 15, TEXT, "center");
+          text(context, target ? tr("{value0}（约 {value1}）", { value0: target.name, value1: distanceText(target.distance) }) : tr("最近的加油站"), middle,
             rect.y + 64, 16, BLUE, "center");
         } };
         case "rescueFee": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintRescueFee(context, rect, fuel()) };
-        case "okButton": return { disabled: window.busy, label: "呼叫救援（Enter）", action: confirm };
-        case "cancelButton": return { disabled: window.busy, label: "取消（Esc）", action: () => cancel() };
+        case "okButton": return { disabled: window.busy, label: tr("呼叫救援（Enter）"), action: confirm };
+        case "cancelButton": return { disabled: window.busy, label: tr("取消（Esc）"), action: () => cancel() };
         case "okKey": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintKeyBadge(context, rect, "ENTER") };
         case "cancelKey": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => paintKeyBadge(context, rect, "ESC") };
       }

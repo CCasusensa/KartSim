@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale.ts";
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
 // Stable minified names are retained for behavioral parity.
@@ -905,7 +906,7 @@ function X_(n) {
     n.version === "国服"
       ? `S${n.speed}`
       : Object.keys(i3[n.version]).find((t) => i3[n.version][t] === n.speed);
-  return `${n.version === "国服" ? "" : "复古 "}${e} ${n.booster === 0 ? "个人" : "组队"}`;
+  return `${n.version === "国服" ? "" : tr("复古") + " "}${e} ${tr(n.booster === 0 ? "个人" : "组队")}`;
 }
 
 function wd0(n, e) {

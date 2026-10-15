@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import type { LobbyRoom } from "./lobby-actions";
 
@@ -99,7 +100,7 @@ export async function showLobbyRoom(host: RoomViewHost, load: LoadRoomView): Pro
         chat: text => host.sendChat(text),
         onError: error => host.options.status(formatMultiplayerError(error), true),
         kick: player => {
-          void host.confirm("发起移出投票", `对 ${player.name} 发起移出投票？`, () => {
+          void host.confirm(tr("发起移出投票"), tr("对 {value} 发起移出投票？", { value: String(player.name) }), () => {
             const current = host.state.room;
             if (current) void host.mutate({ type: "kick", roomId: current.roomId,
               revision: current.revision, playerId: player.playerId });
@@ -111,7 +112,7 @@ export async function showLobbyRoom(host: RoomViewHost, load: LoadRoomView): Pro
             revision: current.revision, slot, closed });
         },
         transfer: player => {
-          void host.confirm("移交房主", `将房主移交给 ${player.name}？`, () => {
+          void host.confirm(tr("移交房主"), tr("将房主移交给 {value}？", { value: String(player.name) }), () => {
             const current = host.state.room;
             if (current) void host.mutate({ type: "transfer-host", roomId: current.roomId,
               revision: current.revision, playerId: player.playerId });
@@ -135,11 +136,11 @@ export async function showLobbyRoom(host: RoomViewHost, load: LoadRoomView): Pro
     host.maybeAutoReady();
     if (!host.raceVisible) host.options.onPageAudio?.("room");
     host.options.status(host.options.raceLoader
-      ? "已进入房间。支持个人和组队竞速，可使用本地车库改装。"
-      : "已进入房间。可选车、选图、聊天、准备和管理成员；比赛尚未接入。");
+      ? tr("已进入房间。支持个人和组队竞速，可使用本地车库改装。")
+      : tr("已进入房间。可选车、选图、聊天、准备和管理成员；比赛尚未接入。"));
   } catch (error) {
     if (!host.disposed && generation === host.generation) {
-      host.options.status(`房间界面加载失败：${formatMultiplayerError(error)}。已断开房间，请返回单人游戏重试。`, true);
+      host.options.status(tr("房间界面加载失败：{value}。已断开房间，请返回单人游戏重试。", { value: String(formatMultiplayerError(error)) }), true);
       host.client.dispose();
     }
   } finally {

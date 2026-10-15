@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The data service's lottery endpoints (server-go/LOTTERY.md 6): the 寻宝
  * board (GET /api/lottery/treasure-hunt, POST …/draw), the 精品道具场
@@ -169,32 +170,32 @@ export interface LotteryItemName {
 }
 
 const MESSAGES: Record<string, string> = {
-  LOTTERY_CLOSED: "活动当前未开放。",
-  LOTTERY_NOT_FOUND: "找不到这个抽奖道具。",
-  PACK_NOT_FOUND: "该礼包已下架。",
-  INVALID_COUNT: "使用数量无效。",
-  INVALID_ACTIVITY: "活动无效。",
-  NOTHING_TO_CLAIM: "今天没有可领取的免费道具。",
-  ALREADY_CLAIMED: "今天的免费道具已经领取过了。",
-  INSUFFICIENT_FUNDS: "余额不足，无法兑换。",
-  EXP_REQUIRED: "经验不足，暂时无法兑换该礼包。",
-  PRICE_CHANGED: "价格已变化，请重新打开后再试。",
-  REQUEST_ID_CONFLICT: "请求冲突，请重新操作。",
-  INVALID_REQUEST_ID: "请求无效，请重新操作。",
-  INVALID_REQUEST: "请求无效，请重新操作。",
-  LOGIN_REQUIRED: "登录已失效，请重新登录。",
-  RATE_LIMITED: "操作过于频繁，请稍后再试。",
-  TOO_MANY_ATTEMPTS: "操作过于频繁，请稍后再试。",
-  DATA_SERVICE_UNAVAILABLE: "数据服务暂时不可用，请稍后再试。",
-  INTERNAL_ERROR: "服务器内部错误，请稍后再试。",
-  NOT_FOUND: "抽奖服务暂未开放。",
-  INVALID_RESPONSE: "服务器返回的数据无效，请稍后再试。",
+  LOTTERY_CLOSED: tr("活动当前未开放。"),
+  LOTTERY_NOT_FOUND: tr("找不到这个抽奖道具。"),
+  PACK_NOT_FOUND: tr("该礼包已下架。"),
+  INVALID_COUNT: tr("使用数量无效。"),
+  INVALID_ACTIVITY: tr("活动无效。"),
+  NOTHING_TO_CLAIM: tr("今天没有可领取的免费道具。"),
+  ALREADY_CLAIMED: tr("今天的免费道具已经领取过了。"),
+  INSUFFICIENT_FUNDS: tr("余额不足，无法兑换。"),
+  EXP_REQUIRED: tr("经验不足，暂时无法兑换该礼包。"),
+  PRICE_CHANGED: tr("价格已变化，请重新打开后再试。"),
+  REQUEST_ID_CONFLICT: tr("请求冲突，请重新操作。"),
+  INVALID_REQUEST_ID: tr("请求无效，请重新操作。"),
+  INVALID_REQUEST: tr("请求无效，请重新操作。"),
+  LOGIN_REQUIRED: tr("登录已失效，请重新登录。"),
+  RATE_LIMITED: tr("操作过于频繁，请稍后再试。"),
+  TOO_MANY_ATTEMPTS: tr("操作过于频繁，请稍后再试。"),
+  DATA_SERVICE_UNAVAILABLE: tr("数据服务暂时不可用，请稍后再试。"),
+  INTERNAL_ERROR: tr("服务器内部错误，请稍后再试。"),
+  NOT_FOUND: tr("抽奖服务暂未开放。"),
+  INVALID_RESPONSE: tr("服务器返回的数据无效，请稍后再试。"),
 };
 
 /** Chinese text for a lottery error (or its code). */
 export function lotteryErrorMessage(error: unknown): string {
   const code = typeof error === "string" ? error : errorCode(error) ?? "";
-  return MESSAGES[code] ?? `操作失败（${code || "未知错误"}），请稍后再试。`;
+  return MESSAGES[code] ?? tr("操作失败（{0}），请稍后再试。", { "0": code || tr("未知错误") });
 }
 
 /* ---------- validation ---------- */
@@ -239,14 +240,14 @@ function currency(value: unknown, what: string): Currency {
 
 function wallet(value: unknown): Record<Currency, number> {
   const body = record(value, "钱包");
-  return { coupon: int(body.coupon, "点券"), lucci: int(body.lucci, "金币"), koin: int(body.koin, "K币") };
+  return { coupon: int(body.coupon, tr("点券")), lucci: int(body.lucci, tr("金币")), koin: int(body.koin, tr("K币")) };
 }
 
 export function parseLotteryItem(value: unknown): LotteryItem {
-  const body = record(value, "道具");
+  const body = record(value, tr("道具"));
   const item: LotteryItem = {
-    category: int(body.category, "道具分类"), itemId: int(body.itemId, "道具编号"),
-    name: text(body.name, "道具名称"), count: int(body.count ?? 1, "道具数量"), days: int(body.days ?? 0, "道具期限"),
+    category: int(body.category, tr("道具分类")), itemId: int(body.itemId, "道具编号"),
+    name: text(body.name, tr("道具名称")), count: int(body.count ?? 1, "道具数量"), days: int(body.days ?? 0, "道具期限"),
   };
   if (body.currency !== undefined) item.currency = currency(body.currency, "道具货币");
   if (body.owned === true) item.owned = true;
@@ -258,7 +259,7 @@ function items(value: unknown): LotteryItem[] {
 }
 
 function activity(value: unknown): LotteryActivity {
-  const body = record(value, "活动");
+  const body = record(value, tr("活动"));
   const start = optionalInt(body.start, "开始时间");
   const end = optionalInt(body.end, "结束时间");
   return { open: body.open === true, enabled: body.enabled === true,
@@ -266,8 +267,8 @@ function activity(value: unknown): LotteryActivity {
 }
 
 function packs(value: unknown): LotteryPack[] {
-  return list(value ?? [], "礼包").map(raw => {
-    const body = record(raw, "礼包");
+  return list(value ?? [], tr("礼包")).map(raw => {
+    const body = record(raw, tr("礼包"));
     const minExp = optionalInt(body.minExp, "礼包经验");
     return { stockId: int(body.stockId, "礼包编号"), name: text(body.name, "礼包名称"),
       currency: currency(body.currency, "礼包货币"), price: int(body.price, "礼包价格"),
@@ -315,7 +316,7 @@ function numberMap(value: unknown, what: string): Map<string, number> {
 function draws(value: unknown): LotteryDraw[] {
   return list(value ?? [], "抽奖结果").map(raw => {
     const body = record(raw, "抽奖结果");
-    const draw: LotteryDraw = { stocks: list(body.stocks ?? [], "奖励").map(id => int(id, "奖励")), items: items(body.items) };
+    const draw: LotteryDraw = { stocks: list(body.stocks ?? [], tr("奖励")).map(id => int(id, tr("奖励"))), items: items(body.items) };
     const slot = optionalInt(body.slot, "格子");
     if (slot) draw.slot = slot;
     const kind = rarity(body.rarity);
@@ -331,7 +332,7 @@ export function parseDrawResult(value: unknown): DrawResult {
   const body = record(value, "抽奖结果");
   const result: DrawResult = {
     draws: draws(body.draws), prizes: draws(body.prizes), wallet: wallet(body.wallet),
-    holdings: numberMap(body.holdings, "持有数量"), counters: numberMap(body.counters, "保底计数"),
+    holdings: numberMap(body.holdings, tr("持有数量")), counters: numberMap(body.counters, "保底计数"),
   };
   if (body.stopped !== undefined && body.stopped !== null) {
     const stopped = record(body.stopped, "停止原因");
@@ -347,7 +348,7 @@ export function parseTreasureHunt(value: unknown): TreasureHuntState {
   const materials = record(body.materials, "寻宝材料");
   const others = record(body.others ?? {}, "神秘魔方");
   return {
-    activity: activity(body.activity), huntId: int(body.huntId, "寻宝编号"), theme: text(body.theme, "主题"),
+    activity: activity(body.activity), huntId: int(body.huntId, "寻宝编号"), theme: text(body.theme, tr("主题")),
     slots: slots(body.slots),
     others: { rewards: int(others.rewards ?? 0, "神秘魔方"), chance: int(others.chance ?? 0, "神秘魔方概率") },
     materials: { material: ownedRef(materials.material), other: ownedRef(materials.other),
@@ -357,13 +358,13 @@ export function parseTreasureHunt(value: unknown): TreasureHuntState {
 }
 
 export function parseGachaList(value: unknown): GachaList {
-  const body = record(value, "精品道具场");
+  const body = record(value, tr("精品道具场"));
   return {
     activity: activity(body.activity), daily: daily(body.daily),
     lotteries: list(body.lotteries, "扭蛋列表").map(raw => {
       const entry = record(raw, "扭蛋");
       return { itemId: int(entry.itemId, "扭蛋编号"), name: text(entry.name, "扭蛋名称"),
-        owned: int(entry.owned ?? 0, "持有数量"), featured: entry.featured === true, open: entry.open === true,
+        owned: int(entry.owned ?? 0, tr("持有数量")), featured: entry.featured === true, open: entry.open === true,
         ...(entry.key ? { key: ownedRef(entry.key) } : {}) };
     }),
   };
@@ -376,10 +377,10 @@ export function parseGachaDetail(value: unknown): GachaDetail {
     lottery: { itemId: int(lottery.itemId, "扭蛋编号"), name: text(lottery.name, "扭蛋名称"),
       caption: text(lottery.caption, "标题"), desc: text(lottery.desc, "说明"), effect: text(lottery.effect, "效果"),
       dialog: text(lottery.dialog, "窗口"), sets: int(lottery.sets ?? 1, "奖池数"), rewards: int(lottery.rewards ?? 0, "奖励数") },
-    activity: activity(body.activity), owned: int(body.owned ?? 0, "持有数量"),
+    activity: activity(body.activity), owned: int(body.owned ?? 0, tr("持有数量")),
     summary: list(body.summary ?? [], "可获得道具").map(raw => {
       const row = record(raw, "可获得道具");
-      return { stockId: int(row.stockId, "奖励"), notice: row.notice === true, items: items(row.items) };
+      return { stockId: int(row.stockId, tr("奖励")), notice: row.notice === true, items: items(row.items) };
     }),
     packs: packs(body.packs), daily: daily(body.daily),
   };
@@ -438,7 +439,7 @@ export class LotteryApi {
 
   async buyPack(pack: Pick<LotteryPack, "stockId" | "price" | "currency">, requestId = newRequestId()): Promise<PackResult> {
     const body = record(await this.post("/api/lottery/packs/buy", { requestId, stockId: pack.stockId,
-      expectedPrice: pack.price, expectedCurrency: pack.currency }), "礼包");
+      expectedPrice: pack.price, expectedCurrency: pack.currency }), tr("礼包"));
     return { wallet: wallet(body.wallet), items: items(body.items), purchaseId: int(body.purchaseId, "购买编号") };
   }
 
@@ -450,12 +451,12 @@ export class LotteryApi {
   /** Names of the items outside the shop catalog, loaded once per api. */
   itemNames(): Promise<Map<string, LotteryItemName>> {
     this.names ??= this.session.requestJson("/api/lottery/items").then(value => {
-      const body = record(value, "道具名称");
+      const body = record(value, tr("道具名称"));
       const names = new Map<string, LotteryItemName>();
-      for (const raw of list(body.items, "道具名称")) {
-        const row = record(raw, "道具名称");
+      for (const raw of list(body.items, tr("道具名称"))) {
+        const row = record(raw, tr("道具名称"));
         const item: LotteryItemName = { category: int(row.category, "分类"), itemId: int(row.itemId, "编号"),
-          name: text(row.name, "名称") };
+          name: text(row.name, tr("名称")) };
         if (row.count === true) item.count = true;
         if (typeof row.effect === "string" && row.effect) item.effect = row.effect;
         names.set(`${item.category}:${item.itemId}`, item);

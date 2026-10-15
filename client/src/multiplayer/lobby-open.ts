@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import { LOBBY_NODE_ID, type GameServer, type GameServerEntry } from "./game-servers";
 import { enterCityOnNode, startLatencyReports, type NodeClient, type RaceHostLobby } from "./race-host";
@@ -116,7 +117,7 @@ async function selectGameServer(host: LobbyOpenHost, deps: LobbyOpenDependencies
         (error instanceof Error && error.message === "ACCOUNT_CANCELLED")) {
       progress.close();
     } else {
-      await progress.fail(`无法进入游戏服务器：${formatMultiplayerError(error)}`);
+      await progress.fail(tr("无法进入游戏服务器：{value}", { value: String(formatMultiplayerError(error)) }));
     }
     throw error;
   }
@@ -133,11 +134,11 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
   try {
     const response = await deps.fetchHealth(
       deps.endpoint("healthz", deps.pageUrl()), host.accountAbort.signal);
-    if (!response.ok) throw new Error("无法验证联机服务版本，请检查后端服务。");
+    if (!response.ok) throw new Error(tr("无法验证联机服务版本，请检查后端服务。"));
     const version = (await response.json()).protocolVersion;
-    if (!Number.isInteger(version)) throw new Error("无法验证联机服务版本，请检查后端服务。");
+    if (!Number.isInteger(version)) throw new Error(tr("无法验证联机服务版本，请检查后端服务。"));
     if (version !== deps.protocolVersion) {
-      throw new Error(`联机前端版本 ${deps.protocolVersion}，后端版本 ${version}。请同步更新后端。`);
+      throw new Error(tr("联机前端版本 {value}，后端版本 {value2}。请同步更新后端。", { value: String(deps.protocolVersion), value2: String(version) }));
     }
     account = await deps.loadAccount(host.options.root, host.accountAbort.signal);
   } catch (error) {
@@ -145,14 +146,14 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
         (error instanceof Error && error.message === "ACCOUNT_CANCELLED")) {
       progress.close();
     } else {
-      await progress.fail(`无法打开多人登录：${formatMultiplayerError(error)}`);
+      await progress.fail(tr("无法打开多人登录：{value}", { value: String(formatMultiplayerError(error)) }));
     }
     throw error;
   }
 
   if (!account) {
     // Every player signs in at startup; there is no guest nickname path.
-    await progress.fail(`无法打开多人游戏：${formatMultiplayerError(new Error("LOGIN_REQUIRED"))}`);
+    await progress.fail(tr("无法打开多人游戏：{value}", { value: String(formatMultiplayerError(new Error("LOGIN_REQUIRED"))) }));
     throw new Error("LOGIN_REQUIRED");
   }
   progress.close();
@@ -189,7 +190,7 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
   host.options.onVisible?.();
   host.options.onPageAudio?.("lobby");
   host.bindClient();
-  host.options.status(cityEntry ? "正在连接卡丁城…" : "多人大厅已打开，正在连接房间服务…");
+  host.options.status(cityEntry ? tr("正在连接卡丁城…") : tr("多人大厅已打开，正在连接房间服务…"));
 
   const replaceClient = () => {
     host.client.dispose();
@@ -230,25 +231,25 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
         repicks++;
         failed.add(server.nodeId);
         replaceClient();
-        host.options.status(`多人游戏：${formatMultiplayerError(error)}`, true);
+        host.options.status(tr("多人游戏：{value}", { value: String(formatMultiplayerError(error)) }), true);
         try {
           server = await selectGameServer(host, deps, failed);
         } catch (repick) {
           if (host.disposed) return;
           if (repick instanceof Error && repick.message === "ACCOUNT_CANCELLED") {
-            host.options.status("多人游戏：未进入游戏服务器。请返回单人游戏，再重新进入多人游戏。", true);
+            host.options.status(tr("多人游戏：未进入游戏服务器。请返回单人游戏，再重新进入多人游戏。"), true);
             return;
           }
           throw repick;
         }
         if (host.disposed) return;
-        host.options.status("多人大厅已打开，正在连接房间服务…");
+        host.options.status(tr("多人大厅已打开，正在连接房间服务…"));
       }
     }
     if (host.disposed) return;
-    if (response.type !== "welcome") throw new Error("房间服务身份未确认");
+    if (response.type !== "welcome") throw new Error(tr("房间服务身份未确认"));
     labelConnectedServer(host.client,
-      server.nodeId === LOBBY_NODE_ID ? server.name : `节点 ${server.name || server.nodeId}`);
+      server.nodeId === LOBBY_NODE_ID ? server.name : tr("节点 {value}", { value: String(server.name || server.nodeId) }));
     host.playerId = response.playerId!;
     host.connected = true;
     if (server.nodeId === LOBBY_NODE_ID) {
@@ -261,7 +262,7 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
       startLatencyReports(nodeHost);
     }
     host.render();
-    host.options.status(cityEntry ? "正在进入卡丁城…" : "请选择比赛频道。");
+    host.options.status(cityEntry ? tr("正在进入卡丁城…") : tr("请选择比赛频道。"));
     // The home page's 卡丁城 entry opens the lobby only to connect: go straight into the city.
     if (cityEntry) void enterCityOnNode(host as unknown as Parameters<typeof enterCityOnNode>[0]);
     host.refresh = setInterval(() => {
@@ -271,6 +272,6 @@ export async function openMultiplayerLobby(host: LobbyOpenHost,
       }
     }, 5_000);
   } catch (error) {
-    if (!host.disposed) host.options.status(`多人游戏：${formatMultiplayerError(error)}`, true);
+    if (!host.disposed) host.options.status(tr("多人游戏：{value}", { value: String(formatMultiplayerError(error)) }), true);
   }
 }

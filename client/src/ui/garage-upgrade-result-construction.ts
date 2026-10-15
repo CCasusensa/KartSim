@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 import type { GarageUpgradeAnimationPanel, GarageUpgradeClassicAssets,
   GarageUpgradeSummary } from "./garage-upgrade-result-render";
@@ -70,7 +71,7 @@ export function initializeGarageUpgradeResult(
   host.element.setAttribute("role", "dialog");
   host.element.setAttribute("aria-modal", "true");
   host.element.setAttribute("aria-label", kind === "xun"
-    ? "迅车辆强化动画" : "经典车辆升级动画");
+    ? tr("迅车辆强化动画") : tr("经典车辆升级动画"));
 
   const animationCanvas = document.createElement("canvas");
   animationCanvas.width = 1600;
@@ -103,20 +104,20 @@ export function initializeGarageUpgradeResult(
   const stats = document.createElement("div");
   stats.className = "garage-upgrade-stats";
   const rows = kind === "xun" ? [
-    { label: "性能槽数量", before: String(Math.min(summary.beforeLevel, 3)),
+    { label: tr("性能槽数量"), before: String(Math.min(summary.beforeLevel, 3)),
       after: String(Math.min(summary.afterLevel, 3)) },
-    { label: "强化点数", before: String(summary.beforePoints),
+    { label: tr("强化点数"), before: String(summary.beforePoints),
       after: String(summary.afterPoints) },
   ] : [
-    { label: "等级", before: `Lv.${summary.beforeLevel}`,
+    { label: tr("等级"), before: `Lv.${summary.beforeLevel}`,
       after: `Lv.${summary.afterLevel}` },
-    { label: "强化点", before: String(summary.beforePoints),
+    { label: tr("强化点"), before: String(summary.beforePoints),
       after: String(summary.afterPoints) },
   ];
   for (const row of rows) {
     const line = document.createElement("span");
     line.className = "garage-upgrade-stat-row";
-    line.setAttribute("aria-label", `${row.label}：${row.before} 升至 ${row.after}`);
+    line.setAttribute("aria-label", tr("{0}：{1} 升至 {2}", { "0": row.label, "1": row.before, "2": row.after }));
     for (const [name, value] of [
       ["label", row.label], ["before", row.before], ["after", row.after],
     ] as Array<[string, string]>) {
@@ -131,12 +132,12 @@ export function initializeGarageUpgradeResult(
   if (kind === "xun") host.result.append(heading, stats);
   host.label.className = "garage-upgrade-label";
   host.label.setAttribute("role", "status");
-  host.label.textContent = `${title} · 正在加载原版强化动画…`;
+  host.label.textContent = tr("{0} · 正在加载原版强化动画…", { "0": title });
   host.accept.type = host.cancel.type = "button";
   dependencies.stylePrimary(host.accept);
-  host.accept.textContent = resultOnly ? "确认" : `确认本地 Lv.${summary.afterLevel} 升级`;
+  host.accept.textContent = resultOnly ? tr("确认") : tr("确认本地 Lv.{0} 升级", { "0": summary.afterLevel });
   host.accept.disabled = true;
-  host.cancel.textContent = resultOnly ? "关闭" : "取消升级";
+  host.cancel.textContent = resultOnly ? tr("关闭") : tr("取消升级");
   host.accept.onclick = () => { if (host.complete) host.close(true); };
   host.cancel.onclick = () => host.close(resultOnly);
   if (resultOnly) { host.accept.hidden = true; host.cancel.hidden = true; }
@@ -184,7 +185,7 @@ export function initializeGarageUpgradeResult(
       left: `${previewRect.x}px`, top: `${previewRect.y}px`,
       width: `${previewRect.width}px`, height: `${previewRect.height}px`,
     });
-    host.accept.textContent = resultOnly ? "确认" : "确认本地升级";
+    host.accept.textContent = resultOnly ? tr("确认") : tr("确认本地升级");
     host.accept.hidden = true;
     Object.assign(host.accept.style, {
       left: `${classic.accept.x}px`, top: `${classic.accept.y}px`,
@@ -206,6 +207,6 @@ export function initializeGarageUpgradeResult(
     })
     .catch(error => {
       if (!host.disposed && !host.resultOnly)
-        host.label.textContent = `动画加载失败，未修改升级草稿：${error instanceof Error ? error.message : error}`;
+        host.label.textContent = tr("动画加载失败，未修改升级草稿：{0}", { "0": error instanceof Error ? error.message : error });
     });
 }

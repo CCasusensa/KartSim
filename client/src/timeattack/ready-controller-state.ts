@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { closeReadyHome, type ReadyHomeController } from "./ready-home";
 import { closeReadyClub, type ReadyClubController } from "./ready-club";
 import { closeReadyMenus } from "./ready-menus";
@@ -161,7 +162,7 @@ export function changeReadyFavoriteTrack(host: ReadyControllerStateHost,
   try {
     host.host.saveProfile();
   } catch (error) {
-    tellPlayer(host.host.hud, `本次地图收藏变更未保存：${String(error)}`);
+    tellPlayer(host.host.hud, tr("本次地图收藏变更未保存：{error}", { error: String(error) }));
   }
 }
 
@@ -171,6 +172,6 @@ export function changeReadyFavoriteItems(host: ReadyControllerStateHost,
   try {
     host.host.saveProfile();
   } catch (error) {
-    tellPlayer(host.host.hud, `本次道具星标变更未保存：${String(error)}`);
+    tellPlayer(host.host.hud, tr("本次道具星标变更未保存：{error}", { error: String(error) }));
   }
 }

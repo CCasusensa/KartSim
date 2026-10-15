@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import type { LobbyDrawHost, LobbyLayoutNode, LobbyRect,
   LobbyRoomSummary } from "./lobby-list-draw";
 import { mainMenuBackdrop } from "./main-menu-view";
@@ -287,9 +288,9 @@ function drawTabs(host: LobbyListRenderHost, state: LobbyListUiState,
     context.strokeStyle = selected ? "#ffffff" : "rgba(120,160,230,.55)";
     context.stroke();
     context.restore();
-    text(context, tab.title, rect.x + 30, rect.y + rect.height / 2, 26,
+    text(context, tr(tab.title), rect.x + 30, rect.y + rect.height / 2, 26,
       selected ? "#ffffff" : hovered ? "#d6e4ff" : "#8fa9d6", { shadow: selected });
-    hit(key, rect, tab.title);
+    hit(key, rect, tr(tab.title));
   });
 }
 
@@ -360,13 +361,13 @@ function drawCategories(host: LobbyListRenderHost, state: LobbyListUiState,
       drawFlagIcon(context, rect.x + 30, rect.y + rect.height / 2 - 14,
         selected ? "#ffffff" : "rgba(200,214,240,.7)");
     }
-    text(context, category.title, rect.x + 82, rect.y + rect.height / 2 - 11, 22, color,
-      { shadow: selected });
-    text(context, category.subtitle, rect.x + 82, rect.y + rect.height / 2 + 15, 14,
+    text(context, tr(category.title), rect.x + 82, rect.y + rect.height / 2 - 11, 22, color,
+      { shadow: selected, maxWidth: rect.width - 100 });
+    text(context, tr(category.subtitle), rect.x + 82, rect.y + rect.height / 2 + 15, 14,
       selected ? "rgba(235,243,255,.9)" : "rgba(170,190,224,.72)", { weight: 500 });
     if (selected) text(context, "»", rect.x + rect.width - 34, rect.y + rect.height / 2 - 2,
       34, "#ffffff", { weight: 400, align: "center" });
-    hit(key, rect, `${category.title}（${category.subtitle}）`, !host.enabled);
+    hit(key, rect, tr("{title}（{subtitle}）", { title: tr(category.title), subtitle: tr(category.subtitle) }), !host.enabled);
   });
 }
 
@@ -399,7 +400,7 @@ function drawTitle(host: LobbyListRenderHost, state: LobbyListUiState,
   const context = host.context;
   const area = LOBBY_LAYOUT.title;
   const category = lobbyCategory(state.category)?.category;
-  text(context, category?.title ?? "多人游戏", area.x + 2, area.y + area.height / 2, 28,
+  text(context, tr(category?.title ?? "多人游戏"), area.x + 2, area.y + area.height / 2, 28,
     "#ffffff", { shadow: true });
   if (!category?.custom) return;
   let right = area.x + area.width - 16;
@@ -411,12 +412,12 @@ function drawTitle(host: LobbyListRenderHost, state: LobbyListUiState,
     drawCheckbox(context, boxX, y, checked, host.hovered === key);
     context.save();
     context.font = font(18);
-    const labelWidth = context.measureText(filter.label).width;
+    const labelWidth = context.measureText(tr(filter.label)).width;
     context.restore();
-    text(context, filter.label, boxX - 8, area.y + area.height / 2, 18, "#ffffff",
+    text(context, tr(filter.label), boxX - 8, area.y + area.height / 2, 18, "#ffffff",
       { align: "right", shadow: true });
     const rect = { x: boxX - 8 - labelWidth - 4, y: y - 6, width: labelWidth + 38, height: 34 };
-    hit(key, rect, `${filter.label}筛选（${checked ? "已勾选" : "未勾选"}）`);
+    hit(key, rect, tr("{filter}筛选（{state}）", { filter: tr(filter.label), state: tr(checked ? "已勾选" : "未勾选") }));
     right = rect.x - 22;
   }
 }
@@ -428,10 +429,10 @@ function drawHeader(context: CanvasRenderingContext2D): void {
   context.fillRect(header.x, header.y, header.width, header.height);
   context.restore();
   const labels: Array<[string, number, number]> = [
-    ["模式", header.x, columns.mode],
-    ["房间名称", header.x + columns.mode, columns.title],
-    ["赛道名称", header.x + columns.mode + columns.title, columns.track],
-    ["房间人数", header.x + columns.mode + columns.title + columns.track,
+    [tr("模式"), header.x, columns.mode],
+    [tr("房间名称"), header.x + columns.mode, columns.title],
+    [tr("赛道名称"), header.x + columns.mode + columns.title, columns.track],
+    [tr("房间人数"), header.x + columns.mode + columns.title + columns.track,
       header.width - columns.mode - columns.title - columns.track],
   ];
   labels.forEach(([label, x, width], index) => {
@@ -493,9 +494,9 @@ function drawLock(context: CanvasRenderingContext2D, x: number, y: number): void
 function trackTitle(host: LobbyListRenderHost, room: LobbyListRoom,
   dependencies: LobbyListRenderDependencies): string {
   if (room.randomTrackCode !== undefined)
-    return (dependencies.randomTrack ?? X6)(room.randomTrackCode)?.title ?? "随机赛道";
-  if (room.trackId) return host.assets.trackTitles.get(room.trackId) ?? "赛道资源不可用";
-  return "未选择赛道";
+    return tr((dependencies.randomTrack ?? X6)(room.randomTrackCode)?.title ?? "随机赛道");
+  if (room.trackId) return host.assets.trackTitles.get(room.trackId) ?? tr("赛道资源不可用");
+  return tr("未选择赛道");
 }
 
 function drawRows(host: LobbyListRenderHost, state: LobbyListUiState,
@@ -549,10 +550,10 @@ function drawRows(host: LobbyListRenderHost, state: LobbyListUiState,
       context.fillStyle = "#e0544f";
       context.fill();
       context.restore();
-      text(context, "游戏中", tag.x + tag.width / 2, middle, 13, "#ffffff", { align: "center" });
+      text(context, tr("游戏中"), tag.x + tag.width / 2, middle, 13, "#ffffff", { align: "center" });
       titleWidth -= 66;
     }
-    text(context, room.name ?? "未命名房间", titleX + 40, middle, 18, ink,
+    text(context, room.name ?? tr("未命名房间"), titleX + 40, middle, 18, ink,
       { weight: 500, maxWidth: titleWidth });
     text(context, title, rect.x + columns.mode + columns.title + columns.track / 2, middle,
       17, ink, { weight: 500, align: "center", maxWidth: columns.track - 24 });
@@ -571,17 +572,17 @@ function drawRows(host: LobbyListRenderHost, state: LobbyListUiState,
       `rgba(107,120,148,${dim})`, { weight: 500 });
     if (room.locked) drawLock(context, rect.x + rect.width - 30, middle - 9);
     if (host.enabled) hit(key, rect,
-      `加入 ${dependencies.roomLabel(room as LobbyRoomSummary)}${room.gaming ? "（游戏中）" : ""}`,
+      tr(room.gaming ? "加入 {room}（游戏中）" : "加入 {room}", { room: dependencies.roomLabel(room as LobbyRoomSummary) }),
       !joinable);
   }
   if (!visible.length) {
     const area = lobbyRowRect(0);
     const loading = lobbyListLoading(state);
     if (loading) scheduleLoadingTimeout(host);
-    const message = !host.enabled ? "正在连接房间服务…"
-      : loading && !host.rooms.length ? "正在读取房间…"
-        : host.rooms.length ? "当前筛选条件下没有房间，可以调整筛选或翻页查看"
-          : "暂无房间，点击「创建房间」邀请其他玩家吧";
+    const message = !host.enabled ? tr("正在连接房间服务…")
+      : loading && !host.rooms.length ? tr("正在读取房间…")
+        : host.rooms.length ? tr("当前筛选条件下没有房间，可以调整筛选或翻页查看")
+          : tr("暂无房间，点击「创建房间」邀请其他玩家吧");
     text(context, message, area.x + area.width / 2, area.y + lobbyRowsHeight() / 2, 20,
       "rgba(235,242,255,.9)", { align: "center", shadow: true, weight: 500 });
   }
@@ -607,10 +608,10 @@ function drawScrollbar(host: LobbyListRenderHost,
   const enabled = host.enabled;
   if (host.page > 0 && thumbY > bar.y)
     hit("roomLeft", { x: bar.x - 8, y: bar.y, width: bar.width + 16, height: thumbY - bar.y },
-      "上一页", !enabled);
+      tr("上一页"), !enabled);
   if ((host.page + 1) * LOBBY_LAYOUT.rows.count < host.total)
     hit("roomRight", { x: bar.x - 8, y: thumbY + thumbHeight, width: bar.width + 16,
-      height: bar.y + height - thumbY - thumbHeight }, "下一页", !enabled);
+      height: bar.y + height - thumbY - thumbHeight }, tr("下一页"), !enabled);
 }
 
 function drawCreateButton(host: LobbyListRenderHost,
@@ -640,9 +641,9 @@ function drawCreateButton(host: LobbyListRenderHost,
   context.lineTo(cx, cy + 13);
   context.stroke();
   context.restore();
-  text(context, "创建房间", cx, rect.y + rect.height - 17, 15,
+  text(context, tr("创建房间"), cx, rect.y + rect.height - 17, 15,
     enabled ? "#3b4a66" : "rgba(59,74,102,.5)", { align: "center", weight: 500 });
-  hit("createRoom", rect, "创建房间", !enabled);
+  hit("createRoom", rect, tr("创建房间"), !enabled);
 }
 
 function drawQuickStartButton(host: LobbyListRenderHost,
@@ -676,7 +677,7 @@ function drawQuickStartButton(host: LobbyListRenderHost,
   context.fillRect(x + 23, y - 13, 5, 26);
   context.fillRect(x + 32, y - 13, 5, 26);
   context.restore();
-  text(context, "快速开始", rect.x + 86, y, 28, enabled ? "#ffffff" : "rgba(255,255,255,.7)",
+  text(context, tr("快速开始"), rect.x + 86, y, 28, enabled ? "#ffffff" : "rgba(255,255,255,.7)",
     { shadow: true });
   const chip = { x: rect.x + rect.width - 70, y: y - 16, width: 48, height: 32 };
   context.save();
@@ -686,7 +687,7 @@ function drawQuickStartButton(host: LobbyListRenderHost,
   context.stroke();
   context.restore();
   text(context, "F5", chip.x + chip.width / 2, y + 1, 17, "#ffffff", { align: "center" });
-  hit("quickJoin", rect, "快速开始（F5）", !enabled);
+  hit("quickJoin", rect, tr("快速开始（F5）"), !enabled);
 }
 
 /** First list for the lobby: the home entry's channel, else 竞速自订. */

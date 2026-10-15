@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Runs one multiplayer session tick, from controls through result transition. */
 import {
   itemReverseDrivingEffect, type ItemCommand, type ItemDirectionKey, type ItemInputRouter,
@@ -264,7 +265,7 @@ export function updateRaceSession(host: RaceSessionUpdateHost,
       host.resultVisible = true;
       cancelDriving(host);
       host.host.input.cancelAll();
-      host.host.status("成绩展示结束后自动返回原房间。");
+      host.host.status(tr("成绩展示结束后自动返回原房间。"));
     }
   } catch (error) {
     host.fail(error);

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { te } from "../generated/library.js";
 import { errorCode } from "../account/account-api";
 import type { ChatJoined, ChatLine, MessengerConnection } from "../messenger/messenger-connection";
@@ -111,20 +112,20 @@ export class GlobalChat {
       joined: state => this.joined(state),
       line: line => this.receive(line),
       connection: open => {
-        if (!open) this.system(this.strings.get("chat_disconnectFromChatServer") ?? "断开聊天链接。");
+        if (!open) this.system(this.strings.get("chat_disconnectFromChatServer") ?? tr("断开聊天链接。"));
         this.view?.render();
       },
     });
-    if (!connection) this.system(this.strings.get("chat_notInSession") ?? "未连接聊天频道。");
+    if (!connection) this.system(this.strings.get("chat_notInSession") ?? tr("未连接聊天频道。"));
   }
 
   private joined(state: ChatJoined): void {
     this.clubName = state.clubName;
     this.hasClub = state.hasClub;
     // The connection line first, then the channel's recent lines.
-    this.system(this.strings.get("chat_chatServerConnect") ?? "已连接至聊天", "all");
-    this.system(state.hasClub ? `已连接至“${state.clubName}”俱乐部聊天`
-      : this.strings.get("chat_notFoundClub") ?? "没有可连接的聊天", "club");
+    this.system(this.strings.get("chat_chatServerConnect") ?? tr("已连接至聊天"), "all");
+    this.system(state.hasClub ? tr("已连接至“{0}”俱乐部聊天", { "0": state.clubName })
+      : this.strings.get("chat_notFoundClub") ?? tr("没有可连接的聊天"), "club");
     for (const line of [...state.all, ...state.club]) this.receive(line, false);
     this.view?.render();
   }
@@ -151,11 +152,11 @@ export class GlobalChat {
     if (!text) return;
     const connection = this.connection;
     if (!connection?.open) {
-      this.system(this.strings.get("chat_notInSession") ?? "未连接聊天频道。", this.tab);
+      this.system(this.strings.get("chat_notInSession") ?? tr("未连接聊天频道。"), this.tab);
       return;
     }
     if (this.tab === "club" && !this.hasClub) {
-      this.system(this.strings.get("chat_notFoundClub") ?? "没有可连接的聊天", "club");
+      this.system(this.strings.get("chat_notFoundClub") ?? tr("没有可连接的聊天"), "club");
       return;
     }
     this.draft = "";
@@ -165,10 +166,10 @@ export class GlobalChat {
       this.receive(await connection.sendChat(this.tab, [...text].slice(0, MAX_CHARS).join("")));
     } catch (error) {
       const code = errorCode(error);
-      this.system(code === "CHAT_FLOOD" ? this.strings.get("chat_warn10secBlock") ?? "为防止刷屏，聊天禁止10秒。"
-        : code === "NOT_IN_CLUB" ? this.strings.get("chat_notFoundClub") ?? "没有可连接的聊天"
-          : code === "INVALID_CHAT" ? this.strings.get("chat_inputChatMsg") ?? "请输入内容"
-            : this.strings.get("chat_notInSession") ?? "未连接聊天频道。", this.tab);
+      this.system(code === "CHAT_FLOOD" ? this.strings.get("chat_warn10secBlock") ?? tr("为防止刷屏，聊天禁止10秒。")
+        : code === "NOT_IN_CLUB" ? this.strings.get("chat_notFoundClub") ?? tr("没有可连接的聊天")
+          : code === "INVALID_CHAT" ? this.strings.get("chat_inputChatMsg") ?? tr("请输入内容")
+            : this.strings.get("chat_notInSession") ?? tr("未连接聊天频道。"), this.tab);
     }
   }
 
@@ -200,7 +201,7 @@ export class GlobalChat {
     const definition = prepare(library, node("Container", { windowRect: "fullscreen" }, [adapted]), ROOTS);
     const view = await te.load({
       library, root: this.options.root, definition, roots: ROOTS, smoothImages: true, modal: false,
-      label: strings.get("chat_inGame") ?? "聊天", onCancel: () => this.hide(), state: (entry: Node) => this.state(entry),
+      label: strings.get("chat_inGame") ?? tr("聊天"), onCancel: () => this.hide(), state: (entry: Node) => this.state(entry),
     }) as WindowView;
     if (this.disposed) {
       view.dispose();
@@ -211,7 +212,7 @@ export class GlobalChat {
     view.element.addEventListener("wheel", event => this.wheel(event), { passive: false });
     this.releaseKeys = guardMessengerDialog({ element: view.element, handle: event => this.key(event) });
     this.view = view;
-    if (!this.lines.all.length && !this.connection) this.system(strings.get("chat_notInSession") ?? "未连接聊天频道。");
+    if (!this.lines.all.length && !this.connection) this.system(strings.get("chat_notInSession") ?? tr("未连接聊天频道。"));
     return view;
   }
 
@@ -243,7 +244,7 @@ export class GlobalChat {
     const input = this.view?.element.querySelector("input");
     if (!input) return;
     Object.assign(input.style, { color: "white", caretColor: "white", font: `bold 14px ${FONT}`, outline: "none" });
-    input.placeholder = this.strings.get("chat_defaultInput") ?? "请输入聊天内容";
+    input.placeholder = this.strings.get("chat_defaultInput") ?? tr("请输入聊天内容");
   }
 
   private switchTab(tab: Channel): void {
@@ -256,17 +257,17 @@ export class GlobalChat {
 
   private state(entry: Node): NodeState {
     switch (nodeName(entry)) {
-      case "tabAll": return this.tabState("all", this.strings.get("allChat") ?? "全部聊天");
-      case "tabClub": return this.tabState("club", this.strings.get("clubChat") ?? "俱乐部聊天");
-      case "help": return { label: this.strings.get("chat_help") ?? "帮助", action: () => {
-        this.system("按 Enter 发送，Tab 切换全部聊天 / 俱乐部聊天，每条最多30字。刷屏将被禁言10秒。", this.tab);
+      case "tabAll": return this.tabState("all", this.strings.get("allChat") ?? tr("全部聊天"));
+      case "tabClub": return this.tabState("club", this.strings.get("clubChat") ?? tr("俱乐部聊天"));
+      case "help": return { label: this.strings.get("chat_help") ?? tr("帮助"), action: () => {
+        this.system(tr("按 Enter 发送，Tab 切换全部聊天 / 俱乐部聊天，每条最多30字。刷屏将被禁言10秒。"), this.tab);
       } };
-      case "close": return { label: this.strings.get("chat_chatHide") ?? "隐藏", action: () => this.hide() };
+      case "close": return { label: this.strings.get("chat_chatHide") ?? tr("隐藏"), action: () => this.hide() };
       case "guildChatHistory": return this.history(this.tab);
-      case "input": return { label: this.strings.get("chat_defaultInput") ?? "请输入聊天内容", input: {
+      case "input": return { label: this.strings.get("chat_defaultInput") ?? tr("请输入聊天内容"), input: {
         value: this.draft, maxLength: MAX_CHARS, change: (value: string) => { this.draft = value; },
         submit: () => void this.send() } };
-      case "clearList": return { label: this.strings.get("chat_erase") ?? "删除聊天记录", action: () => {
+      case "clearList": return { label: this.strings.get("chat_erase") ?? tr("删除聊天记录"), action: () => {
         this.lines[this.tab] = [];
         this.scroll[this.tab] = 0;
         this.view?.render();

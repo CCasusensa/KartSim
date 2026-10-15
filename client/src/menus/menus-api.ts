@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * The data service's taskbar menu endpoints: 奖励箱 (server-go
  * MENUS.md 1), 任务 (MENUS.md 2), 迷你提示窗 (MENUS.md 3) and 查找车手's
@@ -116,18 +117,18 @@ export interface RiderCard {
 }
 
 const MESSAGES: Record<string, string> = {
-  LOGIN_REQUIRED: "请先登录。",
-  REWARD_BOX_EMPTY: "没有可以领取的道具。",
-  INVALID_CLAIM: "领取道具失败。",
-  UNKNOWN_RIDER: "找不到该车手。",
-  INVALID_NICKNAME: "请输入车手名称。",
-  RATE_LIMITED: "操作过于频繁，请稍后再试。",
-  DATA_SERVICE_UNAVAILABLE: "服务暂时不可用，请稍后再试。",
+  LOGIN_REQUIRED: tr("请先登录。"),
+  REWARD_BOX_EMPTY: tr("没有可以领取的道具。"),
+  INVALID_CLAIM: tr("领取道具失败。"),
+  UNKNOWN_RIDER: tr("找不到该车手。"),
+  INVALID_NICKNAME: tr("请输入车手名称。"),
+  RATE_LIMITED: tr("操作过于频繁，请稍后再试。"),
+  DATA_SERVICE_UNAVAILABLE: tr("服务暂时不可用，请稍后再试。"),
 };
 
 export function menuErrorMessage(error: unknown): string {
   const code = typeof error === "string" ? error : errorCode(error) ?? "";
-  return MESSAGES[code] ?? `操作失败（${code || "未知错误"}），请稍后再试。`;
+  return MESSAGES[code] ?? tr("操作失败（{0}），请稍后再试。", { "0": code || tr("未知错误") });
 }
 
 type Json = Record<string, unknown>;
@@ -189,8 +190,8 @@ export function parseQuest(value: unknown): Quest {
     reset: text(row.reset, "reset"), kind: number(row.kind, "kind"),
     target: number(row.target, "target"), rank: number(row.rank, "rank"),
     channels: list(row.channels, "channels").map(channel => text(channel, "channel")),
-    pre: number(row.pre, "pre"), title: text(row.title, "title"), desc: text(row.desc, "desc"),
-    mission: text(row.mission, "mission"), rewards: list(row.rewards, "rewards").map(parseReward),
+    pre: number(row.pre, "pre"), title: tr(text(row.title, "title")), desc: tr(text(row.desc, "desc")),
+    mission: tr(text(row.mission, "mission")), rewards: list(row.rewards, "rewards").map(parseReward),
     value: number(row.value, "value"), completedAt: number(row.completedAt, "completed"), locked: row.locked === true,
     periodStart: number(row.periodStart, "period start"), periodEnd: number(row.periodEnd, "period end"),
   };

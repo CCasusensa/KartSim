@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * OB 观看 (TIMEATTACK.md): watching a ranked record's replay through the
  * release replay stage. The viewer itself is replay-session.ts; this module
@@ -23,7 +24,7 @@ export interface RankedReplayRequest {
 /** Download a ranked record's .ksv and play it in the replay stage. */
 export async function openRankedReplay(controller: ReadyHomeController, request: RankedReplayRequest): Promise<void> {
   const session = activeBrowserSession();
-  if (!session) throw new Error("请先登录后再观看录像。");
+  if (!session) throw new Error(tr("请先登录后再观看录像。"));
   const bytes = await fetchTimeAttackReplay(session, request.track.id, request.settings.speed, request.settings.booster,
     request.row.accountId);
   request.close();

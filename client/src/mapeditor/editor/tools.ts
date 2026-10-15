@@ -1,3 +1,4 @@
+import { tr } from "../../i18n/locale";
 /**
  * 视口里的工具（简单模式的主要操作）：
  *   放置：选好的物件跟着鼠标走，点一下放一个；滚轮转方向；长按左键再上下拖动
@@ -103,7 +104,7 @@ export class ToolController {
       ghost.scene = scene;
       offset.add(scene.object);
       this.app.viewport.addScene(scene);
-    }).catch(error => this.app.say(`物件载入失败：${(error as Error).message}`));
+    }).catch(error => this.app.say(tr("物件载入失败：{value}", { value: String((error as Error).message) })));
   }
 
   private removeGhost(): void {
@@ -239,7 +240,7 @@ export class ToolController {
   scaleGhost(factor: number): void {
     this.scale = Math.min(5, Math.max(0.2, Math.round(this.scale * factor * 100) / 100));
     this.applyGhostTransform();
-    this.app.say(`放置大小 ${Math.round(this.scale * 100)}%`, 1500);
+    this.app.say(tr("放置大小 {value}%", { value: String(Math.round(this.scale * 100)) }), 1500);
   }
 
   // ------------------------------------------------------------------ 指针
@@ -269,7 +270,7 @@ export class ToolController {
         if (this.press !== press || press.stage !== "pending") return;
         press.stage = "lift";
         press.liftStart = { y: press.lastY, height: this.lift };
-        this.app.say("上下拖动调高度，松开就放下", 2500);
+        this.app.say(tr("上下拖动调高度，松开就放下"), 2500);
         this.app.queueRender();
       }, LONG_PRESS);
       this.press = press;
@@ -314,14 +315,14 @@ export class ToolController {
       this.cancelPress();
       // 单击、长按调高度、拖着走：一次都只放一个
       const at = press.stage === "move" ? this.ghostPoint ?? press.point : press.point;
-      if (this.placeAt(at)) this.app.say(`放好了「${tool.piece.label}」`, 2000);
+      if (this.placeAt(at)) this.app.say(tr("放好了「{value}」", { value: String(tool.piece.label) }), 2000);
       if (press.stage === "lift") this.app.queueRender();
       return true;
     }
     if (tool.kind === "bulldoze" && this.bulldozing) {
       const removed = this.bulldozing.size;
       this.bulldozing = undefined;
-      if (removed) { this.app.state.commit(); this.app.say(`拆掉了 ${removed} 样东西`, 2000); }
+      if (removed) { this.app.state.commit(); this.app.say(tr("拆掉了 {value} 样东西", { value: String(removed) }), 2000); }
       return true;
     }
     if (tool.kind === "items" && event.button === 0) {
@@ -336,10 +337,10 @@ export class ToolController {
       if (drag.moved) {
         // 拖完路点顺手修顺这条路（急弯、太近、太低）
         if (drag.point) this.app.commitRoad(drag.point.roadId); else this.app.state.commit();
-        if (drag.startLine) this.app.say("起跑线挪好了", 2000);
+        if (drag.startLine) this.app.say(tr("起跑线挪好了"), 2000);
         return true;
       }
-      if (drag.startLine) { this.app.say("按住起跑线拖动，可以沿着赛道挪位置", 3000); return true; }
+      if (drag.startLine) { this.app.say(tr("按住起跑线拖动，可以沿着赛道挪位置"), 3000); return true; }
     }
     return false;
   }
@@ -391,7 +392,7 @@ export class ToolController {
   private placeAt(point: Vec3): boolean {
     if (!this.ghost) return false;
     if (this.app.state.design.pieces.length >= MAP_LIMITS.pieces) {
-      this.app.say(`一张地图最多放 ${MAP_LIMITS.pieces} 样东西`);
+      this.app.say(tr("一张地图最多放 {value} 样东西", { value: String(MAP_LIMITS.pieces) }));
       return false;
     }
     const placed = this.makePiece(point, this.effectiveYaw(), this.scale);
@@ -444,8 +445,8 @@ export class ToolController {
     const hit = this.app.viewport.pick(event, [this.app.views.roads]);
     const roadId = hit?.object.userData.roadId as string | undefined;
     const road = design.roads.find(r => r.id === roadId) ?? route;
-    if (!hit || !road) { this.app.say("要点在赛道上哦"); return; }
-    if (design.items.rows.length >= MAP_LIMITS.itemRows) { this.app.say(`道具箱最多 ${MAP_LIMITS.itemRows} 排。`); return; }
+    if (!hit || !road) { this.app.say(tr("要点在赛道上哦")); return; }
+    if (design.items.rows.length >= MAP_LIMITS.itemRows) { this.app.say(tr("道具箱最多 {value} 排。", { value: String(MAP_LIMITS.itemRows) })); return; }
     const p = toClient(hit.point);
     const sample = sampleRoad(road, 2);
     let best = 0;
@@ -457,7 +458,7 @@ export class ToolController {
       d.items.rows.push({ id: this.app.state.newId("i"), road: road.id, distance, count: 4 });
       d.items.rows.sort((a, b) => a.road === b.road ? a.distance - b.distance : 0);
     });
-    this.app.say("放好了一排道具箱", 2000);
+    this.app.say(tr("放好了一排道具箱"), 2000);
   }
 
   // ------------------------------------------------------------------ 拖动挪位置

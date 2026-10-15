@@ -1,3 +1,4 @@
+import { tr, gameLocale } from "../i18n/locale";
 /**
  * The data service's 俱乐部 endpoints (server-go/CLUB.md): the account's club
  * and members, the 俱乐部目录, applications, member management and the
@@ -99,43 +100,43 @@ export interface ClubHouse {
 }
 
 const MESSAGES: Record<string, string> = {
-  LOGIN_REQUIRED: "请先登录。",
-  CLUB_NOT_FOUND: "申请的俱乐部已解散。",
-  NOT_IN_CLUB: "尚未加入俱乐部。",
-  ALREADY_IN_CLUB: "已有加入的俱乐部。",
-  CLUB_NAME_TAKEN: "该俱乐部名已存在，无法使用。",
-  INVALID_CLUB_NAME: "无法使用该名称。需最少输入2字，最多可输入10字。",
-  INVALID_CLUB_INTRO: "无法使用该俱乐部简介。",
-  INVALID_CLUB_MARK: "无法使用该俱乐部徽章。",
-  CLUB_COOLDOWN: "退出24小时后才可以重新加入或创建俱乐部。",
-  CLUB_FULL: "申请加入俱乐部失败。已超过俱乐部人数上限。",
-  CLUB_APPLICANTS_FULL: "申请加入俱乐部失败。已超过申请人数上限。",
-  CLUB_BREAKING: "该俱乐部处于申请解散期间。",
-  NO_CLUB_APPLICATION: "没有申请记录。",
-  CLUB_PERMISSION: "没有权限进行此操作。",
-  CLUB_MASTER_CANNOT_LEAVE: "会长不能退出俱乐部，请解散俱乐部。",
-  CLUB_BUDGET_LOW: "俱乐部预算不足。",
-  CLUB_BUDGET_FULL: "已超出俱乐部预算上限。请下次再进行捐助。",
-  CLUB_DONATED_TODAY: "每日限捐1次。",
-  INVALID_DONATION: "捐助金额无效。",
-  CLUB_MAX_LEVEL: "已达到最高等级。",
-  CLUB_HQ_LEVEL: "请先升级俱乐部总部。",
-  CLUB_CS_LOW: "俱乐部活跃度不足。",
-  CLUB_MEMBERS_LOW: "俱乐部会员人数不足。",
-  CLUB_WELFARE_LOCKED: "赛事中心等级不足。",
-  CLUB_WELFARE_CLAIMED: "已发放今天的福利道具。",
-  CLUB_SAME_NAME: "该俱乐部名称与变更前俱乐部名称相同，请重新输入。",
-  CLUB_SAME_MARK: "该俱乐部徽章与变更前的俱乐部徽章相同，请重新选择。",
-  CLUB_LEVEL_REQUIRED: "七彩色星星手套以上玩家可创建俱乐部。",
-  INSUFFICIENT_FUNDS: "您的金币不足。",
-  CLUB_MEMBER_NOT_FOUND: "该车手已不在俱乐部中。",
-  RATE_LIMITED: "操作过于频繁，请稍后再试。",
-  DATA_SERVICE_UNAVAILABLE: "服务暂时不可用，请稍后再试。",
+  LOGIN_REQUIRED: tr("请先登录。"),
+  CLUB_NOT_FOUND: tr("申请的俱乐部已解散。"),
+  NOT_IN_CLUB: tr("尚未加入俱乐部。"),
+  ALREADY_IN_CLUB: tr("已有加入的俱乐部。"),
+  CLUB_NAME_TAKEN: tr("该俱乐部名已存在，无法使用。"),
+  INVALID_CLUB_NAME: tr("无法使用该名称。需最少输入2字，最多可输入10字。"),
+  INVALID_CLUB_INTRO: tr("无法使用该俱乐部简介。"),
+  INVALID_CLUB_MARK: tr("无法使用该俱乐部徽章。"),
+  CLUB_COOLDOWN: tr("退出24小时后才可以重新加入或创建俱乐部。"),
+  CLUB_FULL: tr("申请加入俱乐部失败。已超过俱乐部人数上限。"),
+  CLUB_APPLICANTS_FULL: tr("申请加入俱乐部失败。已超过申请人数上限。"),
+  CLUB_BREAKING: tr("该俱乐部处于申请解散期间。"),
+  NO_CLUB_APPLICATION: tr("没有申请记录。"),
+  CLUB_PERMISSION: tr("没有权限进行此操作。"),
+  CLUB_MASTER_CANNOT_LEAVE: tr("会长不能退出俱乐部，请解散俱乐部。"),
+  CLUB_BUDGET_LOW: tr("俱乐部预算不足。"),
+  CLUB_BUDGET_FULL: tr("已超出俱乐部预算上限。请下次再进行捐助。"),
+  CLUB_DONATED_TODAY: tr("每日限捐1次。"),
+  INVALID_DONATION: tr("捐助金额无效。"),
+  CLUB_MAX_LEVEL: tr("已达到最高等级。"),
+  CLUB_HQ_LEVEL: tr("请先升级俱乐部总部。"),
+  CLUB_CS_LOW: tr("俱乐部活跃度不足。"),
+  CLUB_MEMBERS_LOW: tr("俱乐部会员人数不足。"),
+  CLUB_WELFARE_LOCKED: tr("赛事中心等级不足。"),
+  CLUB_WELFARE_CLAIMED: tr("已发放今天的福利道具。"),
+  CLUB_SAME_NAME: tr("该俱乐部名称与变更前俱乐部名称相同，请重新输入。"),
+  CLUB_SAME_MARK: tr("该俱乐部徽章与变更前的俱乐部徽章相同，请重新选择。"),
+  CLUB_LEVEL_REQUIRED: tr("七彩色星星手套以上玩家可创建俱乐部。"),
+  INSUFFICIENT_FUNDS: tr("您的金币不足。"),
+  CLUB_MEMBER_NOT_FOUND: tr("该车手已不在俱乐部中。"),
+  RATE_LIMITED: tr("操作过于频繁，请稍后再试。"),
+  DATA_SERVICE_UNAVAILABLE: tr("服务暂时不可用，请稍后再试。"),
 };
 
 export function clubErrorMessage(error: unknown): string {
   const code = typeof error === "string" ? error : errorCode(error) ?? "";
-  return MESSAGES[code] ?? `操作失败（${code || "未知错误"}），请稍后再试。`;
+  return MESSAGES[code] ?? tr("操作失败（{0}），请稍后再试。", { "0": code || tr("未知错误") });
 }
 
 type Json = Record<string, unknown>;
@@ -368,12 +369,12 @@ export class ClubApi {
 
 /** Grade names of stage_clubMain (clubMaster, manager, firstMember, member). */
 export function gradeName(grade: number): string {
-  return ["", "俱乐部会长", "俱乐部管理层", "俱乐部优秀会员", "俱乐部会员"][grade] ?? "";
+  return ["", tr("俱乐部会长"), tr("俱乐部管理层"), tr("俱乐部优秀会员"), tr("俱乐部会员")][grade] ?? "";
 }
 
 /** "在线", "%d 分钟前"… from the member's online flag (no last-seen time here). */
 export function onlineText(member: Pick<ClubMember, "online">): string {
-  return member.online ? "在线" : "离线";
+  return member.online ? tr("在线") : tr("离线");
 }
 
 export function formatClubDate(ms: number): string {
@@ -384,5 +385,6 @@ export function formatClubDate(ms: number): string {
 
 /** "%d万" for whole ten-thousands, else the grouped number. */
 export function formatLucci(amount: number): string {
+  if (gameLocale() !== "zh-CN") return amount.toLocaleString(gameLocale());
   return amount % 10_000 === 0 && amount >= 10_000 ? `${amount / 10_000}万` : amount.toLocaleString("en-US");
 }

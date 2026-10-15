@@ -1,3 +1,5 @@
+import { localizeImageCaption } from "../shop/shop-widgets";
+import { tr, gameLocale } from "../i18n/locale";
 /**
  * The 精品道具场 (通用扭蛋): the release GachaUseStage (stage_/gachaUse
  * stage_window@zz) as DOM. It uses a lottery item the account holds (any
@@ -35,7 +37,7 @@ const BACKGROUNDS = [["통합가챠BG_1920", 1920, 1080], ["통합가챠BG_1600"
 const GLYPH = { width: 16, height: 28 };
 /** 选择扭蛋 under the name: a release TextButton (the monocoque blue DefaultFocusedButton). */
 const SELECT_BUTTON: ShopNode = { name: "TextButton", text: "", children: [], attributes: [
-  { name: "name", value: "selectGacha" }, { name: "text", value: "选择扭蛋" }, { name: "frame", value: "DefaultFocusedButton" },
+  { name: "name", value: "selectGacha" }, { name: "text", value: tr("选择扭蛋") }, { name: "frame", value: "DefaultFocusedButton" },
   { name: "textRender", value: "bold16" }, { name: "windowSize", value: "136 36" },
 ] };
 
@@ -106,7 +108,7 @@ export class GachaView {
 
   constructor(readonly options: LotteryScreenOptions, private readonly stage: LotteryStage,
     private readonly initialItem?: number) {
-    this.shell = new LotteryShell(options, "精品道具场", () => this.relayout(), () => this.close());
+    this.shell = new LotteryShell(options, tr("精品道具场"), () => this.relayout(), () => this.close());
     this.pictures = new LotteryPictures(options);
     this.layoutWindow = prepareWindow(stage.window);
     this.tree = new BmlTree(new ShopLayout(this.layoutWindow, screenRect(this.shell.screen)));
@@ -141,14 +143,15 @@ export class GachaView {
       const target = this.el(name);
       if (target instanceof HTMLButtonElement) {
         target.setAttribute("aria-label", label);
+        if (name !== "quitButton") localizeImageCaption(target, label);
         target.addEventListener("click", onClick);
       }
       return target;
     };
-    button("quitButton", "关闭", () => this.close());
-    button("oneUse", "使用1个", () => void this.use(1));
-    button("multiUse", "使用多个", () => void this.use(this.multiCount()));
-    button("buyButton", "兑换", () => void this.openPacks());
+    button("quitButton", tr("关闭"), () => this.close());
+    button("oneUse", tr("使用1个"), () => void this.use(1));
+    button("multiUse", tr("使用多个"), () => void this.use(this.multiCount()));
+    button("buyButton", tr("兑换"), () => void this.openPacks());
     for (const name of ["limitedFirstItemInfo", "mileagePrizeItemInfo", "mileagePrizeItemListInfo",
       "gachaBoxItemWindow", "itemSummaryInfoVerLimitedGacha", "stopButton", "itemGet", "itemAllUse", "itemNotExist",
       "itemBonusWarning", "itemMileagePrizeConfirmed"]) {
@@ -169,9 +172,9 @@ export class GachaView {
     }
     this.prev.type = this.next.type = "button";
     this.select.classList.add("ks-gacha-select");
-    this.select.setAttribute("aria-label", "选择扭蛋");
-    this.prev.setAttribute("aria-label", "上一个扭蛋");
-    this.next.setAttribute("aria-label", "下一个扭蛋");
+    this.select.setAttribute("aria-label", tr("选择扭蛋"));
+    this.prev.setAttribute("aria-label", tr("上一个扭蛋"));
+    this.next.setAttribute("aria-label", tr("下一个扭蛋"));
     this.prev.style.backgroundImage = `var(${imageVar("왼쪽화살_01")})`;
     this.next.style.backgroundImage = `var(${imageVar("오른화살_01")})`;
     this.prev.addEventListener("click", () => this.step(-1));
@@ -219,7 +222,7 @@ export class GachaView {
       if (list.daily.available) {
         try {
           const claim = await this.options.api.claimDaily("gacha");
-          this.shell.showNotice(`今日免费扭蛋道具已发放：${claim.items.map(itemLine).join("、")}`);
+          this.shell.showNotice(tr("今日免费扭蛋道具已发放：{0}", { "0": claim.items.map(itemLine).join("、") }));
           list = await this.options.api.gachaList();
           void this.options.session.refresh().catch(() => undefined);
         } catch (error) {
@@ -230,12 +233,12 @@ export class GachaView {
       this.entries = list.lotteries;
       const first = this.entries.find(entry => entry.itemId === this.initialItem) ?? this.entries[0];
       if (!first) {
-        this.shell.showNotice("暂时没有可以使用的扭蛋。", 6_000);
+        this.shell.showNotice(tr("暂时没有可以使用的扭蛋。"), 6_000);
         return;
       }
       await this.show(first.itemId);
     } catch (error) {
-      this.shell.showNotice(`精品道具场读取失败：${lotteryErrorMessage(error)}`, 6_000);
+      this.shell.showNotice(tr("精品道具场读取失败：{0}", { "0": lotteryErrorMessage(error) }), 6_000);
     }
   }
 
@@ -276,11 +279,12 @@ export class GachaView {
     const name = this.el("itemName");
     if (name) setText(name, lottery.caption || lottery.name);
     const period = this.el("itemUsePeriod");
-    if (period) setText(period, detail.activity.open ? periodLine(detail.activity) : "活动未开放");
+    if (period) setText(period, detail.activity.open ? periodLine(detail.activity) : tr("活动未开放"));
     const useful = this.el("itemUseful");
     const effectLines = lottery.effect.split("|").map(line => line.trim()).filter(Boolean);
-    if (useful) setText(useful, effectLines.find(line => line.includes("获得")) ??
-      (lottery.sets > 1 ? `可同时获得${lottery.sets}种道具` : "可获得构成道具中的1种"));
+    const sourceEffect = gameLocale() === "zh-CN" ? effectLines.find(line => line.includes("获得")) : undefined;
+    if (useful) setText(useful, sourceEffect ??
+      (lottery.sets > 1 ? tr("可同时获得{0}种道具", { "0": lottery.sets }) : tr("可获得构成道具中的1种")));
     this.picture(this.preview, { category: 24, itemId: lottery.itemId, name: lottery.name });
     this.preview.classList.remove("ks-gacha-pop");
     this.got.hidden = true;
@@ -292,18 +296,18 @@ export class GachaView {
     }));
     const more = this.el("getItemDesc", "itemSummaryInfo");
     if (more) more.hidden = detail.summary.length >= lottery.rewards;
-    this.summary.title = `共 ${lottery.rewards} 种道具` + (lottery.sets > 1 ? `，每次从 ${lottery.sets} 个奖池各获得 1 种` : "");
+    this.summary.title = tr("共 {0} 种道具", { "0": lottery.rewards }) + (lottery.sets > 1 ? tr("，每次从 {0} 个奖池各获得 1 种", { "0": lottery.sets }) : "");
 
     const keyName = detail.key?.name;
     const useDesc = this.el("itemUseDesc");
     if (useDesc) setText(useDesc, keyName
-      ? fillString(strings.get("itemUseDesc_needOther") ?? "使用时消耗1个%s和%s。", lottery.name, keyName)
-      : fillString(strings.get("itemUseDesc") ?? "使用时%s消耗1个。", lottery.name));
-    this.key.textContent = `持有 ${lottery.name} ${detail.owned} 个` +
-      (detail.key ? `　${detail.key.name} ${detail.key.owned} 个` : "");
+      ? fillString(strings.get("itemUseDesc_needOther") ?? tr("使用时消耗1个%s和%s。"), lottery.name, keyName)
+      : fillString(strings.get("itemUseDesc") ?? tr("使用时%s消耗1个。"), lottery.name));
+    this.key.textContent = tr("持有 {0} {1} 个", { "0": lottery.name, "1": detail.owned }) +
+      (detail.key ? tr("　{0} {1} 个", { "0": detail.key.name, "1": detail.key.owned }) : "");
     const buyDesc = this.el("itemBuyDesc");
     if (buyDesc) setText(buyDesc, detail.packs.length > 0
-      ? fillString(strings.get("itemBuyDesc") ?? "通过兑换按钮进行%s的兑换。", lottery.name) : "");
+      ? fillString(strings.get("itemBuyDesc") ?? tr("通过兑换按钮进行%s的兑换。"), lottery.name) : "");
     const buy = this.el("buyButton");
     if (buy) buy.hidden = detail.packs.length === 0;
     this.renderMileage(detail);
@@ -325,8 +329,8 @@ export class GachaView {
     const prizeName = this.el("prizeItemName");
     if (prizeName) setText(prizeName, itemsLine(next.items));
     const info = this.el("prizeInfo", "mileagePrizeItemInfo");
-    if (info) setText(info, mileage.event ? "[活动]道具不累计保底次数"
-      : fillString(strings.get("prizeInfoString") ?? "%d次以内必得", next.points - mileage.points));
+    if (info) setText(info, mileage.event ? tr("[活动]道具不累计保底次数")
+      : fillString(strings.get("prizeInfoString") ?? tr("%d次以内必得"), next.points - mileage.points));
     if (box) {
       let pic = box.querySelector<HTMLElement>(":scope > .ks-gacha-mileage-pic");
       if (!pic) {
@@ -336,7 +340,7 @@ export class GachaView {
       if (next.items[0]) this.picture(pic, next.items[0]);
     }
     const barInfo = this.el("prizeInfo", "mileagePrizeItemListInfo");
-    if (barInfo) setText(barInfo, fillString(strings.get("prizeInfoStringNew") ?? "剩余%d次", next.points - mileage.points));
+    if (barInfo) setText(barInfo, fillString(strings.get("prizeInfoStringNew") ?? tr("剩余%d次"), next.points - mileage.points));
     const fill = this.el("mileageBar");
     if (fill) {
       fill.hidden = false;
@@ -384,6 +388,22 @@ export class GachaView {
       part.style.height = "28px";
       x += widths[index]! + 4;
     });
+    if (gameLocale() !== "zh-CN") {
+      // These descendants are number/unit/use sprites with baked Chinese captions.
+      const hideChildren = (node: ShopNode): void => {
+        for (const child of node.children) {
+          const element = this.tree.elements.get(child);
+          if (element) element.hidden = true;
+          hideChildren(child);
+        }
+      };
+      for (const [name, amount] of [["oneUse", 1], ["multiUse", count]] as const) {
+        const node = findIn(this.layoutWindow, name);
+        if (node) hideChildren(node);
+        const target = this.el(name);
+        if (target) localizeImageCaption(target, tr("使用%d个").replace("%d", String(amount)));
+      }
+    }
     for (const name of ["oneUse", "multiUse"]) {
       const target = this.el(name);
       if (target instanceof HTMLButtonElement) {
@@ -416,8 +436,8 @@ export class GachaView {
     }
     const missing = detail.owned < 1 ? detail.lottery.name : detail.key && detail.key.owned < 1 ? detail.key.name : undefined;
     if (missing) {
-      const message = `${missing}持有数量不足，无法使用。` + (detail.packs.length > 0 ? "\n要打开兑换吗？" : "");
-      if (detail.packs.length > 0 && await this.shell.confirm("提示", message, "兑换")) await this.openPacks();
+      const message = tr("{0}持有数量不足，无法使用。", { "0": missing }) + (detail.packs.length > 0 ? tr("\n要打开兑换吗？") : "");
+      if (detail.packs.length > 0 && await this.shell.confirm(tr("提示"), message, tr("兑换"))) await this.openPacks();
       else if (detail.packs.length === 0) this.shell.showNotice(message);
       return;
     }
@@ -450,7 +470,7 @@ export class GachaView {
     const rows: HTMLElement[] = [];
     for (const draw of result.draws) {
       for (const item of draw.items) {
-        const row = element("div", "ks-gacha-row", `获得 ${itemLine(item)}`);
+        const row = element("div", "ks-gacha-row", tr("获得 {0}", { "0": itemLine(item) }));
         if (draw.notice) row.dataset.notice = "true";
         rows.push(row);
         this.obtained++;
@@ -458,7 +478,7 @@ export class GachaView {
     }
     for (const prize of result.prizes) {
       for (const item of prize.items) {
-        const row = element("div", "ks-gacha-row", `保底 ${itemLine(item)}`);
+        const row = element("div", "ks-gacha-row", tr("保底 {0}", { "0": itemLine(item) }));
         row.dataset.prize = "true";
         rows.push(row);
       }
@@ -466,11 +486,11 @@ export class GachaView {
     this.history.prepend(...rows.reverse());
     while (this.history.childElementCount > HISTORY) this.history.lastElementChild?.remove();
     const count = this.el("getItemCount");
-    if (count) setText(count, fillString(this.stage.strings.get("getItemCount") ?? "已获得%d个道具", this.obtained));
+    if (count) setText(count, fillString(this.stage.strings.get("getItemCount") ?? tr("已获得%d个道具"), this.obtained));
     if (result.draws.some(draw => draw.notice))
-      this.shell.showNotice(`恭喜你！获得了精品道具：${itemsLine(result.draws.filter(draw => draw.notice).flatMap(draw => draw.items))}`);
+      this.shell.showNotice(tr("恭喜你！获得了精品道具：{0}", { "0": itemsLine(result.draws.filter(draw => draw.notice).flatMap(draw => draw.items)) }));
     if (result.prizes.length > 0)
-      this.shell.showNotice(`保底奖励：${itemsLine(result.prizes.flatMap(prize => prize.items))}`);
+      this.shell.showNotice(tr("保底奖励：{0}", { "0": itemsLine(result.prizes.flatMap(prize => prize.items)) }));
   }
 
   /** The last drawn item in the middle with 获得…！ */
@@ -482,9 +502,9 @@ export class GachaView {
     this.preview.classList.remove("ks-gacha-pop");
     void this.preview.offsetWidth;
     this.preview.classList.add("ks-gacha-pop");
-    const template = this.stage.strings.get("getItem") ?? "获得%s！";
+    const template = this.stage.strings.get("getItem") ?? tr("获得%s！");
     this.got.textContent = result.draws.length > 1
-      ? `${fillString(template, itemLine(last))}（共 ${result.draws.length} 次）` : fillString(template, itemsLine(result.draws[0]?.items ?? [last]));
+      ? tr("{0}（共 {1} 次）", { "0": fillString(template, itemLine(last)), "1": result.draws.length }) : fillString(template, itemsLine(result.draws[0]?.items ?? [last]));
     this.got.hidden = false;
   }
 

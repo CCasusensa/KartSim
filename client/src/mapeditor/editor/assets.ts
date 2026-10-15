@@ -1,3 +1,4 @@
+import { tr } from "../../i18n/locale";
 /**
  * 编辑器读取官方素材：赛道列表、模型、物件、贴图，以及用游戏自己的赛道
  * 场景装配（c5）把官方物件画进视口。
@@ -60,7 +61,7 @@ export class EditorAssets {
     if (!pending) {
       pending = (async () => {
         const entry = this.library.get(sourceTrackPath(folder));
-        if (!entry) throw new Error(`找不到官方赛道 ${folder}。`);
+        if (!entry) throw new Error(tr("找不到官方赛道 {value}。", { value: String(folder) }));
         return y9(await entry.bytes()).root;
       })();
       pending.catch(() => this.models.delete(folder));
@@ -134,7 +135,7 @@ export class EditorAssets {
     const model = await this.model(folder);
     const scene = model.scene;
     const target = nodeAtPath(scene, path);
-    if (!target) throw new Error(`${folder} 里找不到物件 ${path.join("/")}。`);
+    if (!target) throw new Error(tr("{value} 里找不到物件 {value2}。", { value: String(folder), value2: String(path.join("/")) }));
     const ancestors: any[] = [scene];
     let node = scene;
     for (const index of path.slice(0, -1)) { node = node.children[index]; ancestors.push(node); }

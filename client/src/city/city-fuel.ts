@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /**
  * 卡丁城加油 (server-go/FUEL.md), the browser's side: the gas stations of
  * the map, what the HUD shows between the node's city-fuel updates, and
@@ -33,7 +34,7 @@ export function parseFuelStations(pois: readonly unknown[]): FuelStation[] {
     if (!raw || raw.kind !== "fuel" || typeof raw.id !== "string" || !pair(raw.at) || !Array.isArray(raw.zone) ||
         raw.zone.length < 3 || !raw.zone.every(pair) || !raw.park || !pair(raw.park.at)) continue;
     stations.push({
-      id: raw.id, name: typeof raw.name === "string" ? raw.name : "加油站",
+      id: raw.id, name: typeof raw.name === "string" ? raw.name : tr("加油站"),
       x: raw.at[0], z: raw.at[1], y: typeof raw.y === "number" ? raw.y : 0,
       zone: raw.zone as Array<[number, number]>,
       park: { x: raw.park.at[0], z: raw.park.at[1], y: typeof raw.park.y === "number" ? raw.park.y : 0,
@@ -84,7 +85,7 @@ export function nearestStation(x: number, z: number, stations: readonly FuelStat
 
 export const TANK_CLASS_NAMES: Record<string, string> = { small: "小型", medium: "中型", large: "大型", huge: "巨型" };
 
-export const tankClassName = (sizeClass: string): string => TANK_CLASS_NAMES[sizeClass] ?? "中型";
+export const tankClassName = (sizeClass: string): string => tr(TANK_CLASS_NAMES[sizeClass] ?? "中型");
 
 /** Litres with one decimal ("23.4"). */
 export function liters(ml: number): string {
@@ -198,13 +199,13 @@ export function fuelPrompt(fuel: CityFuel | undefined, x: number, z: number, spe
   if (!fuel) return { kind: "none" };
   const station = stationAt(x, z, stations);
   if (station) {
-    if (tankFull(fuel)) return { kind: "full", station, text: `${station.name} · 油箱已满` };
-    if (speedKmh > REFUEL_PROMPT_KMH) return { kind: "slow-down", station, text: `${station.name} · 停车后按 F 加油` };
-    return { kind: "refuel", station, text: `${station.name} · 按 F 加油` };
+    if (tankFull(fuel)) return { kind: "full", station, text: tr("{value0} · 油箱已满", { value0: tr(station.name) }) };
+    if (speedKmh > REFUEL_PROMPT_KMH) return { kind: "slow-down", station, text: tr("{value0} · 停车后按 F 加油", { value0: tr(station.name) }) };
+    return { kind: "refuel", station, text: tr("{value0} · 按 F 加油", { value0: tr(station.name) }) };
   }
   if (fuel.empty) {
-    const fee = fuel.rescueFee > 0 ? `${fuel.rescueFee} 金币` : "免费";
-    return { kind: "rescue", text: `油箱空了，车已熄火 · 按 F 呼叫道路救援（${fee}）` };
+    const fee = fuel.rescueFee > 0 ? tr("{value0} 金币", { value0: fuel.rescueFee }) : tr("免费");
+    return { kind: "rescue", text: tr("油箱空了，车已熄火 · 按 F 呼叫道路救援（{value0}）", { value0: fee }) };
   }
   return { kind: "none" };
 }
@@ -233,5 +234,5 @@ export const FUEL_ERROR_TEXT: Record<string, string> = {
 
 export function fuelErrorText(error: unknown): string {
   const code = error instanceof Error ? error.message : String(error);
-  return FUEL_ERROR_TEXT[code] ?? `操作失败：${code}`;
+  return (FUEL_ERROR_TEXT[code] && tr(FUEL_ERROR_TEXT[code])) ?? tr("操作失败：{value0}", { value0: code });
 }

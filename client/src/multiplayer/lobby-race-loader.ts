@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import type { CoordinatedRace, CoordinatedRoom, PreparedRace,
   RaceStartOptions } from "./race-start-coordinator";
@@ -108,7 +109,7 @@ export function initializeLobbyRace(host: LobbyRaceHost,
         const banner = await deps.loadRandomTeam(options.library, options.root,
           race, host.playerId);
         try {
-          if (signal.aborted || host.disposed) throw new Error("队伍随机分配展示已取消。");
+          if (signal.aborted || host.disposed) throw new Error(tr("队伍随机分配展示已取消。"));
           host.randomTeamNotice = banner;
           host.syncLoadingView();
           await banner.present(signal);
@@ -124,7 +125,7 @@ export function initializeLobbyRace(host: LobbyRaceHost,
         const banner = await deps.loadRoadblock(options.library, options.root,
           race, host.playerId);
         try {
-          if (signal.aborted || host.disposed) throw new Error("本局任务横幅已取消。");
+          if (signal.aborted || host.disposed) throw new Error(tr("本局任务横幅已取消。"));
           host.startMission = banner;
           host.syncLoadingView();
           await banner.present(signal);
@@ -140,7 +141,7 @@ export function initializeLobbyRace(host: LobbyRaceHost,
         const banner = await deps.loadRpNotice(options.library, options.root,
           race, host.playerId, options.audioContext?.());
         try {
-          if (signal.aborted || host.disposed) throw new Error("本局 RP 结果展示已取消。");
+          if (signal.aborted || host.disposed) throw new Error(tr("本局 RP 结果展示已取消。"));
           host.rpNotice = banner;
           host.syncLoadingView();
           await banner.present(signal);
@@ -152,12 +153,12 @@ export function initializeLobbyRace(host: LobbyRaceHost,
           }
         }
       }
-      if (signal.aborted || host.disposed) throw new Error("本局开始展示已取消。");
+      if (signal.aborted || host.disposed) throw new Error(tr("本局开始展示已取消。"));
       presentation.complete = true;
       host.syncLoadingView();
       if (petPreload) {
         const result = await petPreload;
-        if (signal.aborted || host.disposed) throw new Error("本局飞宠预读已取消。");
+        if (signal.aborted || host.disposed) throw new Error(tr("本局飞宠预读已取消。"));
         if (!result.ok) throw result.error;
       }
 
@@ -172,7 +173,7 @@ export function initializeLobbyRace(host: LobbyRaceHost,
         sendRaceChat: text => {
           const current = host.state.room;
           return signal.aborted || current?.roomId !== room.roomId
-            ? Promise.reject(new Error("本局已结束。"))
+            ? Promise.reject(new Error(tr("本局已结束。")))
             : current.phase === "open"
               ? host.client.request({ type: "chat", roomId: room.roomId, text })
               : connection.sendRaceChat(text);
@@ -192,7 +193,7 @@ export function initializeLobbyRace(host: LobbyRaceHost,
           const current = host.state.room;
           if (signal.aborted || current?.roomId !== room.roomId ||
               current.race?.raceId !== race.raceId) {
-            throw new Error("本局已结束。");
+            throw new Error(tr("本局已结束。"));
           }
           return host.client.request({ type: "leave", roomId: current.roomId,
             revision: current.revision });
@@ -201,7 +202,7 @@ export function initializeLobbyRace(host: LobbyRaceHost,
           if (signal.aborted || host.disposed || host.state.room?.roomId !== room.roomId ||
               host.state.room.phase !== "open" || stage.presentingResults?.()) return;
           void connection.returnToRoom?.().catch(error => {
-            if (!host.disposed) options.status(`返房同步失败：${formatMultiplayerError(error)}`, true);
+            if (!host.disposed) options.status(tr("返房同步失败：{value}", { value: String(formatMultiplayerError(error)) }), true);
           });
           returnedToRoom = true;
           host.startCoordinator?.releasePresentedRace();
@@ -260,7 +261,7 @@ export function initializeLobbyRace(host: LobbyRaceHost,
     onError: error => {
       console.error("Multiplayer race loading failed", error);
       host.syncLoadingView();
-      options.status(`比赛加载失败：${formatMultiplayerError(error)}`, true);
+      options.status(tr("比赛加载失败：{value}", { value: String(formatMultiplayerError(error)) }), true);
     },
   });
 }

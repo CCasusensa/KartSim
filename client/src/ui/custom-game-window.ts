@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { p2 } from "../generated/formats.js";
 import { customTrackId, draftTrackId } from "../mapeditor/design";
 import { registerLocalDrafts, registerServerMap } from "../mapeditor/custom-map-loader";
@@ -71,7 +72,7 @@ export function customGameDefinition(): Node {
   // 两栏顶边、底边对齐；最下面一行是状态文字和居中的“关闭”（与资源下载窗口相同）。
   return node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
     node("CaptionWindow", { name: "customDialog", windowRect: "0 0 880 616", frame: "CaptionDialog",
-      caption: "地图工坊", captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
+      caption: tr("地图工坊"), captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
       node("TextButton", { name: "tabAll", windowSize: "104 28", adjust: "0 6", textRender: "bold14" }),
       node("TextButton", { name: "tabMine", windowSize: "104 28", adjust: "108 6", textRender: "bold14" }),
       node("CaptionWindow", { name: "listCaption", windowSize: "330 438", adjust: "0 40", frame: "CaptionWindowGrey" }, [
@@ -151,7 +152,7 @@ export class CustomGameWindow {
 
   private async build(): Promise<void> {
     const rows = new WeakMap<Node, number>();
-    const view = await loadWindow(this.options.library, this.options.root, customGameDefinition(), "地图工坊",
+    const view = await loadWindow(this.options.library, this.options.root, customGameDefinition(), tr("地图工坊"),
       () => this.close(), entry => this.state(entry, rows), tree => indexRows(tree, "mapRow", rows));
     if (this.disposed) { view.dispose(); return; }
     this.view = view;
@@ -170,7 +171,7 @@ export class CustomGameWindow {
   async reload(): Promise<void> {
     if (this.loading) return;
     this.loading = true;
-    this.status = "正在读取地图列表…";
+    this.status = tr("正在读取地图列表…");
     this.render();
     const token = storedSessionToken();
     const [published, mine, builds] = await Promise.all([
@@ -187,8 +188,8 @@ export class CustomGameWindow {
       .map(build => ({ trackId: draftTrackId(build.id), summary: { ...build.summary, source: "local" }, kind: "draft",
         mine: true, build }));
     this.entries.mine = [...(mine ?? []).map(server), ...drafts];
-    this.status = published ? `社区共有 ${published.length} 张地图${token ? "" : "；登录后可以发布自己的地图"}。`
-      : "连不上服务器，只显示本机草稿。";
+    this.status = published ? tr(token ? "社区共有 {count} 张地图。" : "社区共有 {count} 张地图；登录后可以发布自己的地图。", { count: published.length })
+      : tr("连不上服务器，只显示本机草稿。");
     this.loading = false;
     const list = this.list();
     if (!this.selected || !list.some(entry => entry.trackId === this.selected)) this.selected = list[0]?.trackId;
@@ -249,10 +250,10 @@ export class CustomGameWindow {
       const image = this.images.named(ROOTS, `${items ? ROW_IMAGE.item : ROW_IMAGE.speed}${selected ? 5 : this.hovered(entry) ? 2 : 1}`);
       if (image) drawRow(context, image, rect);
       const middle = rect.y + rect.height / 2 + 1;
-      drawLabel(context, map.kind === "draft" ? "草稿" : items ? "道具" : "竞速", rect.x + 37, middle,
+      drawLabel(context, map.kind === "draft" ? tr("草稿") : items ? tr("道具") : tr("竞速"), rect.x + 37, middle,
         { bold: true, align: "center", size: 12 });
       drawLabel(context, map.summary.name, rect.x + 78, middle, { width: rect.width - 78 - 96 });
-      drawLabel(context, map.kind === "draft" ? "本机" : map.summary.author, rect.x + rect.width - 22, middle,
+      drawLabel(context, map.kind === "draft" ? tr("本机") : map.summary.author, rect.x + rect.width - 22, middle,
         { size: 12, align: "right", color: "rgb(70,80,100)", width: 80 });
     };
   }
@@ -272,19 +273,19 @@ export class CustomGameWindow {
 
   private info(entry: CustomGameEntry): string {
     const summary = entry.summary;
-    const items = summary.items > 0 ? `道具箱 ${summary.items} 个（竞速、道具赛都能用）` : "没有道具箱（只能竞速）";
+    const items = summary.items > 0 ? tr("道具箱 {count} 个（竞速、道具赛都能用）", { count: summary.items }) : tr("没有道具箱（只能竞速）");
     return [
-      `作者：${entry.kind === "draft" ? "我（本机草稿）" : summary.author || "未知"}　　主题：${THEME_TITLES[summary.theme] ?? summary.theme}`,
-      `圈数：${summary.laps}　　难度：${stars(summary.difficulty)}`,
+      tr("作者：{author}　　主题：{theme}", { author: entry.kind === "draft" ? tr("我（本机草稿）") : summary.author || tr("未知"), theme: tr(THEME_TITLES[summary.theme] ?? summary.theme) }),
+      tr("圈数：{laps}　　难度：{difficulty}", { laps: summary.laps, difficulty: stars(summary.difficulty) }),
       items,
-      `大小：${sizeText(summary.size)}　　更新：${dateText(summary.updatedAt)}`,
+      tr("大小：{size}　　更新：{date}", { size: sizeText(summary.size), date: dateText(summary.updatedAt) }),
     ].join("|");
   }
 
   private tip(entry: CustomGameEntry | undefined): string {
-    if (!entry) return this.tab === "mine" ? "点“制作新地图”打开地图工坊，做好后“发布”，大家就能在这里玩到。" : "";
-    if (entry.kind === "draft") return "本机草稿只有你能玩；在地图工坊里“发布”后，所有人都能在这里和多人竞速房里玩到。";
-    return "多人游戏里建竞速房（有道具箱的地图也可以建道具房），在“选择赛道”里搜索地图名字就能和大家一起玩。";
+    if (!entry) return this.tab === "mine" ? tr("点“制作新地图”打开地图工坊，做好后“发布”，大家就能在这里玩到。") : "";
+    if (entry.kind === "draft") return tr("本机草稿只有你能玩；在地图工坊里“发布”后，所有人都能在这里和多人竞速房里玩到。");
+    return tr("多人游戏里建竞速房（有道具箱的地图也可以建道具房），在“选择赛道”里搜索地图名字就能和大家一起玩。");
   }
 
   private state(entry: Node, rows: WeakMap<Node, number>): NodeState {
@@ -300,21 +301,21 @@ export class CustomGameWindow {
     }
     const current = this.current();
     switch (name) {
-      case "customDialog": return { text: "地图工坊" };
-      case "closeButton": return { label: "关闭", action: () => this.close() };
-      case "okButton": return button("关闭", () => this.close());
+      case "customDialog": return { text: tr("地图工坊") };
+      case "closeButton": return { label: tr("关闭"), action: () => this.close() };
+      case "okButton": return button(tr("关闭"), () => this.close());
       // 当前标签用橙色字（窗口渲染器没有“选中”状态）
-      case "tabAll": return { ...button("全部地图", () => this.showTab("all")), ...(this.tab === "all" ? { textColor: ACTIVE_TAB } : {}) };
-      case "tabMine": return { ...button("我的地图", () => this.showTab("mine")), ...(this.tab === "mine" ? { textColor: ACTIVE_TAB } : {}) };
-      case "listCaptionText": return { text: `${this.tab === "all" ? "社区地图" : "我的地图"}（${list.length}）` };
+      case "tabAll": return { ...button(tr("全部地图"), () => this.showTab("all")), ...(this.tab === "all" ? { textColor: ACTIVE_TAB } : {}) };
+      case "tabMine": return { ...button(tr("我的地图"), () => this.showTab("mine")), ...(this.tab === "mine" ? { textColor: ACTIVE_TAB } : {}) };
+      case "listCaptionText": return { text: `${this.tab === "all" ? tr("社区地图") : tr("我的地图")}（${list.length}）` };
       case "listEmpty": return list.length || this.loading ? { visible: false } : paintText(this.tab === "all"
-        ? "还没有人发布地图。|点右下角“制作新地图”，做第一张吧！" : "你还没有地图。|点“制作新地图”打开地图工坊。",
+        ? tr("还没有人发布地图。|点右下角“制作新地图”，做第一张吧！") : tr("你还没有地图。|点“制作新地图”打开地图工坊。"),
       { size: 14, color: "white", align: "center", middle: true, lineGap: 8 });
-      case "listPrev": return { ...button("上一页", () => this.turn(-1), this.page <= 0), visible: list.length > ROWS };
-      case "listNext": return { ...button("下一页", () => this.turn(1), this.page >= this.maxPage()), visible: list.length > ROWS };
+      case "listPrev": return { ...button(tr("上一页"), () => this.turn(-1), this.page <= 0), visible: list.length > ROWS };
+      case "listNext": return { ...button(tr("下一页"), () => this.turn(1), this.page >= this.maxPage()), visible: list.length > ROWS };
       case "listPage": return list.length > ROWS ? paintText(`${this.page + 1} / ${this.maxPage() + 1}`, { size: 13,
         color: "black", align: "center", middle: true, bold: true }) : { visible: false };
-      case "detailTitle": return { text: current?.summary.name ?? (this.loading ? "读取中…" : "地图工坊") };
+      case "detailTitle": return { text: current?.summary.name ?? (this.loading ? tr("读取中…") : tr("地图工坊")) };
       case "detailBack": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => {
         const frame = this.images.path(FRAME_TEXTURE);
         if (frame) drawGreyPanel(context, frame, rect);
@@ -326,25 +327,25 @@ export class CustomGameWindow {
         else {
           context.fillStyle = "rgba(30,45,70,.55)";
           context.fillRect(rect.x, rect.y, rect.width, rect.height);
-          drawLabel(context, "正在读取卡片…", rect.x + rect.width / 2, rect.y + rect.height / 2, { align: "center", color: "white" });
+          drawLabel(context, tr("正在读取卡片…"), rect.x + rect.width / 2, rect.y + rect.height / 2, { align: "center", color: "white" });
         }
       } };
       case "info": return current ? paintText(this.info(current), { size: 14, color: TEXT, align: "center", lineGap: 10 })
         : { visible: false };
       // 自己的地图三个按钮（playButton…removeButton），别人的地图两个（playButton2、editButton2），都居中
-      case "playButton": return current?.mine ? button("开始计时赛", () => void this.play(current)) : { visible: false };
-      case "editButton": return current?.mine ? button("在地图工坊修改", () => this.edit(current)) : { visible: false };
-      case "playButton2": return current && !current.mine ? button("开始计时赛", () => void this.play(current)) : { visible: false };
-      case "editButton2": return current && !current.mine ? button("用地图工坊打开", () => this.edit(current)) : { visible: false };
-      case "removeButton": return current?.mine ? button(current.kind === "draft" ? "删除草稿" : "下架",
+      case "playButton": return current?.mine ? button(tr("开始计时赛"), () => void this.play(current)) : { visible: false };
+      case "editButton": return current?.mine ? button(tr("在地图工坊修改"), () => this.edit(current)) : { visible: false };
+      case "playButton2": return current && !current.mine ? button(tr("开始计时赛"), () => void this.play(current)) : { visible: false };
+      case "editButton2": return current && !current.mine ? button(tr("用地图工坊打开"), () => this.edit(current)) : { visible: false };
+      case "removeButton": return current?.mine ? button(current.kind === "draft" ? tr("删除草稿") : tr("下架"),
         () => void this.confirmRemove(current)) : { visible: false };
       case "detailTip": return paintText(this.tip(current), { size: 12, color: "rgb(70,80,100)", align: "center", lineGap: 6 });
       case "summary": return paintText(this.status, { size: 13, color: TEXT, bold: true, middle: true });
-      case "newMap": return button("制作新地图", () => {
+      case "newMap": return button(tr("制作新地图"), () => {
         this.options.onActivate?.();
         window.open("/editor.html", "kartsim-mapeditor");
       });
-      case "refresh": return button("刷新", () => { this.options.onActivate?.(); void this.reload(); }, this.loading);
+      case "refresh": return button(tr("刷新"), () => { this.options.onActivate?.(); void this.reload(); }, this.loading);
     }
     return {};
   }
@@ -359,9 +360,9 @@ export class CustomGameWindow {
     if (this.confirmView || this.disposed) return;
     this.options.onActivate?.();
     const draft = entry.kind === "draft";
-    const title = draft ? "删除草稿" : "下架地图";
-    const text = draft ? `删除本机草稿“${entry.summary.name}”？|地图工坊里的这张草稿也会删除。`
-      : `下架“${entry.summary.name}”？|服务器上的地图会被删除，别人再也玩不到；本机草稿不受影响。`;
+    const title = draft ? tr("删除草稿") : tr("下架地图");
+    const text = draft ? tr("删除本机草稿“{name}”？|地图工坊里的这张草稿也会删除。", { name: entry.summary.name })
+      : tr("下架“{name}”？|服务器上的地图会被删除，别人再也玩不到；本机草稿不受影响。", { name: entry.summary.name });
     let view: WindowView | undefined;
     const close = () => { if (this.confirmView === view) this.confirmView = undefined; view?.dispose(); };
     const confirm = async () => {
@@ -371,12 +372,12 @@ export class CustomGameWindow {
         if (draft) await deleteDraft(entry.summary.id);
         else {
           const token = storedSessionToken();
-          if (!token) throw new Error("请先登录。");
+          if (!token) throw new Error(tr("请先登录。"));
           await deleteMap(entry.summary.id, token);
         }
-        this.status = draft ? "草稿已删除。" : "地图已下架。";
+        this.status = draft ? tr("草稿已删除。") : tr("地图已下架。");
       } catch (error) {
-        this.status = `${title}失败：${(error as Error).message}`;
+        this.status = tr("{title}失败：{error}", { title, error: (error as Error).message });
       }
       this.selected = undefined;
       await this.reload();
@@ -394,9 +395,9 @@ export class CustomGameWindow {
         switch (nodeName(item)) {
           case "confirmDialog": return { text: title };
           case "confirmText": return paintText(text, { size: 14, color: TEXT, align: "center", middle: true, lineGap: 8 });
-          case "confirmOk": return button("确定", () => void confirm());
-          case "closeButton": return { label: "取消", action: close };
-          case "confirmCancel": return button("取消", close);
+          case "confirmOk": return button(tr("确定"), () => void confirm());
+          case "closeButton": return { label: tr("取消"), action: close };
+          case "confirmCancel": return button(tr("取消"), close);
         }
         return {};
       });

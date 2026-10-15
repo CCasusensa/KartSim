@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { formatMultiplayerError } from "./errors";
 import type { Gameplay, LobbyControllerHost, LobbyRoom } from "./lobby-actions";
 
@@ -77,13 +78,13 @@ export function receiveLobbyEvent(host: LobbyEventHost, event: LobbyEvent,
     host.render();
     host.options.onPageAudio?.("lobby");
     host.options.status(event.type === "left" && !event.requestId
-      ? "你已被移出房间。" : "已返回多人大厅。");
+      ? tr("你已被移出房间。") : tr("已返回多人大厅。"));
     if (host.channelName) void host.list(host.channelName, host.page);
     return;
   }
 
   const gameplay = current.gameplay ?? "ordinary";
-  if (!gameplaySet.has(gameplay)) throw new Error("未知的房间玩法");
+  if (!gameplaySet.has(gameplay)) throw new Error(tr("未知的房间玩法"));
   host.gameplay = gameplay;
   if (host.autoReadyRoom !== current.roomId) {
     host.autoReadyRoom = current.roomId;
@@ -108,22 +109,22 @@ export function receiveLobbyEvent(host: LobbyEventHost, event: LobbyEvent,
   if (lateJoiner) {
     // Joined after the start: not in this race's frozen roster, so wait in the room.
     host.startCoordinator?.reset();
-    host.options.status("房间正在比赛中，本局结束后即可准备。");
+    host.options.status(tr("房间正在比赛中，本局结束后即可准备。"));
   } else if (droppedOut) {
     host.startCoordinator?.reset();
-    host.options.status("你未能完成加载，已退出本局比赛；其他玩家继续比赛，本局结束后即可准备。", true);
+    host.options.status(tr("你未能完成加载，已退出本局比赛；其他玩家继续比赛，本局结束后即可准备。"), true);
   } else if (current.race?.returnedIds?.includes(host.playerId)) {
     host.startCoordinator?.reset();
-    host.options.status("已返回原房间，等待其他玩家结束结算；全部返回后可重新准备。");
+    host.options.status(tr("已返回原房间，等待其他玩家结束结算；全部返回后可重新准备。"));
   } else {
     host.startCoordinator?.update(current);
   }
   if (lateJoiner || droppedOut) {
     // Status set above; the phase messages below are for racers.
   } else if (current.phase === "loading" && !host.startCoordinator) {
-    host.options.status(`正在加载比赛，${current.race?.loadedIds.length ?? 0}/${current.members.length} 人已就绪…`);
+    host.options.status(tr("正在加载比赛，{value}/{value2} 人已就绪…", { value: String(current.race?.loadedIds.length ?? 0), value2: String(current.members.length) }));
   } else if (current.phase === "countdown") {
-    host.options.status("已加载玩家等待统一起跑；超时玩家已按掉线处理。");
+    host.options.status(tr("已加载玩家等待统一起跑；超时玩家已按掉线处理。"));
   } else if (current.phase === "open" && current.raceError) {
     host.options.status(formatMultiplayerError(new Error(current.raceError)), true);
   }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 import { te } from "../generated/library.js";
 import { node, nodeName, type BmlLibrary, type Node, type Rect, type WindowView } from "./bml-kit";
 import { paintRandomTeamBanner } from "./random-team-art";
@@ -55,7 +56,7 @@ export class RandomTeamNotice {
     const notice = new RandomTeamNotice(dependencies);
     notice.view = await loadView({
       library, root, definition: randomTeamNoticeDefinition(), roots: ["stage_/mqReady", "stage_/common"],
-      label: "队伍随机分配", preserveDisplayPixels: true, smoothImages: true,
+      label: tr("队伍随机分配"), preserveDisplayPixels: true, smoothImages: true,
       state: (entry: Node) => nodeName(entry) === "randomTeamBand" ? {
         paint: (context: CanvasRenderingContext2D, rect: Rect) => {
           const progress = randomTeamNoticeProgress(dependencies.nowMs() - notice.since);

@@ -1,3 +1,4 @@
+import { tr, gameLocale } from "../i18n/locale";
 /**
  * The 寻宝 (treasure hunt) screen: the release RouletteStage
  * (stage_/treasureHunt stage_window@zz) as DOM. Nine board slots show the
@@ -15,7 +16,7 @@
 import type { ShopNode, ShopRect } from "../shop/shop-original";
 import { attr, screenRect, ShopLayout } from "../shop/shop-original";
 import { imageVar } from "../shop/shop-assets";
-import { BmlTree, createNodeElement, element, place, setText } from "../shop/shop-widgets";
+import { BmlTree, createNodeElement, element, place, setText, localizeImageCaption } from "../shop/shop-widgets";
 import { lotteryErrorMessage, type DrawResult, type HuntSlot, type LotteryDraw,
   type TreasureHuntState } from "./lottery-api";
 import { findIn, isLotteryLibrary, loadLotteryStage, loadStageArt, prune, TREASURE_ROOTS,
@@ -37,7 +38,7 @@ const MAX_DUPLICATE_ROUNDS = 20;
 const SKIP_KEY = "kartsim.treasureHunt.skipAnimation";
 /** 活动当前未开放 over the board: a plate in the release BlackEdit frame (the game toast's), white outlined text. */
 const CLOSED_NOTE: ShopNode = { name: "Label", text: "", children: [], attributes: [
-  { name: "name", value: "closedNote" }, { name: "frame", value: "BlackEdit" }, { name: "text", value: "活动当前未开放" },
+  { name: "name", value: "closedNote" }, { name: "frame", value: "BlackEdit" }, { name: "text", value: tr("活动当前未开放") },
   { name: "textRender", value: "outline24" }, { name: "textColor", value: "white" }, { name: "textAlign", value: "center" },
 ] };
 
@@ -135,7 +136,7 @@ export class TreasureHuntView {
   private readonly closedNote = createNodeElement(CLOSED_NOTE);
 
   constructor(readonly options: LotteryScreenOptions, private readonly stage: LotteryStage) {
-    this.shell = new LotteryShell(options, "寻宝活动", () => this.relayout(), () => this.close());
+    this.shell = new LotteryShell(options, tr("寻宝活动"), () => this.relayout(), () => this.close());
     this.pictures = new LotteryPictures(options);
     this.layoutWindow = prepareWindow(stage.window);
     this.tree = new BmlTree(new ShopLayout(this.layoutWindow, screenRect(this.shell.screen)));
@@ -170,14 +171,14 @@ export class TreasureHuntView {
       if (target instanceof HTMLButtonElement) target.addEventListener("click", onClick);
       return target;
     };
-    button("quitButton", () => this.close())?.setAttribute("aria-label", "关闭");
-    button("oneUse", () => void this.draw(1))?.setAttribute("aria-label", "1个使用");
-    button("multiUse", () => void this.draw(10))?.setAttribute("aria-label", "10个使用");
-    button("multiAutoUse", () => void this.drawAuto())?.setAttribute("aria-label", "10个使用（连续）");
-    button("buyButton", () => void this.openPacks())?.setAttribute("aria-label", "兑换");
+    button("quitButton", () => this.close())?.setAttribute("aria-label", tr("关闭"));
+    button("oneUse", () => void this.draw(1))?.setAttribute("aria-label", tr("1个使用"));
+    button("multiUse", () => void this.draw(10))?.setAttribute("aria-label", tr("10个使用"));
+    button("multiAutoUse", () => void this.drawAuto())?.setAttribute("aria-label", tr("10个使用（连续）"));
+    button("buyButton", () => void this.openPacks())?.setAttribute("aria-label", tr("兑换"));
     const stop = button("stopAutoButton", () => { this.stopRequested = true; });
     if (stop) {
-      stop.setAttribute("aria-label", "停止连抽");
+      stop.setAttribute("aria-label", tr("停止连抽"));
       stop.style.zIndex = "20";
       this.shell.stage.append(stop);
     }
@@ -191,8 +192,14 @@ export class TreasureHuntView {
     });
     if (check) {
       check.classList.add("ks-hunt-check");
-      check.setAttribute("aria-label", "跳过动画");
+      check.setAttribute("aria-label", tr("跳过动画"));
       check.setAttribute("aria-pressed", String(this.skip));
+    }
+    for (const [name, label] of Object.entries({ oneUse: tr("1个使用"), multiUse: tr("10个使用"),
+      multiAutoUse: tr("10个使用（连续）"), buyButton: tr("兑换"), stopAutoButton: tr("停止连抽"),
+      fixedRewardConfirmButton: tr("确定") })) {
+      const target = this.el(name);
+      if (target) localizeImageCaption(target, label);
     }
     this.shell.element.dataset.skipAnimation = String(this.skip);
     for (let slot = 1; slot <= SLOT_COUNT; slot++) {
@@ -215,7 +222,7 @@ export class TreasureHuntView {
       if (state.daily.available) {
         try {
           const claim = await this.options.api.claimDaily("treasureHunt");
-          this.shell.showNotice(`今日免费寻宝道具已发放：${claim.items.map(itemLine).join("、")}`);
+          this.shell.showNotice(tr("今日免费寻宝道具已发放：{0}", { "0": claim.items.map(itemLine).join("、") }));
           state = await this.options.api.treasureHunt();
           void this.options.session.refresh().catch(() => undefined);
         } catch (error) {
@@ -225,7 +232,7 @@ export class TreasureHuntView {
       if (this.shell.disposed) return;
       this.render(state);
     } catch (error) {
-      this.shell.showNotice(`寻宝读取失败：${lotteryErrorMessage(error)}`, 6_000);
+      this.shell.showNotice(tr("寻宝读取失败：{0}", { "0": lotteryErrorMessage(error) }), 6_000);
     }
   }
 
@@ -263,10 +270,10 @@ export class TreasureHuntView {
         if (!pic.firstChild) {
           pic.classList.add("ks-lottery-pic");
           pic.append(element("div", "ks-lottery-cube"));
-          host.append(nameLabel(this.stage.strings.get("treasureHuntMysticCube") ?? "寻宝神秘魔方", 150));
+          host.append(nameLabel(this.stage.strings.get("treasureHuntMysticCube") ?? tr("寻宝神秘魔方"), 150));
         }
         host.title = `${(this.stage.strings.get("treasureHuntMysticCube_tooltip") ?? "").replaceAll("|", "\n")}\n` +
-          `共 ${state.others.rewards} 种道具，合计概率 ${chanceText(state.others.chance)}`;
+          tr("共 {0} 种道具，合计概率 {1}", { "0": state.others.rewards, "1": chanceText(state.others.chance) });
         continue;
       }
       if (!reward) continue;
@@ -276,8 +283,8 @@ export class TreasureHuntView {
         this.picture(pic, item);
         host.append(nameLabel(item.name, 150));
       }
-      host.title = `${itemsLine(reward.items)}\n概率 ${chanceText(reward.chance)}` +
-        (reward.acquireCount ? `\n${reward.acquireCount}次以内必得（还需${reward.remaining}次）` : "");
+      host.title = tr("{0}\n概率 {1}", { "0": itemsLine(reward.items), "1": chanceText(reward.chance) }) +
+        (reward.acquireCount ? tr("\n{0}次以内必得（还需{1}次）", { "0": reward.acquireCount, "1": reward.remaining ?? 0 }) : "");
     }
     this.renderPity(state.slots);
     this.renderMaterials(state);
@@ -285,7 +292,7 @@ export class TreasureHuntView {
 
   private renderPity(slots: readonly HuntSlot[]): void {
     const pity = slots.filter(slot => slot.acquireCount).sort((a, b) => a.slot - b.slot);
-    const template = this.stage.strings.get("chanceCount") ?? "%d次以内可获得";
+    const template = this.stage.strings.get("chanceCount") ?? tr("%d次以内可获得");
     for (let index = 1; index <= PITY_CARDS; index++) {
       const card = this.el(`rewardStockCard${index}`);
       if (!card) continue;
@@ -309,8 +316,8 @@ export class TreasureHuntView {
         pic.dataset.key = String(slot.stockId);
         this.picture(pic, slot.items[0]);
       }
-      card.title = `${itemsLine(slot.items)}\n${slot.acquireCount}次以内必得，还需${slot.remaining}次\n` +
-        "使用[活动]放大镜不累计保底次数";
+      card.title = tr("{0}\n{1}次以内必得，还需{2}次\n", { "0": itemsLine(slot.items), "1": slot.acquireCount ?? 0, "2": slot.remaining ?? 0 }) +
+        tr("使用[活动]放大镜不累计保底次数");
     }
   }
 
@@ -320,7 +327,7 @@ export class TreasureHuntView {
   }
 
   private renderMaterials(state: TreasureHuntState): void {
-    const count = this.stage.strings.get("count") ?? "%d 个";
+    const count = this.stage.strings.get("count") ?? tr("%d 个");
     const magnifiers = this.magnifiers(state);
     const maps = state.materials.other.owned;
     const material = this.el("materialCount");
@@ -328,12 +335,12 @@ export class TreasureHuntView {
     const other = this.el("needOtherCount");
     if (other) setText(other, fillString(count, maps));
     const icon = this.el("materialImg");
-    if (icon) icon.title = `${state.materials.material.name} ${state.materials.material.owned} 个` +
-      (state.materials.eventMaterial ? `\n${state.materials.eventMaterial.name} ${state.materials.eventMaterial.owned} 个（优先使用，不累计保底）` : "");
+    if (icon) icon.title = tr("{0} {1} 个", { "0": state.materials.material.name, "1": state.materials.material.owned }) +
+      (state.materials.eventMaterial ? tr("\n{0} {1} 个（优先使用，不累计保底）", { "0": state.materials.eventMaterial.name, "1": state.materials.eventMaterial.owned }) : "");
     const otherIcon = this.el("otherMaterialImg");
-    if (otherIcon) otherIcon.title = `${state.materials.other.name} ${maps} 个`;
+    if (otherIcon) otherIcon.title = tr("{0} {1} 个", { "0": state.materials.other.name, "1": maps });
     const available = this.el("availableCount");
-    if (available) setText(available, fillString(this.stage.strings.get("availableCount") ?? "可使用%d次",
+    if (available) setText(available, fillString(this.stage.strings.get("availableCount") ?? tr("可使用%d次"),
       Math.min(magnifiers, maps)));
     const guide = this.el("rouletteGuide");
     if (guide) setText(guide, fillString(this.stage.strings.get("rouletteGuide_1") ?? "",
@@ -370,9 +377,9 @@ export class TreasureHuntView {
     const missing = this.magnifiers() < 1 ? state.materials.material
       : state.materials.other.owned < 1 ? state.materials.other : undefined;
     if (!missing) return true;
-    const message = [fillString(this.stage.strings.get("mileageAlertDlgMsg1") ?? "%s持有数量不足。", missing.name),
-      "要打开兑换吗？"].join("\n");
-    if (await this.shell.confirm("提示", message, "兑换")) await this.openPacks(true);
+    const message = [fillString(this.stage.strings.get("mileageAlertDlgMsg1") ?? tr("%s持有数量不足。"), missing.name),
+      tr("要打开兑换吗？")].join("\n");
+    if (await this.shell.confirm(tr("提示"), message, tr("兑换"))) await this.openPacks(true);
     return false;
   }
 
@@ -457,7 +464,7 @@ export class TreasureHuntView {
         if (result.stopped?.code === "ALREADY_OWNED") {
           duplicates = result.draws.length ? 0 : duplicates + 1;
           if (duplicates >= MAX_DUPLICATE_ROUNDS) {
-            this.shell.showNotice(`连续${MAX_DUPLICATE_ROUNDS}次未获得新道具，连抽已暂停。未成功的次数不消耗道具。`, 6_000);
+            this.shell.showNotice(tr("连续{0}次未获得新道具，连抽已暂停。未成功的次数不消耗道具。", { "0": MAX_DUPLICATE_ROUNDS }), 6_000);
             break;
           }
         } else {
@@ -567,7 +574,7 @@ export class TreasureHuntView {
     const pic = element("div", "ks-lottery-pic");
     pic.style.inset = "16%";
     if (draw.items[0]) this.picture(pic, draw.items[0]);
-    cell.append(bg, ring, pic, nameLabel(`保底获得：${itemsLine(draw.items)}`, 300));
+    cell.append(bg, ring, pic, nameLabel(tr("保底获得：{0}", { "0": itemsLine(draw.items) }), 300));
     built.push(cell);
   }
 
@@ -591,7 +598,7 @@ export class TreasureHuntView {
       const pic = element("div", "ks-hunt-cell-pic ks-lottery-pic");
       pic.style.animationDelay = `${index * 60}ms`;
       if (draw.items[0]) this.picture(pic, draw.items[0]);
-      cell.title = itemsLine(draw.items) + (draw.pity ? "（保底）" : "") + (draw.event ? "\n使用了[活动]放大镜" : "");
+      cell.title = itemsLine(draw.items) + (draw.pity ? tr("（保底）") : "") + (draw.event ? tr("\n使用了[活动]放大镜") : "");
       cell.append(glow, pic, nameLabel(draw.items[0] ? itemLine(draw.items[0]) : "", 118));
       built.push(cell);
     });

@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 /** Message, password and team-selection dialogs used by lobby actions. */
 
 export interface LobbyDialogNode {
@@ -74,12 +75,12 @@ export async function showLobbyMessageBox<T extends LobbyDialogSession>(
       if (node === visibleShell) return { text: title };
       if (node === body) return { text: message, visible: true };
       if (node === yes) return {
-        visible: true, label: labels?.yes ?? "确定",
-        text: labels?.yes ?? "确定", action: confirm,
+        visible: true, label: labels?.yes ?? tr("确定"),
+        text: labels?.yes ?? tr("确定"), action: confirm,
       };
       if (node === no) return {
-        visible: true, label: labels?.no ?? "取消",
-        text: labels?.no ?? "取消", action: options.cancel,
+        visible: true, label: labels?.no ?? tr("取消"),
+        text: labels?.no ?? tr("取消"), action: options.cancel,
       };
       return {};
     },
@@ -101,12 +102,12 @@ export async function showLobbyPasswordDialog<T extends LobbyDialogSession>(
   dialog.view = await dependencies.loadView({
     ...options, preserveDisplayPixels: true, smoothImages: true,
     definition, roots: ["dialog2_/passwordBox", "stage_/common"],
-    modal: true, label: "输入房间密码",
+    modal: true, label: tr("输入房间密码"),
     onCancel: () => { if (!dialog.busy) options.cancel(); },
     state: (node: LobbyDialogNode) => {
       switch (dependencies.nodeName(node)) {
         case "passwordEdit": return {
-          disabled: dialog.busy, label: "房间密码",
+          disabled: dialog.busy, label: tr("房间密码"),
           input: { value: password, password: true, maxLength: 12,
             change: (value: string) => {
               password = value;
@@ -115,10 +116,10 @@ export async function showLobbyPasswordDialog<T extends LobbyDialogSession>(
         };
         case "okButton": return {
           disabled: dialog.busy || !password,
-          label: "加入房间", action: () => submit(password),
+          label: tr("加入房间"), action: () => submit(password),
         };
         case "cancelButton": return {
-          disabled: dialog.busy, label: "取消", action: options.cancel,
+          disabled: dialog.busy, label: tr("取消"), action: options.cancel,
         };
       }
       return {};
@@ -163,18 +164,18 @@ export async function showLobbyTeamDialog<T extends LobbyDialogSession>(
     ...options, preserveDisplayPixels: true, smoothImages: true,
     definition: await transform(definition),
     roots: [folder, "stage_/common"], modal: true,
-    label: "选择队伍",
+    label: tr("选择队伍"),
     onCancel: () => { if (!dialog.busy) options.cancel(); },
     state: (node: LobbyDialogNode) => {
       const name = dependencies.nodeName(node);
       if (name === "team1" || name === "team2") {
         const team = name === "team1" ? 1 : 2;
         return { disabled: dialog.busy || team === currentTeam,
-          label: team === 1 ? "红队" : "蓝队",
+          label: team === 1 ? tr("红队") : tr("蓝队"),
           action: () => chooseTeam(team) };
       }
       return name === "cancelButton"
-        ? { disabled: dialog.busy, label: "取消", action: options.cancel }
+        ? { disabled: dialog.busy, label: tr("取消"), action: options.cancel }
         : {};
     },
   });

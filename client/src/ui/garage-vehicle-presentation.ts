@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale";
 export interface GarageEngineLayouts<Layout> {
   classic: Layout;
   v1: Layout;
@@ -61,7 +62,7 @@ export function garageText(strings: Map<string, string>,
 /** Name one engine generation without repeating the localized engine suffix. */
 export function garageEngineName(strings: Map<string, string>,
   grade: number, fallback: string): string {
-  const suffix = garageText(strings, "partsEngine12", "引擎");
+  const suffix = garageText(strings, "partsEngine12", tr("引擎"));
   const name = garageText(strings, `engineGrade${grade}`, fallback);
   return name.endsWith(suffix) ? name.slice(0, -suffix.length).trim() :
     name.trim();
