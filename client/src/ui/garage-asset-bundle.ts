@@ -1,4 +1,5 @@
 import { resourceText } from "../i18n/locale";
+import { resolveLocalizedPngPath } from "../resources/localized-png";
 import { localizeGarageAppearance, type GarageAppearanceName } from "./garage-appearance-names";
 
 export interface GarageAssetNode {
@@ -258,6 +259,7 @@ export async function loadGarageAssetBundle(library: GarageAssetLibrary,
     if (fontResource && dependencies.canLoadFont())
       font = await dependencies.loadFont(dependencies.fontFamily,
         await fontResource.bytes());
+    const pngLibrary = { canonicalCandidates: (path: string) => library.exactCanonicalCandidates(path) };
     const loaded = await Promise.allSettled([...names].map(async name => {
       const localizedName = name.replace(/@zz$/, "@cn");
       const cardTexture = name === kartCardLayout.texture ||
@@ -280,7 +282,10 @@ export async function loadGarageAssetBundle(library: GarageAssetLibrary,
               `gui_/monocoque/${localizedName}.png`,
               `gui_/monocoque/${name}.png`,
             ];
-      const entry = paths.map(path => library.exactCanonicalCandidates(path)[0])
+      // Keep the Garage's exact lookup semantics while selecting the whole
+      // native/packaged image for the active language. Texture keys stay native.
+      const entry = paths.map(path => library.exactCanonicalCandidates(
+        resolveLocalizedPngPath(pngLibrary, path))[0])
         .find(Boolean);
       if (!entry) return;
       const blob = new Blob([new Uint8Array(await entry.bytes())],

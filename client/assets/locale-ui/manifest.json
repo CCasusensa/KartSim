@@ -1173,6 +1173,204 @@
       "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
     },
     {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_01.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reinforce_01.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "c07c0f77f1959d1ec4b56faad278eb6da6bef8ba8b7450a0e7a27205b3b1cfdb",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_02.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reinforce_02.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "8e184f6935f6198c268a3c5e84215c47cccaa090e1d9c4ff571dcefdc2ee15ee",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_03.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reinforce_03.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "45f5c5be6eb2d43263d1874afb7d46c93eef5e13cff73c219b6c5a23d4e76c77",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_04.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reinforce_04.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "9487c5ebb3f0b0b9955f7d9007e58c6a503266d115afbd803f8c3eb4b9d28468",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_01.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reset_01.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "f697bd9db73951bfc32bef9737cf9cdff4b0d7809a1516f96621865f7e7e1573",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_02.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reset_02.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "574a8da435b6e1bf395a999f7e53d349c8d02575a08abb49419dbd9cd4f1e261",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_03.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reset_03.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "8f5725b1513dd9c58845128e920d5a5fa8684a8e1e91fe34d12ec2a6474f2231",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_04.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_btn_reset_04.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "45e36d2ef27f130cf1cc63eb457e2e240790865f1d8852a1c5017d0b88eb2100",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_1.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG_1.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "27d221fddc7ada7dc06ad242f59166f270c91eff110b83f4260fd354dcbb4f29",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_2.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG_2.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "484fd6b31429d6446498d6796a1f3c0dc8200e2c48145fb6e9c172b2b107c37d",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_3.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG_3.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "bbec8e0e8cc851efdcb16d30a9f75dec6333b971976d5ca38f58aaf4dc80fdf6",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_4.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG_4.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "e813c0c04b46e98e5ed9be4f3418733881322db558ce74aa39ee421592d174b1",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_5.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG_5.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "ff18f429ae6becae6abd60c46191f48ceaec60e99b32ce6ecce1532d89d876f4",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_1.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG2_1.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "1d56ee8f3fd9edb8a78592c9cc636ecd486e60bfac0e4d486e1a2b6307597b65",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_2.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG2_2.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "a678e76f7d8519d891859756de38a5a54bb2613388a2233a00077c062503f6f8",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_3.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG2_3.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "6f6bba55d30632b60237ab07a2085329fab6742398ce47b9c8412d7215c87929",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_4.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG2_4.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "c1d5d5cdea6e745766cd1b6b48ed4a538e698687ddc86b1ada863366c3e7a3c8",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_5.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_compareBG2_5.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "a10e4e6e31ae77a9af5fc4f0ef97fff74d8a217fa48564ef115d84ccd715e989",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType1.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_textCarType1.png",
+      "width": 38,
+      "height": 22,
+      "sha256": "e0692f5f27383c805de8f4326fb34ea1bc91cb8fd44d4b5d53a3aaa006d630ae",
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType2.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_textCarType2.png",
+      "width": 38,
+      "height": 22,
+      "sha256": "528080623cc15918bde86c5735c0efbf699a0585e2717be3251867b3b4b4c05b",
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList_2.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_textPerformList_2.png",
+      "width": 94,
+      "height": 310,
+      "sha256": "fe510815a7ce2d9ead2065646b63f9016b7381203bf88d5e5f02a59c6a67f3bc",
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList.png",
+      "locale": "en",
+      "archivePath": "en/stage_/garageX/garage_img_textPerformList.png",
+      "width": 94,
+      "height": 240,
+      "sha256": "8440f524e1fd687c41e73ec472dde5c64da0860351a085785141907723163c7b",
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
       "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_1.png",
       "locale": "en",
       "archivePath": "en/stage_/mainMenu/riderSchool/btn_proMission1_timeattack_1.png",
@@ -5340,6 +5538,204 @@
       "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
     },
     {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_01.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reinforce_01.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "09ef1ceedb7c81ac1b074f7248fc190e1e143e90e1155b050f57a32f4ff98275",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_02.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reinforce_02.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "f527a69982c3b7f57f969afa48b193cfe557bd130df6d1244e4d28c5bae300c5",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_03.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reinforce_03.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "46b8264427c14026f061c7e1c13602cb24e3b449d87cb275a9fac4614207ad0e",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_04.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reinforce_04.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "0b48dade24c883f34d3246ed7baa4d20ca18223b8ee2fe334aedee30a6ea20b3",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_01.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reset_01.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "7cd086aeadcd9ab574eb805bb13479345f0c7bceb26afe480367ac6efdfbcabd",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_02.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reset_02.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "8755db6c38b5402c5d22f848f3618f5c4c16801621196d6f8e75cd65c8679841",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_03.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reset_03.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "864508608cc486d8f669582ed4387937324317b42c3df96c7f5d6ff5390a6b5f",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_04.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_btn_reset_04.png",
+      "width": 194,
+      "height": 64,
+      "sha256": "6c1ada74617fd6c396d62fcfdb8252ec3dfbab279b220c4348a88a06de69adf5",
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_1.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG_1.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "2d08dcba053541ba7986b2219865badd83cbabda2c864847e80eb6acc114e0f5",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_2.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG_2.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "1cdb543c5fc39871a9ff0f03efb6d53f132702c428c7fea2ff3fcc69a689553a",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_3.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG_3.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "dee5ec07ca098bffeddac70fe116b394aeb70fbd5126a7a75c3283726508e0f2",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_4.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG_4.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "5e050dcba66e460fb56c853b4439f8fe4efb1d4a388d1c94ffa9514a4f93c1ff",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_5.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG_5.png",
+      "width": 356,
+      "height": 32,
+      "sha256": "da0cc973c80ec78c0300753688caecdbaf1e7fc9fcd7a8b2bd76012ef19e1025",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_1.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG2_1.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "d97dc9c1eea8038f6de04be04822ab2a80e16d5a466d070393f67c8aaedc3286",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_2.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG2_2.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "01d36ace03fc885480f15d7d94334fa2b775f4a90eb7833db4c743cda2f28490",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_3.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG2_3.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "049e7caff568114924943bb31f64e8f7db178b464a6b503e16608ad506ac9ccf",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_4.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG2_4.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "fb15a97e0d40dbfc7ad82f042a303b8579fbd960893eba7c7cb2fad4299fbae4",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_5.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_compareBG2_5.png",
+      "width": 386,
+      "height": 32,
+      "sha256": "909cdf91848da0fe8138ea7b91af90417d508618dfde6797172fdde732c90038",
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType1.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_textCarType1.png",
+      "width": 38,
+      "height": 22,
+      "sha256": "ef26c3e59ccc1d46d863bb4eae2534413443d6922cf8fe66505513635534c313",
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType2.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_textCarType2.png",
+      "width": 38,
+      "height": 22,
+      "sha256": "393ed864899e9484dddf3a755d96d2611013a7922059c979361c8bd7276a88cc",
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList_2.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_textPerformList_2.png",
+      "width": 94,
+      "height": 310,
+      "sha256": "5ec7adaa521c04d0568b047a59eb9c935c9bcf04279f6e3d25c6eebe80f14a7f",
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList.png",
+      "locale": "ko",
+      "archivePath": "ko/stage_/garageX/garage_img_textPerformList.png",
+      "width": 94,
+      "height": 240,
+      "sha256": "6063843b6211c96ee50c25722529424db67c88e6cc80b5d3c1684dac529644da",
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
       "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_1.png",
       "locale": "ko",
       "archivePath": "ko/stage_/mainMenu/riderSchool/btn_proMission1_timeattack_1.png",
@@ -8511,6 +8907,7 @@
   "sources": [
     "commerce/spec.json",
     "dictionary-ko/spec.json",
+    "garage/spec.json",
     "lobby/manifest.json",
     "main-menu/spec.json",
     "menu-completion/spec.json",

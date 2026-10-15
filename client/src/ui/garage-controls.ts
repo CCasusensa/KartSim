@@ -278,7 +278,7 @@ function mountPartTabs(host: GarageControlsHost, family: string | undefined,
     const alternate = family === "legacy" && slot === "booster" ? tr("部件") : undefined;
     const button = host.nativeButton(
       `/partsListBoard/${layout.partsTab}/${dependencies.slotNodes[slot]}`,
-      dependencies.slotLabel(slot, family), () => host.selectSlot(slot), alternate);
+      tr(dependencies.slotLabel(slot, family)), () => host.selectSlot(slot), alternate);
     host.moveToTransformPreviewRoot(button);
     button.dataset.partTab = slot;
     button.classList.toggle("selected", !host.coatingMode && !host.cosmeticSlot && slot === host.slot);
@@ -286,7 +286,7 @@ function mountPartTabs(host: GarageControlsHost, family: string | undefined,
   for (const { node, label } of layout.cosmeticTabs) {
     const slot = node.includes("Lamp") ? "tailLamp"
       : node.includes("Booster") ? "boosterEffect" : undefined;
-    const button = host.nativeButton(`/partsListBoard/${layout.partsTab}/${node}`, label, () => {
+    const button = host.nativeButton(`/partsListBoard/${layout.partsTab}/${node}`, tr(label), () => {
       host.coatingMode = !slot;
       host.cosmeticSlot = slot;
       host.cosmeticPreview = undefined;
@@ -298,7 +298,7 @@ function mountPartTabs(host: GarageControlsHost, family: string | undefined,
     });
     host.moveToTransformPreviewRoot(button);
     button.dataset.partTab = node;
-    button.title = label;
+    button.title = tr(label);
     button.classList.toggle("selected", slot ? host.cosmeticSlot === slot : host.coatingMode);
   }
 }
@@ -336,7 +336,7 @@ function renderPartCard(
   card.classList.toggle("selected", equipped);
   const preview = host.button("", () => host.setPartPreview(part));
   preview.className = "garage-part-preview";
-  preview.setAttribute("aria-label", tr("预览 {0} {1}", { "0": host.partLabel(part), "1": dependencies.slotLabel(host.slot, part.family) }));
+  preview.setAttribute("aria-label", tr("预览 {0} {1}", { "0": host.partLabel(part), "1": tr(dependencies.slotLabel(host.slot, part.family)) }));
   if (part.family === "legacy" && part.legacyEffect) preview.title = part.legacyEffect;
   dependencies.bindPreview(preview, part, () => host.previewPart, next => {
     if (!host.transformPreviewUiHidden) host.setPartPreview(next);
@@ -358,7 +358,7 @@ function renderPartCard(
   if (dependencies.canEquip(locked)) {
     const equip = host.button(equipped ? tr("已装备") : tr("装备"), () => host.requestEquip(part));
     equip.setAttribute("aria-label",
-      `${equipped ? tr("已装备") : tr("装备")} ${host.partLabel(part)} ${dependencies.slotLabel(host.slot, part.family)}`);
+      `${equipped ? tr("已装备") : tr("装备")} ${host.partLabel(part)} ${tr(dependencies.slotLabel(host.slot, part.family))}`);
     equip.className = "garage-equip-label";
     host.skin(equip, "garage_btn_equip_");
     equip.disabled = equipped;

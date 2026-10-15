@@ -1,0 +1,14 @@
+Localize this complete game UI comparison-bar atlas by replacing only the Chinese stat labels. Keep the original smooth cyan-to-blue horizontal background of every bar, white chevron at far left, and cyan slash character toward the right in the FIRST column. No other objects or numbers. STRICT two columns by ten rows, full logical size742x320. Left column each bar356x32 and right column386x32. First column slightly narrower than second. No gutters or added border. Preserve every row's native flat background and geometry. All text SMALL WHITE BOLD, left aligned after the arrow, each translated label entirely within its first100px of native width; remaining right area must stay blank for dynamic numeric values. Never center labels across the full bar or use large typography.
+Rows1–5 are ENGLISH in BOTH columns, exactly:
+1 Acceleration
+2 Cornering
+3 Drift
+4 Boost Time
+5 Charge Rate
+Rows6–10 are KOREAN in BOTH columns, exactly:
+6 가속도
+7 코너링
+8 드리프트
+9 부스터 시간
+10 게이지 충전
+There must be no Chinese remaining. Every row is a complete translated bitmap bar, not a new caption box. Preserve original left-column slash at native x282 and leave right-column numeric area completely empty. Ensure all ten row boundaries remain equally spaced at native32px. Plain compact sans-serif font, faithful native bright white labels.

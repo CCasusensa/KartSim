@@ -98,7 +98,7 @@ export function updateGarageVehicleInformation(
       host.selected.engineGrade >= 0 && host.selected.engineGrade <= 6;
     const presentation = dependencies.partPresentation(
       partName, locked, classic ? tr("未装备") : undefined);
-    const label = dependencies.slotLabel(slot, family);
+    const label = tr(dependencies.slotLabel(slot, family));
     const title = `${label} · ${presentation.value}${presentation.state ? ` · ${presentation.state}` : ""}`;
     button.replaceChildren();
     button.title = title;

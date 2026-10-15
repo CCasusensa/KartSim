@@ -1,0 +1,384 @@
+{
+  "version": 1,
+  "preparation": "node tools/prepare-garage-locale-art.mjs (requires ImageMagick)",
+  "prompts": [
+    "source/labels-prompt.txt",
+    "source/buttons-prompt.txt",
+    "source/compare-prompt.txt"
+  ],
+  "nativePerformanceRows": {
+    "classic": [
+      0,
+      33,
+      65,
+      97,
+      129,
+      161,
+      204
+    ],
+    "xun": [
+      0,
+      33,
+      65,
+      97,
+      129,
+      161,
+      192,
+      285
+    ]
+  },
+  "entries": [
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_textPerformList.png",
+      "width": 94,
+      "height": 240,
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList_2@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_textPerformList_2.png",
+      "width": 94,
+      "height": 310,
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType1.png",
+      "locale": "en",
+      "file": "en/garage_img_textCarType1.png",
+      "width": 38,
+      "height": 22,
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType2.png",
+      "locale": "en",
+      "file": "en/garage_img_textCarType2.png",
+      "width": 38,
+      "height": 22,
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_textPerformList.png",
+      "width": 94,
+      "height": 240,
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textPerformList_2@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_textPerformList_2.png",
+      "width": 94,
+      "height": 310,
+      "provenance": "Complete transparent panel assembled offline from imagegen label sprites at native row coordinates; source Chinese pixels are not reused"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType1.png",
+      "locale": "ko",
+      "file": "ko/garage_img_textCarType1.png",
+      "width": 38,
+      "height": 22,
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_textCarType2.png",
+      "locale": "ko",
+      "file": "ko/garage_img_textCarType2.png",
+      "width": 38,
+      "height": 22,
+      "provenance": "Complete imagegen Item/Speed label, geometrically fitted to native 38x22 extent"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_01@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reinforce_01.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_02@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reinforce_02.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_03@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reinforce_03.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_04@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reinforce_04.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_01@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reset_01.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_02@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reset_02.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_03@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reset_03.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_04@cn.png",
+      "locale": "en",
+      "file": "en/garage_btn_reset_04.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_01@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reinforce_01.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_02@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reinforce_02.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_03@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reinforce_03.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reinforce_04@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reinforce_04.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_01@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reset_01.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_02@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reset_02.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_03@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reset_03.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_btn_reset_04@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_btn_reset_04.png",
+      "width": 194,
+      "height": 64,
+      "provenance": "Complete imagegen localized native button, all four original normal/hover/pressed/disabled states"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_2@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG_2.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_1@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG2_1.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_3@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG_3.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_2@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG2_2.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_1@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG_1.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_3@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG2_3.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_4@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG_4.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_4@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG2_4.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_5@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG_5.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_5@cn.png",
+      "locale": "en",
+      "file": "en/garage_img_compareBG2_5.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_2@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG_2.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_1@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG2_1.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_3@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG_3.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_2@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG2_2.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_1@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG_1.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_3@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG2_3.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_4@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG_4.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_4@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG2_4.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG_5@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG_5.png",
+      "width": 356,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    },
+    {
+      "canonicalPath": "stage_/garageX/garage_img_compareBG2_5@cn.png",
+      "locale": "ko",
+      "file": "ko/garage_img_compareBG2_5.png",
+      "width": 386,
+      "height": 32,
+      "provenance": "Complete imagegen classic/XUN comparison bar; preserves numeric blank area and classic slash"
+    }
+  ]
+}

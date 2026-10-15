@@ -1,4 +1,4 @@
-import { tr } from "../i18n/locale";
+import { gameLocale, tr } from "../i18n/locale";
 export interface GaragePartListing {
   family: string;
   slot: string;
@@ -17,6 +17,12 @@ export interface GaragePartLabelDependencies {
   engineName(strings: unknown, grade: number, fallback: string): string;
   gradeName(grade: number, strings: unknown): string;
   defaultParts(family: string, slot: string): GaragePartListing[];
+}
+
+/** In translated part names the engine generation is a prefix, while the
+ * actual component (Engine, Wheels, etc.) is supplied by the slot label. */
+function partGenerationLabel(engine: string): string {
+  return gameLocale() === "zh-CN" ? engine : engine.replace(/^(.+?)\s+(?:engine|엔진)$/i, "$1");
 }
 
 /** Ordinal of a classic/V1 part within its family, slot and quality. */
@@ -56,12 +62,12 @@ export function garagePartDisplayName(part: GaragePartListing,
   available: GaragePartListing[],
   dependencies: GaragePartLabelDependencies): string {
   const slot = part.family === "legacy" ?
-    dependencies.slotLabel(part.slot, part.family) :
+    tr(dependencies.slotLabel(part.slot, part.family)) :
     dependencies.localize(strings, dependencies.slotKey[part.slot]!,
-      dependencies.slotLabel(part.slot, part.family));
+      tr(dependencies.slotLabel(part.slot, part.family)));
   if (part.family === "legacy")
     return part.legacyTitle?.trim() ||
-      `${dependencies.slotLabel(part.slot, part.family)} ${part.itemId}`;
+      `${tr(dependencies.slotLabel(part.slot, part.family))} ${part.itemId}`;
   if (part.builtIn) {
     const engineGrade = part.engineGrade === undefined ||
       part.engineGrade === 0 ? 0 : part.engineGrade + 4;
@@ -69,22 +75,22 @@ export function garagePartDisplayName(part: GaragePartListing,
       part.engineGrade === 8 ? tr("V1引擎") :
         part.engineGrade === 7 ? tr("X引擎") : "");
     const quality = dependencies.gradeName(part.grade, strings);
-    return [engine, quality,
+    return [partGenerationLabel(engine), quality,
       dependencies.localize(strings, "partsBasic", tr("基本")), slot]
       .filter(Boolean).join(" ");
   }
   if (part.family === "xun") {
     const quality = dependencies.gradeName(part.grade, strings);
     const ordinal = garageXunPartOrdinal(part, available, dependencies);
-    return [dependencies.engineName(strings, 13, tr("迅引擎")), quality,
+    return [partGenerationLabel(dependencies.engineName(strings, 13, tr("迅引擎"))), quality,
       slot, ordinal === undefined ? "" : String(ordinal)]
       .filter(Boolean).join(" ");
   }
   const ordinal = garagePartOrdinal(part, available, dependencies);
   const quality = dependencies.gradeName(part.grade, strings);
   return [
-    dependencies.engineName(strings, part.family === "v1" ? 12 : 11,
-      part.family === "v1" ? tr("V1引擎") : tr("X引擎")),
+    partGenerationLabel(dependencies.engineName(strings, part.family === "v1" ? 12 : 11,
+      part.family === "v1" ? tr("V1引擎") : tr("X引擎"))),
     quality, slot, String(ordinal === undefined ? part.value : ordinal),
   ].filter(Boolean).join(" ");
 }

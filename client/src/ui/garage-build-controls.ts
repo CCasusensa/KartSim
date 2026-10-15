@@ -80,7 +80,7 @@ function buildGarageVehicleInformation(
   host.info.dataset.vehicleInfo = "true";
   host.vehicleInfoNodes.push(host.info);
   for (const slot of dependencies.slots) {
-    const button = host.button(dependencies.slotLabels[slot]!, () => host.selectSlot(slot));
+    const button = host.button(tr(dependencies.slotLabels[slot]!), () => host.selectSlot(slot));
     button.className = "garage-equipped-slot";
     button.dataset.slot = slot;
     button.dataset.vehicleInfo = "true";

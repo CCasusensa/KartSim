@@ -1,3 +1,4 @@
+import { fitGarageButtonLabel } from "./garage-button-text-layout";
 import type { GaragePreviewRect } from "./garage-transform-preview";
 import {
   garageControlZIndex, garageObjectFitRect,
@@ -98,10 +99,12 @@ export function rebuildGarageControlCanvas(host: GarageControlCanvasRebuildHost,
 
   const visit = (element: HTMLElement, clip: GaragePreviewRect, parentAlpha: number) => {
     if (element.hidden) return;
-    const style = getComputedStyle(element);
+    let style = getComputedStyle(element);
     const alpha = parentAlpha * Number(style.opacity);
     if (style.display === "none" || style.visibility === "hidden" || alpha <= 0)
       return;
+    fitGarageButtonLabel(element);
+    style = getComputedStyle(element);
     const rect = logicalRect(element.getBoundingClientRect());
     if (!rect.width || !rect.height) return;
     const visible = dependencies.intersect(rect, clip);

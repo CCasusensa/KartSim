@@ -1,0 +1,24 @@
+Create a game localization typography atlas derived from this original transparent white-label UI. Produce exactly TWO equal COLUMNS by TEN equal ROWS on a TRANSPARENT background, logical size1024x960, each cell512x96. Render exactly one single-line label per cell, horizontally LEFT aligned at x40 inside its cell and vertically centered, with ample transparent padding on every side. Bold crisp condensed sans-serif white text with a very subtle dark gray 1px-like shadow, matching reference style. This atlas will be cropped geometrically into complete transparent game label panels; no existing Chinese source letters may remain. Do NOT add blue accents, lines, colored backgrounds, boxes, row numbers, column headings or other graphics. Every cell background transparent. Text only, exactly these labels in row order:
+LEFT ENGLISH column rows1..10:
+Performance
+Acceleration
+Cornering
+Drift
+Boost Time
+Charge Rate
+Equipped Parts
+Kart Abilities
+Speed
+Item
+RIGHT KOREAN column rows1..10:
+차량 성능
+가속도
+코너링
+드리프트
+부스터 시간
+게이지 충전
+장착 파츠
+차량 기능
+스피드
+아이템
+Make each line complete and clear with consistent bold font thickness; small labels should have same glyph height as long labels. Strict equally spaced rows and columns, no wrapping. No added wording, no punctuation. White lettering, transparent background, not black text.
