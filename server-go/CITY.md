@@ -168,3 +168,17 @@ node --max-old-space-size=12000 --import ./src/physics/node-raw-test-hook.mjs --
 ```
 
 用原生物理离线回归：NPC 站位前 49 处路缘，原来 2 处开得上去，现在除了被护栏、矮墙、路灯挡住和测试起点无效的，其余都能以 30 km/h 直接开上去；随机 80 面落地高墙，标记前后挡车的结果完全一致。
+
+## 9. 收音机
+
+只在浏览器里（服务端不参与）。卡丁城的收音机放光线飞车（RayCity v1.325）车载电台的 22 首韩国歌曲：曲目表是原版 `Data/sound/bgm/main/list.jmd` 里的 `list.xml`（Sugar Donut、Biuret 等，原版注释掉的两首圣诞歌不放），歌在 `mirror/ui/radio/<名字>.ogg`（112 kbps Ogg Vorbis，共 59 MB，git LFS），网页路径 `/ui/radio/…`，随 Vite、构建产物和 Docker 镜像（`mirror/ui`）一起发布。重新提取：
+
+```bash
+node client/tools/city/radio/extract-raycity-radio.mjs <RayCity 客户端目录> [--check]
+```
+
+工具解开 J2M 的 `.jmd` 包（算法见脚本开头，参考 github.com/minhducck/JMDEasyPacker），写歌和 `client/src/city/city-radio-songs.json`。
+
+- 播放走比赛的 BGM 通道（`stage.scene.bgm`）：歌下载后用游戏自己的解码（不支持 Ogg 的浏览器走游戏的 Vorbis 解码）变成 AudioBuffer，`bgm.start` 淡入，音量跟“设置”里的背景音乐。城里比赛音乐只在开局 `bgm.restart()` 一次，收音机开着时它改放收音机；关掉收音机再调原来的 restart，回到城市原本的音乐。离开卡丁城时还原。
+- 一首放完接下一首；随机播放（默认）每轮把 22 首都放一遍，新一轮不从刚放完的那首开始；顺序播放从上次那首接着放。开关、随机和当前歌存在浏览器本地（`kartsim.city.radio`）。下一首提前下载；连续 3 首下载或解码失败就关掉收音机，提示“收音机没有信号”。
+- 按键：P 打开收音机窗口（`city-radio-window.ts`，release CaptionDialog：正在播放、上一首/开关/下一首/随机、两列 22 首点歌；P、Esc、Enter 关闭），N / B 开车时直接换下一首 / 上一首，换歌时顶部弹出“♪ 歌名 — 歌手”。代码在 `client/src/city/city-radio.ts`。

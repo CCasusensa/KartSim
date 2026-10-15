@@ -3,8 +3,9 @@
  * drives the multiplayer race pipeline with a fabricated one-racer "race"
  * on the city track (no countdown wait, no finish), and layers the city on
  * top: members' karts (CityFleet), talk balloons and name tags, the day/night
- * and weather clock, city/near chat channels, resets to the nearest road and
- * the garage (G) for changing karts, character and accessories on the spot.
+ * and weather clock, city/near chat channels, resets to the nearest road,
+ * the garage (G) for changing karts, character and accessories on the spot
+ * and the radio (P, N / B) with RayCity's Korean songs.
  */
 import { containerMismatch, type ContainerMismatchError } from "../resources/container-store";
 import { beginRaceLoad, downloadTrack } from "../resources/resource-manager";
@@ -34,6 +35,9 @@ import { CityNpcs, withTraffic } from "./city-npcs";
 import { showCityHelpWindow, type CityHelpWindow } from "./city-help-window";
 import { CityQuestPassengers } from "./city-quest-passenger";
 import { CityQuests } from "./city-quests";
+import { CityRadio, songLabel } from "./city-radio";
+import { showCityRadioWindow, type CityRadioWindow } from "./city-radio-window";
+import { showGameToast } from "../ui/game-popups";
 export { groundHeightAt } from "./city-ground";
 
 export interface CityLobbyHost {
@@ -130,6 +134,8 @@ export class CitySession {
   passengers?: CityQuestPassengers;
   /** 城市任务 (CITY-QUESTS.md). */
   quests?: CityQuests;
+  /** 收音机 (CITY.md 9): RayCity's radio on the race BGM. */
+  radio?: CityRadio;
   snapshot?: CitySnapshot;
   clockMapping?: { offsetMs: number };
   readonly abort = new AbortController();
@@ -238,7 +244,7 @@ export class CitySession {
       stage.scheduleStart(performance.now() - 7000);
       await rendered;
       if (host.disposed || this.disposed || this.abort.signal.aborted) { await this.cleanup(); return; }
-      host.options.status(`欢迎来到${snapshot.name}。H 操作说明，Enter 聊天，G 车库，Esc 离开。`);
+      host.options.status(`欢迎来到${snapshot.name}。H 操作说明，Enter 聊天，G 车库，P 收音机，Esc 离开。`);
       stage.chat?.notice?.("按 H 查看卡丁城操作说明，按 G 打开车库换车换装");
       // The 操作说明 opens by itself the first time.
       if (!helpSeen()) { markHelpSeen(); void this.toggleHelp(); }
@@ -403,6 +409,21 @@ export class CitySession {
       }, snapshot.you.fuel);
     }
 
+    // 收音机: the race starts its music with bgm.restart(); the radio plays instead while it is on.
+    const bgm = presenter.bgm;
+    if (bgm && typeof bgm.start === "function" && typeof bgm.restart === "function") {
+      this.radio = new CityRadio({
+        bgm,
+        playing: song => {
+          // The window shows the song itself.
+          if (!this.radioWindow && !this.disposed)
+            showGameToast(`♪ ${songLabel(song)}`, 3_500, { root, library: this.host.options.library as never });
+        },
+        changed: () => this.radioWindow?.refresh(),
+        notice: text => { this.stage?.chat?.notice?.(text); this.host.options.status(text); },
+      });
+    }
+
     this.onFoot = new CityOnFoot({
       library: this.host.options.library, playerId: this.host.playerId, name: this.host.accountNickname ?? "车手",
       stage: () => this.stage,
@@ -450,8 +471,9 @@ export class CitySession {
       const target = event.target as HTMLElement | null;
       if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
       if (this.quests?.windowOpen) return;
-      // The 操作说明 closes with its own keys (Esc, Enter, H, F1).
+      // The 操作说明 and the radio close with their own keys (Esc, Enter, H, F1 / P).
       if (this.help || this.helpOpening || performance.now() - this.helpClosedAt < 400) return;
+      if (this.radioWindow || this.radioOpening || performance.now() - this.radioClosedAt < 400) return;
       if ((event.code === "KeyH" || event.code === "F1") && !event.repeat && !event.ctrlKey && !event.metaKey &&
         !event.altKey && !this.fuel?.windowOpen && !this.onFoot?.mapOpen) {
         event.preventDefault();
@@ -472,6 +494,12 @@ export class CitySession {
         return;
       }
       if (event.code === "KeyF") { this.fuel?.keydown(event); return; }
+      // 收音机: P the window, N / B the next / previous song while driving.
+      if (this.radio && !event.ctrlKey && !event.metaKey && !event.altKey && !this.fuel?.windowOpen && !this.onFoot?.mapOpen) {
+        if (event.code === "KeyP") { event.preventDefault(); void this.toggleRadio(); return; }
+        if (event.code === "KeyN") { event.preventDefault(); this.radio.next(); return; }
+        if (event.code === "KeyB") { event.preventDefault(); this.radio.previous(); return; }
+      }
       if (event.code !== "Escape") return;
       if (this.fuel?.consumesEscape(performance.now())) return; // it closes a fuel window
       if (this.onFoot?.consumesEscape(performance.now())) return; // it closes the map
@@ -616,7 +644,39 @@ export class CitySession {
   /** A city window (refuel, rescue, map, garage) is up or opening. */
   private windowOpen(): boolean {
     return !!(this.fuel?.windowOpen || this.onFoot?.mapOpen || this.garageView || this.garageOpening ||
-      this.quests?.windowOpen || this.help || this.helpOpening);
+      this.quests?.windowOpen || this.help || this.helpOpening || this.radioWindow || this.radioOpening);
+  }
+
+  // ---- 收音机 (P) ----
+
+  private radioWindow?: CityRadioWindow;
+  private radioOpening = false;
+  private radioClosedAt = -Infinity;
+
+  /** Opens the radio window, or closes it. */
+  async toggleRadio(): Promise<void> {
+    if (this.radioWindow) { this.closeRadio(); return; }
+    const radio = this.radio;
+    if (!radio || this.radioOpening || this.disposed) return;
+    this.radioOpening = true;
+    try {
+      const view = await showCityRadioWindow({ library: this.host.options.library as never,
+        root: this.host.options.root as HTMLElement, radio, close: () => this.closeRadio() });
+      if (this.disposed) view.dispose();
+      else { this.radioWindow = view; this.pauseDriving(true); }
+    } catch (error) {
+      console.warn("卡丁城收音机打开失败", error);
+    } finally {
+      this.radioOpening = false;
+    }
+  }
+
+  private closeRadio(): void {
+    if (!this.radioWindow) return;
+    this.radioWindow.dispose();
+    this.radioWindow = undefined;
+    this.radioClosedAt = performance.now();
+    if (!this.disposed && !this.quests?.windowOpen) this.pauseDriving(false);
   }
 
   // ---- 操作说明 (H / F1) ----
@@ -654,7 +714,7 @@ export class CitySession {
   private frame(now: number): void {
     this.chatAllowed?.(!this.windowOpen());
     // The M map covers most of the view: the HUD overlays above it step aside.
-    const covered = !!this.onFoot?.mapOpen || !!this.help;
+    const covered = !!this.onFoot?.mapOpen || !!this.help || !!this.radioWindow;
     this.fuel?.cover(covered);
     this.quests?.cover(covered);
     if (this.statusLine) this.statusLine.style.visibility = covered ? "hidden" : "";
@@ -678,7 +738,7 @@ export class CitySession {
       const district = design ? districtAt(design.x, design.z) : undefined;
       if (state) {
         const weather = state.weather === "rain" ? " · 雨" : state.weather === "snow" ? " · 雪" : "";
-        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1} · G 车库 · H 说明`);
+        this.showStatus(`${this.snapshot?.name ?? "卡丁城"} · ${district?.name ?? "城外"} · ${clockLabel(state.timeOfDay)}${weather} · 在线 ${(this.fleet?.peers.size ?? 0) + 1} · G 车库 · P 收音机 · H 说明`);
       }
     }
   }
@@ -869,6 +929,9 @@ export class CitySession {
     this.fuel = undefined;
     this.atmosphere?.dispose();
     this.closeHelp();
+    this.closeRadio();
+    this.radio?.dispose();
+    this.radio = undefined;
     this.passengers?.dispose();
     this.npcs?.dispose();
     this.quests?.dispose();

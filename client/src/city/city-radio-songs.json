@@ -1,0 +1,121 @@
+{
+  "source": "RayCity v1.325 Data/sound/bgm/main/list.jmd (list.xml)",
+  "songs": [
+    {
+      "file": "mu_bgm_sug_108",
+      "title": "108 AR",
+      "singer": "Sugar Donut"
+    },
+    {
+      "file": "mu_bgm_sug_nowayout",
+      "title": "No way out",
+      "singer": "Sugar Donut"
+    },
+    {
+      "file": "mu_bgm_sug_onlyone",
+      "title": "Only one",
+      "singer": "Sugar Donut"
+    },
+    {
+      "file": "mu_bgm_sug_dtune",
+      "title": "D Tune",
+      "singer": "Sugar Donut"
+    },
+    {
+      "file": "mu_bgm_sug_slowdown",
+      "title": "Slow",
+      "singer": "Sugar Donut"
+    },
+    {
+      "file": "mu_bgm_bl_lovenhate",
+      "title": "Love and Hate",
+      "singer": "Biuret"
+    },
+    {
+      "file": "mu_bgm_bl_beautifulflying",
+      "title": "beautiful flying",
+      "singer": "Biuret"
+    },
+    {
+      "file": "mu_bgm_bl_believer",
+      "title": "believe",
+      "singer": "Biuret"
+    },
+    {
+      "file": "mu_bgm_bl_fallingstar",
+      "title": "falling star",
+      "singer": "Biuret"
+    },
+    {
+      "file": "mu_bgm_bl_heaventonigh",
+      "title": "heaven tonight",
+      "singer": "Biuret"
+    },
+    {
+      "file": "mu_bgm_soft_fly",
+      "title": "Fly and touch the sky",
+      "singer": "Lee hyun jin",
+      "town": true
+    },
+    {
+      "file": "mu_bgm_soft_alive",
+      "title": "Alive",
+      "singer": "Jang kyung joo",
+      "town": true
+    },
+    {
+      "file": "mu_bgm_sug_sunlight",
+      "title": "Sun Light",
+      "singer": "Sugar Donut"
+    },
+    {
+      "file": "mu_bgm_sk_ontherun",
+      "title": "On the run",
+      "singer": "Kim jae joon",
+      "town": true
+    },
+    {
+      "file": "mu_bgm_sk_pushit",
+      "title": "Push it",
+      "singer": "Jung goh eun",
+      "town": true
+    },
+    {
+      "file": "mu_bgm_wk_champion",
+      "title": "Racing champion",
+      "singer": "Kim sung hoon",
+      "town": true
+    },
+    {
+      "file": "mu_bgm_wk_enjoy",
+      "title": "Enjoy the world",
+      "singer": "Kim hyun min",
+      "town": true
+    },
+    {
+      "file": "mu_bgm_kys_holdme",
+      "title": "Hold Me",
+      "singer": "Lee hyun jin"
+    },
+    {
+      "file": "mu_bgm_yhj_fastas",
+      "title": "Fast As",
+      "singer": "Kim yong sung"
+    },
+    {
+      "file": "mu_bgm_yhs_just_do_it",
+      "title": "Just Do It",
+      "singer": "Yoon huyn suk"
+    },
+    {
+      "file": "mu_bgm_yhs_mtic",
+      "title": "Mtic",
+      "singer": "Yoon huyn suk"
+    },
+    {
+      "file": "mu_bgm_yhs_love",
+      "title": "Love",
+      "singer": "Yoon huyn suk"
+    }
+  ]
+}
