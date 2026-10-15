@@ -1,5 +1,6 @@
 import type { GarageAssetEntry, GarageAssetNode, GarageAssetRect } from
   "./garage-asset-bundle";
+import { resourceLocale } from "../i18n/locale";
 
 export interface GarageTutorialLibrary {
   exactCanonicalCandidates(path: string): GarageAssetEntry[];
@@ -49,7 +50,8 @@ export async function showGarageUpgradeTutorial(
   const field = dependencies.attribute;
   const captions = new Map(strings!.children.map(node => [
     field(node, "n"),
-    field(node.children.find(child => field(child, "c") === "cn") ?? node,
+    field(node.children.find(child => field(child, "c") === resourceLocale()) ??
+      node.children.find(child => field(child, "c") === "cn") ?? node,
       "v") ?? "",
   ]));
   const frameGroups = frameDefinition!.children.filter(node =>

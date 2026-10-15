@@ -8,6 +8,7 @@ import type {
 } from "./settings-window-assets";
 import { resourceButtonName, resourceSettingName } from "./settings-window-assets";
 import { withItemHudOptions } from "./item-hud-options";
+import { tr } from "../i18n/locale";
 import {
   activateSettingsControl, applySettingsGraphicsPreset, applySettingsPreset,
   changeSettingsVolume, closeSettingsCombo, moveSettingsSelection,
@@ -1204,14 +1205,14 @@ export class SettingsWindow {
   }
 
   text(value: string): string {
-    return value.replace(/^#sb\(([^)]+)\)$/,
-      (original, key: string) => this.assets.strings.get(key) ?? original);
+    return tr(value.replace(/^#sb\(([^)]+)\)$/,
+      (original, key: string) => this.assets.strings.get(key) ?? original));
   }
 
   drawText(value: string, rectangle: UiRectangle, render: string,
     alignment: string, ink: string, kind = "label"): void {
     const terms = new Set(alignment.split(/[,;|.\s]+/));
-    this.dependencies.paintText(this.context, value, rectangle, {
+    this.dependencies.paintText(this.context, tr(value), rectangle, {
       family: FONT_FAMILY, size: fontSize(render), kind, color: ink,
       align: terms.has("right") ? "right" : terms.has("center") || terms.has("hcenter")
         ? "center" : "left",

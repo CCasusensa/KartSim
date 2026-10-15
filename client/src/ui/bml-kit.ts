@@ -2,6 +2,7 @@ import { p2, T, s2 } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
 import { readMainMenuStrings, type MainMenuNode } from "./main-menu-view";
 import { pruneMissingTextures } from "./story-windows";
+import { tr } from "../i18n/locale";
 
 /**
  * Helpers for release BML windows drawn by the shared window renderer
@@ -79,7 +80,7 @@ export function resolveStrings(definition: Node, strings: Map<string, string>): 
         if (found === undefined) known = false;
         return found ?? whole;
       });
-      if (known) changes[key] = value;
+      if (known) changes[key] = tr(value);
     }
     return Object.keys(changes).length ? withAttributes(entry, changes) : undefined;
   });
@@ -191,11 +192,12 @@ export interface PaintTextOptions {
 /** A state painting wrapped text in the node's rectangle. */
 export function paintText(text: string, options: PaintTextOptions) {
   return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
+    const localized = tr(text);
     const size = options.size ?? 14;
     context.save();
     context.font = `${options.bold ? "bold " : ""}${size}px ${FONT}`;
     context.textBaseline = "top";
-    const lines = wrapText(context, text, rect.width);
+    const lines = wrapText(context, localized, rect.width);
     const step = size + (options.lineGap ?? 4);
     const top = options.middle ? rect.y + (rect.height - lines.length * step) / 2 : rect.y;
     const align = options.align ?? "left";

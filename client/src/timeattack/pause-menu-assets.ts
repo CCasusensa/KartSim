@@ -1,4 +1,5 @@
 import type { PauseHit, PauseMenuAssets } from "./pause-menu-view";
+import { resourceLocale } from "../i18n/locale";
 
 export const PAUSE_VIEW_WIDTH = 1600;
 export const PAUSE_VIEW_HEIGHT = 900;
@@ -161,8 +162,9 @@ export function parsePauseStringBag(xml: string): Map<string, string> {
   const strings = new Map<string, string>();
   for (const element of Array.from(document.documentElement.children)) {
     const name = element.getAttribute("n");
-    const value = Array.from(element.children)
-      .find(child => child.getAttribute("c") === "cn")?.getAttribute("v");
+    const locals = Array.from(element.children);
+    const value = (locals.find(child => child.getAttribute("c") === resourceLocale()) ??
+      locals.find(child => child.getAttribute("c") === "cn"))?.getAttribute("v");
     if (name !== null && value !== null && value !== undefined)
       strings.set(name, value);
   }

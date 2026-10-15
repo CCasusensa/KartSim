@@ -1,3 +1,5 @@
+import { resourceLocale } from "../i18n/locale";
+
 export interface GarageAssetNode {
   name: string;
   attributes: Array<{ name: string; value: string }>;
@@ -172,6 +174,7 @@ export async function loadGarageAssetBundle(library: GarageAssetLibrary,
   }
   for (const entry of stageStrings.children) {
     const localized = entry.children.find(node =>
+      dependencies.attribute(node, "c") === resourceLocale()) ?? entry.children.find(node =>
       dependencies.attribute(node, "c") === "cn");
     if (localized)
       strings.set(dependencies.attribute(entry, "n"),
@@ -180,6 +183,7 @@ export async function loadGarageAssetBundle(library: GarageAssetLibrary,
   for (const entry of baseStrings.root.children) {
     const key = dependencies.xmlAttribute(entry, "n");
     const localized = entry.children.find(node =>
+      dependencies.xmlAttribute(node, "c") === resourceLocale()) ?? entry.children.find(node =>
       dependencies.xmlAttribute(node, "c") === "cn");
     if (key && localized && !strings.has(key))
       strings.set(key, dependencies.xmlAttribute(localized, "v") ?? "");

@@ -1,4 +1,5 @@
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
+import { resourceLocale } from "../i18n/locale";
 import type { TaskbarAssets, TaskbarImage, TaskbarButton } from "./taskbar";
 import type { UiRectangle } from "./scrollbar";
 
@@ -141,7 +142,8 @@ function buttonLabels(definition: BinaryXmlNode, xml: string): Map<string, strin
   const document = new DOMParser().parseFromString(xml, "application/xml");
   const stringBag = new Map(Array.from(document.querySelectorAll("k")).map(node => [
     node.getAttribute("n"),
-    node.querySelector('m[c="cn"]')?.getAttribute("v") ?? "",
+    (node.querySelector(`m[c="${resourceLocale()}"]`) ??
+      node.querySelector('m[c="cn"]'))?.getAttribute("v") ?? "",
   ]));
   const labels = new Map<string, string>();
   function visit(node: BinaryXmlNode): void {

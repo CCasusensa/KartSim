@@ -2,6 +2,7 @@ import { ensureFeatureResources } from "../ui/resource-panel";
 import { activeBrowserSession } from "../account/account-runtime";
 import { p2, T } from "../generated/formats.js";
 import { F9, U1, te } from "../generated/library.js";
+import { resourceLocale } from "../i18n/locale";
 import { claimLicenseEmblem, fetchLicense, formatLicenseTime, licenseErrorMessage, PRO_LEVEL,
   qualifyLicense, runLicenseStep, takeLicense, type LicenseState, type LicenseStep,
   type LicenseTable } from "../license/license-api";
@@ -588,7 +589,8 @@ async function baseString(controller: ReadyLicenseController, key: string): Prom
       const text = file?.text ? await file.text() : new TextDecoder().decode(await file!.bytes());
       const strings = new Map<string, string>();
       new DOMParser().parseFromString(text, "application/xml").querySelectorAll("k").forEach(entry => {
-        const value = entry.querySelector('m[c="cn"]')?.getAttribute("v");
+        const value = (entry.querySelector(`m[c="${resourceLocale()}"]`) ??
+          entry.querySelector('m[c="cn"]'))?.getAttribute("v");
         const name = entry.getAttribute("n");
         if (name && value) strings.set(name, value);
       });

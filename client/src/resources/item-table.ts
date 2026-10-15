@@ -1,4 +1,5 @@
 import type { GarageItemDefinition, GarageResource } from "./timeattack-items";
+import { resourceLocale } from "../i18n/locale";
 
 export interface ItemTableNode {
   name: string;
@@ -206,9 +207,10 @@ async function systemVehicleDefinitions(
   const bags = library.exactCanonicalCandidates("etc_/baseStringBag.xml");
   if (bags.length !== 1)
     throw new Error(`practiceKart 需要唯一的 etc_/baseStringBag.xml，实际 ${bags.length}。`);
-  const titleNode = dependencies.parseXml(await bags[0]!.bytes()).root.children.find(node =>
-    node.name === "k" && attribute(node, "n") === "practiceKart")
-    ?.children.find(node => node.name === "m" && attribute(node, "c") === "cn");
+  const names = dependencies.parseXml(await bags[0]!.bytes()).root.children.find(node =>
+    node.name === "k" && attribute(node, "n") === "practiceKart")?.children;
+  const titleNode = names?.find(node => node.name === "m" && attribute(node, "c") === resourceLocale()) ??
+    names?.find(node => node.name === "m" && attribute(node, "c") === "cn");
   const title = titleNode && attribute(titleNode, "v")?.trim();
   if (!title) throw new Error("baseStringBag.xml 缺少 practiceKart 的 CN 名称。");
   const vehicles = [systemKart(internalId, title, 8, "practiceKart", "system-vehicle")];

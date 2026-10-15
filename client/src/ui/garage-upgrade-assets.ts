@@ -1,5 +1,6 @@
 import type { GarageAssetNode, GarageAssetRect, GarageAssetEntry,
   GarageAssetBitmap } from "./garage-asset-bundle";
+import { resourceLocale } from "../i18n/locale";
 
 export interface GarageUpgradeAssetsLibrary {
   exactCanonicalCandidates(path: string): GarageAssetEntry[];
@@ -91,6 +92,7 @@ export async function loadGarageUpgradeAssets(
     if (baseStrings)
       for (const row of dependencies.parseXml(await baseStrings.bytes()).root.children) {
         const localized = row.children.find(node =>
+          dependencies.xmlAttribute(node, "c") === resourceLocale()) ?? row.children.find(node =>
           dependencies.xmlAttribute(node, "c") === "cn");
         if (localized)
           strings.set(dependencies.xmlAttribute(row, "n"),
@@ -109,6 +111,7 @@ export async function loadGarageUpgradeAssets(
   }
   for (const row of stageStrings.children) {
     const localized = row.children.find(node =>
+      dependencies.attribute(node, "c") === resourceLocale()) ?? row.children.find(node =>
       dependencies.attribute(node, "c") === "cn");
     if (localized)
       strings.set(dependencies.attribute(row, "n"),

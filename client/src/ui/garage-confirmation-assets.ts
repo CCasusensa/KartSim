@@ -2,6 +2,7 @@
 
 import type { ConfirmationRectangle, GarageConfirmationBlueprint,
   GarageConfirmationRequest } from "./garage-confirmation-dialog";
+import { resourceLocale } from "../i18n/locale";
 
 export const garageConfirmationFontFamily = "KartSim Garage Dialog SourceHanSansCN";
 
@@ -92,7 +93,8 @@ function localizedStrings(root: ConfirmationNode,
   attribute: GarageConfirmationAssetDependencies["attribute"]): Map<string, string> {
   return new Map(root.children.map(child => {
     const key = attribute(child, "n") ?? "";
-    const language = child.children.find(entry => attribute(entry, "c") === "cn") ??
+    const language = child.children.find(entry => attribute(entry, "c") === resourceLocale()) ??
+      child.children.find(entry => attribute(entry, "c") === "cn") ??
       child.children.find(entry => attribute(entry, "c") === "zz");
     return [key, attribute(language ?? child, "v") ?? ""] as const;
   }).filter(([key]) => Boolean(key)));

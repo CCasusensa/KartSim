@@ -1,4 +1,5 @@
 import { addGraphicsPresentationOptions } from "./graphics-presentation-options";
+import { resourceLocale } from "../i18n/locale";
 
 /** Binary XML node shape used by the settings BML definitions. */
 export interface SettingsWindowNode {
@@ -121,7 +122,8 @@ export function parseOfficialBgmChoices(
     throw Error("官服音乐列表无效。");
   const names = new Map(Array.from(strings.querySelectorAll("StringBag > k")).map(entry => [
     entry.getAttribute("n"),
-    Array.from(entry.children).find(local => local.getAttribute("c") === "cn")
+    (Array.from(entry.children).find(local => local.getAttribute("c") === resourceLocale()) ??
+      Array.from(entry.children).find(local => local.getAttribute("c") === "cn"))
       ?.getAttribute("v"),
   ]));
   return Array.from(bgmList.querySelectorAll("bgmList > bgm")).flatMap(entry => {
@@ -378,12 +380,14 @@ function mergeStrings(xml: string, dialogStrings: SettingsWindowNode,
     throw new Error("P3528 baseStringBag 不是有效 XML。");
   const strings = new Map<string | null | undefined, string | undefined>();
   for (const entry of Array.from(document.documentElement.children)) {
-    const value = Array.from(entry.children)
-      .find(local => local.getAttribute("c") === "cn")?.getAttribute("v");
+    const locals = Array.from(entry.children);
+    const value = (locals.find(local => local.getAttribute("c") === resourceLocale()) ??
+      locals.find(local => local.getAttribute("c") === "cn"))?.getAttribute("v");
     if (value != null) strings.set(entry.getAttribute("n"), value);
   }
   for (const entry of dialogStrings.children) {
-    const local = entry.children.find(child => attribute(child, "c") === "cn");
+    const local = entry.children.find(child => attribute(child, "c") === resourceLocale()) ??
+      entry.children.find(child => attribute(child, "c") === "cn");
     if (local) strings.set(attribute(entry, "n"), attribute(local, "v"));
   }
   return strings;

@@ -3,6 +3,7 @@ import { C9, E9, Ft, G1, T, V0, f3, f5, m9, st, ve } from "../generated/formats.
 import { F9, U1 } from "../generated/library.js";
 import { ImageCache, type MyRoomDataLibrary } from "../myroom/myroom-data";
 import { myRoomHudColor, myRoomHudTextRender, readMyRoomStringBag, type MyRoomHudNode } from "./my-room-hud";
+import { readStringBag } from "./item-hud-assets";
 
 /**
  * A release BML window drawn on one canvas (1600×900 stage stretched over
@@ -43,17 +44,11 @@ const TEXT_NODES = new Set(["Label", "ColorLabel", "TextButton", "ImageButton", 
 
 const attribute = (node: BmlNode, name: string): string | undefined => T(node, name) as string | undefined;
 
-/** etc_/baseStringBag.xml (cn), the strings every window may name. */
+/** etc_/baseStringBag.xml, the strings every window may name. */
 async function baseStrings(library: BmlLibrary): Promise<Map<string, string>> {
-  const strings = new Map<string, string>();
   const file = library.canonicalCandidates("etc_/baseStringBag.xml")[0];
   const xml = file?.text ? await file.text() : "";
-  for (const match of xml.matchAll(/<k n=['"]([^'"]+)['"]>([\s\S]*?)<\/k>/g)) {
-    const cn = /<m c=['"]cn['"] v=(?:'([^']*)'|"([^"]*)")/.exec(match[2]!);
-    if (cn) strings.set(match[1]!, (cn[1] ?? cn[2] ?? "").replace(/&amp;/g, "&").replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&apos;/g, "'"));
-  }
-  return strings;
+  return readStringBag(xml);
 }
 
 /** Frames, strings (base bag, then each [folder, bag] in order) and the font of a set of windows. */

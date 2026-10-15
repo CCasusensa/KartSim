@@ -4,6 +4,8 @@
  * mirror/ui/loading) with the overall progress bar and a current download
  * progress bar beneath it showing the downloading asset name and progress.
  */
+import { tr } from "../i18n/locale";
+
 const STYLE = `
 .startup-loading{background:#000 url("/ui/loading/race-loading-1600.png") center/cover no-repeat}
 .startup-loading::after{content:"";position:absolute;inset:auto 0 0;height:42%;background:linear-gradient(to top,rgba(6,16,34,.92),rgba(6,16,34,0));pointer-events:none}
@@ -41,14 +43,14 @@ export function formatDownloadBytes(bytes: number): string {
 }
 
 export function formatDownloadTitle(rawItem?: string, loaded?: number, total?: number): string {
-  if (!rawItem) return "当前下载：暂无";
+  if (!rawItem) return tr("当前下载：暂无");
   const name = rawItem.replace(/^正在加载\s*/, "");
   let sizeText = "";
   if (typeof loaded === "number" && typeof total === "number" &&
       Number.isFinite(loaded) && Number.isFinite(total) && total > 0) {
     sizeText = ` (${formatDownloadBytes(loaded)} / ${formatDownloadBytes(total)})`;
   }
-  return `当前下载：${name}${sizeText}`;
+  return `${tr("当前下载：")}${name}${sizeText}`;
 }
 
 function element(doc: Document, tag: string, className: string, text = ""): HTMLElement {
@@ -70,7 +72,7 @@ export function installStartupLoadingSkin(doc: Document = document): void {
     if (!view || !label || !copy) return false;
     if (view.querySelector(".ks-loading-track")) return true;
     const head = element(doc, "div", "ks-loading-head");
-    const title = element(doc, "span", "ks-loading-title", "正在加载游戏资源");
+    const title = element(doc, "span", "ks-loading-title", tr("正在加载游戏资源"));
     head.append(title);
     const percent = element(doc, "span", "ks-loading-percent", "0%");
     head.append(percent);
@@ -79,7 +81,7 @@ export function installStartupLoadingSkin(doc: Document = document): void {
     track.append(fill);
 
     const downloadHead = element(doc, "div", "ks-download-head");
-    const downloadTitle = element(doc, "span", "ks-download-title", "当前下载：暂无");
+    const downloadTitle = element(doc, "span", "ks-download-title", tr("当前下载：暂无"));
     downloadHead.append(downloadTitle);
     const downloadPercent = element(doc, "span", "ks-download-percent", "0%");
     downloadHead.append(downloadPercent);
@@ -87,7 +89,7 @@ export function installStartupLoadingSkin(doc: Document = document): void {
     const downloadFill = element(doc, "div", "ks-download-fill");
     downloadTrack.append(downloadFill);
 
-    const tip = element(doc, "div", "ks-loading-tip", "首次进入需要下载游戏资源，请耐心等待");
+    const tip = element(doc, "div", "ks-loading-tip", tr("首次进入需要下载游戏资源，请耐心等待"));
     for (const node of [head, track, downloadHead, downloadTrack, tip]) node.setAttribute("aria-hidden", "true");
     copy.prepend(head, track, downloadHead, downloadTrack, tip);
 
@@ -95,7 +97,7 @@ export function installStartupLoadingSkin(doc: Document = document): void {
       const value = startupLoadingPercent(label.getAttribute("aria-valuenow"));
       percent.textContent = `${Math.floor(value)}%`;
       fill.style.width = `${value}%`;
-      title.textContent = label.getAttribute("aria-valuetext") ?? "正在加载游戏资源";
+      title.textContent = tr(label.getAttribute("aria-valuetext") ?? "正在加载游戏资源");
     };
     update();
     new MutationObserver(update).observe(label,

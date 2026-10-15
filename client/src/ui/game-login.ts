@@ -5,6 +5,7 @@ import { node, nodeName, paintText, prepare, type BmlLibrary, type Node, type No
   type WindowView } from "./bml-kit";
 import { gameWindowLibrary, popupLayer, showGameMessage as showPopupMessage, showGameStatus as showPopupStatus,
   type GameStatus } from "./game-popups";
+import { tr } from "../i18n/locale";
 
 export { gameWindowLibrary };
 
@@ -58,7 +59,7 @@ export function loginWindowDefinition(form: LoginForm, text: LoginWindowText): N
   for (const field of form.fields()) {
     children.push(
       node("Label", { name: `${field}Label`, leftTopWH: `20 ${y} ${ROW.label - 12} ${ROW.height}`, textRender: "bold15",
-        textColor: "255 72 106 163", textAlign: "right|vcenter", text: LOGIN_FIELD_LABELS[field] }),
+        textColor: "255 72 106 163", textAlign: "right|vcenter", text: tr(LOGIN_FIELD_LABELS[field]) }),
       node("Edit", { name: field, leftTopWH: `${20 + ROW.label} ${y} ${ROW.edit} ${ROW.height}`, frame: "DefaultEdit",
         textRender: "bold16" }),
     );
@@ -105,7 +106,7 @@ export async function openGameLogin(library: BmlLibrary, root: HTMLElement, opti
   let view: WindowView | undefined;
   let finish!: (account: unknown) => void;
   const done = new Promise<unknown>(resolve => { finish = resolve; });
-  const heading = () => form.mode === "register" ? "跑跑卡丁车 · 注册新账号" : options.heading ?? "跑跑卡丁车 · 账号登录";
+  const heading = () => tr(form.mode === "register" ? "跑跑卡丁车 · 注册新账号" : options.heading ?? "跑跑卡丁车 · 账号登录");
   const render = () => view?.render();
   const submit = async () => {
     if (form.busy) return;
@@ -122,23 +123,23 @@ export async function openGameLogin(library: BmlLibrary, root: HTMLElement, opti
       case "loginDialog": return { text: heading() };
       case "hint": return paintText(options.hint ?? "", { size: 13, color: TEXT, align: "center", middle: true,
         lineGap: 5 });
-      case "rules": return paintText(RULES, { size: 12, color: "rgb(110,120,140)", align: "center", middle: true });
-      case "inviteToggle": return { ...button("有邀请码？", () => {
+      case "rules": return paintText(tr(RULES), { size: 12, color: "rgb(110,120,140)", align: "center", middle: true });
+      case "inviteToggle": return { ...button(tr("有邀请码？"), () => {
         form.revealInvite();
         void build("invite");
       }, form.busy), textColor: "rgb(30,110,210)" };
-      case "error": return paintText(form.busy ? (register ? "正在注册…" : "正在登录…") : form.error, {
+      case "error": return paintText(form.busy ? tr(register ? "正在注册…" : "正在登录…") : form.error, {
         size: 13, color: form.busy ? TEXT : "rgb(205,45,35)", bold: !form.busy, middle: true });
-      case "okButton": return button(register ? "注册并登录" : "登录", () => void submit(), form.busy);
-      case "modeButton": return button(register ? "已有账号，去登录"
-        : options.invite === "required" || options.invite === undefined ? "用邀请码注册" : "注册新账号", () => {
+      case "okButton": return button(tr(register ? "注册并登录" : "登录"), () => void submit(), form.busy);
+      case "modeButton": return button(tr(register ? "已有账号，去登录"
+        : options.invite === "required" || options.invite === undefined ? "用邀请码注册" : "注册新账号"), () => {
         form.toggleMode();
         void build();
       }, form.busy);
     }
     if (name in LOGIN_FIELD_LABELS && !name.endsWith("Label")) {
       const field = name as LoginField;
-      return { label: LOGIN_FIELD_LABELS[field], disabled: form.busy, input: {
+      return { label: tr(LOGIN_FIELD_LABELS[field]), disabled: form.busy, input: {
         value: form.values[field], maxLength: form.maxLength(field),
         password: field === "password" || field === "confirm",
         autocomplete: AUTOCOMPLETE[field](register),

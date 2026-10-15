@@ -1,3 +1,5 @@
+import { resourceLocale } from "../i18n/locale";
+
 /**
  * Release art and layouts of 好友聊天系统 (stage_messengerSystem): the
  * window and row templates as decoded BML, their images (autoLoadImage
@@ -178,7 +180,8 @@ function readStringBag(bag: BmlNode): { strings: Map<string, string>; repeated: 
   const repeated = new Map<string, string>();
   for (const entry of bag.children) {
     const key = attr(entry, "n");
-    const local = entry.children.find(child => attr(child, "c") === "cn");
+    const local = entry.children.find(child => attr(child, "c") === resourceLocale()) ??
+      entry.children.find(child => attr(child, "c") === "cn");
     if (!key || !local) continue;
     const value = attr(local, "v") ?? "";
     if (strings.has(key)) repeated.set(key, value);

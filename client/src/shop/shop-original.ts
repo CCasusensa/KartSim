@@ -16,6 +16,7 @@
  * the 1600×900 stage the release layout walker (generated jc) is checked on.
  */
 import { E9, Ft, m4, T, V0 } from "../generated/formats.js";
+import { tr } from "../i18n/locale";
 import {
   BUY_DIALOG_XML, CAM_INTRO_XML, CARD_CASH_XML, CARD_KOIN_XML, CARD_LUCCI_XML, CARD_TIP_XML,
   DIALOG_CLOSE_BUTTON_XML, MONOCOQUE_CONFIG_XML, MONOCOQUE_FRAMES_XML, STAGE_WINDOW_XML,
@@ -321,7 +322,7 @@ export type ShopStringKey = keyof typeof SHOP_STRINGS;
 /** Resolves #sb(key) references; unknown keys stay empty like the release renderer. */
 export function shopText(value: string | undefined): string {
   return (value ?? "").replace(/#sb\(([^)]+)\)/g, (_whole, key: string) =>
-    (SHOP_STRINGS as Record<string, string>)[key] ?? "");
+    tr((SHOP_STRINGS as Record<string, string>)[key] ?? ""));
 }
 
 // --- Text styles --------------------------------------------------------

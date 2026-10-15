@@ -7,6 +7,7 @@
  */
 import { s2 } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
+import { resourceLocale } from "../i18n/locale";
 import { layoutArt, loadLayoutArt, type ShopArt, type ShopArtLibrary } from "../shop/shop-assets";
 import { attr, type ShopNode } from "../shop/shop-original";
 
@@ -30,14 +31,14 @@ async function bml(library: LotteryLibrary, roots: readonly string[], name: stri
   return s2(await file.bytes()) as ShopNode;
 }
 
-/** A stage's cn strings (stage_stringBag: <k n><m c v/>…</k>), tw then kr where cn is empty. */
+/** A stage's strings, falling back to Chinese when the selected locale is absent. */
 export async function loadStringBag(library: LotteryLibrary, roots: readonly string[]): Promise<Map<string, string>> {
   const root = await bml(library, roots, "stage_stringBag");
   const strings = new Map<string, string>();
   for (const key of root.children) {
     const name = attr(key, "n");
     if (!name) continue;
-    const value = (["cn", "tw", "kr"] as const).map(locale =>
+    const value = ([resourceLocale(), "cn", "tw", "kr"] as const).map(locale =>
       key.children.find(entry => attr(entry, "c") === locale && attr(entry, "v"))).find(Boolean);
     const text = value ? attr(value, "v") : undefined;
     if (text) strings.set(name, text);

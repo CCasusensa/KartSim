@@ -2,9 +2,11 @@
 import { reloadIfOutdatedEntry } from "./app/boot-support";
 import { installLocalMultiplayerConfig } from "./multiplayer/local-config";
 import { installStartupLoadingSkin } from "./ui/startup-loading-skin";
+import { installLanguagePicker } from "./i18n/locale";
 
 // A page from a stale cache reloads into the current build while the game is still loading.
 void reloadIfOutdatedEntry();
+installLanguagePicker();
 installLocalMultiplayerConfig();
 installStartupLoadingSkin();
 

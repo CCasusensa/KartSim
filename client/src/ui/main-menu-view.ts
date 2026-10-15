@@ -4,6 +4,7 @@ import { U1 } from "../generated/library.js";
 import { showGameToast } from "./game-popups";
 import { scrollbarGeometry } from "./scrollbar";
 import { loadRiderSchoolArt, type RiderSchoolArt } from "./rider-school-art";
+import { resourceLocale, tr } from "../i18n/locale";
 
 /**
  * The release MainMenuStage home, stage_mainMenu.rho/mq_window@cn.bml
@@ -290,8 +291,9 @@ export function readMainMenuStrings(bag: MainMenuNode): Map<string, string> {
   const visit = (node: MainMenuNode): void => {
     if (node.name === "k") {
       const key = attribute(node, "n");
-      const cn = node.children.find(child => attribute(child, "c") === "cn");
-      const value = cn && attribute(cn, "v");
+      const local = node.children.find(child => attribute(child, "c") === resourceLocale()) ??
+        node.children.find(child => attribute(child, "c") === "cn");
+      const value = local && attribute(local, "v");
       if (key && value) strings.set(key, value);
       return;
     }
@@ -527,7 +529,7 @@ export class MainMenuView {
     if (!context) throw new Error("无法创建主菜单");
     this.context = context;
     this.element.dataset.uiLayer = "stage";
-    this.element.setAttribute("aria-label", "主菜单");
+    this.element.setAttribute("aria-label", tr("主菜单"));
     // Above Ready's stage (1), below dialogs (3); the taskbar strip stays visible.
     Object.assign(this.element.style, { position: "absolute", inset: "0 0 7.333333%",
       zIndex: "2", userSelect: "none" });
@@ -577,7 +579,7 @@ export class MainMenuView {
     if (page === this.currentPage) return;
     this.currentPage = page;
     this.category = undefined;
-    this.element.setAttribute("aria-label", page === "single" ? "单人游戏" : "主菜单");
+    this.element.setAttribute("aria-label", tr(page === "single" ? "单人游戏" : "主菜单"));
     this.render();
   }
 
@@ -1044,7 +1046,7 @@ export class MainMenuView {
     const context = this.context;
     const art = this.assets.replay;
     const label = (text: string, box: Rect, size: number, color: string, align: "left" | "center") =>
-      m9(context, text, box, { family: FONT_FAMILY, size, kind: "label", color, align,
+      m9(context, tr(text), box, { family: FONT_FAMILY, size, kind: "label", color, align,
         verticalAlign: "center", stroke: 0, strokeColor: "black" });
     const slot = (index: number): Rect => ({ x: rect.x - 1, y: rect.y + index * (REPLAY_CARD.height + REPLAY_CARD.gap),
       width: REPLAY_CARD.width, height: REPLAY_CARD.height });
@@ -1092,7 +1094,7 @@ export class MainMenuView {
         context.fill();
         context.restore();
         label(text, button, 15, "white", "center");
-        if (action) this.regions.push({ key, rect: button, label: text, activate: () => {
+        if (action) this.regions.push({ key, rect: button, label: tr(text), activate: () => {
           this.options.onActivate?.();
           action();
         } });
@@ -1220,7 +1222,7 @@ export class MainMenuView {
 
   private drawStoryText(text: string, rect: Rect, size: number, color: string,
     align: "left" | "center"): void {
-    m9(this.context, text, rect, { family: FONT_FAMILY, size, kind: "label", color, align,
+    m9(this.context, tr(text), rect, { family: FONT_FAMILY, size, kind: "label", color, align,
       verticalAlign: "center", stroke: 0, strokeColor: "black" });
   }
 
@@ -1236,10 +1238,10 @@ export class MainMenuView {
       this.context.fillStyle = state ? "rgb(255,214,120)" : "rgb(240,244,250)";
       this.context.fillRect(rect.x, rect.y, rect.width, rect.height);
     }
-    m9(this.context, "地图工坊", { x: rect.x, y: rect.y + (state === 2 ? 1 : 0), width: rect.width, height: rect.height }, {
+    m9(this.context, tr("地图工坊"), { x: rect.x, y: rect.y + (state === 2 ? 1 : 0), width: rect.width, height: rect.height }, {
       family: FONT_FAMILY, size: 16, kind: "label", color: "rgb(42,55,80)", align: "center",
       verticalAlign: "center", stroke: 0, strokeColor: "black" });
-    this.regions.push({ key, rect, label: "地图工坊",
+    this.regions.push({ key, rect, label: tr("地图工坊"),
       activate: () => { this.options.onActivate?.(); this.options.onCustomGame?.(); } });
   }
 
@@ -1251,7 +1253,7 @@ export class MainMenuView {
     // The right panel is titled after the category it shows (计时赛 …), 单人游戏 on the overview.
     if (attribute(node, "name") === "rightTitleName" && this.currentPage === "single" && this.category &&
         RIGHT_FILLED.has(this.category))
-      return SINGLE_LABELS[this.category] ?? this.assets.strings.get("singlePlay") ?? "单人游戏";
+      return tr(SINGLE_LABELS[this.category] ?? this.assets.strings.get("singlePlay") ?? "单人游戏");
     const raw = attribute(node, "text");
     if (!raw) return undefined;
     const key = /^#sb\(([^)]+)\)$/.exec(raw)?.[1];
@@ -1259,15 +1261,15 @@ export class MainMenuView {
     // licenseInfo1 serves the PRO qualification page (获得徽章) and the license pages, whose
     // button is 获得驾照: the CN text names the emblem on both (KR 라이센스 획득, TW 駕照獲得).
     if (key === "licenseInfo1" && this.category === "cat_riderSchool" && this.selectedLicense !== 6)
-      return value?.replace("获得徽章", "获得驾照");
-    return value;
+      return tr(value?.replace("获得徽章", "获得驾照") ?? "");
+    return value === undefined ? undefined : tr(value);
   }
 
   private label(node: MainMenuNode, name: string): string {
-    if (name === "timeAttackCompetitiveBtn") return "计时赛";
-    if (name === "prev") return "上一页";
-    if (name === "next") return "下一页";
-    return SINGLE_LABELS[name] ?? this.text(node) ?? name;
+    if (name === "timeAttackCompetitiveBtn") return tr("计时赛");
+    if (name === "prev") return tr("上一页");
+    if (name === "next") return tr("下一页");
+    return tr(SINGLE_LABELS[name] ?? this.text(node) ?? name);
   }
 
   private drawLabel(node: MainMenuNode, text: string, rect: Rect): void {

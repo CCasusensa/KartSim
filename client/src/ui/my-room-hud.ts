@@ -1,6 +1,7 @@
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { G1, T, V0, ct, f5, m9, p2, s2, st, ve } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
+import { resourceLocale } from "../i18n/locale";
 
 /**
  * The release MyRoomStage monocoque overlay: owner menu, rider list and chat box
@@ -148,8 +149,9 @@ export function readMyRoomStringBag(bag: MyRoomHudNode): Map<string, string> {
   const visit = (node: MyRoomHudNode): void => {
     if (node.name === "k") {
       const key = attribute(node, "n");
-      const cn = node.children.find(child => attribute(child, "c") === "cn");
-      const value = cn && attribute(cn, "v");
+      const local = node.children.find(child => attribute(child, "c") === resourceLocale()) ??
+        node.children.find(child => attribute(child, "c") === "cn");
+      const value = local && attribute(local, "v");
       if (key && value !== undefined) strings.set(key, value);
       return;
     }
