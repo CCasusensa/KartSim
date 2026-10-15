@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { tr } from "../i18n/locale";
 /**
  * The lottery screens' popup windows in the release look, drawn by the
@@ -336,12 +337,12 @@ function packRowState(name: string, pack: LotteryPack, busy: boolean, buy: () =>
         if (item) paintPicture(context, picture(item), rect);
       } };
     }
-    case "packName": return textState(pack.name, { size: 16, color: TEXT }, 1);
+    case "packName": return textState(translateItemName(pack.name), { size: 16, color: TEXT }, 1);
     case "packItems": return textState(itemsLine(pack.items), { size: 13, color: SUBTEXT, lineHeight: 19 }, 2);
     case "packPrice": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
       paintAmount(context, rect, pack.price, pack.currency, icons, "right", PRICE_COLORS[pack.currency]);
     } };
-    case "packBuy": return { text: tr("兑换"), label: tr("兑换 {0}", { "0": pack.name }), disabled: busy, ...(busy ? {} : { action: buy }) };
+    case "packBuy": return { text: tr("兑换"), label: tr("兑换 {0}", { "0": translateItemName(pack.name) }), disabled: busy, ...(busy ? {} : { action: buy }) };
   }
   return {};
 }
@@ -488,12 +489,12 @@ export function openGachaPicker(options: GachaPickerOptions): Promise<number | u
         const gacha = entries[page * perPage + cell];
         if (!gacha) return { visible: false };
         switch (name) {
-          case "gachaButton": return { label: gacha.name, action: () => {
+          case "gachaButton": return { label: translateItemName(gacha.name), action: () => {
             options.onActivate?.();
             done(gacha.itemId);
           } };
           case "gachaMark": return { visible: gacha.itemId === options.current };
-          case "itemName": return textState(gacha.name, { size: 16, color: TEXT, align: "center" }, 1, true);
+          case "itemName": return textState(translateItemName(gacha.name), { size: 16, color: TEXT, align: "center" }, 1, true);
           case "itemPeriod": return { text: gachaStatus(gacha) };
           case "itemCount": {
             // The release label keeps off the card's right edge (marginRect).
@@ -506,10 +507,10 @@ export function openGachaPicker(options: GachaPickerOptions): Promise<number | u
           case "itemPanel": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
             // The card body between the count (top right) and the info lines (bottom).
             const size = 128;
-            paintPicture(context, options.picture({ category: 24, itemId: gacha.itemId, name: gacha.name }),
+            paintPicture(context, options.picture({ category: 24, itemId: gacha.itemId, name: translateItemName(gacha.name) }),
               { x: rect.x + (rect.width - size) / 2, y: rect.y + 52, width: size, height: size });
           } };
-          case "itemInfo": return textState(gacha.key ? tr("需同时使用 {0}（持有 {1} 个）", { "0": gacha.key.name, "1": gacha.key.owned }) : "",
+          case "itemInfo": return textState(gacha.key ? tr("需同时使用 {0}（持有 {1} 个）", { "0": translateItemName(gacha.key.name), "1": gacha.key.owned }) : "",
             { size: 14, color: "rgb(64,75,95)", align: "center", lineHeight: 18 }, 2, true);
         }
         return {};

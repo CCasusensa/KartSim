@@ -1,3 +1,5 @@
+import { translateItemName } from "../i18n/item-names.ts";
+import { trackDisplayTitle } from "../resources/track-names.ts";
 import { resourceText } from "../i18n/locale.ts";
 // Generated from the verified KartSim v39.11 release bundle.
 // Rebuild with: node tools/generate-modules.mjs
@@ -2170,7 +2172,7 @@ async function I80(n, e) {
       K5(et(n, `${r}/난이도원.png`, s)),
     ]);
   return {
-    trackTitle: t.cnTitle,
+    trackTitle: trackDisplayTitle(e, t.cnTitle),
     trackIcon: a,
     trackDifficulty: k80(o, t.difficulty),
     images: new Map([
@@ -2459,7 +2461,7 @@ function yT(n, e, t) {
   return {
     setting: `${s} [${o}]`,
     time: `${ff(c)}:${ff(l)}:${ff(u)}`,
-    kart: n.kartName,
+    kart: translateItemName(n.kartName),
     crash: n.crashCount === void 0 ? "" : `${n.crashCount} ${a}`,
     booster: n.boosterCount === void 0 ? "" : `${n.boosterCount} ${a}`,
   };

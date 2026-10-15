@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { tr } from "../i18n/locale";
 import type { GarageCatalogEntry, EquipmentCatalogEntry } from "../resources/garage-catalog";
 import {
@@ -134,7 +135,7 @@ export function itemInventoryEntries(catalog: ItemInventoryCatalog): ItemInvento
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  });
+  }).map(item => ({ ...item, title: itemDisplayName(item.category, item.itemId, item.title) }));
 }
 
 export function itemInventoryKey(item: Pick<ItemInventoryItem,

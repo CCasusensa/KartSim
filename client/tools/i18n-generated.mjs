@@ -18,6 +18,20 @@ export function localizeGeneratedModule(filename, source) {
     return source;
   }
   if (!["library.js", "ui.js", "world.js"].includes(filename)) return source;
+  if (filename === "ui.js") {
+    // Record summaries keep canonical names; localize only the painted result field.
+    source = source.replace('kart: n.kartName,', 'kart: translateItemName(n.kartName),');
+    const itemImport = 'import { translateItemName } from "../i18n/item-names.ts";\n';
+    if (source.includes('translateItemName(') && !source.includes(itemImport)) source = itemImport + source;
+  }
+  if (filename === "library.js" || filename === "ui.js") {
+    // Keep native metadata and track eligibility in CN; localize only displayed titles.
+    source = source.replace('title: o.reverse ? `[反]${d}` : d,',
+      'title: trackDisplayTitle(o.id, o.reverse ? `[反]${d}` : d),');
+    source = source.replace('trackTitle: t.cnTitle,', 'trackTitle: trackDisplayTitle(e, t.cnTitle),');
+    const trackImport = 'import { trackDisplayTitle } from "../resources/track-names.ts";\n';
+    if (source.includes('trackDisplayTitle(') && !source.includes(trackImport)) source = trackImport + source;
+  }
   if (filename === "library.js") {
     source = source.replace('this.canvas.setAttribute("aria-label", "多人游戏大厅")',
       'this.canvas.setAttribute("aria-label", translateGeneratedLabel("多人游戏大厅"))');

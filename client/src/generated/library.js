@@ -1,3 +1,4 @@
+import { trackDisplayTitle } from "../resources/track-names.ts";
 import { tr as translateGeneratedLabel } from "../i18n/locale.ts";
 import { resourceText } from "../i18n/locale.ts";
 // Generated from the verified KartSim v39.11 release bundle.
@@ -398,7 +399,7 @@ async function Cw(n) {
       s.push({
         id: o.id,
         path: u.virtualPath,
-        title: o.reverse ? `[反]${d}` : d,
+        title: trackDisplayTitle(o.id, o.reverse ? `[反]${d}` : d),
         theme: h,
         difficulty: c.difficulty,
         gameType: c.gameType,

@@ -51,7 +51,7 @@ test("stuff items take item.kml names and itemTable icons", () => {
     { category: 1, itemId: 1, quantity: 1, expiresAt: null, source: "starter" },
   ], info, 0);
   assert.deepEqual(listed.map(item => [item.category, item.itemId, item.quantity, item.title]),
-    [[24, 1007, 2, "24-1007"], [34, 879, 9, "探险币"]]);
+    [[24, 1007, 2, "红宝石盒"], [34, 879, 9, "探险币"]]);
 });
 
 test("box results and refusals read like the release dialog", () => {

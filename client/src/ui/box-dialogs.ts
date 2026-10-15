@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { tr } from "../i18n/locale";
 import { T, m9 } from "../generated/formats.js";
 import { C8, F9, te } from "../generated/library.js";
@@ -47,7 +48,7 @@ export interface BoxReward {
 export function boxRewardText(reward: BoxReward): string {
   const amount = reward.count > 1 ? ` ×${reward.count}` : "";
   const period = reward.days > 0 ? tr("（{0}天）", { "0": reward.days }) : "";
-  return `${reward.name || `${reward.category}-${reward.itemId}`}${amount}${period}`;
+  return `${itemDisplayName(reward.category, reward.itemId, reward.name || `${reward.category}-${reward.itemId}`)}${amount}${period}`;
 }
 
 /** The notice for a refused opening (error codes of POST /api/inventory/open). */
@@ -118,7 +119,7 @@ export async function openBoxDialog(options: BoxDialogOptions): Promise<BoxDialo
       message = GACHA_STRINGS.congratulationStrFormat.replace("%s", rewards.map(boxRewardText).join("、"));
     }, error => {
       phase = "error";
-      message = boxErrorText((error as { code?: string }).code, options.box.name);
+      message = boxErrorText((error as { code?: string }).code, itemDisplayName(24, options.box.itemId, options.box.name));
     }).finally(() => {
       if (!closed) {
         view?.render();
@@ -142,10 +143,10 @@ export async function openBoxDialog(options: BoxDialogOptions): Promise<BoxDialo
   };
   view = await te.load({
     library: options.library, root: options.root, definition, roots: [folder, "gui_/monocoque", "stage_/common"],
-    modal: true, label: options.box.name, preserveDisplayPixels: true, smoothImages: true,
+    modal: true, label: itemDisplayName(24, options.box.itemId, options.box.name), preserveDisplayPixels: true, smoothImages: true,
     onCancel: cancel, onConfirm: confirm,
     state: (node: DialogNode) => {
-      if (node.name === "CaptionWindow") return { text: options.box.name };
+      if (node.name === "CaptionWindow") return { text: itemDisplayName(24, options.box.itemId, options.box.name) };
       switch (nodeName(node)) {
         case "itemPreview2": return { visible: false };
         case "item1": return { visible: false };
@@ -154,8 +155,8 @@ export async function openBoxDialog(options: BoxDialogOptions): Promise<BoxDialo
           if (phase === "result" && rewards.length) {
             const width = area.width / rewards.length;
             rewards.forEach((reward, index) => picture(context, options.rewardPicture(reward),
-              { ...area, x: area.x + index * width, width }, reward.name));
-          } else picture(context, options.boxIcon(), area, options.box.name);
+              { ...area, x: area.x + index * width, width }, itemDisplayName(reward.category, reward.itemId, reward.name)));
+          } else picture(context, options.boxIcon(), area, itemDisplayName(24, options.box.itemId, options.box.name));
         } };
         case "description": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
           const lines = phase === "confirm" || phase === "busy" ? GACHA_STRINGS.openLotteryCheck.split("|")

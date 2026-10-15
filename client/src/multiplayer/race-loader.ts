@@ -1,3 +1,4 @@
+import { trackDisplayTitle } from "../resources/track-names";
 import { beginRaceLoad } from "../resources/resource-manager";
 /** Resource and connection assembly for a live multiplayer race. */
 import { isItemRace, itemTrackCardModeKey } from "./lobby-item-mode";
@@ -142,7 +143,7 @@ export function createMultiplayerRaceLoader(
         const item = isItemRace(raceAssets.drivingMode);
         trackCard = await deps.loadTrackCard({
           library, root, trackId: room.trackId, trackDirectory: directory,
-          trackTitle: raceAssets.map.metadata.cnTitle ?? "",
+          trackTitle: trackDisplayTitle(room.trackId, raceAssets.map.metadata.cnTitle ?? ""),
           difficulty: raceAssets.map.metadata.difficulty,
           game: {
             modeKey: item ? itemTrackCardModeKey(config.mode === "team")

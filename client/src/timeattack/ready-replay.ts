@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { tr } from "../i18n/locale";
 /**
  * OB 观看 (TIMEATTACK.md): watching a ranked record's replay through the
@@ -30,7 +31,7 @@ export async function openRankedReplay(controller: ReadyHomeController, request:
   request.close();
   await startReplaySession(controller, {
     trackId: request.track.id, trackPath: request.track.path, trackTitle: request.track.title,
-    ksv: bytes, riderName: request.row.nickname, kartName: request.row.kartName, recordMs: request.row.bestMs,
+    ksv: bytes, riderName: request.row.nickname, kartName: translateItemName(request.row.kartName), recordMs: request.row.bestMs,
     speed: request.settings.speed, booster: request.settings.booster,
     onReturn: () => { void request.resume(); },
   });

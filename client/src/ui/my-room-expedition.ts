@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { tr } from "../i18n/locale";
 import { T } from "../generated/formats.js";
 import { F9 } from "../generated/library.js";
@@ -243,7 +244,7 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
   }
 
   private name(category: number, itemId: number): string {
-    return this.options.items.get(itemKey(category, itemId))?.name ?? String(itemId);
+    return itemDisplayName(category, itemId, this.options.items.get(itemKey(category, itemId))?.name ?? String(itemId));
   }
 
   private picture(category: number, itemId: number): HTMLCanvasElement | undefined {
@@ -433,7 +434,7 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
         if (this.rewardKind === "rp") return `${this.text("rp") ?? tr("经验")} +${mission.exp}`;
         if (this.rewardKind === "lucci") return `${this.text("lucci") ?? tr("金币")} +${mission.lucci}`;
         if (this.rewardKind === "stock" && item)
-          return `${item.name || this.name(item.category, item.itemId)}${item.count > 1 ? ` ×${item.count}` : ""}`;
+          return `${itemDisplayName(item.category, item.itemId, item.name || this.name(item.category, item.itemId))}${item.count > 1 ? ` ×${item.count}` : ""}`;
         return null;
       }
       if (!mission || !draft) return null;
@@ -1075,7 +1076,7 @@ class ExpeditionWindow implements MyRoomExpeditionWindow {
       const parts: string[] = [];
       if (claim.exp > 0) parts.push(`${this.text("rp") ?? tr("经验")} ${claim.exp}`);
       if (claim.lucci > 0) parts.push(`${this.text("lucci") ?? tr("金币")} ${claim.lucci}`);
-      for (const item of claim.items) parts.push(`${item.name || this.name(item.category, item.itemId)}` +
+      for (const item of claim.items) parts.push(`${itemDisplayName(item.category, item.itemId, item.name || this.name(item.category, item.itemId))}` +
         `${item.count > 1 ? ` ×${item.count}` : ""}`);
       try {
         this.crew = await this.options.api.crew();

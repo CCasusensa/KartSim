@@ -51,3 +51,31 @@ test('ghost selection labels translate display words while retaining the version
   assert.match(result, /tr\(n.booster === 0/);
   assert.equal(localizeGeneratedModule('timeattack.js', result), result);
 });
+
+test('generated track cards localize official names without changing metadata or selection rules', () => {
+  const library = 'd = c.cnTitle;\nif (!d) continue;\nreturn { id: o.id, title: o.reverse ? `[反]${d}` : d, };';
+  const ui = 'if (!t?.cnTitle) throw new Error("missing");\nreturn { trackTitle: t.cnTitle, };';
+  for (const [file, original] of [['library.js', library], ['ui.js', ui]]) {
+    const result = localizeGeneratedModule(file, original);
+    assert.match(result, /trackDisplayTitle\(/);
+    assert.equal(localizeGeneratedModule(file, result), result);
+    const checkedIn = fs.readFileSync(new URL('../src/generated/'+file, import.meta.url), 'utf8');
+    assert.match(checkedIn, /trackDisplayTitle\(/);
+  }
+  assert.match(localizeGeneratedModule('library.js', library), /d = c.cnTitle;\nif \(!d\) continue;/);
+  assert.match(localizeGeneratedModule('ui.js', ui), /if \(!t\?\.cnTitle\)/);
+});
+
+test('generated record panels translate kart labels without rewriting stored summaries', () => {
+  const original = 'function summary(n) { return { kart: n.kartName, elapsedMs: n.elapsedMs }; }';
+  const result = localizeGeneratedModule('ui.js', original);
+  const render = new Function('translateItemName', result.replace(/^import .*;\n/gm, '') + '\nreturn summary;')(
+    name => name === '爆烈 C1' ? 'Burst C1' : name);
+  const saved = { kartName: '爆烈 C1', elapsedMs: 42000 };
+  assert.deepEqual(render(saved), { kart: 'Burst C1', elapsedMs: 42000 });
+  assert.equal(saved.kartName, '爆烈 C1');
+  assert.equal(render({ kartName: 'My custom kart', elapsedMs: 42000 }).kart, 'My custom kart');
+  assert.equal(localizeGeneratedModule('ui.js', result), result);
+  const checkedIn = fs.readFileSync(new URL('../src/generated/ui.js', import.meta.url), 'utf8');
+  assert.match(checkedIn, /kart: translateItemName\(n.kartName\)/);
+});

@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { gameLocale, tr } from "../i18n/locale";
 import { te } from "../generated/library.js";
 import type { AccountSession } from "../account/account-session";
@@ -143,7 +144,7 @@ function rewardText(reward: QuestReward): string {
     const currency = ({ lucci: "金币", koin: "酷币", coupon: "点券" } as Record<string, string>)[reward.currency ?? ""];
     if (currency) return `${reward.count.toLocaleString(gameLocale())} ${tr(currency)}`;
   }
-  const name = tr(reward.name);
+  const name = translateItemName(reward.name);
   if (reward.currency || reward.emblem || reward.passPoints) return name;
   return reward.count > 1 ? `${name} ×${reward.count}` : name;
 }

@@ -1,4 +1,5 @@
 import { resourceText } from "../i18n/locale";
+import { localizeGarageAppearance, type GarageAppearanceName } from "./garage-appearance-names";
 
 export interface GarageAssetNode {
   name: string;
@@ -37,11 +38,9 @@ export interface GarageAssetDependencies {
     areaFrame: { texture: string };
     buttonFrames: Array<{ texture: string }>;
   };
-  loadCosmetics(library: GarageAssetLibrary, lookup: unknown): Promise<Array<{
-    icon?: string;
-  }>>;
+  loadCosmetics(library: GarageAssetLibrary, lookup: unknown): Promise<GarageAppearanceName[]>;
   cosmeticLookup(library: GarageAssetLibrary): Promise<unknown>;
-  loadCoatings(library: GarageAssetLibrary): Promise<Array<{ icon?: string }>>;
+  loadCoatings(library: GarageAssetLibrary): Promise<GarageAppearanceName[]>;
   partSlots: readonly string[];
   collectParts(table: GarageAssetNode, shop: GarageAssetNode,
     materials: GarageAssetNode | undefined,
@@ -159,9 +158,10 @@ export async function loadGarageAssetBundle(library: GarageAssetLibrary,
   if (!scrollbarNode) throw new Error("P3543 车库布局缺少 partListBar。");
   const partScrollbar = dependencies.partScrollbar(scrollbarNode, frame);
   const strings = new Map<string | undefined, string>();
-  const cosmetics = await dependencies.loadCosmetics(library,
-    await dependencies.cosmeticLookup(library));
-  const coatings = await dependencies.loadCoatings(library);
+  const cosmetics = (await dependencies.loadCosmetics(library,
+    await dependencies.cosmeticLookup(library))).map(item => localizeGarageAppearance(item));
+  const coatings = (await dependencies.loadCoatings(library))
+    .map(item => localizeGarageAppearance(item, true));
   const partModels = new Map<string, string>();
   for (const slot of dependencies.partSlots) {
     const tag = `parts${slot[0]!.toUpperCase()}${slot.slice(1)}12`;

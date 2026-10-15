@@ -1,4 +1,5 @@
 import { storyMenuText } from "./story-menu-text";
+import { storySpeakerText } from "./story-dialogue-text";
 
 /**
  * Release story mode (故事模式) data, zeta_cn_scenario.rho:
@@ -206,7 +207,7 @@ export function readStoryMission(drive: StoryNode, kind?: StoryMissionKind): Sto
       ksv,
       kartId: integer(value("kartId")),
       characterId: integer(value("characterId")),
-      name: value("characterName"),
+      name: value("characterName") === undefined ? undefined : storySpeakerText(value("characterName")!),
     } : undefined,
   };
 }

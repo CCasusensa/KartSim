@@ -4,6 +4,7 @@ import { cityHelpPages, cityHelpDefinition, paintHelpPage } from "./city-help-wi
 import { cityMapWindowDefinition } from "./city-map-window";
 import { radioWindowDefinition, paintNowPlaying } from "./city-radio-window";
 import { fuelErrorText, fuelPrompt, tankClassName } from "./city-fuel";
+import { paintRefuelGauge } from "./city-fuel-window";
 import { compass, formatDuration, questLabel, QUESTS } from "./city-quest-data";
 import type { CityFuel } from "./city-protocol";
 import type { GameLocale } from "../i18n/locale";
@@ -50,6 +51,26 @@ test("city fuel warnings and quest counters translate without changing calculati
     assert.equal(formatDuration(65000), ["1 分 05 秒", "1 min 05 sec", "1분 05초"][index]);
     assert.equal(compass(0, 0, 0, -1), ["北", "N", "북"][index]);
     if (locale !== "zh-CN") assert.doesNotMatch(questLabel(quest), /\p{Script=Han}/u);
+  }));
+});
+
+test("city refueling translates vehicle labels while preserving server fuel state and custom names", () => {
+  const fuel: CityFuel = { kartName: "爆烈 C1", sizeClass: "medium", capacityMl: 40000, fuelMl: 10000,
+    useMlPerKm: 2800, pricePerLiter: 5, rescueFee: 300, lucci: 1000, empty: false };
+  const source = JSON.stringify(fuel);
+  locales.forEach((locale, index) => withLocale(locale, () => {
+    const painted: string[] = [];
+    const context = new Proxy({ fillText: (text: string) => painted.push(text),
+      createLinearGradient: () => ({ addColorStop() {} }) }, {
+      get: (target, key) => key in target ? Reflect.get(target, key) : () => {},
+      set: (target, key, value) => Reflect.set(target, key, value),
+    }) as unknown as CanvasRenderingContext2D;
+    const rect = { x: 0, y: 0, width: 470, height: 110 };
+    paintRefuelGauge(context, rect, fuel, 5000);
+    assert.ok(painted.includes(["爆烈 C1", "Burst C1", "버스트 C1"][index]!));
+    assert.equal(JSON.stringify(fuel), source);
+    paintRefuelGauge(context, rect, { ...fuel, kartName: "我的自定义赛车" }, 5000);
+    assert.ok(painted.includes("我的自定义赛车"));
   }));
 });
 

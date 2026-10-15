@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { C8, te } from "../generated/library.js";
 import type { AccountSession } from "../account/account-session";
 import { gameLocale, tr } from "../i18n/locale";
@@ -41,7 +42,8 @@ export function rewardTitle(entry: Pick<RewardBoxEntry, "name" | "count" | "curr
   if (entry.currency && gameLocale() !== "zh-CN")
     return `${entry.count.toLocaleString(gameLocale())} ${tr(CURRENCY_NAMES[entry.currency] ?? entry.name)}`;
   if (entry.currency) return /\d/.test(entry.name) ? entry.name : `${entry.count.toLocaleString("en-US")}${entry.name}`;
-  return entry.count > 1 ? `${entry.name} ×${entry.count}` : entry.name;
+  const name = translateItemName(entry.name);
+  return entry.count > 1 ? `${name} ×${entry.count}` : name;
 }
 
 /** The release dateTimeFormat "%d-%d-%d %d:%02d" in Beijing time. */

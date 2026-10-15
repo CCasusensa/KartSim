@@ -1,3 +1,4 @@
+import { raceItemDisplayName } from "../i18n/item-names";
 import { resourceText } from "../i18n/locale";
 import { decodeBinaryXml } from "../codecs/binary-xml";
 import { parseResourceXml } from "../resources/xml-utf16-parser";
@@ -780,7 +781,7 @@ export function createItemCatalog(
   const items = resolved.map(({ entry, bml, states }) => {
     const definition: ItemDefinition = {
       idx: entry.idx, name: entry.name, folder: entry.folder, base: entry.base,
-      title: texts.get(entry.name) || TITLE_FALLBACKS[entry.name] || entry.name,
+      title: raceItemDisplayName(entry.name, texts.get(entry.name) || TITLE_FALLBACKS[entry.name] || entry.name),
       description: texts.get(`${entry.name}_desc`) ?? "",
       states, bml, behaviour: itemBehaviour(entry.name, states, { statesOf: name => statesByName.get(name) }),
     };

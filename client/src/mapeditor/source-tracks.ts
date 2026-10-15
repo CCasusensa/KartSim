@@ -1,3 +1,4 @@
+import { trackDisplayTitle } from "../resources/track-names";
 /**
  * 官方赛道素材：列出赛道、读取模型、列出可拿来摆放的物件，以及把物件
  * 连同它的祖先变换复制成新场景里的一棵子树。浏览器编辑器和 Node 测试
@@ -141,7 +142,7 @@ export async function listSourceTracks(library: SourceLibrary): Promise<SourceTr
       mountedTracks.set(folder, asset.virtualPath);
     }
     const theme = themeOf(row?.id ?? folder, row);
-    tracks.push({ folder, id: row?.id ?? folder, title: row?.cnTitle ?? folder, theme, path: asset.virtualPath, metadata: row });
+    tracks.push({ folder, id: row?.id ?? folder, title: trackDisplayTitle(row?.id ?? folder, row?.cnTitle ?? folder), theme, path: asset.virtualPath, metadata: row });
   }
   return tracks.sort((a, b) => a.theme.localeCompare(b.theme) ||
     Number(!a.metadata?.cnTitle) - Number(!b.metadata?.cnTitle) || a.title.localeCompare(b.title, "zh-CN"));

@@ -1,4 +1,5 @@
 import { cityContentName } from "../i18n/catalogs/city-content-names";
+import { cityDialogueText } from "./city-dialogue";
 /**
  * 卡丁城 NPCs (server-go/CITY-NPC.md) for the city session: the node's
  * law-abiding traffic (city-traffic.ts), the lamps of the signals it obeys
@@ -113,7 +114,7 @@ export class CityNpcs {
     for (const car of this.traffic?.honking(now, HONK_SHOW_MS) ?? []) {
       if (this.announced.get(car.id) === car.honks) continue;
       this.announced.set(car.id, car.honks);
-      this.host.say(`npc-car:${car.id}`, HONK_LINES[car.honks % HONK_LINES.length]!, now);
+      this.host.say(`npc-car:${car.id}`, cityDialogueText(HONK_LINES[car.honks % HONK_LINES.length]!), now);
     }
     const local = this.host.local();
     const stage = this.host.stage;
@@ -139,7 +140,7 @@ export class CityNpcs {
         if (local.speed < GREET_SPEED && now - npc.greetedAt > GREET_INTERVAL_MS) {
           npc.greetedAt = now;
           const lines = npc.definition.lines;
-          this.host.say(this.labelId(npc), lines[npc.line % lines.length]!, now);
+          this.host.say(this.labelId(npc), cityDialogueText(lines[npc.line % lines.length]!), now);
           npc.line++;
         }
       } else {
@@ -191,7 +192,7 @@ export class CityNpcs {
   heads(): Array<{ id: string; name: string; position: { x: number; y: number; z: number } }> {
     const out = [];
     for (const car of this.traffic?.honking(performance.now(), HONK_SHOW_MS) ?? [])
-      out.push({ id: `npc-car:${car.id}`, name: car.driver, position: car.position });
+      out.push({ id: `npc-car:${car.id}`, name: cityContentName(car.driver), position: car.position });
     for (const npc of this.tasks) {
       if (!npc.figure?.avatar || !npc.figure.root.visible || this.away.has(npc.definition.id)) continue;
       out.push({ id: this.labelId(npc), name: cityContentName(npc.definition.name),

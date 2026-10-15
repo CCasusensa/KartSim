@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { gameLocale, tr } from "../i18n/locale";
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { G1, T, V0, f5, m9, s2, st } from "../generated/formats.js";
@@ -137,8 +138,8 @@ export function dictionaryEntries(summary: DictionarySummary, sub: DictionarySub
     const info = items.get(itemKey(sub.category, itemId));
     if (sub.kartType !== undefined && info?.kartType !== sub.kartType) return [];
     if (filter.grade && summary.kartGrades.get(itemId) !== filter.grade) return [];
-    const name = info?.name || String(itemId);
-    if (search && !name.toLowerCase().includes(search)) return [];
+    const name = itemDisplayName(sub.category, itemId, info?.name || String(itemId));
+    if (search && !`${name}\n${info?.name ?? ""}`.toLowerCase().includes(search)) return [];
     return [{ category: sub.category, itemId, collected: collected.has(itemId), name,
       internalId: info?.internalId ?? "" }];
   });

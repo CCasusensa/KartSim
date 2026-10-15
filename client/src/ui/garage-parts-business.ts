@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 /** The four upgrade slots represented by the original garage inventory. */
 export type GaragePartSlot = "engine" | "handle" | "wheel" | "booster";
 export type GaragePartFamily = "legacy" | "x" | "v1" | "xun";
@@ -140,7 +141,7 @@ export function parseLegacyGarageParts(
       grade: 0,
       legacyCategory: category,
       legacyRarity: rarities.get(key),
-      legacyTitle: title,
+      legacyTitle: translateItemName(title),
       legacyImagePath: images.get(key),
       legacyEffect: attribute(node, "itemEffect")?.trim() || undefined,
       legacyDescription: attribute(node, "itemDesc")?.trim() || undefined,

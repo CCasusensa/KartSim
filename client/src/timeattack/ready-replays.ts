@@ -1,3 +1,5 @@
+import { translateItemName } from "../i18n/item-names";
+import { trackDisplayTitle } from "../resources/track-names";
 import { tr } from "../i18n/locale";
 /**
  * 回放 (TIMEATTACK.md 4): the 回放 tab of the 单人游戏 page has three pages
@@ -130,7 +132,7 @@ export function replayEntries(records: Iterable<[string, ReplaySummary]>, riderN
     const at = recordedAt(key);
     const parts = key.split("\0");
     entries.push({
-      key, source: "local", trackId, trackTitle: title, riderName, kartName: summary.kartName ?? "",
+      key, source: "local", trackId, trackTitle: title, riderName, kartName: translateItemName(summary.kartName ?? ""),
       elapsedMs: summary.elapsedMs ?? 0, recordedAt: at,
       title: `${title}　${formatRecordTime(summary.elapsedMs)}`,
       settings: replaySettingsLabel(summary, key), dateText: replayDateText(at), deletable: true,
@@ -146,7 +148,7 @@ export function featuredEntries(replays: Array<{ id: number; title: string; note
   bestMs: number; createdAt: number }>): ReplayMenuEntry[] {
   return replays.map(replay => ({
     key: `featured:${replay.id}`, source: "featured", trackId: replay.trackId,
-    trackTitle: replay.trackName || replay.trackId, riderName: replay.nickname, kartName: replay.kartName,
+    trackTitle: trackDisplayTitle(replay.trackId, replay.trackName || replay.trackId), riderName: replay.nickname, kartName: translateItemName(replay.kartName),
     elapsedMs: replay.bestMs, recordedAt: replay.createdAt, title: replay.title,
     ...(replay.note ? { note: replay.note } : {}), settings: settingsLabel(replay.speed, replay.booster),
     dateText: replayDateText(replay.createdAt), deletable: false, speed: replay.speed, booster: replay.booster,
@@ -161,7 +163,7 @@ export function rankedEntries(rows: Array<{ rank: number; accountId: string; nic
     key: `ranked:${state.track.id}:${state.speed}:${state.booster}:${row.accountId}`, source: "ranked",
     trackId: state.track.id, trackTitle: state.track.title, riderName: row.nickname,
     ...(row.self ? { displayRiderName: tr("{name}（我）", { name: row.nickname }) } : {}),
-    kartName: row.kartName, elapsedMs: row.bestMs, recordedAt: row.updatedAt,
+    kartName: translateItemName(row.kartName), elapsedMs: row.bestMs, recordedAt: row.updatedAt,
     title: tr("第{rank}名　{name}　{time}", { rank: row.rank, name: row.nickname, time: formatRecordTime(row.bestMs) }),
     settings: settingsLabel(state.speed, state.booster), dateText: replayDateText(row.updatedAt), deletable: false,
     speed: state.speed, booster: state.booster, accountId: row.accountId,
@@ -182,7 +184,7 @@ export async function loadReplayMenu(controller: ReadyHomeController, riderName:
     if (titles.has(trackId) || !lib) return;
     titles.set(trackId, undefined);
     const cased = tracks.find(track => track.id.toLowerCase() === trackId)?.id ?? trackId;
-    titles.set(trackId, (await lib.trackMetadata(cased).catch(() => undefined))?.cnTitle);
+    titles.set(trackId, trackDisplayTitle(cased, (await lib.trackMetadata(cased).catch(() => undefined))?.cnTitle ?? cased));
   }));
   return replayEntries(records, riderName, trackId => titles.get(trackId));
 }
@@ -204,7 +206,7 @@ export async function replayBrowseState(controller: ReadyReplayController): Prom
     settingSpeed?: number };
   const metadata = await lib.trackMetadata(selection.trackId).catch(() => undefined);
   const speed = recordSpeedChannel(options);
-  controller.replayBrowse = { track: { id: selection.trackId, path: selection.mapPath, title: metadata?.cnTitle ?? selection.trackId },
+  controller.replayBrowse = { track: { id: selection.trackId, path: selection.mapPath, title: trackDisplayTitle(selection.trackId, metadata?.cnTitle ?? selection.trackId) },
     speed: speed === 4 ? 4 : 7, booster: options.booster ? 1 : 0 };
   return controller.replayBrowse;
 }
@@ -252,7 +254,7 @@ export async function pickReplayTrack(controller: ReadyReplayController): Promis
         if (choice.kind !== "track") { notice(controller, tr("其他回放不能选择随机赛道。")); resolve(false); return; }
         void lib.trackMetadata(choice.track.id).catch(() => undefined).then(metadata => {
           controller.replayBrowse = { ...(state ?? { speed: 7, booster: 0 }),
-            track: { id: choice.track.id, path: choice.track.path, title: metadata?.cnTitle ?? choice.track.id } };
+            track: { id: choice.track.id, path: choice.track.path, title: trackDisplayTitle(choice.track.id, metadata?.cnTitle ?? choice.track.id) } };
           resolve(true);
         });
       },

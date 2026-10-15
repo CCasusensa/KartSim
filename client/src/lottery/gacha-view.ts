@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { localizeImageCaption } from "../shop/shop-widgets";
 import { tr, gameLocale } from "../i18n/locale";
 /**
@@ -277,7 +278,7 @@ export class GachaView {
     const strings = this.stage.strings;
     const lottery = detail.lottery;
     const name = this.el("itemName");
-    if (name) setText(name, lottery.caption || lottery.name);
+    if (name) setText(name, translateItemName(lottery.caption || lottery.name));
     const period = this.el("itemUsePeriod");
     if (period) setText(period, detail.activity.open ? periodLine(detail.activity) : tr("活动未开放"));
     const useful = this.el("itemUseful");
@@ -298,16 +299,16 @@ export class GachaView {
     if (more) more.hidden = detail.summary.length >= lottery.rewards;
     this.summary.title = tr("共 {0} 种道具", { "0": lottery.rewards }) + (lottery.sets > 1 ? tr("，每次从 {0} 个奖池各获得 1 种", { "0": lottery.sets }) : "");
 
-    const keyName = detail.key?.name;
+    const keyName = detail.key && translateItemName(detail.key.name);
     const useDesc = this.el("itemUseDesc");
     if (useDesc) setText(useDesc, keyName
-      ? fillString(strings.get("itemUseDesc_needOther") ?? tr("使用时消耗1个%s和%s。"), lottery.name, keyName)
-      : fillString(strings.get("itemUseDesc") ?? tr("使用时%s消耗1个。"), lottery.name));
-    this.key.textContent = tr("持有 {0} {1} 个", { "0": lottery.name, "1": detail.owned }) +
-      (detail.key ? tr("　{0} {1} 个", { "0": detail.key.name, "1": detail.key.owned }) : "");
+      ? fillString(strings.get("itemUseDesc_needOther") ?? tr("使用时消耗1个%s和%s。"), translateItemName(lottery.name), keyName)
+      : fillString(strings.get("itemUseDesc") ?? tr("使用时%s消耗1个。"), translateItemName(lottery.name)));
+    this.key.textContent = tr("持有 {0} {1} 个", { "0": translateItemName(lottery.name), "1": detail.owned }) +
+      (detail.key ? tr("　{0} {1} 个", { "0": translateItemName(detail.key.name), "1": detail.key.owned }) : "");
     const buyDesc = this.el("itemBuyDesc");
     if (buyDesc) setText(buyDesc, detail.packs.length > 0
-      ? fillString(strings.get("itemBuyDesc") ?? tr("通过兑换按钮进行%s的兑换。"), lottery.name) : "");
+      ? fillString(strings.get("itemBuyDesc") ?? tr("通过兑换按钮进行%s的兑换。"), translateItemName(lottery.name)) : "");
     const buy = this.el("buyButton");
     if (buy) buy.hidden = detail.packs.length === 0;
     this.renderMileage(detail);
@@ -434,7 +435,7 @@ export class GachaView {
       this.shell.showNotice(lotteryErrorMessage("LOTTERY_CLOSED"));
       return;
     }
-    const missing = detail.owned < 1 ? detail.lottery.name : detail.key && detail.key.owned < 1 ? detail.key.name : undefined;
+    const missing = detail.owned < 1 ? translateItemName(detail.lottery.name) : detail.key && detail.key.owned < 1 ? translateItemName(detail.key.name) : undefined;
     if (missing) {
       const message = tr("{0}持有数量不足，无法使用。", { "0": missing }) + (detail.packs.length > 0 ? tr("\n要打开兑换吗？") : "");
       if (detail.packs.length > 0 && await this.shell.confirm(tr("提示"), message, tr("兑换"))) await this.openPacks();

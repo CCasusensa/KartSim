@@ -1,4 +1,5 @@
 import { tr } from "../i18n/locale";
+import { translateItemName } from "../i18n/item-names";
 /**
  * The 卡丁城 加油 and 道路救援 windows, drawn by the release window renderer
  * like the 踢出投票 window: a CaptionDialog with painted boards and
@@ -74,7 +75,7 @@ export function paintRefuelGauge(context: CanvasRenderingContext2D, rect: Rect, 
   const { x, y, width } = rect;
   paintPump(context, x + 14, y + 12, 34, "#5fe3ff");
   context.font = `bold 16px ${FONT}`;
-  text(context, fuel.kartName, x + 58, y + 22, 16, "white");
+  text(context, fuel.kartName === "卡丁车" ? tr("卡丁车") : translateItemName(fuel.kartName), x + 58, y + 22, 16, "white");
   text(context, tr("{value0}油箱 · {value1} L", { value0: tankClassName(fuel.sizeClass), value1: liters(fuel.capacityMl) }), x + width - 14, y + 22, 13,
     "#bfe6ff", "right");
   const barX = x + 14, barY = y + 52, barWidth = width - 28, barHeight = 22;

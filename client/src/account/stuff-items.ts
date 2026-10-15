@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 /**
  * Counted items without a garage model: the item changer cards (category 7:
  * 道具换位卡, 道具变更卡 and their timed 使用券, client/ITEM_MODE.md C.6),
@@ -51,7 +52,7 @@ export function parseStuffInfo(items: XmlNode, table: XmlNode): Map<string, Stuf
     const category = Number(attribute(node, "itemCatId"));
     const itemId = Number(attribute(node, "itemId"));
     if (!STUFF_CATEGORIES.has(category) || !Number.isInteger(itemId)) continue;
-    info.set(stuffKey(category, itemId), { name: attribute(node, "itemName")?.trim() || String(itemId) });
+    info.set(stuffKey(category, itemId), { name: itemDisplayName(category, itemId, attribute(node, "itemName")?.trim() || String(itemId)) });
   }
   for (const [category, { tag, folder }] of Object.entries(ICONS)) {
     for (const node of table.children) {
@@ -60,7 +61,7 @@ export function parseStuffInfo(items: XmlNode, table: XmlNode): Map<string, Stuf
       const name = attribute(node, "name")?.trim();
       const key = stuffKey(Number(category), itemId);
       if (!name || /[/\\]|\.\./.test(name)) continue;
-      info.set(key, { name: info.get(key)?.name ?? String(itemId), icon: `${folder}/${name}.png` });
+      info.set(key, { name: itemDisplayName(Number(category), itemId, info.get(key)?.name ?? String(itemId)), icon: `${folder}/${name}.png` });
     }
   }
   return info;
@@ -108,7 +109,7 @@ export function garageStuffItems(inventory: readonly InventoryItem[], info: Read
       const left = item.expiresAt === null || item.expiresAt === undefined ? undefined
         : remainingLabel(item.expiresAt, now);
       return { kind: "stuff", category: item.category, itemId: item.itemId,
-        title: known?.name ?? `${item.category}-${item.itemId}`, quantity: item.quantity,
+        title: itemDisplayName(item.category, item.itemId, known?.name ?? `${item.category}-${item.itemId}`), quantity: item.quantity,
         ...(known?.icon ? { icon: known.icon } : {}), ...(left ? { ownershipLabel: left } : {}) };
     });
 }

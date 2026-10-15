@@ -29,8 +29,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "트랙의 무법자 케피!"
   ],
   "小强的课题": [
-    "Xiaoqiang's Assignment",
-    "샤오창의 과제"
+    "Mos's Assignment",
+    "모스의 과제"
   ],
   "去沙漠市场陷阱之路的赛车快递": [
     "Racing Delivery to Desert Market Trap Road",
@@ -41,8 +41,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "진정한 실력 인증!"
   ],
   "小强的隐藏实力！": [
-    "Xiaoqiang's Hidden Talent!",
-    "샤오창의 숨겨진 실력!"
+    "Mos's Hidden Talent!",
+    "모스의 숨겨진 실력!"
   ],
   "我们自己的赛车大会！": [
     "Our Very Own Racing Tournament!",
@@ -57,16 +57,16 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "끝없는 주행의 길!"
   ],
   "嫉妒的化身 蓝蓝登场": [
-    "Lanlan, Jealousy Incarnate, Arrives",
-    "질투의 화신 란란 등장"
+    "Marid, Jealousy Incarnate, Arrives",
+    "질투의 화신 마리드 등장"
   ],
   "挑战自己": [
     "Challenge Yourself",
     "자신에게 도전하라"
   ],
   "蓝蓝的维修师葱头！": [
-    "Ethen, Lanlan's Mechanic!",
-    "란란의 정비사 에띠!"
+    "Ethen, Marid's Mechanic!",
+    "마리드의 정비사 에띠!"
   ],
   "成为最强车手之路": [
     "The Road to Becoming the Best Racer",
@@ -97,8 +97,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "제2장"
   ],
   "小强的特训": [
-    "Xiaoqiang's Special Training",
-    "샤오창의 특훈"
+    "Mos's Special Training",
+    "모스의 특훈"
   ],
   "艰难的挑战": [
     "A Difficult Challenge",
@@ -1689,8 +1689,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "시작할 수 없는 경기"
   ],
   "小强的帮助": [
-    "Xiaoqiang's Help",
-    "샤오창의 도움"
+    "Mos's Help",
+    "모스의 도움"
   ],
   "改装飞碟": [
     "Upgrading the Flying Saucer",
@@ -2545,8 +2545,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "해적 선장의 보물 창고!"
   ],
   "吉米的加入": [
-    "Jimmy Joins In",
-    "지미의 합류"
+    "Mobi Joins In",
+    "모비의 합류"
   ],
   "卡帕的惊呼": [
     "Kappa's Cry of Alarm",
@@ -2917,8 +2917,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "친구들과 함께!"
   ],
   "寻找宝宝，蓝蓝篇！": [
-    "Finding Bazzi: Lanlan's Story",
-    "배찌를 찾아서: 란란 편"
+    "Finding Bazzi: Marid's Story",
+    "배찌를 찾아서: 마리드 편"
   ],
   "华丽的城堡！": [
     "A Magnificent Castle!",
@@ -2961,8 +2961,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "배찌와의 재회!"
   ],
   "寻找宝宝，小强篇！": [
-    "Finding Bazzi: Xiaoqiang's Story",
-    "배찌를 찾아서: 샤오창 편"
+    "Finding Bazzi: Mos's Story",
+    "배찌를 찾아서: 모스 편"
   ],
   "寻找迷失的宝宝！": [
     "Find the Lost Bazzi!",
@@ -3169,8 +3169,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "활기찬 하루"
   ],
   "小强的训练场": [
-    "Xiaoqiang's Training Ground",
-    "샤오창의 훈련장"
+    "Mos's Training Ground",
+    "모스의 훈련장"
   ],
   "魔鬼训练第一课": [
     "Brutal Training: Lesson 1",
@@ -3181,8 +3181,8 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "지옥 훈련 두 번째 수업"
   ],
   "蓝蓝的问候": [
-    "Lanlan's Greeting",
-    "란란의 인사"
+    "Marid's Greeting",
+    "마리드의 인사"
   ],
   "魔鬼出现！": [
     "The Devil Appears!",
@@ -3193,24 +3193,24 @@ export const storyMenuTitles: Readonly<Record<string, readonly [string, string]>
     "잠에서 깨지 못하는 배찌"
   ],
   "吉米VS宝宝": [
-    "Jimmy vs. Bazzi",
-    "지미 VS 배찌"
+    "Mobi vs. Bazzi",
+    "모비 VS 배찌"
   ],
   "嘟嘟的阴谋！": [
-    "Dudu's Plot!",
-    "두두의 음모!"
+    "Tutu's Plot!",
+    "투투의 음모!"
   ],
   "逃脱！": [
     "Escape!",
     "탈출!"
   ],
   "蓝蓝的决定": [
-    "Lanlan's Decision",
-    "란란의 결정"
+    "Marid's Decision",
+    "마리드의 결정"
   ],
   "追击蓝蓝！": [
-    "Chase Lanlan!",
-    "란란을 쫓아라!"
+    "Chase Marid!",
+    "마리드를 쫓아라!"
   ],
   "逃！": [
     "Run Away!",

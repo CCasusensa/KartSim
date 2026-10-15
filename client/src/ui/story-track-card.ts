@@ -1,3 +1,4 @@
+import { trackDisplayTitle } from "../resources/track-names";
 import { tr } from "../i18n/locale";
 import { wa as trackThemeOf } from "../generated/library.js";
 import { decodePngRgba } from "../resources/png-decoder";
@@ -19,7 +20,7 @@ export interface StoryTrackCard {
   themeIcon?: TrackPickerImage;
   /** stage_common 큰리버스트랙, drawn over the card of a _rvs track. */
   reverseStamp?: TrackPickerImage;
-  /** "[反]" + the trackLocale@cn name, as Ready shows it. */
+  /** Localized official title, including the reverse-track prefix. */
   title: string;
 }
 
@@ -47,7 +48,7 @@ export async function loadStoryTrackCard(library: StoryTrackCardLibrary,
     iconSource ? decodeTrackPickerImage(iconSource, png).catch(() => undefined) : undefined,
     stampSource ? decodeTrackPickerImage(stampSource, png).catch(() => undefined) : undefined,
   ]);
-  const name = metadata?.cnTitle ?? track.id.replace(/_rvs$/i, "");
+  const fallback = `${reverse ? tr("[反]") : ""}${metadata?.cnTitle ?? track.id.replace(/_rvs$/i, "")}`;
   return { image: card.image, width: card.width, height: card.height, themeIcon, reverseStamp,
-    title: `${reverse ? tr("[反]") : ""}${name}` };
+    title: trackDisplayTitle(track.id, fallback) };
 }

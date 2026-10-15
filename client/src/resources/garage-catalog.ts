@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { normalizeCanonicalPath } from "./resource-lookup";
 import type { GarageItemDefinition, GarageItemLibrary, GarageResource } from "./timeattack-items";
 import { vehicleFolderName } from "./vehicle-identity";
@@ -126,7 +127,7 @@ function catalogEntries(
       kind,
       itemId: definition.itemId,
       path: typeof model === "string" ? model : model.virtualPath,
-      title: title ?? `${definition.internalId} (${definition.itemId})`,
+      title: itemDisplayName(category, definition.itemId, title ?? `${definition.internalId} (${definition.itemId})`),
       internalId: definition.internalId,
       systemKey: definition.systemKey,
       identityClass: definition.identityClass ?? "catalog-vehicle",
@@ -206,7 +207,7 @@ function equipmentEntries(
       category,
       itemId: definition.itemId,
       internalId: definition.internalId,
-      title: shopTitle ?? `${definition.internalId} (${definition.itemId})`,
+      title: itemDisplayName(category, definition.itemId, shopTitle ?? `${definition.internalId} (${definition.itemId})`),
       tuneGroupId: definition.tuneGroupId,
     }];
   });

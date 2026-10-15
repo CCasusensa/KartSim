@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
 
 export interface MyRoomEnvironment {
@@ -69,7 +70,7 @@ export function parseMyRoomCatalog(rooms: BinaryXmlNode,
       throw new Error("小屋背景包含无效的车辆显示比例。");
     }
     if (localized) environments.push({ id, resourceName: name,
-      title: localized.title, isDefault: localized.isDefault,
+      title: translateItemName(localized.title), isDefault: localized.isDefault,
       ...(scaleUpOnKart === undefined ? {} : { scaleUpOnKart }),
       ...(localized.bgm === undefined ? {} : { bgm: localized.bgm }),
       ...(localized.bgmTheme === undefined ? {} : { bgmTheme: localized.bgmTheme }),

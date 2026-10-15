@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { tr, gameLocale } from "../i18n/locale";
 /**
  * The 寻宝 (treasure hunt) screen: the release RouletteStage
@@ -281,7 +282,7 @@ export class TreasureHuntView {
       const pic = this.slotPicture(host, String(reward.stockId));
       if (item && !pic.hasChildNodes()) {
         this.picture(pic, item);
-        host.append(nameLabel(item.name, 150));
+        host.append(nameLabel(translateItemName(item.name), 150));
       }
       host.title = tr("{0}\n概率 {1}", { "0": itemsLine(reward.items), "1": chanceText(reward.chance) }) +
         (reward.acquireCount ? tr("\n{0}次以内必得（还需{1}次）", { "0": reward.acquireCount, "1": reward.remaining ?? 0 }) : "");
@@ -304,7 +305,7 @@ export class TreasureHuntView {
         if (panel) panel.hidden = kind !== slot.rarity;
       }
       const name = this.el("stockName", `rewardStockCard${index}`);
-      if (name) setText(name, slot.items[0]?.name ?? "");
+      if (name) setText(name, translateItemName(slot.items[0]?.name ?? ""));
       const count = this.el("chanceCount", `rewardStockCard${index}`);
       if (count) setText(count, fillString(template, slot.remaining ?? slot.acquireCount ?? 0));
       let pic = card.querySelector<HTMLElement>(":scope > .ks-hunt-card-pic");
@@ -335,16 +336,16 @@ export class TreasureHuntView {
     const other = this.el("needOtherCount");
     if (other) setText(other, fillString(count, maps));
     const icon = this.el("materialImg");
-    if (icon) icon.title = tr("{0} {1} 个", { "0": state.materials.material.name, "1": state.materials.material.owned }) +
-      (state.materials.eventMaterial ? tr("\n{0} {1} 个（优先使用，不累计保底）", { "0": state.materials.eventMaterial.name, "1": state.materials.eventMaterial.owned }) : "");
+    if (icon) icon.title = tr("{0} {1} 个", { "0": translateItemName(state.materials.material.name), "1": state.materials.material.owned }) +
+      (state.materials.eventMaterial ? tr("\n{0} {1} 个（优先使用，不累计保底）", { "0": translateItemName(state.materials.eventMaterial.name), "1": state.materials.eventMaterial.owned }) : "");
     const otherIcon = this.el("otherMaterialImg");
-    if (otherIcon) otherIcon.title = tr("{0} {1} 个", { "0": state.materials.other.name, "1": maps });
+    if (otherIcon) otherIcon.title = tr("{0} {1} 个", { "0": translateItemName(state.materials.other.name), "1": maps });
     const available = this.el("availableCount");
     if (available) setText(available, fillString(this.stage.strings.get("availableCount") ?? tr("可使用%d次"),
       Math.min(magnifiers, maps)));
     const guide = this.el("rouletteGuide");
     if (guide) setText(guide, fillString(this.stage.strings.get("rouletteGuide_1") ?? "",
-      state.materials.material.name, state.materials.other.name));
+      translateItemName(state.materials.material.name), translateItemName(state.materials.other.name)));
     this.updateButtons();
   }
 
@@ -377,7 +378,7 @@ export class TreasureHuntView {
     const missing = this.magnifiers() < 1 ? state.materials.material
       : state.materials.other.owned < 1 ? state.materials.other : undefined;
     if (!missing) return true;
-    const message = [fillString(this.stage.strings.get("mileageAlertDlgMsg1") ?? tr("%s持有数量不足。"), missing.name),
+    const message = [fillString(this.stage.strings.get("mileageAlertDlgMsg1") ?? tr("%s持有数量不足。"), translateItemName(missing.name)),
       tr("要打开兑换吗？")].join("\n");
     if (await this.shell.confirm(tr("提示"), message, tr("兑换"))) await this.openPacks(true);
     return false;

@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import type { GarageItemDefinition, GarageResource } from "./timeattack-items";
 import { resourceText, tr } from "../i18n/locale";
 
@@ -231,7 +232,7 @@ async function systemVehicleDefinitions(
     if (defaultState.parameterSource.status === "family-resource")
       required.push(`kart_/${defaultState.parameterSource.resource}/param.xml`);
     if (required.every(path => library.get(path)))
-      vehicles.push(systemKart(defaultState.resource, family.title, family.engineGrade,
+      vehicles.push(systemKart(defaultState.resource, translateItemName(family.title), family.engineGrade,
         family.key, "legacy-system-family"));
   }
   return vehicles;

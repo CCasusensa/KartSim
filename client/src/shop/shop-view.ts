@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { tr, gameLocale } from "../i18n/locale";
 /**
  * The shop (server-go/ECONOMY.md 7.6 and 8), rebuilt after the original CN
@@ -978,7 +979,7 @@ class ShopView {
   /** A reward's picture: the item preview where the renderer has one (the kind icon stays otherwise). */
   private rewardPicture(reward: SpendEventReward, host: HTMLElement): () => void {
     return drawPreview(host, { category: reward.category, itemId: reward.itemId, kind: reward.iconHint,
-      internalId: "", name: reward.name, size: "reward" }, this.options.preview);
+      internalId: "", name: itemDisplayName(reward.category, reward.itemId, reward.name), size: "reward" }, this.options.preview);
   }
 
   private tabEntry(tab = this.query.tab): ShopTabEntry | undefined {

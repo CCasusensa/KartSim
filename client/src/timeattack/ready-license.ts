@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { ensureFeatureResources } from "../ui/resource-panel";
 import { activeBrowserSession } from "../account/account-runtime";
 import { p2, T } from "../generated/formats.js";
@@ -562,7 +563,7 @@ async function finishLicenseRun(controller: ReadyLicenseController, step: Licens
     if (result.run.reward) {
       const template = await baseString(controller, "riderSchoolGetRewardMsg") ??
         tr("恭喜获得驾照任务奖励%s。");
-      lines.push(stripColor(template).replace("%s", result.run.reward.name));
+      lines.push(stripColor(template).replace("%s", translateItemName(result.run.reward.name)));
     } else if (result.run.newBest) {
       lines.push(tr("刷新了这一关的最佳记录。"));
     }

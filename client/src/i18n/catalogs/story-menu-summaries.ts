@@ -25,44 +25,44 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "연습하던 다오와 디지니는 트랙의 무법자 케피를 만납니다. 다오가 당당히 도전장을 던집니다. 사막 대결의 승자는 누구일까요?"
   ],
   "按照胖墩的介绍，找到了小强的皮蛋一行人，\n向他讨教了车子相关的问题。\n小强提出必须完成自己的考验才会告诉他们。": [
-    "Following Kephi's introduction, Dao's group asks Xiaoqiang about karts. He will answer only if they pass his trials.",
-    "케피의 소개로 샤오창을 찾은 다오 일행이 카트에 관해 묻습니다. 샤오창은 자신의 시험을 통과해야 알려 주겠다고 합니다."
+    "Following Kephi's introduction, Dao's group asks Mos about karts. He will answer only if they pass his trials.",
+    "케피의 소개로 모스를 찾은 다오 일행이 카트에 관해 묻습니다. 모스는 자신의 시험을 통과해야 알려 주겠다고 합니다."
   ],
   "小强向成功解决了第一个考验的皮蛋，提出了第二个考验。\n也就是在规定的时间内送快递的任务。\n皮蛋到底能否解决第二个考验呢？": [
-    "Dao passes the first trial. Xiaoqiang's second task is a delivery within a time limit. Can Dao complete it?",
-    "첫 시험을 통과한 다오에게 샤오창이 두 번째 시험을 냅니다. 제한 시간 안에 배달을 마쳐야 합니다. 성공할 수 있을까요?"
+    "Dao passes the first trial. Mos's second task is a delivery within a time limit. Can Dao complete it?",
+    "첫 시험을 통과한 다오에게 모스가 두 번째 시험을 냅니다. 제한 시간 안에 배달을 마쳐야 합니다. 성공할 수 있을까요?"
   ],
   "完成了俩个考验后，小强向皮蛋提出了最后一个考验。也就是在和其他车手的比赛中，让他充分见识自己的成绩。皮蛋到底能否解决难题，获得作为车手获得小强的认可呢？": [
-    "After two trials, Xiaoqiang gives Dao one final test: prove his results against other racers. Can Dao earn Xiaoqiang's recognition?",
-    "두 시험을 마친 다오에게 샤오창이 마지막 시험을 냅니다. 다른 레이서와 겨뤄 성과를 보여야 합니다. 다오는 레이서로서 인정받을 수 있을까요?"
+    "After two trials, Mos gives Dao one final test: prove his results against other racers. Can Dao earn Mos's recognition?",
+    "두 시험을 마친 다오에게 모스가 마지막 시험을 냅니다. 다른 레이서와 겨뤄 성과를 보여야 합니다. 다오는 레이서로서 인정받을 수 있을까요?"
   ],
   "解决了3个难题之后，\n小强答应把自己关于赛车的知识全部传授给皮蛋。\n然后，小强向皮蛋提出了自己最后的请求。\n这个请求到底是什么呢？": [
-    "After Dao solves 3 challenges, Xiaoqiang promises to teach him everything about racing. Then he makes one final request. What could it be?",
-    "다오가 과제 3개를 해결하자 샤오창은 레이싱 지식을 모두 가르쳐 주기로 합니다. 이어 마지막 부탁을 합니다. 어떤 부탁일까요?"
+    "After Dao solves 3 challenges, Mos promises to teach him everything about racing. Then he makes one final request. What could it be?",
+    "다오가 과제 3개를 해결하자 모스는 레이싱 지식을 모두 가르쳐 주기로 합니다. 이어 마지막 부탁을 합니다. 어떤 부탁일까요?"
   ],
   "和小强成为了朋友的皮蛋一行人，为了体验到更高水准的比赛，\n决定在城镇高速公路上进行练习。\n皮蛋到底能否在更高水准的赛道中发挥自己的实力呢？": [
-    "Now friends with Xiaoqiang, Dao's group practices on the Town Highway for tougher competition. Can Dao show his skill on this harder track?",
-    "샤오창과 친구가 된 다오 일행은 더 높은 수준의 경주를 위해 타운 고속도로에서 연습하기로 합니다. 다오는 어려운 트랙에서도 실력을 발휘할까요?"
+    "Now friends with Mos, Dao's group practices on the Town Highway for tougher competition. Can Dao show his skill on this harder track?",
+    "모스와 친구가 된 다오 일행은 더 높은 수준의 경주를 위해 타운 고속도로에서 연습하기로 합니다. 다오는 어려운 트랙에서도 실력을 발휘할까요?"
   ],
   "和小强成为了朋友的皮蛋一行人，为了体验到更高水准的比赛，\n决定在城镇高速公路上进行比赛。\n皮蛋到底能否在更高水准的赛道中发挥自己的实力呢？": [
-    "Now friends with Xiaoqiang, Dao's group races on the Town Highway for tougher competition. Can Dao show his skill on this harder track?",
-    "샤오창과 친구가 된 다오 일행은 더 높은 수준의 경주를 위해 타운 고속도로에서 겨루기로 합니다. 다오는 어려운 트랙에서도 실력을 발휘할까요?"
+    "Now friends with Mos, Dao's group races on the Town Highway for tougher competition. Can Dao show his skill on this harder track?",
+    "모스와 친구가 된 다오 일행은 더 높은 수준의 경주를 위해 타운 고속도로에서 겨루기로 합니다. 다오는 어려운 트랙에서도 실력을 발휘할까요?"
   ],
   "在和朋友们进行了比较后，\n皮蛋发现自己练习过的行驶距离相当的不足。\n回顾自己之前样子，皮蛋决定开始更卖力的猛练。": [
     "Compared with his friends, Dao realizes he has driven far too little in practice. Looking back, he resolves to train much harder.",
     "친구들과 비교한 다오는 연습 주행 거리가 매우 부족하다는 것을 깨닫습니다. 지난 모습을 돌아보며 더욱 열심히 훈련하기로 합니다."
   ],
   "对皮蛋一见钟情的蓝蓝找到了皮蛋。\n但是看到了已经成为皮蛋女朋友的黑妞，\n激起了妒忌心，提出了决斗。\n皮蛋代替受伤的黑妞，和蓝蓝进行对决。": [
-    "Lanlan falls for Dao at first sight. Seeing Dizni already dating him, she jealously demands a duel. Dao races in the injured Dizni's place.",
-    "다오에게 첫눈에 반한 란란이 찾아옵니다. 이미 다오의 여자 친구가 된 디지니를 보고 질투하며 대결을 신청합니다. 다오는 다친 디지니 대신 란란과 겨룹니다."
+    "Marid falls for Dao at first sight. Seeing Dizni already dating him, she jealously demands a duel. Dao races in the injured Dizni's place.",
+    "다오에게 첫눈에 반한 마리드가 찾아옵니다. 이미 다오의 여자 친구가 된 디지니를 보고 질투하며 대결을 신청합니다. 다오는 다친 디지니 대신 마리드와 겨룹니다."
   ],
   "结束了火热的对决，终于能有自己的时间了的皮蛋，\n想起了之前在沙漠中和胖墩的对决。\n皮蛋回想起了那个时候自己纯粹的心灵，再次下定决心。": [
     "After the heated duel, Dao finally has time alone. Remembering his desert race with Kephi and his pure enthusiasm then, he renews his resolve.",
     "치열한 대결 뒤 혼자만의 시간을 얻은 다오는 사막에서 케피와 겨뤘던 일을 떠올립니다. 그때의 순수한 마음을 되새기며 다시 결심합니다."
   ],
   "蓝蓝和她的维修师葱头一起再次找到了皮蛋一行。\n蓝蓝想通过让葱头和他对决来报复。\n皮蛋当然接受了挑战。维修师葱头的实力到底如何呢？": [
-    "Lanlan returns with her mechanic Ethen, seeking revenge through a duel. Dao accepts. How skilled is Ethen?",
-    "란란이 정비사 에띠와 다시 찾아와 에띠와의 대결로 복수하려 합니다. 다오는 도전을 받아들입니다. 에띠의 실력은 어떨까요?"
+    "Marid returns with her mechanic Ethen, seeking revenge through a duel. Dao accepts. How skilled is Ethen?",
+    "마리드가 정비사 에띠와 다시 찾아와 에띠와의 대결로 복수하려 합니다. 다오는 도전을 받아들입니다. 에띠의 실력은 어떨까요?"
   ],
   "结束了和葱头的激烈的对决之后，\n葱头给了他们今后进一步成长的忠告。\n皮蛋按照葱头的忠告开始了练习。": [
     "After their fierce duel, Ethen offers advice on improving further. Dao follows it and begins practicing.",
@@ -89,16 +89,16 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "붐힐 레이싱 대회에 참가한 다오는 더 많은 친구를 만나고 새로운 대결을 펼친다. 새로운 친구와 도전의 이야기가 시작된다!"
   ],
   "顺利得通过了繁荣山丘预选大会的皮蛋，\n为了将要进行决赛，开始接受小强的特训。\n小强准备的特训到底是什么呢？": [
-    "Dao passes the Boom Hill qualifiers and begins Xiaoqiang's special training for the final. What training has Xiaoqiang prepared?",
-    "붐힐 예선을 통과한 다오는 결승을 위해 샤오창의 특훈을 받습니다. 샤오창은 어떤 훈련을 준비했을까요?"
+    "Dao passes the Boom Hill qualifiers and begins Mos's special training for the final. What training has Mos prepared?",
+    "붐힐 예선을 통과한 다오는 결승을 위해 모스의 특훈을 받습니다. 모스는 어떤 훈련을 준비했을까요?"
   ],
   "小强又给了皮蛋一个特训的项目。\n通过更高难度的挑战，皮蛋能否学到更漂亮的驾驶技术呢？": [
-    "Xiaoqiang gives Dao another special exercise. Can this harder challenge teach him better driving techniques?",
-    "샤오창이 다오에게 새로운 특훈 과제를 줍니다. 더 어려운 도전을 통해 뛰어난 주행 기술을 익힐 수 있을까요?"
+    "Mos gives Dao another special exercise. Can this harder challenge teach him better driving techniques?",
+    "모스가 다오에게 새로운 특훈 과제를 줍니다. 더 어려운 도전을 통해 뛰어난 주행 기술을 익힐 수 있을까요?"
   ],
   "知道了繁荣山丘决赛是以道具赛来进行的皮蛋，\n在小强的帮助下学习道具的使用方法。\n在新的行驶模式中，皮蛋也能发挥出实力吗？": [
-    "Dao learns that the Boom Hill final is an item race. Xiaoqiang teaches him to use items. Can Dao excel in this new format?",
-    "붐힐 결승이 아이템전임을 안 다오는 샤오창에게 아이템 사용법을 배웁니다. 새로운 방식에서도 실력을 발휘할까요?"
+    "Dao learns that the Boom Hill final is an item race. Mos teaches him to use items. Can Dao excel in this new format?",
+    "붐힐 결승이 아이템전임을 안 다오는 모스에게 아이템 사용법을 배웁니다. 새로운 방식에서도 실력을 발휘할까요?"
   ],
   "充分熟悉了道具使用方法的皮蛋，\n为了熟悉更多的技术，打算进行更多的对决。": [
     "Now comfortable with items, Dao plans more duels to learn further techniques.",
@@ -201,8 +201,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "이런 모욕을 참을 수 없는 다오는 복수를 결심합니다. 구석구석 찾아보세요!"
   ],
   "小强带来了新的发现，\n他们把目标锁定在一个入侵者身上！\n悄悄地尾随！": [
-    "Xiaoqiang brings a new clue. They identify an intruder and follow quietly!",
-    "샤오창이 새 단서를 가져옵니다. 일행은 침입자 한 명을 찾아 조용히 뒤따릅니다!"
+    "Mos brings a new clue. They identify an intruder and follow quietly!",
+    "모스가 새 단서를 가져옵니다. 일행은 침입자 한 명을 찾아 조용히 뒤따릅니다!"
   ],
   "入侵者感觉大事不妙，\n他开始加速逃跑！\n皮蛋他们怎么容忍坏人从自己眼皮下溜走呢？": [
     "Sensing trouble, the intruder speeds away. Dao and friends will not let a villain escape right before their eyes!",
@@ -217,16 +217,16 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "다오의 추궁에 해적 선원이 말실수를 하면서 상황이 분명해집니다. 하지만 대회에 나가려면 아이템을 잘 다뤄야 합니다!"
   ],
   "过于自负的皮蛋无视小强的忠告，\n冒然和其他车手比赛！": [
-    "Overconfident Dao ignores Xiaoqiang's advice and rashly races other drivers!",
-    "지나치게 자신만만한 다오가 샤오창의 충고를 무시하고 무작정 다른 레이서와 겨룹니다!"
+    "Overconfident Dao ignores Mos's advice and rashly races other drivers!",
+    "지나치게 자신만만한 다오가 모스의 충고를 무시하고 무작정 다른 레이서와 겨룹니다!"
   ],
   "结束了和其他车手们的激烈比赛之后，皮蛋再次意识到，\n在道具赛中，基本的驾驶技术也是非常重要的。\n在旁边一直默默关注着的黑妞和葱头等人，\n为了皮蛋，决定做他的陪练。": [
     "After fierce races, Dao realizes basic driving matters even in item races. Dizni, Ethen and the others, who have quietly watched, become his practice partners.",
     "치열한 경주 뒤 다오는 아이템전에서도 기본 주행 기술이 중요함을 깨닫습니다. 조용히 지켜보던 디지니와 에띠 등이 다오의 연습 상대가 되기로 합니다."
   ],
   "经过了小强的充电，皮蛋有了再次挑战的想法。\n这回在比赛中，能否有所长进呢？": [
-    "Recharged by Xiaoqiang's training, Dao wants to challenge again. Will he show improvement this time?",
-    "샤오창의 지도로 힘을 얻은 다오가 다시 도전하려 합니다. 이번에는 발전한 모습을 보일까요?"
+    "Recharged by Mos's training, Dao wants to challenge again. Will he show improvement this time?",
+    "모스의 지도로 힘을 얻은 다오가 다시 도전하려 합니다. 이번에는 발전한 모습을 보일까요?"
   ],
   "一位谜一样的车手，他似乎拥有深不见底的实力！\n一向自负的皮蛋怎肯放过这个挑战的机会？\n它想和这位谜之车手一决高下！": [
     "A mysterious racer seems to have unfathomable skill. Proud Dao cannot pass up the chance and wants to settle who is better!",
@@ -261,8 +261,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "다오가 붐힐 대회에서 우승합니다! 하지만 패한 로두마니 선장이 메달을 빼앗고 재대결을 요구합니다. 다오는 다시 맞설 수밖에 없습니다!"
   ],
   "从海盗船长手里拿回奖牌的皮蛋一伙一起返回繁荣山丘。\n这时小强提议在回去的路上进行一次比赛，\n看谁能先到村庄。": [
-    "After recovering the medal, Dao's group returns to Boom Hill. Xiaoqiang suggests racing to see who reaches the village first.",
-    "메달을 되찾은 다오 일행이 붐힐로 돌아갑니다. 샤오창이 누가 마을에 먼저 도착하는지 겨뤄 보자고 합니다."
+    "After recovering the medal, Dao's group returns to Boom Hill. Mos suggests racing to see who reaches the village first.",
+    "메달을 되찾은 다오 일행이 붐힐로 돌아갑니다. 모스가 누가 마을에 먼저 도착하는지 겨뤄 보자고 합니다."
   ],
   "回到繁荣山丘后突然听到了奇怪的消息。\n听说村庄中出现了幽灵，而且这个幽灵提出了赛车比赛。\n听到这个消息，皮蛋和伙伴们开始出去寻找幽灵。": [
     "Back in Boom Hill, they hear strange news: a ghost has appeared and challenged villagers to race. Dao and friends go looking for it.",
@@ -1445,8 +1445,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "일영에게 관심을 가진 관우가 잃어버린 칼을 찾아 달라고 합니다. 일영은 실력을 증명하려고 다오와 수색에 나섭니다."
   ],
   "皮蛋拜托吉米，偷偷进入了宝物仓库，\n找到了关羽丢失的刀。但却被海盗船长发现了。\n他能甩掉海盗船长安全回去吗？": [
-    "With Jimmy's help, Dao sneaks into the treasure warehouse and finds Guan Yu's blade, but Captain Lodumani spots him. Can he escape safely?",
-    "지미의 도움으로 보물 창고에 잠입한 다오가 관우의 칼을 찾지만 로두마니 선장에게 들킵니다. 무사히 따돌리고 돌아갈 수 있을까요?"
+    "With Mobi's help, Dao sneaks into the treasure warehouse and finds Guan Yu's blade, but Captain Lodumani spots him. Can he escape safely?",
+    "모비의 도움으로 보물 창고에 잠입한 다오가 관우의 칼을 찾지만 로두마니 선장에게 들킵니다. 무사히 따돌리고 돌아갈 수 있을까요?"
   ],
   "日影顺利找到了刀！\n最终从吕布那里得到了第一次修炼。\n吕布为了确认修炼的结果，\n拜托了皮蛋和朋友们帮忙。\n日影能顺利完成修炼吗？": [
     "Ilyeong retrieves the blade and receives her first training from Lu Bu. To test the results, Lu Bu asks Dao and friends to help. Can she complete the training?",
@@ -1609,8 +1609,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "친구들과 레이싱을 즐기는 키키의 실력이 많이 늘었습니다. 다오와 친구들은 키키를 위해 레이싱 대회를 준비하려 합니다."
   ],
   "为了准备赛车大赛进入到最后整顿阶段的伙伴们！\n把车辆整顿交给小强后，其他伙伴们去确认赛道有没有问题。\n用心准备的赛车大赛是否可以顺利进行呢？": [
-    "The friends make their final preparations for the tournament. Xiaoqiang handles the karts while the others inspect the tracks. Will their carefully planned event go smoothly?",
-    "대회를 앞두고 마지막 준비에 들어간 친구들! 카트 정비는 샤오창에게 맡기고 나머지는 트랙을 점검합니다. 정성껏 준비한 대회가 무사히 열릴까요?"
+    "The friends make their final preparations for the tournament. Mos handles the karts while the others inspect the tracks. Will their carefully planned event go smoothly?",
+    "대회를 앞두고 마지막 준비에 들어간 친구들! 카트 정비는 모스에게 맡기고 나머지는 트랙을 점검합니다. 정성껏 준비한 대회가 무사히 열릴까요?"
   ],
   "大赛日终于到来了！！\n到底发生了什么事？整顿时还完好无损的赛道突然反过来了。\n伙伴们看到倒过来的赛道惊慌失措……": [
     "Tournament day has finally arrived! But the tracks, perfectly fine during inspection, have suddenly been reversed. The friends are bewildered. What happened?",
@@ -1673,16 +1673,16 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "키키에게는 비행접시뿐입니다. 트랙에서는 카트만 달릴 수 있어 경기를 시작할 수 없습니다. 키키는 참가할 방법을 찾을 수 있을까요?"
   ],
   "小强在一旁看到了奇奇所面临的困难，\n可是改装飞碟时需要很多部件。": [
-    "Xiaoqiang notices Kiki's problem. He can modify the flying saucer, but it will take many parts.",
-    "샤오창이 키키의 어려움을 알아차립니다. 비행접시를 개조하려면 많은 부품이 필요합니다."
+    "Mos notices Kiki's problem. He can modify the flying saucer, but it will take many parts.",
+    "모스가 키키의 어려움을 알아차립니다. 비행접시를 개조하려면 많은 부품이 필요합니다."
   ],
   "因小强要为自己改装飞碟，所以奇奇为小强收集了所需部件。\n因此小强也开始了改装飞碟的大工程。": [
-    "Kiki gathers the parts Xiaoqiang needs to modify his flying saucer. With everything ready, Xiaoqiang begins the major conversion.",
-    "자신의 비행접시를 개조해 줄 샤오창을 위해 키키가 필요한 부품을 모읍니다. 샤오창도 본격적인 개조 작업을 시작합니다."
+    "Kiki gathers the parts Mos needs to modify his flying saucer. With everything ready, Mos begins the major conversion.",
+    "자신의 비행접시를 개조해 줄 모스를 위해 키키가 필요한 부품을 모읍니다. 모스도 본격적인 개조 작업을 시작합니다."
   ],
   "因小强的帮助，飞碟成功改装成卡丁车了。\n其性能到底如何呢？需要去试试新车性能了。": [
-    "With Xiaoqiang's help, the flying saucer has become a kart! How well does it perform? Time for a test drive.",
-    "샤오창의 도움으로 비행접시가 카트로 개조되었습니다! 성능은 어떨까요? 새 카트를 시험해 봅시다."
+    "With Mos's help, the flying saucer has become a kart! How well does it perform? Time for a test drive.",
+    "모스의 도움으로 비행접시가 카트로 개조되었습니다! 성능은 어떨까요? 새 카트를 시험해 봅시다."
   ],
   "在繁荣山丘驾驶着飞碟正沉浸在卡丁车世界的奇奇，\n生气的Q博士决定来繁荣山丘找奇奇。\n奇奇和伙伴们还不知道即将要发生的事情，\nQ博士找到奇奇之后会怎么说奇奇呢？": [
     "Kiki is absorbed in racing his flying saucer around Boom Hill. Meanwhile, an angry Dr. Q decides to come looking for him. The friends have no idea what is coming. What will Dr. Q say?",
@@ -2073,8 +2073,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "2013년으로 돌아온 알베르테는 홈스의 권유로 클래식 오픈카 파티 경주에 참가합니다. 아버지가 설계한 카트로 우승할 수 있을까요?"
   ],
   "道明宝宝，花泽皮蛋，西门奇奇，美作小强！\n一群花美男袭来！\nF4与开朗少女杉雯雯展开的心动故事！": [
-    "Daoming Bazzi, Huaze Dao, Ximen Kiki and Meizuo Xiaoqiang: a handsome quartet arrives! A heart-fluttering story unfolds between F4 and the cheerful Shan Wenwen.",
-    "다오밍 배찌, 화쩌 다오, 시먼 키키, 메이쭤 샤오창! 꽃미남 네 명이 나타났다! F4와 밝고 명랑한 소녀 산원원의 설레는 이야기가 펼쳐진다."
+    "Daoming Bazzi, Huaze Dao, Ximen Kiki and Meizuo Mos: a handsome quartet arrives! A heart-fluttering story unfolds between F4 and the cheerful Shan Wenwen.",
+    "다오밍 배찌, 화쩌 다오, 시먼 키키, 메이쭤 모스! 꽃미남 네 명이 나타났다! F4와 밝고 명랑한 소녀 산원원의 설레는 이야기가 펼쳐진다."
   ],
   "生活虽艰辛，但依然很坚强的杉雯雯\n在炸鸡店担当外卖员，并且已经成为外卖达人！\n对于她来说时间就是金钱！\n来考验一下她的达人实力吧？": [
     "Despite a hard life, resilient Shan Wenwen has become an expert fried-chicken delivery rider. Time is money to her! Shall we put her skills to the test?",
@@ -2137,8 +2137,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "잠입에 성공한 F4! 메이쭤 키키가 보안 장치를 껐지만 오래 유지할 수 없습니다. 다시 작동하기 전에 내부로 들어가세요!"
   ],
   "进入黑暗组织的F4面前出现了格雷兄弟，\n格雷兄弟再次向F4发出挑战，\n这次由西门吉米来对付他们。": [
-    "Inside the Dark Organization's base, F4 encounters the Gray brothers, who issue another challenge. This time, Ximen Jimmy will face them.",
-    "조직 내부에 들어선 F4 앞에 그레이 형제가 나타나 다시 도전합니다. 이번에는 시먼 지미가 상대합니다."
+    "Inside the Dark Organization's base, F4 encounters the Gray brothers, who issue another challenge. This time, Ximen Mobi will face them.",
+    "조직 내부에 들어선 F4 앞에 그레이 형제가 나타나 다시 도전합니다. 이번에는 시먼 모비가 상대합니다."
   ],
   "黑杰克终于出现，为了营救杉雯雯\n必须要打败黑杰克，但黑杰克也不是一个省油的灯\n这次由花泽皮蛋来对付黑杰克。": [
     "Black Jack finally appears. To rescue Shan Wenwen, he must be defeated, but he is no easy opponent. Huaze Dao takes him on.",
@@ -2465,8 +2465,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "상품 도둑을 쫓던 친구들은 그의 정체와 별똥별의 돌의 비밀을 알아냅니다. 상품의 중요성을 깨닫고 되찾기 위해 그레그를 추격합니다."
   ],
   "追捕失败后伙伴们了解了星陨之石的秘密并开始寻找石板。\n从嘟嘟口中得知海盗船长的宝物里看到了石板，向南海出发。": [
-    "After the failed pursuit, the friends learn the Starstones' secret and search for a stone tablet. Dudu says he saw it among the Pirate Captain's treasures, so they head to the Southern Sea.",
-    "추격에 실패한 친구들은 별똥별의 돌의 비밀을 알고 석판을 찾기 시작합니다. 해적 선장의 보물에서 봤다는 두두의 말을 듣고 남쪽 바다로 향합니다."
+    "After the failed pursuit, the friends learn the Starstones' secret and search for a stone tablet. Tutu says he saw it among the Pirate Captain's treasures, so they head to the Southern Sea.",
+    "추격에 실패한 친구들은 별똥별의 돌의 비밀을 알고 석판을 찾기 시작합니다. 해적 선장의 보물에서 봤다는 투투의 말을 듣고 남쪽 바다로 향합니다."
   ],
   "到达南海的皮蛋与伙伴们！\n哀求海盗船长给他们看宝库\n但一直被拒绝！虽然用威胁，撒娇各种方法\n但是海盗船长看都不看竟然逃走。": [
     "At the Southern Sea, Dao and his friends beg to see the Pirate Captain's treasury. He refuses every plea, threat and attempt at charm, then simply runs away!",
@@ -2477,8 +2477,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "선장을 붙잡은 친구들은 부드러운 말(?)로 보물 창고 관람 허락을 받습니다. 하지만 먼저 시험을 통과해야 합니다. 어떤 시험일까요?"
   ],
   "海盗船长看到自己宝库中的宝物不知踪影\n命令吉米去寻找丢失的宝物。\n与吉米合伙的伙伴们为了寻找卡帕，随着星陨之石的传说，\n开始往黄金文明出发。": [
-    "Finding treasure missing from his vault, the Pirate Captain orders Jimmy to recover it. Joining forces with Jimmy, the friends follow the Starstone legend to the Golden Civilization to find Kappa.",
-    "보물이 사라진 것을 발견한 선장이 지미에게 회수를 명령합니다. 지미와 힘을 합친 친구들은 카파를 찾으려고 돌의 전설을 따라 황금 문명으로 향합니다."
+    "Finding treasure missing from his vault, the Pirate Captain orders Mobi to recover it. Joining forces with Mobi, the friends follow the Starstone legend to the Golden Civilization to find Kappa.",
+    "보물이 사라진 것을 발견한 선장이 모비에게 회수를 명령합니다. 모비와 힘을 합친 친구들은 카파를 찾으려고 돌의 전설을 따라 황금 문명으로 향합니다."
   ],
   "到达黄金文明的皮蛋与伙伴们\n寻找卡帕但是哪里也找不到。\n这时，远处传来惊呼声，伙伴们根据惊呼声的方向\n开始寻找卡帕。": [
     "At the Golden Civilization, Dao's group cannot find Kappa anywhere. A distant cry suddenly rings out. They follow it in search of him.",
@@ -2597,16 +2597,16 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "카트 놀이공원에서 즐거운 시간을 보내는 다오와 친구들. 배찌는 마지를 발견하고 고맙다는 말을 하려고 뒤쫓습니다."
   ],
   "在远处发现麻吉的宝宝察觉了跟在麻吉后面的黑色影子\n海盗嘟嘟。因为嘟嘟的出现感到麻吉身处危险的宝宝，\n为了告诉伙伴们此消息开始寻找伙伴们。": [
-    "Bazzi notices a dark figure following Maji: the pirate Dudu. Fearing Maji is in danger, he searches for his friends to warn them.",
-    "멀리서 마지를 본 배찌는 뒤따르는 검은 그림자, 해적 두두를 알아봅니다. 마지가 위험하다고 생각해 친구들에게 알리러 갑니다."
+    "Bazzi notices a dark figure following Maji: the pirate Tutu. Fearing Maji is in danger, he searches for his friends to warn them.",
+    "멀리서 마지를 본 배찌는 뒤따르는 검은 그림자, 해적 투투를 알아봅니다. 마지가 위험하다고 생각해 친구들에게 알리러 갑니다."
   ],
   "皮蛋和伙伴们得知麻吉有危险之后，\n准备帮助麻吉脱离危险，\n因此大伙们在游乐场中寻找麻吉。": [
     "Learning that Maji is in danger, Dao and the friends search the amusement park to rescue him.",
     "마지가 위험하다는 소식을 들은 다오와 친구들은 그를 구하려고 놀이공원 곳곳을 찾습니다."
   ],
   "宝宝与伙伴们发现了被海盗船长与嘟嘟、吉米包围的麻吉，\n为了帮助麻吉准备攻击海盗们。": [
-    "Bazzi and the friends find Maji surrounded by the Pirate Captain, Dudu and Jimmy. They prepare to attack the pirates and save him.",
-    "배찌와 친구들은 해적 선장, 두두, 지미에게 둘러싸인 마지를 발견합니다. 그를 구하려고 해적들을 공격할 준비를 합니다."
+    "Bazzi and the friends find Maji surrounded by the Pirate Captain, Tutu and Mobi. They prepare to attack the pirates and save him.",
+    "배찌와 친구들은 해적 선장, 투투, 모비에게 둘러싸인 마지를 발견합니다. 그를 구하려고 해적들을 공격할 준비를 합니다."
   ],
   "马上要抓到海盗船长时，为了救海盗船长麻吉挡在了\n海盗船长前面…原来海盗船长是游乐场的老板，\n伙伴们真的搞晕了！麻吉说明情况后，解开了对海盗船长的\n误会，但小气的海盗船长打算惩罚皮蛋与伙伴们。\n为了躲开惩罚需要逃跑！": [
     "Just as they catch the captain, Maji shields him! He explains that the captain owns the amusement park. The misunderstanding clears, but the petty captain still wants to punish the friends. Run!",
@@ -2617,16 +2617,16 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "수수께끼의 공장장이 만든 새 카트를 보고 다오와 친구들은 깜짝 놀란다. 미래 공장에 엄청난 양의 부품이 필요하다는 사실을 알고 부품 수집 여행에 나선다."
   ],
   "小强和皮蛋决定重新制作新车辆\n为获取所需要的部件他们一同前往了商店。\n从小强的工作室到商店还有一段距离，为了要兑换所需的部件\n还得抓紧时间哦！": [
-    "Xiaoqiang and Dao decide to build a new kart and head to the shop for parts. It is a long way from his workshop, so hurry to exchange for the parts they need!",
-    "샤오창과 다오는 새 카트를 만들 부품을 구하러 상점으로 갑니다. 작업실에서 거리가 있으니 필요한 부품을 교환하려면 서둘러야 합니다!"
+    "Mos and Dao decide to build a new kart and head to the shop for parts. It is a long way from his workshop, so hurry to exchange for the parts they need!",
+    "모스와 다오는 새 카트를 만들 부품을 구하러 상점으로 갑니다. 작업실에서 거리가 있으니 필요한 부품을 교환하려면 서둘러야 합니다!"
   ],
   "到达商店的小强和皮蛋看到了前所未见的车辆和部件\n该部件具备了可改变竞速史格局的惊人的性能，\n小强和皮蛋为传出该消息，去寻找他们的朋友了。": [
-    "At the shop, Xiaoqiang and Dao discover unfamiliar karts and parts with performance that could transform racing history. They set out to share the news with their friends.",
-    "상점에서 처음 보는 카트와 부품을 발견한 샤오창과 다오. 레이싱의 역사를 바꿀 놀라운 성능입니다. 소식을 전하려고 친구들을 찾으러 갑니다."
+    "At the shop, Mos and Dao discover unfamiliar karts and parts with performance that could transform racing history. They set out to share the news with their friends.",
+    "상점에서 처음 보는 카트와 부품을 발견한 모스와 다오. 레이싱의 역사를 바꿀 놀라운 성능입니다. 소식을 전하려고 친구들을 찾으러 갑니다."
   ],
   "分析了小强和皮蛋带来的部件后，\n葱头对其性能赞叹不已。并对该部件的出处表示好奇。\n该部件是从哪儿来的呢？": [
     "Ethen analyzes the parts and marvels at their performance. Curious about their origin, he wonders where they came from.",
-    "샤오창과 다오가 가져온 부품을 분석한 에띠는 성능에 감탄합니다. 출처가 궁금해집니다. 어디서 온 부품일까요?"
+    "모스와 다오가 가져온 부품을 분석한 에띠는 성능에 감탄합니다. 출처가 궁금해집니다. 어디서 온 부품일까요?"
   ],
   "皮蛋和朋友们四处寻找其来源，\n在获知是从神秘工头的工厂中生产该部件的消息后，\n飞快地往工厂方向出发了。": [
     "Searching for the source, the friends learn that the parts come from the mysterious foreman's factory. They race there immediately.",
@@ -2881,76 +2881,76 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "루이의 정체가 궁금한 다오와 친구들은 몰래 대저택에 들어가 조사한다. 그런데 둘러보던 중 장난꾸러기 배찌가 사라져 버렸다!"
   ],
   "被城堡的华丽布局所吸引的蓝蓝准备独自参观城堡。": [
-    "Captivated by the castle's magnificent design, Lanlan decides to explore it alone.",
-    "성의 화려한 모습에 매료된 란란은 혼자 둘러보기로 합니다."
+    "Captivated by the castle's magnificent design, Marid decides to explore it alone.",
+    "성의 화려한 모습에 매료된 마리드는 혼자 둘러보기로 합니다."
   ],
   "从伙伴那里听说到宝宝失踪之后，\n黑妞准备从城堡外面开始寻找。": [
     "Hearing from the others that Bazzi is missing, Dizni decides to begin searching outside the castle.",
     "배찌가 사라졌다는 소식을 들은 디지니는 성 밖부터 찾아보기로 합니다."
   ],
   "在庭院寻找宝宝的蓝蓝发现了庭院机器人克鲁伊，\n正准备跟克鲁伊打招呼的时候因蓝蓝，\n因为弄乱了庭院，所以克鲁伊开始追赶蓝蓝了。": [
-    "Searching the garden for Bazzi, Lanlan meets the robot Cruy. As she tries to greet him, she disturbs the garden, and Cruy starts chasing her!",
-    "정원에서 배찌를 찾던 란란이 로봇 크루이를 만납니다. 인사하려다 정원을 어지럽히자 크루이가 뒤쫓기 시작합니다!"
+    "Searching the garden for Bazzi, Marid meets the robot Cruy. As she tries to greet him, she disturbs the garden, and Cruy starts chasing her!",
+    "정원에서 배찌를 찾던 마리드가 로봇 크루이를 만납니다. 인사하려다 정원을 어지럽히자 크루이가 뒤쫓기 시작합니다!"
   ],
   "逃脱的蓝蓝在树林里迷失了方向…\n这时在树林里发现了寻找幻想料理材料的皮德。": [
-    "After escaping, Lanlan gets lost in the woods. There she finds Pied gathering ingredients for fantastic cuisine.",
-    "도망친 란란은 숲에서 길을 잃습니다. 그곳에서 환상의 요리 재료를 찾던 피드를 만납니다."
+    "After escaping, Marid gets lost in the woods. There she finds Pied gathering ingredients for fantastic cuisine.",
+    "도망친 마리드는 숲에서 길을 잃습니다. 그곳에서 환상의 요리 재료를 찾던 피드를 만납니다."
   ],
   "皮德希望蓝蓝能帮助他把料理材料送到厨房，\n蓝蓝能把材料安全送到厨房吗？": [
-    "Pied asks Lanlan to carry the ingredients to the kitchen. Can she deliver them safely?",
-    "피드는 란란에게 요리 재료를 주방으로 옮겨 달라고 부탁합니다. 무사히 전달할 수 있을까요?"
+    "Pied asks Marid to carry the ingredients to the kitchen. Can she deliver them safely?",
+    "피드는 마리드에게 요리 재료를 주방으로 옮겨 달라고 부탁합니다. 무사히 전달할 수 있을까요?"
   ],
   "蓝蓝为了寻找城堡的厨房，竟然走到了地下室，\n这时当娜把蓝蓝误认为小偷。": [
-    "Looking for the kitchen, Lanlan ends up in the basement instead. Donna mistakes her for a thief!",
-    "주방을 찾던 란란이 그만 지하실로 들어갑니다. 도나는 그녀를 도둑으로 오해합니다!"
+    "Looking for the kitchen, Marid ends up in the basement instead. Donna mistakes her for a thief!",
+    "주방을 찾던 마리드가 그만 지하실로 들어갑니다. 도나는 그녀를 도둑으로 오해합니다!"
   ],
   "解开误会后蓝蓝把料理材料给了当娜，\n蓝蓝受当娜的委托，要偷偷的给路易送礼物。\n可这时蓝蓝却碰到了庭院机器人克鲁伊。": [
-    "After clearing up the misunderstanding, Lanlan hands Donna the ingredients and agrees to secretly deliver a gift to Louis. But she runs into Cruy, the garden robot.",
-    "오해를 푼 란란은 도나에게 재료를 주고 루이에게 몰래 선물을 전해 달라는 부탁을 받습니다. 하지만 정원 로봇 크루이와 마주칩니다."
+    "After clearing up the misunderstanding, Marid hands Donna the ingredients and agrees to secretly deliver a gift to Louis. But she runs into Cruy, the garden robot.",
+    "오해를 푼 마리드는 도나에게 재료를 주고 루이에게 몰래 선물을 전해 달라는 부탁을 받습니다. 하지만 정원 로봇 크루이와 마주칩니다."
   ],
   "送完礼物出来的蓝蓝在门口碰到了管家皮欧，\n皮欧告诉了蓝蓝关于宝宝失踪的全部过程。": [
-    "After delivering the gift, Lanlan meets Butler Pio at the door. He tells her the full story of Bazzi's disappearance.",
-    "선물을 전하고 나온 란란은 문 앞에서 집사 피오를 만납니다. 그는 배찌가 사라진 전말을 알려 줍니다."
+    "After delivering the gift, Marid meets Butler Pio at the door. He tells her the full story of Bazzi's disappearance.",
+    "선물을 전하고 나온 마리드는 문 앞에서 집사 피오를 만납니다. 그는 배찌가 사라진 전말을 알려 줍니다."
   ],
   "路易家族中流传下来的机器人玩具，\n据说有神奇的用途，\n找到路易的蓝蓝是否能解开其中的秘密，\n找出宝宝呢？": [
-    "A toy robot passed down through Louis's family is said to have mysterious powers. Can Lanlan find Louis, uncover its secret and locate Bazzi?",
-    "루이 가문에 전해 오는 장난감 로봇에는 신비한 힘이 있다고 합니다. 루이를 찾은 란란은 비밀을 풀고 배찌를 찾을 수 있을까요?"
+    "A toy robot passed down through Louis's family is said to have mysterious powers. Can Marid find Louis, uncover its secret and locate Bazzi?",
+    "루이 가문에 전해 오는 장난감 로봇에는 신비한 힘이 있다고 합니다. 루이를 찾은 마리드는 비밀을 풀고 배찌를 찾을 수 있을까요?"
   ],
   "再次碰面后宝宝竟然说无法控制车辆，\n赛车一直开往地下室深处…": [
     "Reunited with the friends, Bazzi says he cannot control his kart. It keeps driving deeper into the basement!",
     "다시 만난 배찌는 카트를 제어할 수 없다고 합니다. 카트는 계속 지하실 깊숙이 달려갑니다!"
   ],
   "小强和伙伴们为了寻找宝宝，在城堡里分开进行搜索，\n小强想先去庭院找找宝宝。": [
-    "Xiaoqiang and the friends split up to search the castle for Bazzi. Xiaoqiang decides to check the garden first.",
-    "샤오창과 친구들은 배찌를 찾으려고 성 안에서 흩어집니다. 샤오창은 먼저 정원을 살펴보려 합니다."
+    "Mos and the friends split up to search the castle for Bazzi. Mos decides to check the garden first.",
+    "모스와 친구들은 배찌를 찾으려고 성 안에서 흩어집니다. 모스는 먼저 정원을 살펴보려 합니다."
   ],
   "搜索庭院的小强遇到了坏掉的庭院机器人克鲁伊，\n小强准备修理一下克鲁伊…": [
-    "Searching the garden, Xiaoqiang finds the broken robot Cruy and prepares to repair him.",
-    "정원을 찾던 샤오창이 고장 난 로봇 크루이를 발견하고 수리하려 합니다."
+    "Searching the garden, Mos finds the broken robot Cruy and prepares to repair him.",
+    "정원을 찾던 모스가 고장 난 로봇 크루이를 발견하고 수리하려 합니다."
   ],
   "修好的克鲁伊准备帮助小强寻找宝宝，\n小强跟克鲁伊来到了大城堡的地下室…": [
-    "Repaired, Cruy offers to help find Bazzi. Xiaoqiang follows him to the grand castle's basement.",
-    "수리된 크루이는 배찌를 찾는 일을 돕기로 합니다. 샤오창과 크루이는 대저택 지하실로 향합니다."
+    "Repaired, Cruy offers to help find Bazzi. Mos follows him to the grand castle's basement.",
+    "수리된 크루이는 배찌를 찾는 일을 돕기로 합니다. 모스와 크루이는 대저택 지하실로 향합니다."
   ],
   "跟着克鲁伊来到的是大城堡的地下仓库！\n小强在地下仓库里发现了黑影，\n被吓到的小强想要逃出地下室。": [
-    "Cruy leads Xiaoqiang to the underground storeroom. A dark figure there frightens Xiaoqiang, who tries to escape the basement.",
-    "크루이를 따라 도착한 곳은 지하 창고입니다. 검은 그림자를 발견하고 놀란 샤오창은 지하실을 탈출하려 합니다."
+    "Cruy leads Mos to the underground storeroom. A dark figure there frightens Mos, who tries to escape the basement.",
+    "크루이를 따라 도착한 곳은 지하 창고입니다. 검은 그림자를 발견하고 놀란 모스는 지하실을 탈출하려 합니다."
   ],
   "小强发现的黑影其实是大城堡的厨师长皮德！\n皮德刚才是在找葡萄汁，帮皮德去找葡萄汁吧。": [
     "The dark figure is actually Head Chef Pied, looking for grape juice! Help him find it.",
     "검은 그림자는 포도 주스를 찾던 요리장 피드였습니다! 주스를 찾도록 도와주세요."
   ],
   "在小强的帮助下做完晚餐的皮德给了小强一个提示，\n小强为了寻找大城堡的仆人，\n匆忙赶往大城堡的寝室…": [
-    "After Xiaoqiang helps prepare dinner, Pied gives him a clue. To find the castle's servant, Xiaoqiang hurries to the bedroom.",
-    "샤오창의 도움으로 저녁을 완성한 피드가 단서를 줍니다. 샤오창은 하인을 찾으려고 대저택 침실로 서둘러 갑니다."
+    "After Mos helps prepare dinner, Pied gives him a clue. To find the castle's servant, Mos hurries to the bedroom.",
+    "모스의 도움으로 저녁을 완성한 피드가 단서를 줍니다. 모스는 하인을 찾으려고 대저택 침실로 서둘러 갑니다."
   ],
   "小强好不容易在大城堡的寝室中找到了当娜！\n但是因为小强弄乱了地毯，当娜非常生气…": [
-    "Xiaoqiang finally finds Donna in the bedroom, but she is furious because he has disturbed the carpet!",
-    "샤오창은 겨우 침실에서 도나를 찾습니다. 하지만 그가 카펫을 어지럽혀 도나는 몹시 화가 났습니다!"
+    "Mos finally finds Donna in the bedroom, but she is furious because he has disturbed the carpet!",
+    "모스는 겨우 침실에서 도나를 찾습니다. 하지만 그가 카펫을 어지럽혀 도나는 몹시 화가 났습니다!"
   ],
   "小强虽然逃出来了，可是生气的当娜又追了过来，赶紧逃跑吧。": [
-    "Xiaoqiang escapes, but an angry Donna is still pursuing him. Run quickly!",
-    "샤오창은 빠져나왔지만 화난 도나가 또 뒤쫓습니다. 어서 도망치세요!"
+    "Mos escapes, but an angry Donna is still pursuing him. Run quickly!",
+    "모스는 빠져나왔지만 화난 도나가 또 뒤쫓습니다. 어서 도망치세요!"
   ],
   "甩掉当娜后到达的地方是路易的玩具屋，\n黑暗的房间里听到了路易的求救声！": [
     "After escaping Donna, the friends reach Louis's toy room. From the darkness, they hear Louis calling for help!",
@@ -3137,56 +3137,56 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "드디어 친구들의 훈련 진도를 따라잡은 다오. 하지만 다음 훈련이야말로 진짜 지옥 훈련입니다."
   ],
   "蓝蓝带来的点心为残酷的训练带来一些温馨之意，\n朋友们在休息时间贪婪的享受着美味！": [
-    "Lanlan's snacks bring a little warmth to the harsh training. During the break, the friends eagerly enjoy the delicious treats!",
-    "란란가 가져온 간식이 혹독한 훈련에 잠시 온기를 더합니다. 쉬는 시간, 친구들은 맛있는 간식을 정신없이 즐깁니다!"
+    "Marid's snacks bring a little warmth to the harsh training. During the break, the friends eagerly enjoy the delicious treats!",
+    "마리드가 가져온 간식이 혹독한 훈련에 잠시 온기를 더합니다. 쉬는 시간, 친구들은 맛있는 간식을 정신없이 즐깁니다!"
   ],
   "睡梦中的皮蛋怎么也没想到正真的魔鬼不期而至，\n海盗船长和手下们绑架了午睡中的朋友们！\n在返回的途中，\n一直较劲的吉米和嘟嘟决定来一场男人间的对决！": [
-    "Sleeping Dao has no idea that real danger has arrived: the pirate captain and his crew kidnap the napping friends! On their way back, rivals Jimmy and Dudu decide to settle things with a duel.",
-    "잠든 다오는 진짜 위험이 닥친 줄도 모릅니다. 해적 선장과 부하들이 낮잠 자던 친구들을 납치했습니다! 돌아가는 길, 서로 경쟁하던 지미와 두두가 맞대결을 벌이기로 합니다."
+    "Sleeping Dao has no idea that real danger has arrived: the pirate captain and his crew kidnap the napping friends! On their way back, rivals Mobi and Tutu decide to settle things with a duel.",
+    "잠든 다오는 진짜 위험이 닥친 줄도 모릅니다. 해적 선장과 부하들이 낮잠 자던 친구들을 납치했습니다! 돌아가는 길, 서로 경쟁하던 모비와 투투가 맞대결을 벌이기로 합니다."
   ],
   "宝宝张开惺忪的睡眼，海盗水手被他滑稽的形象逗乐了，\n提出追逐赛要求。宝宝眨了眨眼镜，\n欣然接受！": [
     "Bazzi opens his sleepy eyes. Amused by his funny appearance, a pirate sailor challenges him to a chase. Bazzi blinks and gladly accepts!",
     "배찌가 졸린 눈을 뜹니다. 우스꽝스러운 모습에 웃음이 난 해적 선원이 추격전을 제안합니다. 배찌는 눈을 깜빡이고는 흔쾌히 받아들입니다!"
   ],
   "海盗水手万万没有想到宝宝睡眼惺忪的样子是生来就如此！\n同时，嘟嘟也在刺激吉米和他进行第二场比赛…\n他的脸上浮现出一丝诡异的笑容。": [
-    "The pirate sailor never imagined Bazzi always looks sleepy! Meanwhile, Dudu provokes Jimmy into a second race, a sinister smile spreading across his face...",
-    "해적 선원은 배찌의 졸린 얼굴이 원래 그런 모습인 줄 몰랐습니다! 한편 두두는 수상한 미소를 지으며 지미를 두 번째 경기로 도발합니다..."
+    "The pirate sailor never imagined Bazzi always looks sleepy! Meanwhile, Tutu provokes Mobi into a second race, a sinister smile spreading across his face...",
+    "해적 선원은 배찌의 졸린 얼굴이 원래 그런 모습인 줄 몰랐습니다! 한편 투투는 수상한 미소를 지으며 모비를 두 번째 경기로 도발합니다..."
   ],
   "吉米和宝宝英雄相惜。地面突然崩塌！这一定是嘟嘟的阴谋，\n当务之急要带着皮蛋他们逃离陷阱。": [
-    "Jimmy and Bazzi come to admire each other. Suddenly, the ground collapses! It must be Dudu's trap. Get Dao and the others out immediately!",
-    "서로의 실력을 인정하게 된 지미와 배찌. 갑자기 땅이 무너집니다! 틀림없이 두두의 함정입니다. 서둘러 다오와 친구들을 데리고 탈출해야 합니다!"
+    "Mobi and Bazzi come to admire each other. Suddenly, the ground collapses! It must be Tutu's trap. Get Dao and the others out immediately!",
+    "서로의 실력을 인정하게 된 모비와 배찌. 갑자기 땅이 무너집니다! 틀림없이 투투의 함정입니다. 서둘러 다오와 친구들을 데리고 탈출해야 합니다!"
   ],
   "糟糕！找不到出路了，这一定是嘟嘟的又一阴谋！关键时刻，\n小强利用自己丰富的经验带领大家脱离了危机！": [
-    "Oh no, there is no way out! This must be another of Dudu's schemes. At the crucial moment, Mos uses his experience to lead everyone out of danger!",
-    "큰일입니다! 나갈 길이 보이지 않습니다. 이것도 두두의 음모일까요? 위기의 순간, 경험 많은 모스가 모두를 이끌어 위험에서 벗어납니다!"
+    "Oh no, there is no way out! This must be another of Tutu's schemes. At the crucial moment, Mos uses his experience to lead everyone out of danger!",
+    "큰일입니다! 나갈 길이 보이지 않습니다. 이것도 투투의 음모일까요? 위기의 순간, 경험 많은 모스가 모두를 이끌어 위험에서 벗어납니다!"
   ],
   "意外之中，黑妞听到海盗船长和蓝蓝的对话。\n暗恋皮蛋已久的蓝蓝居然作出了一个愚蠢的决定\n——和海盗船长联手！得知蓝蓝在午餐中使用了安眠药后，\n黑妞不顾一切的冲了出去……": [
-    "Dizni overhears the pirate captain talking with Lanlan. Lanlan's long-standing crush on Dao has led her to a foolish alliance with the captain! Learning that Lanlan put sleeping pills in lunch, Dizni rushes out recklessly...",
-    "디지니는 해적 선장과 란란의 대화를 우연히 듣습니다. 다오를 오래 짝사랑한 란란가 어리석게도 해적 선장과 손을 잡았습니다! 점심에 수면제를 넣었다는 사실에 디지니는 앞뒤 가리지 않고 뛰쳐나갑니다..."
+    "Dizni overhears the pirate captain talking with Marid. Marid's long-standing crush on Dao has led her to a foolish alliance with the captain! Learning that Marid put sleeping pills in lunch, Dizni rushes out recklessly...",
+    "디지니는 해적 선장과 마리드의 대화를 우연히 듣습니다. 다오를 오래 짝사랑한 마리드가 어리석게도 해적 선장과 손을 잡았습니다! 점심에 수면제를 넣었다는 사실에 디지니는 앞뒤 가리지 않고 뛰쳐나갑니다..."
   ],
   "眼看黑妞就要追上了蓝蓝，但葱头横空出现救走了她！": [
-    "Dizni is about to catch Lanlan when Ethen suddenly appears and rescues her!",
-    "디지니가 란란를 따라잡으려는 순간, 에띠가 갑자기 나타나 란란를 데려갑니다!"
+    "Dizni is about to catch Marid when Ethen suddenly appears and rescues her!",
+    "디지니가 마리드를 따라잡으려는 순간, 에띠가 갑자기 나타나 마리드를 데려갑니다!"
   ],
   "终于追上了蓝蓝，黑妞希望蓝蓝解释所发生的一切。\n这时海盗船长悄然逼近！": [
-    "Dizni finally catches up with Lanlan and demands an explanation. But the pirate captain is quietly approaching!",
-    "마침내 란란를 따라잡은 디지니는 모든 일을 설명해 달라고 합니다. 그런데 해적 선장이 조용히 다가오고 있습니다!"
+    "Dizni finally catches up with Marid and demands an explanation. But the pirate captain is quietly approaching!",
+    "마침내 마리드를 따라잡은 디지니는 모든 일을 설명해 달라고 합니다. 그런데 해적 선장이 조용히 다가오고 있습니다!"
   ],
   "皮蛋发现了海盗船长竟然带着自己父亲留下的吊坠。\n这是皮蛋的宝贝，一定要抢回来！": [
     "Dao spots the pirate captain wearing the pendant his father left him. It is Dao's most treasured keepsake. He must get it back!",
     "다오는 해적 선장이 아버지의 유품인 목걸이를 차고 있는 것을 발견합니다. 다오의 소중한 보물입니다. 반드시 되찾아야 합니다!"
   ],
   "吉米劝告皮蛋君子报仇，十年不晚，\n暂且逃离海贼岛再做打算。\n皮蛋对吉米的友情感动不已，决定暂且离开，再做打算！": [
-    "Jimmy urges Dao to be patient and leave Pirate Island before planning his revenge. Moved by Jimmy's friendship, Dao agrees to escape for now and make plans later.",
-    "지미는 복수를 서두르지 말고 먼저 해적 섬을 탈출한 뒤 계획을 세우자고 다오를 설득합니다. 우정에 감동한 다오는 우선 떠나기로 합니다."
+    "Mobi urges Dao to be patient and leave Pirate Island before planning his revenge. Moved by Mobi's friendship, Dao agrees to escape for now and make plans later.",
+    "모비는 복수를 서두르지 말고 먼저 해적 섬을 탈출한 뒤 계획을 세우자고 다오를 설득합니다. 우정에 감동한 다오는 우선 떠나기로 합니다."
   ],
   "眼看朋友们要被嘟嘟一伙给追上了。\n胖墩自告奋勇，为朋友们断后！": [
-    "Dudu and his gang are about to catch the friends. Keff volunteers to stay behind and hold them off!",
-    "두두 일당이 친구들을 거의 따라잡았습니다. 케피가 친구들을 위해 남아서 추격을 막겠다고 나섭니다!"
+    "Tutu and his gang are about to catch the friends. Kephi volunteers to stay behind and hold them off!",
+    "투투 일당이 친구들을 거의 따라잡았습니다. 케피가 친구들을 위해 남아서 추격을 막겠다고 나섭니다!"
   ],
   "在逃脱的途中意外发现了海盗的藏宝之处！\n绝不能把宝藏留给海盗危害百姓。\n蓝蓝决定跟吉米周旋，让大家转移宝藏！": [
-    "While escaping, the friends discover the pirates' hidden treasure! They cannot leave it to fund more harm. Lanlan decides to keep Jimmy occupied while the others move the treasure.",
-    "도망치던 중 해적의 보물 은닉처를 발견했습니다! 해적들이 사람들을 해치는 데 쓰도록 남겨 둘 수는 없습니다. 란란는 친구들이 보물을 옮기는 동안 지미를 상대하기로 합니다."
+    "While escaping, the friends discover the pirates' hidden treasure! They cannot leave it to fund more harm. Marid decides to keep Mobi occupied while the others move the treasure.",
+    "도망치던 중 해적의 보물 은닉처를 발견했습니다! 해적들이 사람들을 해치는 데 쓰도록 남겨 둘 수는 없습니다. 마리드는 친구들이 보물을 옮기는 동안 모비를 상대하기로 합니다."
   ],
   "听说宝藏被抢，海盗船长怎能甘心。\n急红了眼的他使出看家本领疯狂的追赶皮蛋！": [
     "Hearing that his treasure has been taken, the furious pirate captain refuses to give up. He uses every trick he knows to chase Dao down!",
@@ -3197,8 +3197,8 @@ export const storyMenuSummaries: Readonly<Record<string, readonly [string, strin
     "갈림길에 도착한 다오와 친구들. 어느 쪽으로 가야 할까요? 모든 것을 좌우할 중요한 선택입니다!"
   ],
   "这条路竟是吉米把关。吉米想偷偷放走皮蛋他们，\n但海盗船长也追上来了！决战在所难免！": [
-    "Jimmy is guarding this route. He wants to let Dao and his friends slip away, but the pirate captain catches up! A final showdown is unavoidable!",
-    "이 길을 지키는 사람은 지미였습니다. 몰래 다오 일행을 보내 주려 하지만 해적 선장까지 따라왔습니다! 마지막 결전을 피할 수 없습니다!"
+    "Mobi is guarding this route. He wants to let Dao and his friends slip away, but the pirate captain catches up! A final showdown is unavoidable!",
+    "이 길을 지키는 사람은 모비였습니다. 몰래 다오 일행을 보내 주려 하지만 해적 선장까지 따라왔습니다! 마지막 결전을 피할 수 없습니다!"
   ],
   "从探险家爱德爷爷那里听到传说中黄金文明的故事的\n皮蛋和他的朋友们，开始了寻找黄金文明的冒险历程。\n但历经千辛万苦几乎就要成功的他们却被一个使用\n黄金指南针的怪物逼入了一个无穷无尽的迷宫中…": [
     "After hearing Grandpa Ed's tales of a legendary golden civilization, Dao and friends set out to find it. Just as their difficult journey nears success, a monster with a golden compass traps them in an endless maze…",

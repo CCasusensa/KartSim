@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import type { GarageItemDefinition, GarageResource } from "./timeattack-items";
 import type { VehicleTitle } from "./vehicle-identity";
 
@@ -76,7 +77,7 @@ export function vehicleTitles(
       const names = [...new Set(named.map(item => item.title))];
       const textures = [...new Set(items.map(item => item.textureKey))];
       titles.set(model, {
-        title: names.length === 1 ? names[0] : undefined,
+        title: names.length === 1 ? translateItemName(names[0]!) : undefined,
         itemId: named.length === 1 ? named[0]!.id : undefined,
         ambiguous: names.length > 1 || textures.length > 1,
         textureKey: textures.length === 1 ? textures[0] : undefined,
@@ -86,7 +87,7 @@ export function vehicleTitles(
     for (const definition of await library.itemTableGarageDefinitions()) {
       if (definition.kind !== "kart" || !definition.title) continue;
       titles.set(definition.internalId.toLowerCase(), {
-        title: definition.title,
+        title: translateItemName(definition.title),
         itemId: String(definition.itemId),
         ambiguous: false,
         textureKey: definition.textureKey ?? "1",

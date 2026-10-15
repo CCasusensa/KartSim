@@ -1,4 +1,5 @@
 import { cityContentName } from "../i18n/catalogs/city-content-names";
+import { cityDialogueText } from "./city-dialogue";
 import { tr } from "../i18n/locale";
 /**
  * 卡丁城任务（server-go/CITY-QUESTS.md）：送货、载客、收集、寻物。走到任务点
@@ -319,7 +320,7 @@ export class CityQuests {
       const record = loadDone();
       record[active.quest.id] = (record[active.quest.id] ?? 0) + 1;
       saveDone(record);
-      if (active.quest.type !== "passenger") this.host.say(active.quest.receiver, active.quest.thanks);
+      if (active.quest.type !== "passenger") this.host.say(active.quest.receiver, cityDialogueText(active.quest.thanks));
       this.showResult(true);
       await this.celebrate(active.quest, done);
     } catch (error) {

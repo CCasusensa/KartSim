@@ -1,3 +1,4 @@
+import { trackDisplayTitle } from "../resources/track-names";
 import { tr } from "../i18n/locale";
 /**
  * 排位计时赛 (TIMEATTACK.md): the ranking window over the 单人游戏 page, the
@@ -59,7 +60,7 @@ async function currentTrack(controller: ReadyRankingController, lib: RankingLibr
   const selection = controller.host.getSelection();
   if (!selection?.trackId || !selection.mapPath) return undefined;
   const metadata = await lib.trackMetadata(selection.trackId).catch(() => undefined);
-  return { id: selection.trackId, path: selection.mapPath, title: metadata?.cnTitle ?? selection.trackId };
+  return { id: selection.trackId, path: selection.mapPath, title: trackDisplayTitle(selection.trackId, metadata?.cnTitle ?? selection.trackId) };
 }
 
 function settingsOf(controller: ReadyRankingController): RankingSettings {
@@ -181,7 +182,7 @@ async function pickTrack(controller: ReadyRankingController): Promise<void> {
         if (choice.kind !== "track") { message(controller, tr("排位计时赛不能选择随机赛道。")); return; }
         void lib.trackMetadata(choice.track.id).catch(() => undefined).then(metadata => {
           controller.rankingTrack = { id: choice.track.id, path: choice.track.path,
-            title: metadata?.cnTitle ?? choice.track.id };
+            title: trackDisplayTitle(choice.track.id, metadata?.cnTitle ?? choice.track.id) };
           return openRankingWindow(controller);
         });
       },

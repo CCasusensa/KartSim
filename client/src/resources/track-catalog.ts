@@ -2,6 +2,7 @@ import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary
 import { customItemTrackChoices, customMapMetadata, customTrackChoices } from "../mapeditor/custom-tracks";
 import { isCustomTrackId } from "../mapeditor/design";
 import { XYY_TRACK_TITLES } from "./xyy-tracks";
+import { trackDisplayTitle } from "./track-names";
 
 /** A virtual file mounted from a Rho/Rho5 archive or a loose Data file. */
 export interface TrackResource {
@@ -204,16 +205,15 @@ export function trackMetadataCatalog(library: TrackLibrary): Promise<TrackMetada
   })();
 }
 
-export function trackTitles(library: TrackLibrary): Promise<Map<string, { title: string; trackId: string }>> {
-  return library.trackTitlePromise ??= (async () => {
-    const titles = new Map<string, { title: string; trackId: string }>();
-    for (const track of await library.trackMetadataCatalog()) {
-      const title = { title: track.cnTitle ?? track.id, trackId: track.id };
-      titles.set(track.id, title);
-      titles.set(track.folder ?? track.id, title);
-    }
-    return titles;
-  })();
+export async function trackTitles(library: TrackLibrary): Promise<Map<string, { title: string; trackId: string }>> {
+  // Only metadata is cached: display titles follow the currently selected language.
+  const titles = new Map<string, { title: string; trackId: string }>();
+  for (const track of await library.trackMetadataCatalog()) {
+    const title = { title: trackDisplayTitle(track.id, track.cnTitle ?? track.id), trackId: track.id };
+    titles.set(track.id, title);
+    titles.set(track.folder ?? track.id, title);
+  }
+  return titles;
 }
 
 export async function trackMetadata(library: TrackLibrary, id: string): Promise<TrackMetadata | undefined> {
@@ -257,7 +257,7 @@ async function resolveTrackCatalog(library: TrackLibrary,
     normal.push({
       id: metadata.id,
       path: model.virtualPath,
-      title: metadata.cnTitle,
+      title: trackDisplayTitle(metadata.id, metadata.cnTitle),
       theme,
       gameType,
       difficulty: metadata.difficulty,
@@ -267,7 +267,7 @@ async function resolveTrackCatalog(library: TrackLibrary,
     if (reverse) reversed.push({
       id: `${metadata.id}_rvs`,
       path: reverse.virtualPath,
-      title: `[反]${metadata.cnTitle}`,
+      title: trackDisplayTitle(`${metadata.id}_rvs`, `[反]${metadata.cnTitle}`),
       theme,
       gameType,
       difficulty: metadata.difficulty,
@@ -515,10 +515,10 @@ function drawableDisplay(group: RandomTrackGroup): RandomTrackGroup {
 export async function timeAttackRandomTrackNames(library: TrackLibrary): Promise<Map<string, string>> {
   const names = new Map<string, string>();
   for (const track of await library.trackMetadataCatalog()) {
-    const title = track.cnTitle ?? track.id;
+    const title = trackDisplayTitle(track.id, track.cnTitle ?? track.id);
     for (const id of [track.id, track.folder].filter((value): value is string => !!value)) {
       names.set(id, title);
-      names.set(`${id}_rvs`, `[反]${title}`);
+      names.set(`${id}_rvs`, trackDisplayTitle(`${track.id}_rvs`, `[反]${title}`));
     }
   }
   return names;

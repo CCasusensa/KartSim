@@ -2,6 +2,10 @@ import { gameLocale } from "../locale";
 
 /** Authored city menu names, objectives and summaries; never applied to player names or chat. */
 export const cityContentNames: Readonly<Record<string, readonly [string, string]>> = {
+  "R博士": ["Dr. R", "R 박사"],
+  "妮妮": ["Nini", "니니"],
+  "奇奇": ["Kiki", "키키"],
+  "茜茜": ["Cici", "시시"],
   "一锅好汤": [
     "A Pot of Good Soup",
     "맛있는 수프 한 냄비"
@@ -539,12 +543,12 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "공항 안내원 · 에띠"
   ],
   "巡警 · 吉米": [
-    "Patrol Officer · Jimmy",
-    "순경 · 지미"
+    "Patrol Officer · Mobi",
+    "순경 · 모비"
   ],
   "邮差 · 小强": [
-    "Postman · Xiaoqiang",
-    "우편배달부 · 샤오창"
+    "Postman · Mos",
+    "우편배달부 · 모스"
   ],
   "风筝摊主 · 雯雯": [
     "Kite Seller · Wenwen",
@@ -563,8 +567,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "통학버스 기사 · 투투"
   ],
   "花店店主 · 蓝蓝": [
-    "Florist · Lanlan",
-    "꽃집 주인 · 란란"
+    "Florist · Marid",
+    "꽃집 주인 · 마리드"
   ],
   "救生员 · 大海": [
     "Lifeguard · Dahai",
@@ -799,12 +803,12 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "에띠"
   ],
   "吉米": [
-    "Jimmy",
-    "지미"
+    "Mobi",
+    "모비"
   ],
   "小强": [
-    "Xiaoqiang",
-    "샤오창"
+    "Mos",
+    "모스"
   ],
   "雯雯": [
     "Wenwen",
@@ -823,8 +827,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "투투"
   ],
   "蓝蓝": [
-    "Lanlan",
-    "란란"
+    "Marid",
+    "마리드"
   ],
   "大海": [
     "Dahai",
@@ -1779,8 +1783,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "배찌는 바이스 포인트에서 오후 내내 햇볕을 쬔 뒤 시원한 코코넛 주스를 주문했습니다. 얼음이 녹기 전에 배달하세요."
   ],
   "昨晚有人在华盛顿海滩的路口连闯三个红灯，录像带要尽快交给市中心的巡警吉米。": [
-    "Someone ran three red lights at Washington Beach last night. Take the CCTV tape to Officer Jimmy in Downtown as soon as possible.",
-    "어젯밤 워싱턴 비치에서 누군가 신호를 세 번 위반했습니다. 녹화 테이프를 다운타운의 순경 지미에게 빨리 전달하세요."
+    "Someone ran three red lights at Washington Beach last night. Take the CCTV tape to Officer Mobi in Downtown as soon as possible.",
+    "어젯밤 워싱턴 비치에서 누군가 신호를 세 번 위반했습니다. 녹화 테이프를 다운타운의 순경 모비에게 빨리 전달하세요."
   ],
   "一位游客把相机落在了路口岗亭，小乖认出那是皮蛋旅行团的客人。相机很娇贵，路上不能磕碰。": [
     "A tourist left a camera at the traffic booth. Uni recognized its owner from Dao's tour group. Avoid collisions; the camera is fragile.",
@@ -1815,16 +1819,16 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "다오 여행 단체의 관광객이 공항에 짐을 두고 왔습니다. 단체가 곧 다음 장소로 출발합니다."
   ],
   "机场发现一个无人认领的包裹，葱头请巡警吉米检查。里面会不会是易碎品？保险起见别乱撞。": [
-    "An unclaimed parcel was found at the airport. Ethen asked Officer Jimmy to inspect it. Avoid collisions in case its contents are fragile.",
-    "공항에서 주인 없는 소포가 발견되었습니다. 에띠가 순경 지미에게 검사를 부탁했습니다. 깨지는 물건일 수 있으니 충돌을 피하세요."
+    "An unclaimed parcel was found at the airport. Ethen asked Officer Mobi to inspect it. Avoid collisions in case its contents are fragile.",
+    "공항에서 주인 없는 소포가 발견되었습니다. 에띠가 순경 모비에게 검사를 부탁했습니다. 깨지는 물건일 수 있으니 충돌을 피하세요."
   ],
   "小乖的旧指挥棒用坏了，吉米从警局领了一根新的发光指挥棒。": [
-    "Uni's old traffic baton broke. Jimmy picked up a new light-up baton from the police station.",
-    "우니의 교통 지휘봉이 고장 났습니다. 지미가 경찰서에서 새 발광 지휘봉을 받아 왔습니다."
+    "Uni's old traffic baton broke. Mobi picked up a new light-up baton from the police station.",
+    "우니의 교통 지휘봉이 고장 났습니다. 모비가 경찰서에서 새 발광 지휘봉을 받아 왔습니다."
   ],
   "吉米的巡逻车在胖墩那里保养，备用钥匙要送过去。吉米要求送钥匙的人做守法驾驶示范。": [
-    "Jimmy's patrol car is being serviced by Kephi. Deliver the spare key, and follow traffic rules as Jimmy requested.",
-    "지미의 순찰차를 케피가 정비하고 있습니다. 예비 열쇠를 전달하면서 지미의 요청대로 교통 법규를 지켜 주세요."
+    "Mobi's patrol car is being serviced by Kephi. Deliver the spare key, and follow traffic rules as Mobi requested.",
+    "모비의 순찰차를 케피가 정비하고 있습니다. 예비 열쇠를 전달하면서 모비의 요청대로 교통 법규를 지켜 주세요."
   ],
   "黑妞网购的新咖啡豆到了，还是加急件，得在时限内送到。": [
     "Dizni's online coffee bean order has arrived as an urgent parcel. Deliver it within the time limit.",
@@ -1843,16 +1847,16 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "디지니의 카페가 새 디저트를 만들려고 로두마니 선장에게 럼 건포도를 주문했습니다. 낡은 통 뚜껑이 열리지 않도록 천천히 운전하세요."
   ],
   "工地今晚要封路施工，许可证得在警局下班前交给巡警吉米盖章。": [
-    "The construction site will close the road tonight. Get Officer Jimmy to stamp the permit before the police office closes.",
-    "오늘 밤 공사로 도로를 통제합니다. 경찰서 업무가 끝나기 전에 순경 지미에게 허가 도장을 받아야 합니다."
+    "The construction site will close the road tonight. Get Officer Mobi to stamp the permit before the police office closes.",
+    "오늘 밤 공사로 도로를 통제합니다. 경찰서 업무가 끝나기 전에 순경 모비에게 허가 도장을 받아야 합니다."
   ],
   "宝宝的小侄子把书包落在了校车上，里面有明天要交的作业。": [
     "Bazzi's young nephew left a schoolbag on the school bus. It contains homework due tomorrow.",
     "배찌의 어린 조카가 통학버스에 책가방을 두고 내렸습니다. 내일까지 제출할 숙제가 들어 있습니다."
   ],
   "葱头的妈妈今天坐飞机来卡丁城看他，葱头在蓝蓝的花店订了一束接机的鲜花。": [
-    "Ethen's mother is flying to Kart City today. Ethen ordered a welcome bouquet from Lanlan's flower shop.",
-    "에띠의 어머니가 오늘 비행기로 카트 시티에 옵니다. 에띠가 란란의 꽃집에서 마중용 꽃다발을 주문했습니다."
+    "Ethen's mother is flying to Kart City today. Ethen ordered a welcome bouquet from Marid's flower shop.",
+    "에띠의 어머니가 오늘 비행기로 카트 시티에 옵니다. 에띠가 마리드의 꽃집에서 마중용 꽃다발을 주문했습니다."
   ],
   "海盗船长的船舵在胖墩那里修好了，可他一坐快车就晕。车速千万不能超过 90。": [
     "Captain Lodumani's ship's wheel has been repaired by Kephi, but fast rides cause motion sickness. Keep your speed at or below 90 km/h.",
@@ -1883,20 +1887,20 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "바닷바람에 원원의 가판대에 있던 연 세 개가 오션 비치 곳곳으로 날아갔습니다. 누가 가져가기 전에 찾아오세요."
   ],
   "小强忙着送包裹，没空去收邮筒里的信。三个邮筒都快塞满了。": [
-    "Xiaoqiang is too busy delivering parcels to collect the mail. Three mailboxes are nearly full.",
-    "샤오창는 소포 배달로 바빠 편지를 수거할 시간이 없습니다. 우체통 세 개가 거의 가득 찼습니다."
+    "Mos is too busy delivering parcels to collect the mail. Three mailboxes are nearly full.",
+    "모스는 소포 배달로 바빠 편지를 수거할 시간이 없습니다. 우체통 세 개가 거의 가득 찼습니다."
   ],
   "午市就要开始，黑妞的咖啡馆还缺蔬菜、面包和火腿，三家店分在小哈瓦那三个方向。": [
     "Lunch service is about to start, but Dizni's cafe still needs vegetables, bread and ham from three shops across Little Havana.",
     "점심 영업이 곧 시작되는데 디지니의 카페에는 아직 채소, 빵, 햄이 부족합니다. 리틀 하바나의 세 가게에서 가져오세요."
   ],
   "蓝蓝和三处花圃约好了今天取花。刚剪下的鲜花很娇嫩，一路颠簸花瓣就掉光了。": [
-    "Lanlan arranged to collect flowers from three gardens today. Drive gently so the fresh petals do not fall off.",
-    "란란는 오늘 세 꽃밭에서 꽃을 받기로 했습니다. 갓 자른 꽃잎이 떨어지지 않도록 부드럽게 운전하세요."
+    "Marid arranged to collect flowers from three gardens today. Drive gently so the fresh petals do not fall off.",
+    "마리드는 오늘 세 꽃밭에서 꽃을 받기로 했습니다. 갓 자른 꽃잎이 떨어지지 않도록 부드럽게 운전하세요."
   ],
   "蓝蓝的小狗又溜出去玩了，最后一次有人看到它是在华盛顿海滩中部。": [
-    "Lanlan's puppy slipped away to play again. It was last seen in Central Washington Beach.",
-    "란란의 강아지가 또 놀러 나갔습니다. 마지막으로 목격된 곳은 워싱턴 비치 중부입니다."
+    "Marid's puppy slipped away to play again. It was last seen in Central Washington Beach.",
+    "마리드의 강아지가 또 놀러 나갔습니다. 마지막으로 목격된 곳은 워싱턴 비치 중부입니다."
   ],
   "海盗船长的藏宝图被海鸥叼走了，最后掉在了罪恶角中部的某个角落。": [
     "A seagull snatched Captain Lodumani's treasure map and dropped it somewhere in Central Vice Point.",
@@ -1919,8 +1923,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "누군가 주운 지갑을 다오에게 맡겼습니다. 안의 신분증에는 아샹의 이름이 적혀 있습니다."
   ],
   "今晚的演唱会快开始了，蓝蓝的门票还在皮蛋这里。": [
-    "Tonight's concert is about to start, but Lanlan's ticket is still with Dao.",
-    "오늘 밤 공연이 곧 시작되는데 란란의 표는 아직 다오에게 있습니다."
+    "Tonight's concert is about to start, but Marid's ticket is still with Dao.",
+    "오늘 밤 공연이 곧 시작되는데 마리드의 표는 아직 다오에게 있습니다."
   ],
   "皮蛋睡过了头，要赶去华盛顿海滩找小乖，再不快点就迟到了。": [
     "Dao overslept and must hurry to meet Uni in Washington Beach. There is little time left.",
@@ -2055,52 +2059,52 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "에띠의 트럭이 흔들리면서 소포 하나가 리틀 하바나 북부에 떨어졌습니다. 손님이 기다리고 있습니다."
   ],
   "吉米做了自制果酱，想分一罐给泡泡。玻璃罐一碰就碎。": [
-    "Jimmy made jam and wants to give a jar to Paopao. The glass jar will break in a collision.",
-    "지미가 만든 잼 한 병을 파오파오에게 나눠 주려고 합니다. 유리병은 충돌하면 깨집니다."
+    "Mobi made jam and wants to give a jar to Paopao. The glass jar will break in a collision.",
+    "모비가 만든 잼 한 병을 파오파오에게 나눠 주려고 합니다. 유리병은 충돌하면 깨집니다."
   ],
   "阿麦在比赛中得了冠军，奖杯刚刻好名字。奖杯是水晶做的。": [
     "Amai won a race. The name has just been engraved on the crystal trophy.",
     "아마이가 경주에서 우승했습니다. 크리스털 우승컵에 이름을 막 새겼습니다."
   ],
   "大海今晚办桌游之夜，借了吉米的一套桌游。": [
-    "Dahai is hosting a board game night and borrowed a game from Jimmy.",
-    "다하이가 오늘 밤 보드게임 모임을 열려고 지미에게 게임을 빌렸습니다."
+    "Dahai is hosting a board game night and borrowed a game from Mobi.",
+    "다하이가 오늘 밤 보드게임 모임을 열려고 모비에게 게임을 빌렸습니다."
   ],
   "吉米这几天身体不舒服，约了药店店员小白复诊。坐车颠了会头晕。": [
-    "Jimmy has been unwell and has a follow-up appointment with pharmacy clerk Xiaobai. Bumpy driving causes dizziness.",
-    "지미는 몸이 좋지 않아 약국 직원 샤오바이와 다시 상담하기로 했습니다. 차가 흔들리면 어지러워합니다."
+    "Mobi has been unwell and has a follow-up appointment with pharmacy clerk Xiaobai. Bumpy driving causes dizziness.",
+    "모비는 몸이 좋지 않아 약국 직원 샤오바이와 다시 상담하기로 했습니다. 차가 흔들리면 어지러워합니다."
   ],
   "一阵大风把吉米刚印的传单吹得满街都是。": [
-    "A strong wind scattered Jimmy's freshly printed flyers all over the streets.",
-    "강풍에 지미가 갓 인쇄한 전단지가 거리 곳곳으로 흩어졌습니다."
+    "A strong wind scattered Mobi's freshly printed flyers all over the streets.",
+    "강풍에 모비가 갓 인쇄한 전단지가 거리 곳곳으로 흩어졌습니다."
   ],
   "吉米把外婆送的雨伞落在了市中心中部。": [
-    "Jimmy left a grandmother's gift umbrella in Central Downtown.",
-    "지미가 할머니께 선물 받은 우산을 다운타운 중부에 두고 왔습니다."
+    "Mobi left a grandmother's gift umbrella in Central Downtown.",
+    "모비가 할머니께 선물 받은 우산을 다운타운 중부에 두고 왔습니다."
   ],
   "小强要办派对，请柬要送到阿快那里帮忙分发。": [
-    "Xiaoqiang is hosting a party. Take the invitations to Akuai for distribution.",
-    "샤오창가 파티를 엽니다. 초대장을 나눠 줄 수 있도록 아콰이에게 전달하세요."
+    "Mos is hosting a party. Take the invitations to Akuai for distribution.",
+    "모스가 파티를 엽니다. 초대장을 나눠 줄 수 있도록 아콰이에게 전달하세요."
   ],
   "一个写着“加急”的包裹要送到大勺那里。": [
     "A parcel marked \"Urgent\" must be delivered to Dashao.",
     "\"긴급\"이라고 적힌 소포를 다샤오에게 전달해야 합니다."
   ],
   "阿钉领养了小强家的金鱼，鱼缸里的水满满的。": [
-    "Ading adopted Xiaoqiang's goldfish. The tank is filled to the brim.",
-    "아딩가 샤오창의 금붕어를 입양했습니다. 어항에 물이 가득 차 있습니다."
+    "Ading adopted Mos's goldfish. The tank is filled to the brim.",
+    "아딩가 모스의 금붕어를 입양했습니다. 어항에 물이 가득 차 있습니다."
   ],
   "小强想顺路看看卡丁城的风景，再去小海地找小扳。": [
-    "Xiaoqiang wants to enjoy Kart City's scenery on the way to see Xiaoban in Little Haiti.",
-    "샤오창는 카트 시티의 경치를 구경하며 리틀 하이티의 샤오반에게 가고 싶어 합니다."
+    "Mos wants to enjoy Kart City's scenery on the way to see Xiaoban in Little Haiti.",
+    "모스는 카트 시티의 경치를 구경하며 리틀 하이티의 샤오반에게 가고 싶어 합니다."
   ],
   "活动结束了，小强贴在街上的海报要赶在检查前撤下来。": [
-    "The event is over. Remove Xiaoqiang's street posters before the inspection.",
-    "행사가 끝났습니다. 점검 전에 샤오창가 거리에 붙인 포스터를 떼어 내세요."
+    "The event is over. Remove Mos's street posters before the inspection.",
+    "행사가 끝났습니다. 점검 전에 모스가 거리에 붙인 포스터를 떼어 내세요."
   ],
   "小强的钱包不知什么时候掉在了小海地南部。": [
-    "Xiaoqiang lost a wallet somewhere in South Little Haiti.",
-    "샤오창가 리틀 하이티 남부 어딘가에서 지갑을 잃어버렸습니다."
+    "Mos lost a wallet somewhere in South Little Haiti.",
+    "모스가 리틀 하이티 남부 어딘가에서 지갑을 잃어버렸습니다."
   ],
   "阿丰想要一只大风筝，骨架是竹子做的，一撞就散。": [
     "Afeng wants a large kite. Its bamboo frame will fall apart in a collision.",
@@ -2155,8 +2159,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "로두마니 선장의 카트 배터리가 방전되었습니다. 예비 배터리가 급히 필요합니다."
   ],
   "小强的怀表修好了，里面的齿轮很精细，开太快会震坏。": [
-    "Xiaoqiang's pocket watch has been repaired. Its delicate gears may be damaged by driving too fast.",
-    "샤오창의 회중시계를 수리했습니다. 빠르게 달리면 정교한 톱니바퀴가 손상될 수 있습니다."
+    "Mos's pocket watch has been repaired. Its delicate gears may be damaged by driving too fast.",
+    "모스의 회중시계를 수리했습니다. 빠르게 달리면 정교한 톱니바퀴가 손상될 수 있습니다."
   ],
   "米粒的店要换新招牌，霓虹灯管一碰就碎。": [
     "Mili's shop needs a new sign. The neon tubes break easily in a collision.",
@@ -2187,8 +2191,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "케피 쪽에 찰과상을 입은 사람이 있어 구급상자가 급히 필요합니다."
   ],
   "嘟嘟要把一幅刚画好的画送给吉米，画框又大又脆。": [
-    "Tutu wants to give Jimmy a freshly finished painting. Its frame is large and fragile.",
-    "투투가 막 완성한 그림을 지미에게 주려고 합니다. 액자가 크고 약합니다."
+    "Tutu wants to give Mobi a freshly finished painting. Its frame is large and fragile.",
+    "투투가 막 완성한 그림을 모비에게 주려고 합니다. 액자가 크고 약합니다."
   ],
   "嘟嘟的一袋球破了，球滚得到处都是。": [
     "Tutu's bag of balls split open, and the balls rolled everywhere.",
@@ -2207,20 +2211,20 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "로저의 신문이 다 팔려 새 묶음이 필요합니다. 조간신문은 늦으면 아무도 읽지 않습니다."
   ],
   "葱头抢到了一双限量款赛车鞋，在蓝蓝这里等着取货。": [
-    "Ethen secured a pair of limited-edition racing shoes. They are waiting at Lanlan's place.",
-    "에띠가 한정판 레이싱 신발을 구했습니다. 란란의 가게에서 수령을 기다리고 있습니다."
+    "Ethen secured a pair of limited-edition racing shoes. They are waiting at Marid's place.",
+    "에띠가 한정판 레이싱 신발을 구했습니다. 마리드의 가게에서 수령을 기다리고 있습니다."
   ],
   "蓝蓝的店里缺货了，要去卡米拉那里进一批货。": [
-    "Lanlan's shop is running low on stock and needs supplies from Camilla.",
-    "란란의 가게에 물건이 부족해 카밀라에게서 새 물품을 가져와야 합니다."
+    "Marid's shop is running low on stock and needs supplies from Camilla.",
+    "마리드의 가게에 물건이 부족해 카밀라에게서 새 물품을 가져와야 합니다."
   ],
   "蓝蓝放在几个寄卖点的货到期了，要收回来。": [
-    "Lanlan's consignment period has ended at several shops. Collect the remaining goods.",
-    "여러 가게에 맡긴 란란의 물건이 위탁 기간을 넘겼습니다. 남은 물건을 회수하세요."
+    "Marid's consignment period has ended at several shops. Collect the remaining goods.",
+    "여러 가게에 맡긴 마리드의 물건이 위탁 기간을 넘겼습니다. 남은 물건을 회수하세요."
   ],
   "蓝蓝的手机掉在了华盛顿海滩中部，电量快耗光了，没电就找不到了。": [
-    "Lanlan dropped a phone in Central Washington Beach. Find it before its battery dies and it can no longer be traced.",
-    "란란가 워싱턴 비치 중부에서 휴대폰을 떨어뜨렸습니다. 배터리가 꺼져 찾을 수 없게 되기 전에 찾아오세요."
+    "Marid dropped a phone in Central Washington Beach. Find it before its battery dies and it can no longer be traced.",
+    "마리드가 워싱턴 비치 중부에서 휴대폰을 떨어뜨렸습니다. 배터리가 꺼져 찾을 수 없게 되기 전에 찾아오세요."
   ],
   "大海做了自制果酱，想分一罐给老海。玻璃罐一碰就碎。": [
     "Dahai made jam and wants to give a jar to Lao Hai. The glass jar will break in a collision.",
@@ -2303,8 +2307,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "샤오반가 큰 연을 원합니다. 대나무 뼈대는 충돌하면 부서집니다."
   ],
   "小麦旅行回来，给蓝蓝带了一盒纪念品。": [
-    "Xiaomai returned from a trip with a box of souvenirs for Lanlan.",
-    "여행에서 돌아온 샤오마이가 란란에게 줄 기념품 한 상자를 가져왔습니다."
+    "Xiaomai returned from a trip with a box of souvenirs for Marid.",
+    "여행에서 돌아온 샤오마이가 마리드에게 줄 기념품 한 상자를 가져왔습니다."
   ],
   "小麦刚做好发型，要去见老灯，可不想被颠乱了。": [
     "Xiaomai has a fresh hairstyle and is going to meet Lao Deng. Drive gently so it stays neat.",
@@ -2403,8 +2407,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "다리가 샤오메이에게 다육식물을 나눠 줍니다. 화분은 도자기입니다."
   ],
   "大力要去小哈瓦那找小强办点手续，可自己的车送去保养了。": [
-    "Dali must see Xiaoqiang in Little Havana to complete some paperwork, but the kart is being serviced.",
-    "다리는 서류 처리를 위해 리틀 하바나의 샤오창를 만나야 하지만 카트가 정비 중입니다."
+    "Dali must see Mos in Little Havana to complete some paperwork, but the kart is being serviced.",
+    "다리는 서류 처리를 위해 리틀 하바나의 모스를 만나야 하지만 카트가 정비 중입니다."
   ],
   "大力发起了修路请愿，签名收齐后要交给金金。": [
     "Dali started a petition to repair the roads. Collect the signatures and deliver them to Jinjin.",
@@ -2543,8 +2547,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "아랑가 아침 달걀 부침을 만들려고 궈궈에게 신선한 달걀 한 판을 샀습니다. 충돌하면 깨집니다."
   ],
   "吉米要的冰鲜海鱼刚到货，冰块化完之前必须送到。": [
-    "Jimmy's chilled sea fish has arrived. Deliver it before the ice melts.",
-    "지미가 주문한 냉장 생선이 도착했습니다. 얼음이 녹기 전에 배달하세요."
+    "Mobi's chilled sea fish has arrived. Deliver it before the ice melts.",
+    "모비가 주문한 냉장 생선이 도착했습니다. 얼음이 녹기 전에 배달하세요."
   ],
   "果果想去小哈瓦那找阿宽买点东西。": [
     "Guoguo wants to visit Akuan in Little Havana to do some shopping.",
@@ -2683,8 +2687,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "샤샤가 더위를 식히려고 차가운 음료를 주문했습니다. 미지근해지기 전에 배달하세요."
   ],
   "吉米要做早餐蛋饼，在阿香这里买了一托新鲜鸡蛋。鸡蛋一撞就碎。": [
-    "Jimmy bought a tray of fresh eggs from Axiang for breakfast pancakes. A collision will break them.",
-    "지미가 아침 달걀 부침을 만들려고 아샹에게 신선한 달걀 한 판을 샀습니다. 충돌하면 깨집니다."
+    "Mobi bought a tray of fresh eggs from Axiang for breakfast pancakes. A collision will break them.",
+    "모비가 아침 달걀 부침을 만들려고 아샹에게 신선한 달걀 한 판을 샀습니다. 충돌하면 깨집니다."
   ],
   "小信的咖啡豆快用完了，阿香这里刚烘好一批。": [
     "Xiaoxin is running out of coffee beans. Axiang has just roasted a fresh batch.",
@@ -2759,8 +2763,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "다오가 요청한 공사 도면이 완성되었습니다."
   ],
   "蓝蓝在比赛中得了冠军，奖杯刚刻好名字。奖杯是水晶做的。": [
-    "Lanlan won a race. The name has just been engraved on the crystal trophy.",
-    "란란가 경주에서 우승했습니다. 크리스털 우승컵에 이름을 막 새겼습니다."
+    "Marid won a race. The name has just been engraved on the crystal trophy.",
+    "마리드가 경주에서 우승했습니다. 크리스털 우승컵에 이름을 막 새겼습니다."
   ],
   "阿虎约了大海做一次采访，时间快到了。": [
     "Ahu has arranged an interview with Dahai. The appointment is soon.",
@@ -2967,8 +2971,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "칭칭가 서핑을 배우려고 더우더우에게 서핑보드를 빌렸습니다."
   ],
   "小强那边有人擦伤了，急需一个急救包。": [
-    "Someone near Xiaoqiang has a scrape and urgently needs a first-aid kit.",
-    "샤오창 쪽에 찰과상을 입은 사람이 있어 구급상자가 급히 필요합니다."
+    "Someone near Mos has a scrape and urgently needs a first-aid kit.",
+    "모스 쪽에 찰과상을 입은 사람이 있어 구급상자가 급히 필요합니다."
   ],
   "豆豆要去市中心找阿快办点手续，可自己的车送去保养了。": [
     "Doudou must see Akuai in Downtown to complete some paperwork, but the kart is being serviced.",
@@ -3099,8 +3103,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "샤오반가 20년 동안 쓰던 행운의 렌치를 리틀 하바나 서부에서 잃어버렸습니다."
   ],
   "吉米那边要修东西，想借老铁的一箱维修工具。": [
-    "Jimmy needs to make repairs and wants to borrow a box of tools from Lao Tie.",
-    "지미가 수리를 위해 라오톄에게 공구 한 상자를 빌리고 싶어 합니다."
+    "Mobi needs to make repairs and wants to borrow a box of tools from Lao Tie.",
+    "모비가 수리를 위해 라오톄에게 공구 한 상자를 빌리고 싶어 합니다."
   ],
   "小新订的精密发动机零件到了，磕碰了就不能用。": [
     "Xiaoxin's precision engine parts have arrived. Collisions would render them unusable.",
@@ -3127,8 +3131,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "로저의 카트 타이어가 터졌습니다. 다시 달리려면 새 타이어가 필요합니다."
   ],
   "小强把自己锁在门外了，备用钥匙放在大刘这里。": [
-    "Xiaoqiang is locked out. The spare keys are with Da Liu.",
-    "샤오창가 열쇠 없이 문을 잠가 버렸습니다. 예비 열쇠는 다류에게 있습니다."
+    "Mos is locked out. The spare keys are with Da Liu.",
+    "모스가 열쇠 없이 문을 잠가 버렸습니다. 예비 열쇠는 다류에게 있습니다."
   ],
   "小信那边要修东西，想借大刘的一箱维修工具。": [
     "Xiaoxin needs to make repairs and wants to borrow a box of tools from Da Liu.",
@@ -3223,8 +3227,8 @@ export const cityContentNames: Readonly<Record<string, readonly [string, string]
     "샤오젠에게 의약품 한 상자가 급히 필요합니다."
   ],
   "蓝蓝的检查报告出来了，里面还有易碎的玻璃片样本，路上要稳。": [
-    "Lanlan's test reports are ready. The package includes fragile glass slides, so drive steadily.",
-    "란란의 검사 결과가 나왔습니다. 깨지기 쉬운 유리 표본도 있으니 안정적으로 운전하세요."
+    "Marid's test reports are ready. The package includes fragile glass slides, so drive steadily.",
+    "마리드의 검사 결과가 나왔습니다. 깨지기 쉬운 유리 표본도 있으니 안정적으로 운전하세요."
   ],
   "小雪今晚要替胖墩值班，交接时间快到了。": [
     "Xiaoxue is covering Kephi's shift tonight. The handover time is approaching.",

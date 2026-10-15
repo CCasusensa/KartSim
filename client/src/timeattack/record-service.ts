@@ -1,4 +1,5 @@
 /** Publication of a completed solo race and its optional Ghost recording. */
+import { canonicalKartName } from "../i18n/item-names";
 
 export interface RecordSelection {
   trackId?: string;
@@ -107,10 +108,11 @@ export function restoreRaceRecords(service: RecordService): unknown {
 export async function promoteRaceRecord(service: RecordService, elapsedMs: number,
   counts: RaceResultCounts, dependencies: RecordServiceDependencies): Promise<void> {
   const selection = service.host.getSelection();
-  const kartName = service.host.getVehicleTitle();
-  if (!selection || !kartName) {
+  const displayedKartName = service.host.getVehicleTitle();
+  if (!selection || !displayedKartName) {
     throw new Error("TimeAttack record promotion 缺少当前资源身份。 ");
   }
+  const kartName = canonicalKartName(selection.vehicleItemId ?? 0, selection.vehicleSystemKey, displayedKartName);
 
   const key = dependencies.recordKey(selection, service.host.getReadyOptions());
   const replay = service.captureReplay(elapsedMs, counts, kartName);

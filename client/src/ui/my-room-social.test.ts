@@ -109,7 +109,7 @@ test("dictionary sub tabs filter by kart type, engine grade and name", () => {
     { collected: 1, total: 2, percent: 50 });
   // Items the catalog does not name keep their id; a missing category is empty.
   const pets = dictionaryEntries(summary, DICTIONARY_GROUPS[1]!.subs[1]!, items);
-  assert.deepEqual(pets.map(entry => [entry.name, entry.collected]), [["5", false], ["4", true]]);
+  assert.deepEqual(pets.map(entry => [entry.name, entry.collected]), [["青蛙王子", false], ["4", true]]);
   assert.deepEqual(dictionaryEntries(summary, DICTIONARY_GROUPS[3]!.subs[0]!, items), []);
   assert.deepEqual(dictionaryProgress([]), { collected: 0, total: 0, percent: 0 });
   assert.equal(dictionaryProgress([{ category: 1, itemId: 1, collected: true, name: "", internalId: "" },

@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { tr, gameLocale } from "../i18n/locale";
 /**
  * The mall's 累计消费活动 (server-go/ECONOMY.md 3.4 and 6): GET
@@ -342,8 +343,8 @@ export class SpendEventPanel {
     button.tabIndex = -1;
     const label = spendRewardLabel(step.reward);
     const status = reached ? tr("已达成") : active ? tr("未达成") : tr("活动结束");
-    button.setAttribute("aria-label", `${step.value} ${step.reward.name} ${label} ${status}`);
-    button.title = tr("{0}（{1}）\n累计消费 {2} 个电池{3}", { "0": step.reward.name, "1": label, "2": step.value, "3": reached ? tr("，已达成") : "" });
+    button.setAttribute("aria-label", `${step.value} ${itemDisplayName(step.reward.category, step.reward.itemId, step.reward.name)} ${label} ${status}`);
+    button.title = tr("{0}（{1}）\n累计消费 {2} 个电池{3}", { "0": itemDisplayName(step.reward.category, step.reward.itemId, step.reward.name), "1": label, "2": step.value, "3": reached ? tr("，已达成") : "" });
     const item = slot.named("rewardStockItem");
     item.hidden = false;
     item.classList.add("ks-shop-spend-item");

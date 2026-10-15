@@ -1,3 +1,4 @@
+import { trackDisplayTitle } from "../resources/track-names";
 import { beginRaceLoad } from "../resources/resource-manager";
 import { c5, y9 } from "../generated/formats.js";
 import { he, Q9, S9, vI } from "../generated/library.js";
@@ -394,7 +395,7 @@ async function buildLoadedSoloRace(
         trackInfoCard = await ops.loadTrackInfoCard({
           library: host.getLibrary(), root: host.root,
           trackId: selection.trackId, trackDirectory,
-          trackTitle: map.metadata.cnTitle ?? "",
+          trackTitle: trackDisplayTitle(selection.trackId, map.metadata.cnTitle ?? ""),
           difficulty: map.metadata.difficulty,
           game: { modeKey: "TimeAttack",
             modeSuffixKey: teamBooster ? "teamGame" : "indiGame", speed },

@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { tr } from "../i18n/locale";
 /**
  * The 排位计时赛 window (TIMEATTACK.md), the release stage_rankingTimeAttackReady
@@ -221,7 +222,7 @@ export class RankingReadyWindow {
     const entryRow = this.ranking?.rows[index - 1];
     if (!entryRow) return { text: "" };
     const text = column === "순위" ? String(entryRow.rank) : column === "이름" ? entryRow.nickname
-      : column === "카트" ? entryRow.kartName : formatRecordTime(entryRow.bestMs);
+      : column === "카트" ? translateItemName(entryRow.kartName) : formatRecordTime(entryRow.bestMs);
     return { text, ...(entryRow.self ? { textColor: "255 255 226 72" } : {}) };
   }
 

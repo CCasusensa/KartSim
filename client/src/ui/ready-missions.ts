@@ -1,3 +1,4 @@
+import { translateItemName } from "../i18n/item-names";
 import { tr } from "../i18n/locale";
 /**
  * The 赛道对决 / 练习目标 tabs of the single-player 计时赛 window
@@ -561,7 +562,7 @@ function drawRewardPicture(view: MissionReadyView, node: Node, rect: Rect, deps:
   }
   // Currency and RP amounts, and item names, are written under the picture.
   const caption = reward.type === "lucci" ? tr("{amount}金币", { amount: reward.value }) : reward.type === "rp" ? `RP ${reward.value}`
-    : rect.width >= 80 ? reward.name : "";
+    : rect.width >= 80 ? translateItemName(reward.name) : "";
   if (caption) {
     deps.paintText(view.context, caption, { x: rect.x - 20, y: rect.y + rect.height - 16, width: rect.width + 40,
       height: 16 }, { render: "outline14", align: "center", color: "rgba(255,255,255,1)",

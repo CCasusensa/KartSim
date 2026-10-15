@@ -1,4 +1,6 @@
 import { gameLocale, tr } from "../i18n/locale";
+import { translateItemName } from "../i18n/item-names";
+import { storyPrizeText } from "../story/story-prize-text";
 import { T, V0, p2 } from "../generated/formats.js";
 import { C8, F9, U1, _w, h2, te } from "../generated/library.js";
 import { showLobbyMessageBox } from "../multiplayer/lobby-dialog-views";
@@ -282,6 +284,28 @@ export function paintStoryLabel(context: CanvasRenderingContext2D, node: StoryNo
     y += lineHeight;
   }
   context.restore();
+}
+
+/** Use the message label's real font and box to preserve every line in long dialogue. */
+export function storyDialogueSegments(context: Pick<CanvasRenderingContext2D, "font" | "measureText" |
+  "save" | "restore">, node: StoryNode, text: string, rect: Pick<Rect, "width" | "height">): string[] {
+  const render = (T(node, "textRender") as string | undefined) ?? "";
+  const size = Number(/\d+/.exec(render)?.[0] ?? 16);
+  const stroke = /^outline/.test(render) ? 1 : 0;
+  const gap = Number(T(node, "lineGap") ?? 0) || 0;
+  const lineHeight = Math.trunc(1.448 * size) + stroke * 2 + gap;
+  const lineCount = Math.max(1, Math.floor((rect.height + gap) / lineHeight));
+  context.save();
+  context.font = `${size}px "${WINDOW_FONT}"`;
+  const lines = wrapStoryText({ measureText: (line: string) => ({
+    width: Array.from(line).reduce((sum, character) =>
+      sum + context.measureText(character).width + stroke * 2, 0),
+  }) } as never, text, rect.width);
+  context.restore();
+  const segments: string[] = [];
+  for (let line = 0; line < lines.length; line += lineCount)
+    segments.push(lines.slice(line, line + lineCount).join("\n"));
+  return segments.length ? segments : [""];
 }
 
 function storyMenuLabelState(node: StoryNode, text: string): Record<string, unknown> {
@@ -781,7 +805,7 @@ export async function openStoryReady(options: StoryReadyOptions): Promise<Window
             context.drawImage(options.trackCard!.themeIcon!.image, rect.x, rect.y,
               rect.width, rect.height) } : { visible: false };
         case "lblPrize": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintStoryLabel(context, node, step.prize ?? "", rect) };
+          paintStoryLabel(context, node, storyPrizeText(step.prize ?? "", translateItemName), rect, true) };
         case "clearStep": return { visible: options.cleared };
         case "itemPanel":
         case "emblem": return { visible: false };
@@ -864,6 +888,18 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
     }));
   };
   let index = 0;
+  let segment = 0;
+  let messageLayout: { context: CanvasRenderingContext2D; node: StoryNode; rect: Rect } | undefined;
+  let messageSegments: { index: number; parts: string[] } | undefined;
+  const parts = (): string[] => {
+    if (!messageLayout) return [pages[index]?.text ?? ""];
+    if (messageSegments?.index !== index) {
+      const { context, node, rect } = messageLayout;
+      messageSegments = { index, parts: storyDialogueSegments(context, node, pages[index]?.text ?? "", rect) };
+    }
+    return messageSegments.parts;
+  };
+  const lastSegment = (): boolean => segment >= parts().length - 1;
   let view: WindowView | undefined;
   let finished = false;
   const finish = (completed = false): void => {
@@ -873,11 +909,19 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
   };
   const advance = (): void => {
     options.onActivate?.();
+    // Rendering records the real message rectangle before a keyboard click can advance it.
+    if (!messageLayout) view?.render();
+    if (!lastSegment()) {
+      segment++;
+      view?.render();
+      return;
+    }
     if (index >= pages.length - 1) {
       finish(true);
       return;
     }
     index++;
+    segment = 0;
     void prepare(index).then(() => { if (view && !view.disposed) view.render(); });
     void prepare(index + 1);
     if (view && !view.disposed) view.render();
@@ -922,11 +966,18 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
               context.restore();
             }
           } };
-        case "msgName": return { text: page?.speaker ?? "" };
-        case "msg": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) =>
-          paintStoryLabel(context, node, page?.text ?? "", rect) };
+        case "msgName": return storyMenuLabelState(node, page?.speaker ?? "");
+        case "msg": return { text: "", paint: (context: CanvasRenderingContext2D, rect: Rect) => {
+          if (!messageLayout || messageLayout.rect.width !== rect.width || messageLayout.rect.height !== rect.height)
+            messageSegments = undefined;
+          messageLayout = { context, node, rect };
+          const text = parts();
+          segment = Math.min(segment, text.length - 1);
+          paintStoryLabel(context, node, text[segment] ?? "", rect);
+        } };
         // The release 확인버튼 (确认), drawn with its own four states.
-        case "next": return { label: index >= pages.length - 1 ? options.lastLabel ?? tr("开始比赛") : tr("下一句"),
+        case "next": return { label: index >= pages.length - 1 && lastSegment()
+          ? options.lastLabel ?? tr("开始比赛") : tr("下一句"),
           action: advance };
         case "script": return { visible: false };
         case "goBackButton": return { label: options.skipLabel ?? tr("跳过剧情"), action: () => {
@@ -935,5 +986,7 @@ export async function openStoryScene(options: StorySceneOptions): Promise<Window
       return {};
     },
   });
+  // The first render measures the native message box; refresh the final-button label after pagination.
+  view.render();
   return view;
 }

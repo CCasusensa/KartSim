@@ -1,5 +1,6 @@
 import { tr } from "../i18n/locale";
 import { cityContentName } from "../i18n/catalogs/city-content-names";
+import { cityDialogueText } from "./city-dialogue";
 /**
  * 卡丁城任务的数据（server-go/CITY-QUESTS.md）：city-quests.json，与节点内嵌的
  * 是同一份（client/tools/city/quests/build-city-quests.mjs 生成）。这里是界面
@@ -258,7 +259,8 @@ export function offerPages(quest: QuestDef, options: { withStory: boolean; playe
   const pages: StoryScenePage[] = [];
   const page = (who: "npc" | "me", text: string): void => {
     const characters = who === "me" && meChar ? [npcChar, meChar] : [npcChar];
-    pages.push({ background: npc.background, characters, speaker: who === "me" ? options.playerName : name, text });
+    pages.push({ background: npc.background, characters, speaker: who === "me" ? options.playerName : name,
+      text: cityDialogueText(text) });
   };
   if (options.withStory) page("npc", npc.story);
   for (const line of quest.offer) page(line.who, line.text);
@@ -269,7 +271,7 @@ export function offerPages(quest: QuestDef, options: { withStory: boolean; playe
 export function thanksPages(quest: QuestDef): StoryScenePage[] {
   const npc = QUEST_NPCS[quest.type === "passenger" ? quest.giver : quest.receiver]!;
   return [{ background: npc.background, characters: [{ id: npc.sprite, x: 7.5, flip: false, emotion: "normal" }],
-    speaker: shortName(npc), text: quest.thanks }];
+    speaker: shortName(npc), text: cityDialogueText(quest.thanks) }];
 }
 
 /** What the quest has done so far (CityQuestProgress). */

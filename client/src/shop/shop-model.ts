@@ -1,3 +1,4 @@
+import { itemDisplayName } from "../i18n/item-names";
 import { tr, gameLocale } from "../i18n/locale";
 /**
  * Pure shop logic: tabs and sub-tabs, search, sorting, paging, ownership,
@@ -264,12 +265,14 @@ export class ShopIndex {
   constructor(readonly catalog: ShopCatalog) {
     this.mall = catalog.shopTabs.length > 0;
     this.tabs = this.mall ? mallTabEntries(catalog.shopTabs) : shopTabEntries(catalog);
-    this.entries = catalog.items.map((item, order) => {
+    this.entries = catalog.items.map((source, order) => {
+      // The index owns a display copy; purchases and resource lookup keep the original IDs.
+      const item = { ...source, name: itemDisplayName(source.category, source.itemId, source.name) };
       const cheapest = cheapestOffers(item.offers);
       const primaryCurrency = item.offers[0]!.currency;
       const entry: ShopEntry = {
         item, key: itemKey(item.category, item.itemId), order,
-        search: `${item.name}\n${item.internalId}`.toLowerCase(),
+        search: `${item.name}\n${source.name}\n${item.internalId}`.toLowerCase(),
         named: item.name !== `${item.internalId} (${item.itemId})`,
         original: item.offers.some(offer => offer.source === "original"),
         primaryCurrency, cheapest,

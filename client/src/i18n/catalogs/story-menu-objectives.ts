@@ -45,8 +45,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "추격 성공: %d / %d"
   ],
   "请在和小强的对决中获胜": [
-    "Defeat Xiaoqiang.",
-    "샤오창과의 대결에서 승리하세요."
+    "Defeat Mos.",
+    "모스와의 대결에서 승리하세요."
   ],
   "在和其他车手的比赛中，不掉队并完成赛道": [
     "Keep up with the other racers and finish without being eliminated.",
@@ -61,8 +61,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "체크포인트: %d / %d"
   ],
   "请在和蓝蓝的对决中获胜": [
-    "Defeat Lanlan.",
-    "란란과의 대결에서 승리하세요."
+    "Defeat Marid.",
+    "마리드와의 대결에서 승리하세요."
   ],
   "请在和葱头的对决中获胜": [
     "Defeat Ethen.",
@@ -513,8 +513,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "키홀과의 아이템전에서 승리하세요."
   ],
   "在指定时间内追赶皮蛋，黑妞，小强。": [
-    "Catch Dao and Dizni and Xiaoqiang within the time limit.",
-    "제한 시간 안에 다오, 디지니, 샤오창을 따라잡으세요."
+    "Catch Dao and Dizni and Mos within the time limit.",
+    "제한 시간 안에 다오, 디지니, 모스를 따라잡으세요."
   ],
   "与NPC的道具赛对决中获得胜利。": [
     "Defeat the NPCs in an Item Race.",
@@ -629,8 +629,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "제한 시간 안에 블랙잭을 따라잡으세요.\n30 m 뒤처지면 실패합니다."
   ],
   "与吉米的对战中获得胜利。": [
-    "Defeat Jimmy.",
-    "지미와의 대결에서 승리하세요."
+    "Defeat Mobi.",
+    "모비와의 대결에서 승리하세요."
   ],
   "与黑妞，宝宝，阿比斯军团的对战中获得胜利。": [
     "Defeat Dizni and Bazzi and the Abyss army.",
@@ -989,8 +989,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "추격 성공: %d / %d"
   ],
   "请在与小强的对决上胜利。": [
-    "Defeat Xiaoqiang.",
-    "샤오창과의 대결에서 승리하세요."
+    "Defeat Mos.",
+    "모스와의 대결에서 승리하세요."
   ],
   "%d回/目标%d回": [
     "Progress: %d / %d",
@@ -1609,8 +1609,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "탈출 성공: %d / 1"
   ],
   "与小强的对战中获胜！": [
-    "Defeat Xiaoqiang.",
-    "샤오창과의 대결에서 승리하세요."
+    "Defeat Mos.",
+    "모스와의 대결에서 승리하세요."
   ],
   "对战 %d回/ %d回": [
     "Races: %d / %d",
@@ -2009,8 +2009,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "코스 완주: %d / %d"
   ],
   "在规定时间内打败嘟嘟": [
-    "Defeat Dudu within the time limit.",
-    "제한 시간 안에 두두를 이기세요."
+    "Defeat Tutu within the time limit.",
+    "제한 시간 안에 투투를 이기세요."
   ],
   "在道具赛中战胜海盗战队": [
     "Defeat the pirate team in an Item Race.",
@@ -2077,16 +2077,16 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "멀티플레이 레이스를 5회 완주하세요."
   ],
   "请在跟嘟嘟的比赛中胜利。": [
-    "Defeat Dudu.",
-    "두두와의 대결에서 승리하세요."
+    "Defeat Tutu.",
+    "투투와의 대결에서 승리하세요."
   ],
   "请在规定时间内赶上海盗水手。\n落后30米以上视为失败。": [
     "Catch the pirate sailor within the time limit.\nFail if you fall 30 m behind.",
     "제한 시간 안에 해적 선원을 따라잡으세요.\n30 m 뒤처지면 실패합니다."
   ],
   "请在规定时间内赶上吉米和海盗水手。": [
-    "Catch Jimmy and the pirate sailor within the time limit.",
-    "제한 시간 안에 지미, 해적 선원을 따라잡으세요."
+    "Catch Mobi and the pirate sailor within the time limit.",
+    "제한 시간 안에 모비, 해적 선원을 따라잡으세요."
   ],
   "追赶成功 %d回/ %d回": [
     "Chases completed: %d / %d",
@@ -2101,8 +2101,8 @@ export const storyMenuObjectives: Readonly<Record<string, readonly [string, stri
     "진행: %d / %d"
   ],
   "请在规定时间内甩掉嘟嘟。\n*距离0米时失败。": [
-    "Escape from Dudu within the time limit.\nFail if the gap reaches 0 m.",
-    "두두에게서 제한 시간 안에 도망치세요.\n거리가 0 m가 되면 실패합니다."
+    "Escape from Tutu within the time limit.\nFail if the gap reaches 0 m.",
+    "투투에게서 제한 시간 안에 도망치세요.\n거리가 0 m가 되면 실패합니다."
   ],
   "在规定时间内并少于撞击次数的情况下完成比赛": [
     "Finish within the time and collision limits.",

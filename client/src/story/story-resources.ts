@@ -1,5 +1,6 @@
 import { s2 } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
+import { loadStoryDialogueCatalog, localizeStoryScene } from "./story-dialogue-text";
 import { readStoryChapters, readStoryEmotions, readStoryMission, readStoryScene,
   readStorySteps, type StoryChapter, type StoryMission, type StoryMissionKind,
   type StoryNode, type StorySceneCommand, type StoryStep } from "./story-data";
@@ -71,7 +72,13 @@ export class StoryResources {
   }
 
   async loadScene(chapter: string, scene: string): Promise<StorySceneCommand[]> {
-    return readStoryScene(await bml(this.library, [`${chapterRoot(chapter)}/scene`], scene));
+    const [source, catalog] = await Promise.all([
+      bml(this.library, [`${chapterRoot(chapter)}/scene`], scene),
+      // A missing translation chunk must not discard a valid story scene.
+      // The loader drops failures from its cache, so opening again retries it.
+      loadStoryDialogueCatalog(chapter).catch(() => ({})),
+    ]);
+    return localizeStoryScene(readStoryScene(source), catalog);
   }
 
   loadEmotions(): Promise<Map<string, Map<string, string[]>>> {
