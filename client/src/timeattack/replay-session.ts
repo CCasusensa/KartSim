@@ -2,14 +2,15 @@
  * OB 观看 (TIMEATTACK.md 4): plays a .ksv as a solo race whose only participant
  * is the watched ghost. The local kart is hidden and its input off
  * (stage-update / action-dispatch read session.observe), the camera follows
- * the ghost (shell-routing) and the replay console steers the clock.
+ * the ghost (race-camera-coordinator), the race HUD keeps only the minimap
+ * (race-hud) and the release replay stage (ui/replay-console) steers the clock.
  */
 import { ReplayConsole } from "../ui/replay-console";
 import type { StoryMission } from "../story/story-data";
 import type { ReadyOptions, ReadySelection } from "./ready-flow";
 import type { ReadyHomeController } from "./ready-home";
 import { storyGhostSources } from "./ready-story";
-import { ReplayClock, type ObserveState } from "./replay-observe";
+import { createObserveState } from "./replay-observe";
 import { tellPlayer } from "../ui/game-popups";
 
 export interface ReplaySessionRequest {
@@ -41,8 +42,8 @@ export async function startReplaySession(controller: ReadyHomeController, reques
   if (!source) throw new Error("录像里没有车手。");
   source.equipment.playerName = request.riderName;
   const durationMs = Math.max(decoded.timeMs, request.recordMs, stampsDuration(source.record));
-  const observe: ObserveState = { riderName: request.riderName, kartName: request.kartName, recordMs: request.recordMs,
-    clock: new ReplayClock(durationMs), camera: "A", hudVisible: true, naturalMs: 0 };
+  const observe = createObserveState([{ name: request.riderName, kartName: request.kartName, record: source.record }],
+    request.recordMs, durationMs);
   const restore = (): void => {
     observe.console?.dispose();
     observe.console = undefined;

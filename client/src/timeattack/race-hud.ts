@@ -1,5 +1,6 @@
 import { licenseItemsOf } from "../license/license-item-race";
 import { itemSlotInput } from "../ui/multiplayer-race-hud";
+import { observeOf, type ObserveState } from "./replay-observe";
 
 interface ParticipantProgress {
   id: string;
@@ -123,6 +124,11 @@ export function renderGameplayUi(
   const { host } = stage;
   const gameplayUi = stage.interface?.gameplayUi;
   if (!gameplayUi) return;
+  const observe = observeOf(host.session);
+  if (observe) {
+    renderObservedMinimap(stage, observe, nowMs, ghostPoses, dependencies);
+    return;
+  }
   const lapTarget = host.getTrack().data.lapTarget;
   if (lapTarget === undefined) {
     throw new Error("TimeAttack gameplay UI 缺少 lapTarget。 ");
@@ -157,4 +163,28 @@ export function renderGameplayUi(
     gameplayUi.render(host.renderer, dependencies.worldAxis, dependencies.depthAxis);
     items?.hud?.renderOver(host.renderer, width, height);
   }
+}
+
+interface ObservedMinimap {
+  setLocalMarkerTint(tint: unknown): void;
+  update(timeMs: number, body: unknown, ghosts: unknown): void;
+  render(renderer: unknown, width: number, height: number): void;
+}
+
+/**
+ * OB 观看: the release replay stage has no lap, time, slot or rank board of
+ * its own kart (ui/replay-console draws its screen UI); the minimap stays,
+ * centred on the watched rider in the local marker's place, while 比赛资料 is on.
+ */
+function renderObservedMinimap(stage: RaceHudStage, observe: ObserveState, nowMs: number, ghostPoses: unknown,
+  dependencies: Omit<RaceHudDependencies, "rankParticipants">): void {
+  const { host } = stage;
+  const minimap = (stage.interface?.gameplayUi as { minimap?: ObservedMinimap } | undefined)?.minimap;
+  const poses = Array.isArray(ghostPoses) ? ghostPoses as Array<{ markerTint?: unknown }> : [];
+  const watched = poses[observe.watched];
+  if (!minimap || !watched || !observe.hudVisible || dependencies.isRaceFinished(host.session.lifecycle) ||
+      host.session.warpHud?.hidden) return;
+  minimap.setLocalMarkerTint(watched.markerTint);
+  minimap.update(Math.trunc(nowMs) >>> 0, watched, poses.filter((_, index) => index !== observe.watched));
+  minimap.render(host.renderer, Number(dependencies.worldAxis), Number(dependencies.depthAxis));
 }

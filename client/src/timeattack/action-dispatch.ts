@@ -120,7 +120,8 @@ export function dispatchTimeAttackActions(
         host.driveCameraman.reset();
         break;
       case "release-race":
-        host.input.setEnabled(true);
+        // OB 观看: the hidden local kart never drives (the arrows steer the replay camera).
+        host.input.setEnabled(!observeOf(host.session));
         host.getPhysics().setRaceMotionLocked(false);
         break;
     }

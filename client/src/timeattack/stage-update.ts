@@ -3,7 +3,7 @@ import { updateLicenseMission, type LicenseMissionStage } from "../license/licen
 import { updateLicenseTimer, type LicenseTimerStage } from "../license/license-race";
 import { licenseItemsOf } from "../license/license-item-race";
 import { hazardTrapsOf, presentRaceHazardTraps, trapDrawnState } from "./race-hazard-traps";
-import { observeOf } from "./replay-observe";
+import { observeOf, updateObserveRanking, type ObservePose, type ObserveState } from "./replay-observe";
 import { vehicleRoadDust } from "../vehicle/road-dust-effect";
 import { sampleWrongWay, wrongWayOf } from "../ui/wrong-way-warning";
 import { autopilotOf } from "../ui/autopilot-prank";
@@ -143,8 +143,8 @@ export function updateTimeAttackStage(
     if (observe) {
       observe.naturalMs = ghostTimeMs;
       ghostTimeMs = observe.clock.advance(ghostTimeMs);
-      observe.console?.update();
     }
+    const speeds: number[] = [];
     const ghosts = host.session.ghosts;
     if (stage.ghostPoseBuffer.length !== ghosts.length) {
       stage.ghostPoseBuffer = ghosts.map(() => dependencies.newGhostPoseBuffer());
@@ -156,6 +156,7 @@ export function updateTimeAttackStage(
       // before stamp 0, which is a sentinel at the world origin.
       const timeMs = Math.max(0, ghostTimeMs + (ghost.timeOffsetMs ?? 0));
       const sample = ghost.playback.sample(timeMs);
+      speeds[index] = typeof sample.speedKmh === "number" ? sample.speedKmh : 0;
       mark?.("kt-ghost-sample");
       ghost.view.update(sample, effectiveNowMs, host.camera,
         dependencies.worldAxis, dependencies.depthAxis, mark);
@@ -167,6 +168,7 @@ export function updateTimeAttackStage(
       pose.markerTint = host.session.rankColors[index + 1];
     }
     ghostPoses = poseBuffer;
+    if (observe) observeFrame(observe, stage, poseBuffer, speeds, host.session.rankColors);
   }
   // Story Tracing / Escape: the gap panel and the per-frame verdict.
   updateStoryChase(stage as unknown as ChaseStage, rawNowMs);
@@ -353,4 +355,50 @@ export function updateTimeAttackStage(
   host.workProfiler?.mark("weather", dependencies.nowMs());
   host.updateHud();
   host.workProfiler?.mark("hud", dependencies.nowMs());
+}
+
+/**
+ * OB 观看, once a frame after the ghosts moved: their ranking by route
+ * progress, the watched one's pose and speed for the camera and the replay
+ * stage, then the stage itself.
+ */
+function observeFrame(observe: ObserveState, stage: TimeAttackUpdateStage, poses: ObservePose[],
+  speeds: number[], colors: unknown[] | undefined): void {
+  const ghosts = stage.host.session.ghosts;
+  const progress = ghosts.map((ghost: unknown) => stage.ghostRouteProgress.distance(ghost));
+  updateObserveRanking(observe, ghosts.map((_: unknown, index: number) => index)
+    .sort((a: number, b: number) => (progress[b] ?? 0) - (progress[a] ?? 0) || a - b));
+  observe.colors = (colors ?? []).slice(1);
+  const pose = poses[observe.watched];
+  if (pose) {
+    const copy = (vector: { x: number; y: number; z: number }) => ({ x: vector.x, y: vector.y, z: vector.z });
+    observe.pose = { position: copy(pose.position), right: copy(pose.right), forward: copy(pose.forward),
+      up: copy(pose.up) };
+    observeMotion(observe, pose.position, speeds[observe.watched]);
+  }
+  observe.console?.update();
+}
+
+/**
+ * The watched rider's velocity (chase camera) and speed (the replay stage's
+ * tachometer) over replay time: frozen while paused, started over after a
+ * seek or a change of rider. A smoothed playback's own speed wins.
+ */
+function observeMotion(observe: ObserveState, position: { x: number; y: number; z: number },
+  sampledKmh: number | undefined): void {
+  const time = observe.clock.current;
+  const previous = observe.previous?.rider === observe.watched ? observe.previous : undefined;
+  const elapsed = previous ? time - previous.atMs : 0;
+  if (previous && elapsed === 0) return;
+  if (previous && elapsed > 0 && elapsed <= 500) {
+    const seconds = elapsed / 1000;
+    observe.velocity = { x: (position.x - previous.x) / seconds, y: (position.y - previous.y) / seconds,
+      z: (position.z - previous.z) / seconds };
+    const kmh = sampledKmh || Math.hypot(observe.velocity.x, observe.velocity.y, observe.velocity.z) * 3.6;
+    observe.speedKmh += (kmh - observe.speedKmh) * Math.min(1, elapsed / 200);
+  } else {
+    observe.velocity = { x: 0, y: 0, z: 0 };
+    if (previous) observe.speedKmh = sampledKmh ?? 0;
+  }
+  observe.previous = { ...position, atMs: time, rider: observe.watched };
 }

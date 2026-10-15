@@ -1,3 +1,5 @@
+import { observeOf } from "./replay-observe";
+
 interface Renderer {
   getDrawingBufferSize(target: unknown): void;
   render(scene: unknown, camera: unknown): void;
@@ -101,7 +103,8 @@ export function renderTimeAttackStage(
       const preserveRequest = host.getPhysics().consumeTimeAttackTachometerGaugePreserve();
       const normalizedNowMs = Math.trunc(rawNowMs) >>> 0;
       const preserve = host.tachometerGaugePreserve.update(effectiveNowMs, preserveRequest);
-      if (host.session.tachometer) {
+      // OB 观看: the replay stage shows the watched rider's speed itself (ui/replay-console).
+      if (host.session.tachometer && !observeOf(host.session)) {
         const booster = host.getPhysics().consumeTimeAttackTachometerNormalBooster();
         dependencies.updateTachometer(
           host.session.tachometer,
