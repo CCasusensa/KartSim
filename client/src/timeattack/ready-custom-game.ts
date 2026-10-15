@@ -1,5 +1,5 @@
 /**
- * 单人游戏 · 自定义游戏：打开地图列表窗口（ui/custom-game-window.ts）；
+ * 单人游戏 · 地图工坊：打开地图列表窗口（ui/custom-game-window.ts）；
  * 选一张地图“开始计时赛”时，把 Ready 的赛道换成它，再翻到计时赛页面
  * （与“练习计时赛”相同），玩家点开始即可。
  */
@@ -25,6 +25,6 @@ export async function openReadyCustomGame(controller: ReadyHomeController): Prom
       },
     });
   } catch (error) {
-    console.error("自定义游戏窗口打开失败", error);
+    console.error("地图工坊窗口打开失败", error);
   }
 }

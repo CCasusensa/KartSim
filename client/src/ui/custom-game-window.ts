@@ -10,7 +10,7 @@ import { ImageCache, indexRows, node, nodeName, paintText, type BmlLibrary, type
 import { FRAME_TEXTURE, ROOTS, TEXT, button, drawGreyPanel, drawLabel, drawRow, loadWindow } from "./resource-window";
 
 /**
- * 单人游戏 · 自定义游戏：大家用地图工坊做的地图（server-go/MAPS.md）。
+ * 单人游戏 · 地图工坊：大家用地图工坊做的地图（server-go/MAPS.md）。
  * 左边是地图列表（全部地图 / 我的地图，我的地图含本机草稿），右边是选中
  * 地图的卡片与信息；开始计时赛、用地图工坊打开、下架，以及制作新地图。
  * 用发行版窗口渲染器画（与资源下载窗口同一套框体与行按钮）。
@@ -71,7 +71,7 @@ export function customGameDefinition(): Node {
   // 两栏顶边、底边对齐；最下面一行是状态文字和居中的“关闭”（与资源下载窗口相同）。
   return node("Panel", { windowRect: "fullscreen", color: "100 0 0 0", alphaBlend: "true" }, [
     node("CaptionWindow", { name: "customDialog", windowRect: "0 0 880 616", frame: "CaptionDialog",
-      caption: "自定义游戏", captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
+      caption: "地图工坊", captionPos: "0 1", align: "center", setCloseButton: "closeButton", textRender: "bold" }, [
       node("TextButton", { name: "tabAll", windowSize: "104 28", adjust: "0 6", textRender: "bold14" }),
       node("TextButton", { name: "tabMine", windowSize: "104 28", adjust: "108 6", textRender: "bold14" }),
       node("CaptionWindow", { name: "listCaption", windowSize: "330 438", adjust: "0 40", frame: "CaptionWindowGrey" }, [
@@ -106,7 +106,7 @@ export function customGameDefinition(): Node {
   ]);
 }
 
-/** The open 自定义游戏 window (one at a time). */
+/** The open 地图工坊 window (one at a time). */
 let openWindow: CustomGameWindow | undefined;
 
 export class CustomGameWindow {
@@ -151,7 +151,7 @@ export class CustomGameWindow {
 
   private async build(): Promise<void> {
     const rows = new WeakMap<Node, number>();
-    const view = await loadWindow(this.options.library, this.options.root, customGameDefinition(), "自定义游戏",
+    const view = await loadWindow(this.options.library, this.options.root, customGameDefinition(), "地图工坊",
       () => this.close(), entry => this.state(entry, rows), tree => indexRows(tree, "mapRow", rows));
     if (this.disposed) { view.dispose(); return; }
     this.view = view;
@@ -300,7 +300,7 @@ export class CustomGameWindow {
     }
     const current = this.current();
     switch (name) {
-      case "customDialog": return { text: "自定义游戏" };
+      case "customDialog": return { text: "地图工坊" };
       case "closeButton": return { label: "关闭", action: () => this.close() };
       case "okButton": return button("关闭", () => this.close());
       // 当前标签用橙色字（窗口渲染器没有“选中”状态）
@@ -314,7 +314,7 @@ export class CustomGameWindow {
       case "listNext": return { ...button("下一页", () => this.turn(1), this.page >= this.maxPage()), visible: list.length > ROWS };
       case "listPage": return list.length > ROWS ? paintText(`${this.page + 1} / ${this.maxPage() + 1}`, { size: 13,
         color: "black", align: "center", middle: true, bold: true }) : { visible: false };
-      case "detailTitle": return { text: current?.summary.name ?? (this.loading ? "读取中…" : "自定义游戏") };
+      case "detailTitle": return { text: current?.summary.name ?? (this.loading ? "读取中…" : "地图工坊") };
       case "detailBack": return { paint: (context: CanvasRenderingContext2D, rect: Rect) => {
         const frame = this.images.path(FRAME_TEXTURE);
         if (frame) drawGreyPanel(context, frame, rect);

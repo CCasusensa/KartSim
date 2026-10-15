@@ -9,8 +9,8 @@ import {
   WebGLRenderTarget, type Texture,
 } from "three";
 import {
-  DEFAULT_ROAD_SURFACE, DEFAULT_WALL, MAP_LIMITS, defaultGround, newDesign, type MapDesign, type PieceDesign, type RoadDesign,
-  type TextureRef, type Vec3,
+  DEFAULT_ROAD_SURFACE, DEFAULT_WALL, MAP_LIMITS, defaultGround, newDesign, rotatePiecesAboutCenter, type MapDesign, type PieceDesign,
+  type RoadDesign, type TextureRef, type Vec3,
 } from "../design";
 import {
   archRef, defaultArch, surfaceRef, textureLabel, textureRef, themeTitle, type CatalogArch, type CatalogSky, type CatalogTexture,
@@ -747,16 +747,11 @@ export class EditorApp {
 
   // ------------------------------------------------------------------ 简单模式的一键操作
 
-  /** 一组选中摆件绕各自位置转一转（度，正值逆时针）。 */
+  /** 选中摆件整体转一转（度，正值逆时针），多选时绕它们的中心转（rotatePiecesAboutCenter）。 */
   rotateSelection(degrees: number): void {
     const ids = new Set(this.state.selectedPieces().map(piece => piece.id));
     if (!ids.size) return;
-    this.state.commit(design => {
-      for (const piece of design.pieces) {
-        if (!ids.has(piece.id)) continue;
-        piece.rotation[0] = Math.round((((piece.rotation[0] + degrees) % 360 + 360) % 360) * 100) / 100;
-      }
-    });
+    this.state.commit(design => { rotatePiecesAboutCenter(design.pieces.filter(piece => ids.has(piece.id)), degrees); });
   }
 
   /** 放大缩小；factor 为 0 时恢复原始大小。 */

@@ -175,7 +175,7 @@
 
 - `MapRow`：`id, name, ownerId, username, author`（作者昵称）`, theme, laps, difficulty, roadExtent, items`（道具箱数，0 只能竞速）`, files`（赛道包里的文件数）`, size`（赛道包字节数）`, sha256, hidden, createdAt, updatedAt`。主题按地图工坊的 `THEME_TITLES` 显示中文名。
 - 图片：`<img>` 带不了会话令牌，页面 CSP 也不允许 `blob:`，所以前端用带令牌的 `fetch` 取 `GET /api/admin/maps/{id}/{thumb|card}?v=<sha256>`（隐藏的地图也返回），转成 `data:` URL 显示，并按路径缓存（`MapPicture.vue`）。
-- 隐藏/恢复：`POST /api/admin/maps/{id}/hidden {hidden}`。隐藏后地图从公开列表、自定义游戏、多人与道具房选图里消失，公开的文件接口 404（已经选了它的房间开赛时载入不了），作者的“我的地图”仍能看到。
+- 隐藏/恢复：`POST /api/admin/maps/{id}/hidden {hidden}`。隐藏后地图从公开列表、地图工坊、多人与道具房选图里消失，公开的文件接口 404（已经选了它的房间开赛时载入不了），作者的“我的地图”仍能看到。
 - 删除：`DELETE /api/admin/maps/{id}` → `{ok: true}`，连同赛道包、设计与图片永久删除；不存在 404 `MAP_NOT_FOUND`。
 - 隐藏、恢复、删除都写数据服务日志（`admin map hidden` / `admin map deleted`，带管理员用户名），并立即刷新道具房可选的地图表。
 

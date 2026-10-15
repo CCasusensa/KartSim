@@ -42,7 +42,7 @@ export interface MainMenuAssets {
   riderSchool?: RiderSchoolArt;
   /** 回放 tab art (replayCard): the card states and its 删除 button. */
   replay?: ReplayTabArt;
-  /** The monocoque TextButton frames (four states) for the 自定义游戏 button. */
+  /** The monocoque TextButton frames (four states) for the 地图工坊 button. */
   textButton?: { frames: WindowFrame[]; image: Texture };
 }
 
@@ -196,7 +196,7 @@ export interface MainMenuOptions {
   onReplayPickTrack?(): void;
   /** 其他回放: 切换速度 / 切换模式 on the settings card. */
   onReplaySetting?(kind: "speed" | "booster"): void;
-  /** 自定义游戏 (地图工坊 maps, server-go/MAPS.md): the button on the single-play title bar. */
+  /** 地图工坊 (maps riders made in the map editor, server-go/MAPS.md): the button on the single-play title bar. */
   onCustomGame?(): void;
   /** A favourite channel opens the multiplayer lobby on that channel. */
   onChannel(channel: string): void;
@@ -1224,7 +1224,7 @@ export class MainMenuView {
       verticalAlign: "center", stroke: 0, strokeColor: "black" });
   }
 
-  /** 自定义游戏 at the right end of the single-play title bar (a monocoque TextButton). */
+  /** 地图工坊 at the right end of the single-play title bar (a monocoque TextButton). */
   private drawCustomGameButton(): void {
     const art = this.assets.textButton;
     const rect = { x: 540, y: 131, width: 128, height: 32 };
@@ -1236,10 +1236,10 @@ export class MainMenuView {
       this.context.fillStyle = state ? "rgb(255,214,120)" : "rgb(240,244,250)";
       this.context.fillRect(rect.x, rect.y, rect.width, rect.height);
     }
-    m9(this.context, "自定义游戏", { x: rect.x, y: rect.y + (state === 2 ? 1 : 0), width: rect.width, height: rect.height }, {
+    m9(this.context, "地图工坊", { x: rect.x, y: rect.y + (state === 2 ? 1 : 0), width: rect.width, height: rect.height }, {
       family: FONT_FAMILY, size: 16, kind: "label", color: "rgb(42,55,80)", align: "center",
       verticalAlign: "center", stroke: 0, strokeColor: "black" });
-    this.regions.push({ key, rect, label: "自定义游戏",
+    this.regions.push({ key, rect, label: "地图工坊",
       activate: () => { this.options.onActivate?.(); this.options.onCustomGame?.(); } });
   }
 

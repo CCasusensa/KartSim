@@ -287,6 +287,27 @@ export function validateDesign(design: MapDesign): string[] {
   return issues;
 }
 
+/**
+ * 一组摆件整体绕竖直轴转 degrees 度（正值逆时针，原地修改）：绕所有摆件位置的平均点
+ * （与高级模式多选手柄的中心相同）转，彼此的相对位置不变；只有一个时就是原地转。
+ * 平均点转完不变，所以连按 24 次 15° 会回到原处。
+ */
+export function rotatePiecesAboutCenter(pieces: Pick<PieceDesign, "position" | "rotation">[], degrees: number): void {
+  if (!pieces.length) return;
+  const cx = pieces.reduce((sum, piece) => sum + piece.position[0], 0) / pieces.length;
+  const cy = pieces.reduce((sum, piece) => sum + piece.position[1], 0) / pieces.length;
+  const cos = Math.cos((degrees * Math.PI) / 180), sin = Math.sin((degrees * Math.PI) / 180);
+  const round = (value: number) => Math.round(value * 100) / 100 || 0; // 不留 -0
+  for (const piece of pieces) {
+    if (pieces.length > 1) {
+      const dx = piece.position[0] - cx, dy = piece.position[1] - cy;
+      piece.position[0] = round(cx + dx * cos - dy * sin);
+      piece.position[1] = round(cy + dx * sin + dy * cos);
+    }
+    piece.rotation[0] = round(((piece.rotation[0] + degrees) % 360 + 360) % 360);
+  }
+}
+
 /** 道具箱总数（道具赛需要至少一个）。 */
 export function itemBoxCount(design: Pick<MapDesign, "items">): number {
   return design.items.rows.reduce((sum, row) => sum + row.count, 0);

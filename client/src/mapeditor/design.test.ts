@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  customTrackId, draftTrackId, isCustomTrackId, isDraftTrackId, mapIdOfTrack, newDesign, parseDesign, validateDesign,
-  type MapDesign,
+  customTrackId, draftTrackId, isCustomTrackId, isDraftTrackId, mapIdOfTrack, newDesign, parseDesign, rotatePiecesAboutCenter,
+  validateDesign, type MapDesign,
 } from "./design";
 import { parseMapSummary } from "./map-service";
 
@@ -71,4 +71,23 @@ test("服务端地图摘要：坏 id、坏文件名和缺 track.1s 的摘要被�
   assert.throws(() => parseMapSummary({ ...good, id: "../x" }));
   assert.throws(() => parseMapSummary({ ...good, files: [{ path: "x.dds", size: 1 }] }));
   assert.equal(parseMapSummary({ ...good, files: [...good.files, { path: "../evil", size: 1 }] }).files.length, 2);
+});
+
+test("多选旋转：绕选中摆件的中心整体转，相对位置不变，转一整圈回到原处", () => {
+  const pieces = () => [
+    { position: [10, 0, 1] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] },
+    { position: [30, 0, 2] as [number, number, number], rotation: [350, 5, 0] as [number, number, number] },
+  ];
+  const turned = pieces();
+  rotatePiecesAboutCenter(turned, 90);
+  // 中心 (20, 0)：两件绕它逆时针转 90°，不是各自原地转
+  assert.deepEqual(turned.map(piece => piece.position), [[20, -10, 1], [20, 10, 2]]);
+  assert.deepEqual(turned.map(piece => piece.rotation), [[90, 0, 0], [80, 5, 0]]);
+  const circle = pieces();
+  for (let i = 0; i < 24; i++) rotatePiecesAboutCenter(circle, 15);
+  assert.deepEqual(circle, pieces());
+  // 只选一个时原地转
+  const single = [{ position: [5, 6, 7] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }];
+  rotatePiecesAboutCenter(single, -15);
+  assert.deepEqual(single, [{ position: [5, 6, 7], rotation: [345, 0, 0] }]);
 });

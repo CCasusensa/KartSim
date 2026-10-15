@@ -96,8 +96,8 @@ function mapLabel(row: MapRow): string {
 
 async function setHidden(row: MapRow, hidden: boolean) {
   const message = hidden
-    ? `隐藏地图${mapLabel(row)}？\n隐藏后玩家看不到也下载不了它：自定义游戏的地图列表、多人房间与道具房选图里都不再出现，已经选了它的房间开赛时无法载入。作者在“我的地图”里仍能看到。可以随时恢复。`
-    : `恢复地图${mapLabel(row)}？\n它会重新出现在自定义游戏与多人选图里${row.items > 0 ? '，道具房也能选它' : ''}。`
+    ? `隐藏地图${mapLabel(row)}？\n隐藏后玩家看不到也下载不了它：地图工坊的地图列表、多人房间与道具房选图里都不再出现，已经选了它的房间开赛时无法载入。作者在“我的地图”里仍能看到。可以随时恢复。`
+    : `恢复地图${mapLabel(row)}？\n它会重新出现在地图工坊与多人选图里${row.items > 0 ? '，道具房也能选它' : ''}。`
   if (!await confirmAction(message, hidden ? '隐藏地图' : '恢复地图', { confirmText: hidden ? '隐藏' : '恢复' })) return
   busy.value = row.id
   try {
@@ -133,7 +133,7 @@ async function remove(row: MapRow) {
 <template>
   <el-card shadow="never" class="page-card">
     <p class="page-note">
-      玩家在地图工坊里发布的地图：所有人都能在 单人游戏 → 自定义游戏 里玩，多人竞速房可以选，有道具箱的道具房也能选。
+      玩家在地图工坊里发布的地图：所有人都能在 单人游戏 → 地图工坊 里玩，多人竞速房可以选，有道具箱的道具房也能选。
       “隐藏”只是对玩家下架，作者在“我的地图”里仍能看到，可以随时恢复；“删除”会连同赛道包一起永久删除。
     </p>
     <TableToolbar :table="table" keyword="地图名 / 作者 / 地图 ID" range="更新时间">

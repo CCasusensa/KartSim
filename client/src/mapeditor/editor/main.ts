@@ -43,7 +43,7 @@ try {
   app.resetDesign();
   (window as unknown as { __mapEditor?: EditorApp }).__mapEditor = app;
   loading.remove();
-  // 游戏“自定义游戏”里的“在地图工坊修改 / 用地图工坊打开”：/editor.html?open=<地图 id>
+  // 游戏里“单人游戏 → 地图工坊”窗口的“在地图工坊修改 / 用地图工坊打开”：/editor.html?open=<地图 id>
   const open = new URLSearchParams(location.search).get("open");
   if (open && /^[0-9a-z]{6,16}$/.test(open)) {
     history.replaceState(history.state, "", location.pathname);

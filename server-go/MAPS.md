@@ -1,6 +1,6 @@
 # 地图工坊（自制地图）
 
-玩家在地图工坊（`client/editor.html`）里用官方赛道的物件、贴图拼一张地图，浏览器自己生成与官方赛道同格式的赛道包（`track_custom_<id>.rho`），发布到数据服务。所有人都能在“单人游戏 → 自定义游戏”里玩到它，多人竞速房可以选它，放了道具箱的地图道具房也能选，其他玩家进房时自动下载。本文是数据服务一侧的约定。
+玩家在地图工坊（`client/editor.html`）里用官方赛道的物件、贴图拼一张地图，浏览器自己生成与官方赛道同格式的赛道包（`track_custom_<id>.rho`），发布到数据服务。所有人都能在“单人游戏 → 地图工坊”里玩到它，多人竞速房可以选它，放了道具箱的地图道具房也能选，其他玩家进房时自动下载。本文是数据服务一侧的约定。
 
 ## 1. 赛道 id
 
@@ -66,7 +66,7 @@
 - 素材目录：`src/mapeditor/catalog/catalog.json` 加 `sheet-N.webp` 雪碧图（96 像素一格，`catalog.ts` 读取），由 `client/tools/mapeditor-catalog/build.mjs` 生成：`select.mts` 扫全部官方赛道，按贴图名关键词把物件分成 12 类、按贴图组合去重，每个主题每类留出现最多的几种，路面/护栏/地面贴图和天空同理；再由无头 Chrome 打开开发服务器上的 `render.html`，用游戏装配（`c5`）把每样素材画成缩略图，画不出来（空白、读不到贴图）的跳过。换资源版本或改分类规则后重新生成：`node tools/mapeditor-catalog/build.mjs --origin http://127.0.0.1:8780`（先 `npm run dev`）。
 - 游戏：启动后 `custom-map-loader.ts` 登记本机草稿与 `GET /api/maps` 的地图，只放文件条目，比赛载入时才下载赛道包（卡片和缩略图走单独的小文件）。`track-catalog.ts` 的 `timeAttackTrackCatalog` 与 `trackMetadata` 带上这些地图；多人选图滤掉草稿，并在打开前刷新列表；房间卡片和比赛载入遇到没见过的 `custom_*` 赛道会先向数据服务取摘要。
 - 试跑：编辑器把赛道包存进 IndexedDB 后打开 `/?testmap=<地图 id>`，游戏回到首页后翻到计时赛页面并选好草稿（`test-drive.ts`）。
-- 单人游戏 · 自定义游戏：单人游戏标题栏上的按钮打开 `ui/custom-game-window.ts`（发行版窗口渲染器）：全部地图（`GET /api/maps`）与我的地图（`/api/maps/mine` 加本机草稿），开始计时赛、用地图工坊打开（`/editor.html?open=<地图 id>`）、下架或删除草稿、制作新地图。
+- 单人游戏 · 地图工坊：单人游戏标题栏上的按钮打开 `ui/custom-game-window.ts`（发行版窗口渲染器）：全部地图（`GET /api/maps`）与我的地图（`/api/maps/mine` 加本机草稿），开始计时赛、用地图工坊打开（`/editor.html?open=<地图 id>`）、下架或删除草稿、制作新地图。
 - 道具赛：`itemTrackCatalog` 带上已发布、`items > 0` 的地图（随机卡片不含自制地图），道具房选图前也刷新列表。
 - 导出：地图包 `.kartmap`（zip：`map.json` 清单、`design.json`、`track_custom_<id>.rho`、`card.png`、`thumb.png`；导入时文件表与哈希从赛道包本身重新算，`map-package.ts`）、赛道包 `.rho`、设计文件 `.json`。
 - 部署：Docker 的 Nginx 给 `^/api/maps/<id>$` 单独放宽请求体到 48 MB（`client/docker/default.conf.template`）。
