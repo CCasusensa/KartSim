@@ -1,0 +1,2053 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode1.png",
+      "locale": "en",
+      "file": "en/Castle_Episode1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode2.png",
+      "locale": "en",
+      "file": "en/Castle_Episode2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode3.png",
+      "locale": "en",
+      "file": "en/Castle_Episode3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode4.png",
+      "locale": "en",
+      "file": "en/Castle_Episode4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter1.png",
+      "locale": "en",
+      "file": "en/chapter1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter2.png",
+      "locale": "en",
+      "file": "en/chapter2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter3.png",
+      "locale": "en",
+      "file": "en/chapter3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter4.png",
+      "locale": "en",
+      "file": "en/chapter4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y1.png",
+      "locale": "en",
+      "file": "en/chapter_1920y1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y2.png",
+      "locale": "en",
+      "file": "en/chapter_1920y2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y3.png",
+      "locale": "en",
+      "file": "en/chapter_1920y3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y4.png",
+      "locale": "en",
+      "file": "en/chapter_1920y4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina1.png",
+      "locale": "en",
+      "file": "en/chapter_NewChina1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina2.png",
+      "locale": "en",
+      "file": "en/chapter_NewChina2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina3.png",
+      "locale": "en",
+      "file": "en/chapter_NewChina3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina4.png",
+      "locale": "en",
+      "file": "en/chapter_NewChina4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill1.png",
+      "locale": "en",
+      "file": "en/chapter_NewMoonhill1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill2.png",
+      "locale": "en",
+      "file": "en/chapter_NewMoonhill2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill3.png",
+      "locale": "en",
+      "file": "en/chapter_NewMoonhill3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill4.png",
+      "locale": "en",
+      "file": "en/chapter_NewMoonhill4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss1.png",
+      "locale": "en",
+      "file": "en/chapter_abyss1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss2.png",
+      "locale": "en",
+      "file": "en/chapter_abyss2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss3.png",
+      "locale": "en",
+      "file": "en/chapter_abyss3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss4.png",
+      "locale": "en",
+      "file": "en/chapter_abyss4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach1.png",
+      "locale": "en",
+      "file": "en/chapter_beach1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach2.png",
+      "locale": "en",
+      "file": "en/chapter_beach2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach3.png",
+      "locale": "en",
+      "file": "en/chapter_beach3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach4.png",
+      "locale": "en",
+      "file": "en/chapter_beach4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black1.png",
+      "locale": "en",
+      "file": "en/chapter_black1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black2.png",
+      "locale": "en",
+      "file": "en/chapter_black2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black3.png",
+      "locale": "en",
+      "file": "en/chapter_black3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black4.png",
+      "locale": "en",
+      "file": "en/chapter_black4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill1.png",
+      "locale": "en",
+      "file": "en/chapter_boomhill1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill2.png",
+      "locale": "en",
+      "file": "en/chapter_boomhill2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill3.png",
+      "locale": "en",
+      "file": "en/chapter_boomhill3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill4.png",
+      "locale": "en",
+      "file": "en/chapter_boomhill4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi1.png",
+      "locale": "en",
+      "file": "en/chapter_brodi1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi2.png",
+      "locale": "en",
+      "file": "en/chapter_brodi2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi3.png",
+      "locale": "en",
+      "file": "en/chapter_brodi3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi4.png",
+      "locale": "en",
+      "file": "en/chapter_brodi4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot1.png",
+      "locale": "en",
+      "file": "en/chapter_camelot1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot2.png",
+      "locale": "en",
+      "file": "en/chapter_camelot2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot3.png",
+      "locale": "en",
+      "file": "en/chapter_camelot3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot4.png",
+      "locale": "en",
+      "file": "en/chapter_camelot4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen1.png",
+      "locale": "en",
+      "file": "en/chapter_fengshen1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen2.png",
+      "locale": "en",
+      "file": "en/chapter_fengshen2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen3.png",
+      "locale": "en",
+      "file": "en/chapter_fengshen3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen4.png",
+      "locale": "en",
+      "file": "en/chapter_fengshen4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi1.png",
+      "locale": "en",
+      "file": "en/chapter_flowerBazzi1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi2.png",
+      "locale": "en",
+      "file": "en/chapter_flowerBazzi2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi3.png",
+      "locale": "en",
+      "file": "en/chapter_flowerBazzi3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi4.png",
+      "locale": "en",
+      "file": "en/chapter_flowerBazzi4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god1.png",
+      "locale": "en",
+      "file": "en/chapter_god1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god2.png",
+      "locale": "en",
+      "file": "en/chapter_god2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god3.png",
+      "locale": "en",
+      "file": "en/chapter_god3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god4.png",
+      "locale": "en",
+      "file": "en/chapter_god4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic1.png",
+      "locale": "en",
+      "file": "en/chapter_jurassic1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic2.png",
+      "locale": "en",
+      "file": "en/chapter_jurassic2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic3.png",
+      "locale": "en",
+      "file": "en/chapter_jurassic3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic4.png",
+      "locale": "en",
+      "file": "en/chapter_jurassic4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi1.png",
+      "locale": "en",
+      "file": "en/chapter_mabinogi1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi2.png",
+      "locale": "en",
+      "file": "en/chapter_mabinogi2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi3.png",
+      "locale": "en",
+      "file": "en/chapter_mabinogi3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi4.png",
+      "locale": "en",
+      "file": "en/chapter_mabinogi4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple1.png",
+      "locale": "en",
+      "file": "en/chapter_maple1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple2.png",
+      "locale": "en",
+      "file": "en/chapter_maple2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple3.png",
+      "locale": "en",
+      "file": "en/chapter_maple3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple4.png",
+      "locale": "en",
+      "file": "en/chapter_maple4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill1.png",
+      "locale": "en",
+      "file": "en/chapter_moonhill1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill2.png",
+      "locale": "en",
+      "file": "en/chapter_moonhill2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill3.png",
+      "locale": "en",
+      "file": "en/chapter_moonhill3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill4.png",
+      "locale": "en",
+      "file": "en/chapter_moonhill4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock1.png",
+      "locale": "en",
+      "file": "en/chapter_nemoBlock1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock2.png",
+      "locale": "en",
+      "file": "en/chapter_nemoBlock2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock3.png",
+      "locale": "en",
+      "file": "en/chapter_nemoBlock3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock4.png",
+      "locale": "en",
+      "file": "en/chapter_nemoBlock4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu1.png",
+      "locale": "en",
+      "file": "en/chapter_northeu1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu2.png",
+      "locale": "en",
+      "file": "en/chapter_northeu2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu3.png",
+      "locale": "en",
+      "file": "en/chapter_northeu3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu4.png",
+      "locale": "en",
+      "file": "en/chapter_northeu4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph1.png",
+      "locale": "en",
+      "file": "en/chapter_nymph1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph2.png",
+      "locale": "en",
+      "file": "en/chapter_nymph2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph3.png",
+      "locale": "en",
+      "file": "en/chapter_nymph3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph4.png",
+      "locale": "en",
+      "file": "en/chapter_nymph4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos1.png",
+      "locale": "en",
+      "file": "en/chapter_olympos1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos2.png",
+      "locale": "en",
+      "file": "en/chapter_olympos2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos3.png",
+      "locale": "en",
+      "file": "en/chapter_olympos3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos4.png",
+      "locale": "en",
+      "file": "en/chapter_olympos4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin1.png",
+      "locale": "en",
+      "file": "en/chapter_penguin1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin2.png",
+      "locale": "en",
+      "file": "en/chapter_penguin2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin3.png",
+      "locale": "en",
+      "file": "en/chapter_penguin3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin4.png",
+      "locale": "en",
+      "file": "en/chapter_penguin4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate1.png",
+      "locale": "en",
+      "file": "en/chapter_pirate1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate2.png",
+      "locale": "en",
+      "file": "en/chapter_pirate2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate3.png",
+      "locale": "en",
+      "file": "en/chapter_pirate3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate4.png",
+      "locale": "en",
+      "file": "en/chapter_pirate4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword1.png",
+      "locale": "en",
+      "file": "en/chapter_sword1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword2.png",
+      "locale": "en",
+      "file": "en/chapter_sword2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword3.png",
+      "locale": "en",
+      "file": "en/chapter_sword3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword4.png",
+      "locale": "en",
+      "file": "en/chapter_sword4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark1.png",
+      "locale": "en",
+      "file": "en/chapter_themePark1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark2.png",
+      "locale": "en",
+      "file": "en/chapter_themePark2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark3.png",
+      "locale": "en",
+      "file": "en/chapter_themePark3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark4.png",
+      "locale": "en",
+      "file": "en/chapter_themePark4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb1.png",
+      "locale": "en",
+      "file": "en/chapter_tomb1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb2.png",
+      "locale": "en",
+      "file": "en/chapter_tomb2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb3.png",
+      "locale": "en",
+      "file": "en/chapter_tomb3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb4.png",
+      "locale": "en",
+      "file": "en/chapter_tomb4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc1.png",
+      "locale": "en",
+      "file": "en/chapter_wkc1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc2.png",
+      "locale": "en",
+      "file": "en/chapter_wkc2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc3.png",
+      "locale": "en",
+      "file": "en/chapter_wkc3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc4.png",
+      "locale": "en",
+      "file": "en/chapter_wkc4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world1.png",
+      "locale": "en",
+      "file": "en/chapter_world1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world2.png",
+      "locale": "en",
+      "file": "en/chapter_world2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world3.png",
+      "locale": "en",
+      "file": "en/chapter_world3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world4.png",
+      "locale": "en",
+      "file": "en/chapter_world4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra1.png",
+      "locale": "en",
+      "file": "en/extra1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra2.png",
+      "locale": "en",
+      "file": "en/extra2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra3.png",
+      "locale": "en",
+      "file": "en/extra3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra4.png",
+      "locale": "en",
+      "file": "en/extra4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_1.png",
+      "locale": "en",
+      "file": "en/mecha_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_2.png",
+      "locale": "en",
+      "file": "en/mecha_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_3.png",
+      "locale": "en",
+      "file": "en/mecha_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_4.png",
+      "locale": "en",
+      "file": "en/mecha_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-en.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss21.png",
+      "locale": "en",
+      "file": "en/chapter_abyss21.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-en.png; fixed-grid slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss22.png",
+      "locale": "en",
+      "file": "en/chapter_abyss22.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-en.png; fixed-grid slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss23.png",
+      "locale": "en",
+      "file": "en/chapter_abyss23.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-en.png; fixed-grid slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss24.png",
+      "locale": "en",
+      "file": "en/chapter_abyss24.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-en.png; fixed-grid slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode1.png",
+      "locale": "ko",
+      "file": "ko/Castle_Episode1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode2.png",
+      "locale": "ko",
+      "file": "ko/Castle_Episode2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode3.png",
+      "locale": "ko",
+      "file": "ko/Castle_Episode3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/Castle_Episode4.png",
+      "locale": "ko",
+      "file": "ko/Castle_Episode4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter1.png",
+      "locale": "ko",
+      "file": "ko/chapter1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter2.png",
+      "locale": "ko",
+      "file": "ko/chapter2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter3.png",
+      "locale": "ko",
+      "file": "ko/chapter3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter4.png",
+      "locale": "ko",
+      "file": "ko/chapter4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y1.png",
+      "locale": "ko",
+      "file": "ko/chapter_1920y1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y2.png",
+      "locale": "ko",
+      "file": "ko/chapter_1920y2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y3.png",
+      "locale": "ko",
+      "file": "ko/chapter_1920y3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_1920y4.png",
+      "locale": "ko",
+      "file": "ko/chapter_1920y4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina1.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewChina1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina2.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewChina2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina3.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewChina3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewChina4.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewChina4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill1.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewMoonhill1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill2.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewMoonhill2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill3.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewMoonhill3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_NewMoonhill4.png",
+      "locale": "ko",
+      "file": "ko/chapter_NewMoonhill4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss1.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss2.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss3.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss4.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach1.png",
+      "locale": "ko",
+      "file": "ko/chapter_beach1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach2.png",
+      "locale": "ko",
+      "file": "ko/chapter_beach2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach3.png",
+      "locale": "ko",
+      "file": "ko/chapter_beach3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_beach4.png",
+      "locale": "ko",
+      "file": "ko/chapter_beach4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-1-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black1.png",
+      "locale": "ko",
+      "file": "ko/chapter_black1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black2.png",
+      "locale": "ko",
+      "file": "ko/chapter_black2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black3.png",
+      "locale": "ko",
+      "file": "ko/chapter_black3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_black4.png",
+      "locale": "ko",
+      "file": "ko/chapter_black4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill1.png",
+      "locale": "ko",
+      "file": "ko/chapter_boomhill1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill2.png",
+      "locale": "ko",
+      "file": "ko/chapter_boomhill2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill3.png",
+      "locale": "ko",
+      "file": "ko/chapter_boomhill3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_boomhill4.png",
+      "locale": "ko",
+      "file": "ko/chapter_boomhill4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi1.png",
+      "locale": "ko",
+      "file": "ko/chapter_brodi1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi2.png",
+      "locale": "ko",
+      "file": "ko/chapter_brodi2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi3.png",
+      "locale": "ko",
+      "file": "ko/chapter_brodi3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_brodi4.png",
+      "locale": "ko",
+      "file": "ko/chapter_brodi4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot1.png",
+      "locale": "ko",
+      "file": "ko/chapter_camelot1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot2.png",
+      "locale": "ko",
+      "file": "ko/chapter_camelot2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot3.png",
+      "locale": "ko",
+      "file": "ko/chapter_camelot3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_camelot4.png",
+      "locale": "ko",
+      "file": "ko/chapter_camelot4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen1.png",
+      "locale": "ko",
+      "file": "ko/chapter_fengshen1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen2.png",
+      "locale": "ko",
+      "file": "ko/chapter_fengshen2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen3.png",
+      "locale": "ko",
+      "file": "ko/chapter_fengshen3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_fengshen4.png",
+      "locale": "ko",
+      "file": "ko/chapter_fengshen4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi1.png",
+      "locale": "ko",
+      "file": "ko/chapter_flowerBazzi1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi2.png",
+      "locale": "ko",
+      "file": "ko/chapter_flowerBazzi2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi3.png",
+      "locale": "ko",
+      "file": "ko/chapter_flowerBazzi3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_flowerBazzi4.png",
+      "locale": "ko",
+      "file": "ko/chapter_flowerBazzi4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god1.png",
+      "locale": "ko",
+      "file": "ko/chapter_god1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god2.png",
+      "locale": "ko",
+      "file": "ko/chapter_god2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god3.png",
+      "locale": "ko",
+      "file": "ko/chapter_god3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_god4.png",
+      "locale": "ko",
+      "file": "ko/chapter_god4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic1.png",
+      "locale": "ko",
+      "file": "ko/chapter_jurassic1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic2.png",
+      "locale": "ko",
+      "file": "ko/chapter_jurassic2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic3.png",
+      "locale": "ko",
+      "file": "ko/chapter_jurassic3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_jurassic4.png",
+      "locale": "ko",
+      "file": "ko/chapter_jurassic4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-2-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi1.png",
+      "locale": "ko",
+      "file": "ko/chapter_mabinogi1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi2.png",
+      "locale": "ko",
+      "file": "ko/chapter_mabinogi2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi3.png",
+      "locale": "ko",
+      "file": "ko/chapter_mabinogi3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_mabinogi4.png",
+      "locale": "ko",
+      "file": "ko/chapter_mabinogi4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple1.png",
+      "locale": "ko",
+      "file": "ko/chapter_maple1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple2.png",
+      "locale": "ko",
+      "file": "ko/chapter_maple2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple3.png",
+      "locale": "ko",
+      "file": "ko/chapter_maple3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_maple4.png",
+      "locale": "ko",
+      "file": "ko/chapter_maple4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill1.png",
+      "locale": "ko",
+      "file": "ko/chapter_moonhill1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill2.png",
+      "locale": "ko",
+      "file": "ko/chapter_moonhill2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill3.png",
+      "locale": "ko",
+      "file": "ko/chapter_moonhill3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_moonhill4.png",
+      "locale": "ko",
+      "file": "ko/chapter_moonhill4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock1.png",
+      "locale": "ko",
+      "file": "ko/chapter_nemoBlock1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock2.png",
+      "locale": "ko",
+      "file": "ko/chapter_nemoBlock2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock3.png",
+      "locale": "ko",
+      "file": "ko/chapter_nemoBlock3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nemoBlock4.png",
+      "locale": "ko",
+      "file": "ko/chapter_nemoBlock4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu1.png",
+      "locale": "ko",
+      "file": "ko/chapter_northeu1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu2.png",
+      "locale": "ko",
+      "file": "ko/chapter_northeu2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu3.png",
+      "locale": "ko",
+      "file": "ko/chapter_northeu3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_northeu4.png",
+      "locale": "ko",
+      "file": "ko/chapter_northeu4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph1.png",
+      "locale": "ko",
+      "file": "ko/chapter_nymph1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph2.png",
+      "locale": "ko",
+      "file": "ko/chapter_nymph2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph3.png",
+      "locale": "ko",
+      "file": "ko/chapter_nymph3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_nymph4.png",
+      "locale": "ko",
+      "file": "ko/chapter_nymph4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos1.png",
+      "locale": "ko",
+      "file": "ko/chapter_olympos1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos2.png",
+      "locale": "ko",
+      "file": "ko/chapter_olympos2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos3.png",
+      "locale": "ko",
+      "file": "ko/chapter_olympos3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_olympos4.png",
+      "locale": "ko",
+      "file": "ko/chapter_olympos4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin1.png",
+      "locale": "ko",
+      "file": "ko/chapter_penguin1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin2.png",
+      "locale": "ko",
+      "file": "ko/chapter_penguin2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin3.png",
+      "locale": "ko",
+      "file": "ko/chapter_penguin3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_penguin4.png",
+      "locale": "ko",
+      "file": "ko/chapter_penguin4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-3-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate1.png",
+      "locale": "ko",
+      "file": "ko/chapter_pirate1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate2.png",
+      "locale": "ko",
+      "file": "ko/chapter_pirate2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate3.png",
+      "locale": "ko",
+      "file": "ko/chapter_pirate3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_pirate4.png",
+      "locale": "ko",
+      "file": "ko/chapter_pirate4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword1.png",
+      "locale": "ko",
+      "file": "ko/chapter_sword1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword2.png",
+      "locale": "ko",
+      "file": "ko/chapter_sword2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword3.png",
+      "locale": "ko",
+      "file": "ko/chapter_sword3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_sword4.png",
+      "locale": "ko",
+      "file": "ko/chapter_sword4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark1.png",
+      "locale": "ko",
+      "file": "ko/chapter_themePark1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark2.png",
+      "locale": "ko",
+      "file": "ko/chapter_themePark2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark3.png",
+      "locale": "ko",
+      "file": "ko/chapter_themePark3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_themePark4.png",
+      "locale": "ko",
+      "file": "ko/chapter_themePark4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb1.png",
+      "locale": "ko",
+      "file": "ko/chapter_tomb1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb2.png",
+      "locale": "ko",
+      "file": "ko/chapter_tomb2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb3.png",
+      "locale": "ko",
+      "file": "ko/chapter_tomb3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_tomb4.png",
+      "locale": "ko",
+      "file": "ko/chapter_tomb4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc1.png",
+      "locale": "ko",
+      "file": "ko/chapter_wkc1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc2.png",
+      "locale": "ko",
+      "file": "ko/chapter_wkc2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc3.png",
+      "locale": "ko",
+      "file": "ko/chapter_wkc3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_wkc4.png",
+      "locale": "ko",
+      "file": "ko/chapter_wkc4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world1.png",
+      "locale": "ko",
+      "file": "ko/chapter_world1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world2.png",
+      "locale": "ko",
+      "file": "ko/chapter_world2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world3.png",
+      "locale": "ko",
+      "file": "ko/chapter_world3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_world4.png",
+      "locale": "ko",
+      "file": "ko/chapter_world4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra1.png",
+      "locale": "ko",
+      "file": "ko/extra1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra2.png",
+      "locale": "ko",
+      "file": "ko/extra2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra3.png",
+      "locale": "ko",
+      "file": "ko/extra3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/extra4.png",
+      "locale": "ko",
+      "file": "ko/extra4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_1.png",
+      "locale": "ko",
+      "file": "ko/mecha_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_2.png",
+      "locale": "ko",
+      "file": "ko/mecha_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_3.png",
+      "locale": "ko",
+      "file": "ko/mecha_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/mecha_4.png",
+      "locale": "ko",
+      "file": "ko/mecha_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen text-localization of complete native chapter art; source/atlas-4-ko.png; inspected atlas-cell slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss21.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss21.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-ko.png; fixed-grid slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss22.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss22.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-ko.png; fixed-grid slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss23.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss23.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-ko.png; fixed-grid slicing and disabled-state grayscale normalization"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/chapter_abyss24.png",
+      "locale": "ko",
+      "file": "ko/chapter_abyss24.png",
+      "width": 335,
+      "height": 78,
+      "provenance": "imagegen text-localization of complete native Abyss II art; source/abyss2-ko.png; fixed-grid slicing and disabled-state grayscale normalization"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 mirror/p3553/*.rho5 filter=lfs diff=lfs merge=lfs -text
 mirror/p3553/*.rho filter=lfs diff=lfs merge=lfs -text
+# 本地化原图、图集与切片作为可复现的图片素材保存。
+client/assets/locale-ui/**/*.png filter=lfs diff=lfs merge=lfs -text
 # 卡丁城收音机：光线飞车电台的歌（client/tools/city/radio/extract-raycity-radio.mjs）。
 mirror/ui/radio/*.ogg filter=lfs diff=lfs merge=lfs -text
 design/open-world/tripo/*.glb filter=lfs diff=lfs merge=lfs -text

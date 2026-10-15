@@ -1,4 +1,3 @@
-import { multiplayerImageCaption, paintMultiplayerCaption } from "./multiplayer-localized-art";
 import { tr } from "../i18n/locale";
 import type { WindowFrame, WindowNode, WindowSprite } from "./multiplayer-window-assets";
 
@@ -200,10 +199,8 @@ export function drawMultiplayerWindowNode(
         glyph.right - glyph.left, glyph.bottom - glyph.top);
     }
   } else if (sprites) {
-    const caption = isButton ? multiplayerImageCaption(attribute(node, "name") ?? "", state.label) : undefined;
     const sprite = sprites.length === 1 ? sprites[0]! : sprites[stateIndex]!;
-    if (caption) paintMultiplayerCaption(host.context, rect, caption, stateIndex);
-    else if (node.name === "ImageButton")
+    if (node.name === "ImageButton")
       dependencies.paintImageButton(host.context, sprite, rect);
     else if (attribute(node, "uvRect") !== undefined) {
       const [left, top, right, bottom] = dependencies.numbers(

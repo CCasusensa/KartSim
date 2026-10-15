@@ -1,3 +1,5 @@
+import { loadMultiplayerModeImage } from "../multiplayer/mode-art.ts";
+import { resolveLocalizedPngPath } from "../resources/localized-png.ts";
 import { trackDisplayTitle } from "../resources/track-names.ts";
 import { tr as translateGeneratedLabel } from "../i18n/locale.ts";
 import { resourceText } from "../i18n/locale.ts";
@@ -715,7 +717,8 @@ function U1(n, e, t, i = ".png") {
   const r = t.includes("@zz") ? [t.replace("@zz", "@cn"), t] : [t];
   for (const s of r)
     for (const o of e) {
-      const a = n.canonicalCandidates(`${o}/${s}${i}`);
+      const path = `${o}/${s}${i}`;
+      const a = n.canonicalCandidates(i === ".png" ? resolveLocalizedPngPath(n, path) : path);
       if (a.length > 1) throw new Error(`多人大厅资源不唯一：${s}`);
       if (a.length === 1) return a[0];
     }
@@ -776,7 +779,7 @@ async function uQ(n, e) {
         h,
         await Promise.all(
           [1, 2, 3, 4].map(async (v) => {
-            const w = await fetch(`/ui/multiplayer/${p.editedImage}${v}.png`);
+            const w = await loadMultiplayerModeImage(n, `${p.editedImage}${v}.png`);
             if (!w.ok) throw new Error("无法载入RP入口图片");
             const g = await p2(new Uint8Array(await w.arrayBuffer()));
             if (g.width !== 272 || g.height !== 134)
@@ -801,7 +804,7 @@ async function uQ(n, e) {
         ),
       );
     else if (p) {
-      const v = await fetch(`/ui/multiplayer/${p.image}`);
+      const v = await loadMultiplayerModeImage(n, p.image);
       if (!v.ok) throw new Error(`无法载入${p.label}入口图片`);
       const w = await p2(new Uint8Array(await v.arrayBuffer())),
         g = document.createElement("canvas");

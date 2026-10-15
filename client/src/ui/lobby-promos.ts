@@ -5,7 +5,7 @@
  * keeps its built-in pictures and COMING SOON boards.
  */
 import type { LobbyImage } from "./lobby-home-view";
-import { gameLocale, tr } from "../i18n/locale";
+import { gameLocale, type GameLocale } from "../i18n/locale";
 
 export const LOBBY_PROMOS_PATH = "/api/lobby/promos";
 /** Home reopens often (after every race); the settings are read again after this. */
@@ -52,23 +52,20 @@ export interface LobbyPromos {
   boards: [LobbyBoard, LobbyBoard];
 }
 
-/** Known promotions whose uploaded artwork contains Chinese lettering.
- * Draw their copy as text outside Chinese; keep custom admin artwork intact.
- * Match a verified URL host (not a substring in an arbitrary URL).
- */
-export function localizedLobbyPromo(promo: Pick<LobbyBoard, "title" | "link">):
-  { title: string; subtitle: string } | undefined {
-  if (gameLocale() === "zh-CN") return undefined;
+/** Complete localized artwork for the known built-in promotions. Custom art is untouched. */
+export function localizedLobbyPromoPath(promo: Pick<LobbyBoard, "title" | "link">,
+  locale: GameLocale = gameLocale()): string | undefined {
+  if (locale === "zh-CN") return undefined;
   let host = "";
   try { host = new URL(safeLobbyLink(promo.link) ?? "").hostname.toLowerCase(); } catch { /* No external link. */ }
   if (host === "ccraft.app" || host.endsWith(".ccraft.app") || /^ccraft(?:\s|$)/i.test(promo.title ?? ""))
-    return { title: "CCRAFT", subtitle: tr("网页版 · 浏览器直接玩") };
+    return "lobby/ccraft.png";
   if (host === "qun.qq.com" || host === "jq.qq.com" || host === "qm.qq.com" || /^加入\s*QQ\s*群\s*\+?$/.test(promo.title ?? ""))
-    return { title: tr("加入QQ 群"), subtitle: tr("和车友一起交流") };
-  if (/^(COMING SOON|敬请期待|即将推出)$/i.test(promo.title ?? ""))
-    return { title: tr("即将推出"), subtitle: tr("敬请期待") };
+    return "lobby/qq-group.png";
   return undefined;
 }
+
+export type LobbyPromoArtLoader = (canonicalPath: string, locale: GameLocale) => Promise<LobbyImage | undefined>;
 
 /**
  * The link to open, or undefined: an http(s) URL, or a path of the game's
@@ -154,15 +151,24 @@ export interface LobbyPromoSession {
  * none to give (an older service, no connection).
  */
 export async function fetchLobbyPromos(session: LobbyPromoSession,
-  load: (url: string) => Promise<LobbyImage | undefined> = loadPicture): Promise<LobbyPromos | undefined> {
+  load: (url: string) => Promise<LobbyImage | undefined> = loadPicture,
+  loadArt?: LobbyPromoArtLoader, locale: GameLocale = gameLocale()): Promise<LobbyPromos | undefined> {
   let settings: LobbyPromoSettings;
   try {
     settings = parseLobbyPromos(await session.requestJson(LOBBY_PROMOS_PATH));
   } catch {
     return undefined;
   }
-  const picture = (entry: LobbyPromoEntry | undefined) =>
-    entry?.url ? load(session.backendOrigin + entry.url).catch(() => undefined) : Promise.resolve(undefined);
+  const picture = async (entry: LobbyPromoEntry | undefined): Promise<LobbyImage | undefined> => {
+    if (!entry?.url) return undefined;
+    const path = localizedLobbyPromoPath(entry, locale);
+    if (path && loadArt) {
+      const localized = await loadArt(path, locale).catch(() => undefined);
+      if (localized) return localized;
+    }
+    // A missing optional locale pack must never hide an administrator's picture.
+    return load(session.backendOrigin + entry.url).catch(() => undefined);
+  };
   const [slides, boards] = await Promise.all([
     Promise.all(settings.carousel.map(picture)),
     Promise.all(settings.boards.map(picture)),
@@ -181,15 +187,19 @@ export async function fetchLobbyPromos(session: LobbyPromoSession,
   return { intervalMs: settings.interval * 1000, banners, boards: [board(0), board(1)] };
 }
 
-let cached: { session: LobbyPromoSession; at: number; pending: Promise<LobbyPromos | undefined> } | undefined;
+let cached: { session: LobbyPromoSession; locale: GameLocale; loadArt?: LobbyPromoArtLoader;
+  at: number; pending: Promise<LobbyPromos | undefined> } | undefined;
 
 /** fetchLobbyPromos, shared by the home openings of the next minute. */
-export function loadLobbyPromos(session: LobbyPromoSession | undefined): Promise<LobbyPromos | undefined> {
+export function loadLobbyPromos(session: LobbyPromoSession | undefined,
+  loadArt?: LobbyPromoArtLoader): Promise<LobbyPromos | undefined> {
   if (!session) return Promise.resolve(undefined);
   const now = Date.now();
-  if (cached && cached.session === session && now - cached.at < CACHE_MS) return cached.pending;
-  const pending = fetchLobbyPromos(session);
-  cached = { session, at: now, pending };
+  const locale = gameLocale();
+  if (cached && cached.session === session && cached.locale === locale && cached.loadArt === loadArt &&
+      now - cached.at < CACHE_MS) return cached.pending;
+  const pending = fetchLobbyPromos(session, loadPicture, loadArt, locale);
+  cached = { session, locale, loadArt, at: now, pending };
   // A failed read is tried again at the next opening.
   void pending.then(promos => { if (!promos && cached?.pending === pending) cached = undefined; });
   return pending;

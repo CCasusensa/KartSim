@@ -1,0 +1,182 @@
+[
+  {
+    "folder": "result",
+    "name": "ResultText",
+    "label": "RESULTS",
+    "x": 135,
+    "y": 40,
+    "width": 170,
+    "height": 48
+  },
+  {
+    "folder": "result",
+    "name": "result_rankText",
+    "label": "RANK",
+    "x": 625,
+    "y": 26,
+    "width": 70,
+    "height": 76
+  },
+  {
+    "folder": "result",
+    "name": "redWin",
+    "label": "RED TEAM WINS!",
+    "x": 938,
+    "y": 18,
+    "width": 324,
+    "height": 92
+  },
+  {
+    "folder": "result",
+    "name": "blueWin",
+    "label": "BLUE TEAM WINS!",
+    "x": 1378,
+    "y": 18,
+    "width": 324,
+    "height": 92
+  },
+  {
+    "folder": "result",
+    "name": "greenWin",
+    "label": "GREEN TEAM WINS!",
+    "x": 58,
+    "y": 146,
+    "width": 324,
+    "height": 92
+  },
+  {
+    "folder": "result",
+    "name": "yellowWin",
+    "label": "YELLOW TEAM WINS!",
+    "x": 498,
+    "y": 146,
+    "width": 324,
+    "height": 92
+  },
+  {
+    "folder": "result",
+    "name": "scoreBox",
+    "label": "BLUE TEAM / RED TEAM",
+    "x": 946,
+    "y": 149,
+    "width": 308,
+    "height": 86
+  },
+  {
+    "folder": "result",
+    "name": "scoreBox_blue",
+    "label": "BLUE TEAM",
+    "x": 1457,
+    "y": 149,
+    "width": 166,
+    "height": 86
+  },
+  {
+    "folder": "result",
+    "name": "scoreBox_red",
+    "label": "RED TEAM",
+    "x": 137,
+    "y": 277,
+    "width": 166,
+    "height": 86
+  },
+  {
+    "folder": "result",
+    "name": "scoreBox_green",
+    "label": "GREEN TEAM",
+    "x": 577,
+    "y": 277,
+    "width": 166,
+    "height": 86
+  },
+  {
+    "folder": "result",
+    "name": "scoreBox_yellow",
+    "label": "YELLOW TEAM",
+    "x": 1017,
+    "y": 277,
+    "width": 166,
+    "height": 86
+  },
+  {
+    "folder": "roadblock-hud",
+    "name": "lap_RunnerText",
+    "label": "CURRENT LAP",
+    "x": 1449,
+    "y": 286,
+    "width": 182,
+    "height": 68
+  },
+  {
+    "folder": "roadblock-hud",
+    "name": "lap_BlockerText",
+    "label": "RUNNER'S LAP",
+    "x": 129,
+    "y": 414,
+    "width": 182,
+    "height": 68
+  },
+  {
+    "folder": "roadblock-hud",
+    "name": "lap_HandicapText",
+    "label": "NO R KEY",
+    "x": 569,
+    "y": 433,
+    "width": 182,
+    "height": 30
+  },
+  {
+    "folder": "roadblock-hud",
+    "name": "rank_RunnerText",
+    "label": "RUNNER",
+    "x": 1005,
+    "y": 420,
+    "width": 190,
+    "height": 56
+  },
+  {
+    "folder": "roadblock-hud",
+    "name": "rank_BlockerText",
+    "label": "BLOCKER",
+    "x": 1445,
+    "y": 420,
+    "width": 190,
+    "height": 56
+  },
+  {
+    "folder": "roadblock-result",
+    "name": "runnerHeader",
+    "label": "RUNNER",
+    "x": 33,
+    "y": 559,
+    "width": 374,
+    "height": 33
+  },
+  {
+    "folder": "roadblock-result",
+    "name": "blockerHeader",
+    "label": "BLOCKER",
+    "x": 473,
+    "y": 559,
+    "width": 374,
+    "height": 33
+  },
+  {
+    "folder": "roadblock-result",
+    "name": "gameresult_RunnerWin",
+    "label": "RUNNER WINS!",
+    "x": 893,
+    "y": 533,
+    "width": 414,
+    "height": 85
+  },
+  {
+    "folder": "roadblock-result",
+    "name": "gameresult_RunnerLose",
+    "label": "BLOCKERS WIN!",
+    "x": 1333,
+    "y": 533,
+    "width": 414,
+    "height": 85
+  }
+]

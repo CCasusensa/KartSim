@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "generation": {
+    "tool": "imagegen",
+    "input": "source/native-ko.png",
+    "prompt": "source/imagegen-prompt.txt",
+    "output": "source/english-generated.png",
+    "inputSha256": "59bb0cbff0528f0efe10abc7932c119392f04b639a887a28ae2c2d5d5bca1c21",
+    "outputSha256": "9151a3ec7de62c013bdbfca120bba63574eb759b20fc4bea5782abe39b3f3995",
+    "preparation": "node tools/slice-taskbar-locale-art.mjs (requires ImageMagick)",
+    "cellWidth": 104,
+    "cellHeight": 66,
+    "columns": 6,
+    "rows": 4
+  },
+  "entries": [
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMulti_1@zz.png",
+      "locale": "en",
+      "file": "en/multiplayer-1.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainSingle_1@zz.png",
+      "locale": "en",
+      "file": "en/singleplayer-1.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMyroom_1@zz.png",
+      "locale": "en",
+      "file": "en/myroom-1.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainShop_1@zz.png",
+      "locale": "en",
+      "file": "en/shop-1.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/튜닝_01@zz.png",
+      "locale": "en",
+      "file": "en/garage-1.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/클럽_01@zz.png",
+      "locale": "en",
+      "file": "en/club-1.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMulti_2@zz.png",
+      "locale": "en",
+      "file": "en/multiplayer-2.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainSingle_2@zz.png",
+      "locale": "en",
+      "file": "en/singleplayer-2.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMyroom_2@zz.png",
+      "locale": "en",
+      "file": "en/myroom-2.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainShop_2@zz.png",
+      "locale": "en",
+      "file": "en/shop-2.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/튜닝_02@zz.png",
+      "locale": "en",
+      "file": "en/garage-2.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/클럽_02@zz.png",
+      "locale": "en",
+      "file": "en/club-2.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMulti_3@zz.png",
+      "locale": "en",
+      "file": "en/multiplayer-3.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainSingle_3@zz.png",
+      "locale": "en",
+      "file": "en/singleplayer-3.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMyroom_3@zz.png",
+      "locale": "en",
+      "file": "en/myroom-3.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainShop_3@zz.png",
+      "locale": "en",
+      "file": "en/shop-3.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/튜닝_03@zz.png",
+      "locale": "en",
+      "file": "en/garage-3.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/클럽_03@zz.png",
+      "locale": "en",
+      "file": "en/club-3.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMulti_4@zz.png",
+      "locale": "en",
+      "file": "en/multiplayer-4.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainSingle_4@zz.png",
+      "locale": "en",
+      "file": "en/singleplayer-4.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainMyroom_4@zz.png",
+      "locale": "en",
+      "file": "en/myroom-4.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/btn_mainShop_4@zz.png",
+      "locale": "en",
+      "file": "en/shop-4.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/튜닝_04@zz.png",
+      "locale": "en",
+      "file": "en/garage-4.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    },
+    {
+      "canonicalPath": "gui_/window/menu/클럽_04@zz.png",
+      "locale": "en",
+      "file": "en/club-4.png",
+      "width": 104,
+      "height": 66,
+      "provenance": "imagegen English localization of native Korean gui_window.rho sprites; geometry-only resize and slicing"
+    }
+  ]
+}

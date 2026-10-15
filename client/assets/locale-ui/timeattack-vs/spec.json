@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "prompt": "source/prompt.txt",
+  "preparation": "node tools/prepare-menu-supplement-art.mjs (requires ImageMagick)",
+  "entries": [
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_1.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackVS_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_2.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackVS_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_3.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackVS_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_4.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackVS_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_1.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackVS_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_2.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackVS_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_3.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackVS_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_4.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackVS_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete localized Practice Time Attack / Track Challenge artwork in all four original button states; geometry-only crop"
+    }
+  ]
+}

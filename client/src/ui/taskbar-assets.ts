@@ -1,5 +1,6 @@
 import { attribute, decodeBinaryXml, type BinaryXmlNode } from "../codecs/binary-xml";
 import { resourceText, tr } from "../i18n/locale";
+import { LOCALIZED_PNG_CONTAINER, LOCALIZED_PNG_MOUNT, resolveLocalizedPngPath } from "../resources/localized-png";
 import type { TaskbarAssets, TaskbarImage, TaskbarButton } from "./taskbar";
 import type { UiRectangle } from "./scrollbar";
 
@@ -49,18 +50,6 @@ function requiredAttribute(node: BinaryXmlNode, name: string): string {
   return value;
 }
 
-function imageName(library: TaskbarAssetLibrary, token: string): string {
-  const candidates = token.endsWith("@zz")
-    ? [`${token.slice(0, -3)}@cn`, token]
-    : [token];
-  for (const candidate of candidates) {
-    if (library.canonicalCandidates(`${menuDirectory}/${candidate}.png`).length > 0) {
-      return `${candidate}.png`;
-    }
-  }
-  throw new Error(`P3528 任务栏缺少原版图片 ${token}。`);
-}
-
 function buttonImageName(node: BinaryXmlNode, frame: number): string {
   const token = requiredAttribute(node, "autoLoadImage");
   return token.endsWith("@zz")
@@ -83,7 +72,12 @@ async function decodeImage(entry: TaskbarAssetEntry,
 
 async function loadImage(library: TaskbarAssetLibrary, token: string,
   formats: TaskbarFormatOperations): Promise<TaskbarImage> {
-  return decodeImage(trayEntry(library, imageName(library, token)), formats);
+  const path = resolveLocalizedPngPath(library, `${menuDirectory}/${token}.png`);
+  const entry = exactEntry(library, path);
+  const archive = path.startsWith(`${LOCALIZED_PNG_MOUNT}/`) ? LOCALIZED_PNG_CONTAINER : menuArchive;
+  if (entry.sourceKind !== "rho" || entry.sourceName.toLowerCase() !== archive)
+    throw new Error(`P3528 任务栏图片必须来自 ${archive}。`);
+  return decodeImage(entry, formats);
 }
 
 function forEachVisible(node: BinaryXmlNode, visit: (node: BinaryXmlNode) => void): void {

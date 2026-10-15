@@ -1,0 +1,36 @@
+{
+  "entries": [
+    {
+      "canonicalPath": "lobby/ccraft.png",
+      "locale": "en",
+      "file": "en/ccraft.png",
+      "provenance": "Generated with the built-in imagegen text-localization workflow from the user-provided lobby screenshot; localized lettering integrated in the complete image, geometry normalized for the original slot.",
+      "width": 1040,
+      "height": 600
+    },
+    {
+      "canonicalPath": "lobby/qq-group.png",
+      "locale": "en",
+      "file": "en/qq-group.png",
+      "provenance": "Generated with the built-in imagegen text-localization workflow from the user-provided lobby screenshot; localized lettering integrated in the complete image, geometry normalized for the original slot.",
+      "width": 1050,
+      "height": 234
+    },
+    {
+      "canonicalPath": "lobby/ccraft.png",
+      "locale": "ko",
+      "file": "ko/ccraft.png",
+      "provenance": "Generated with the built-in imagegen text-localization workflow from the user-provided lobby screenshot; localized lettering integrated in the complete image, geometry normalized for the original slot.",
+      "width": 1040,
+      "height": 600
+    },
+    {
+      "canonicalPath": "lobby/qq-group.png",
+      "locale": "ko",
+      "file": "ko/qq-group.png",
+      "provenance": "Generated with the built-in imagegen text-localization workflow from the user-provided lobby screenshot; localized lettering integrated in the complete image, geometry normalized for the original slot.",
+      "width": 1050,
+      "height": 234
+    }
+  ]
+}

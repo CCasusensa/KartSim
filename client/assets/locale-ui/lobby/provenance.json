@@ -1,0 +1,37 @@
+{
+  "method": "Built-in imagegen; complete raster localization with screenshot reference",
+  "reference": "User supplied lobby screenshot codex-clipboard-95f1c260-b6bf-4886-905c-4f0a567d04f1.png",
+  "prompts": [
+    {
+      "asset": "ccraft",
+      "invariants": "Preserve stone-and-grass CCRAFT logo, voxel landscape, wooden sign, browser, sword character and bottom strip; replace only lettering.",
+      "en": [
+        "CCRAFT",
+        "WEB EDITION",
+        "PLAY IN YOUR BROWSER",
+        "NO DOWNLOAD",
+        "PLAY ONLINE",
+        "ccraft.app"
+      ],
+      "ko": [
+        "CCRAFT",
+        "웹 버전",
+        "브라우저에서 바로 플레이",
+        "다운로드 없이",
+        "바로 플레이",
+        "ccraft.app"
+      ]
+    },
+    {
+      "asset": "qq-group",
+      "invariants": "Preserve cyan banner, QQ penguin, red scarf, white dimensional text; output one standalone complete banner.",
+      "en": [
+        "JOIN QQ GROUP +"
+      ],
+      "ko": [
+        "QQ 그룹 참여 +"
+      ]
+    }
+  ],
+  "normalization": "QQ unused output padding geometrically cropped; CCraft normalized to 1040x600 and QQ to 1050x234. No runtime text cover, label layer or frame cropping."
+}

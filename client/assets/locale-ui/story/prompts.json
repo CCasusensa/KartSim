@@ -1,0 +1,93 @@
+{
+  "instructions": "Edit the complete original 4-column, 8-row atlas. Preserve artwork and normal/hover/pressed/grayscale states. Replace only in-image lettering with exact title | subtitle per row; no patches or runtime lettering. Special Abyss II uses a separate original-size one-column four-row atlas. Output is fixed-grid sliced into complete original-size PNG sprites.",
+  "rows": {
+    "1": {
+      "en": [
+        "Louis's Mystery | Castle",
+        "Boomhill Chaos | Town",
+        "The Roadster's Secret | 1920",
+        "Dragon Legacy | China",
+        "Sleepless City | Moonhill",
+        "The Forgotten City | Abyss",
+        "Deep-Sea Witch | Abyss City",
+        "Street Racing | Beach"
+      ],
+      "ko": [
+        "루이의 수수께끼 | 대저택",
+        "붐힐 대소동 | 빌리지",
+        "클래식 로드스터의 비밀 | 1920",
+        "용의 계승 | 차이나",
+        "잠들지 않는 도시 | 문힐시티",
+        "잊혀진 도시 | 어비스",
+        "심해의 마녀 | 심해의 도시",
+        "스트리트 레이싱 | 비치"
+      ]
+    },
+    "2": {
+      "en": [
+        "Dark Organization | Darkness",
+        "Boomhill Grand Prix | Race",
+        "The Mysterious Foreman | Future Factory",
+        "Sword of the Sage | Camelot",
+        "Light and Shadow | Legend of the Gods",
+        "Meteor Garden | LOVE",
+        "Legend of the Gods | Asgard",
+        "Jurassic Adventure | Jurassic"
+      ],
+      "ko": [
+        "어둠의 조직 | 어둠",
+        "붐힐 대회 | 레이스",
+        "수수께끼의 공장장 | 팩토리",
+        "현자의 검 | 카멜롯",
+        "빛과 그림자 | 신들의 전설",
+        "유성화원 | LOVE",
+        "신들의 전설 | 신들의 세계",
+        "쥐라기 대모험 | 쥐라기"
+      ]
+    },
+    "3": {
+      "en": [
+        "Erinn, the Eternal Land | Mabinogi",
+        "MapleStory | MAPLE",
+        "Sleepless City | Moonhill",
+        "Pixel World | Pixel",
+        "Northeu Grand Prix | Space",
+        "The Fairy Emblem | Fairies",
+        "The Thirteenth Trial | Olympus",
+        "Penguin Kingdom Treasure | Penguin Kingdom"
+      ],
+      "ko": [
+        "영원의 땅 에린 | 마비노기",
+        "메이플스토리 | MAPLE",
+        "잠들지 않는 도시 | 문힐시티",
+        "픽셀 월드 | 픽셀",
+        "노르테유 그랑프리 | 우주",
+        "요정의 문장 | 요정",
+        "열세 번째 시련 | 올림포스",
+        "펭귄 왕국의 보물 | 펭귄 왕국"
+      ]
+    },
+    "4": {
+      "en": [
+        "Pirate Island Adventure | Pirates",
+        "Sword of Sun and Moon | Sword",
+        "KartRider Theme Park | Theme Park",
+        "Ghost Town Pumpkin Battle | Graveyard",
+        "World Championship | Speed Formula",
+        "Around the World! | World Tour",
+        "Golden God's Revival | Golden Civilization",
+        "Robots Attack | Machines"
+      ],
+      "ko": [
+        "해적섬 대모험 | 해적",
+        "일월도검 | 도검",
+        "카트라이더 놀이동산 | 놀이동산",
+        "유령 마을 호박 대작전 | 공동묘지",
+        "월드 챔피언십 | 스피드 포뮬러",
+        "세계로 출발! | 월드 투어",
+        "황금신의 부활 | 황금 문명",
+        "로봇의 습격 | 기계"
+      ]
+    }
+  }
+}

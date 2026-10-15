@@ -5,12 +5,13 @@ import { ImageCache, type MyRoomDataLibrary } from "../myroom/myroom-data";
 import { myRoomHudColor, myRoomHudTextRender, readMyRoomStringBag, type MyRoomHudNode } from "./my-room-hud";
 import { readStringBag } from "./item-hud-assets";
 import { tr } from "../i18n/locale";
+import { resolveLocalizedPngPath } from "../resources/localized-png";
 
 /**
  * A release BML window drawn on one canvas (1600×900 stage stretched over
  * the root, like the My Room windows): layout with the monocoque frames
  * (gui_/monocoque frame.bml: CaptionDialog, TextButton, DefaultEdit …),
- * textures from the window's folders (@zz names try @cn first), #sb()
+ * complete locale textures from the window's folders, #sb()
  * strings, image and text buttons with their hover/press states, and
  * hooks for the nodes a window draws itself.
  */
@@ -184,7 +185,7 @@ export class BmlCanvas {
     return value === undefined ? undefined : tr(value);
   }
 
-  /** A release texture of the window's folders: the cn variant of an @zz name first. */
+  /** A complete locale texture, falling back to the original release image. */
   texture(name: string | undefined): HTMLCanvasElement | undefined {
     if (!name) return undefined;
     let path = this.textures.get(name);
@@ -193,7 +194,7 @@ export class BmlCanvas {
       path = null;
       search: for (const folder of [...this.options.folders, "gui_/monocoque"]) {
         for (const candidate of names) {
-          const file = `${folder}/${candidate}.png`;
+          const file = resolveLocalizedPngPath(this.shared.library, `${folder}/${candidate}.png`);
           if (this.shared.library.canonicalCandidates(file).length > 0) {
             path = file;
             break search;

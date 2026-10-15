@@ -1,8 +1,9 @@
 import { itemDisplayName } from "../i18n/item-names";
-import { gameLocale, tr } from "../i18n/locale";
+import { tr } from "../i18n/locale";
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { G1, T, V0, f5, m9, s2, st } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
+import { resolveLocalizedPngPath } from "../resources/localized-png";
 import type { DictionaryClaim, DictionarySummary } from "../myroom/myroom-api";
 import { ImageCache, type MyRoomDataLibrary } from "../myroom/myroom-data";
 import { askDictionaryReward } from "./my-room-dialogs";
@@ -288,15 +289,13 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
     return value === undefined ? undefined : tr(value);
   }
 
-  /** A release texture: the cn variant of an @zz name first, then the name, then without the suffix. */
+  /** Load a complete regional texture or its packaged localized replacement. */
   private texture(name: string | undefined): HTMLCanvasElement | undefined {
     if (!name) return undefined;
     let path = this.textures.get(name);
     if (path === undefined) {
-      const names = name.includes("@zz")
-        ? [name.replace("@zz", "@cn"), name, name.replace("@zz", "")] : [name];
-      path = names.map(candidate => `${FOLDER}/${candidate}.png`)
-        .find(candidate => this.options.library.canonicalCandidates(candidate).length > 0) ?? null;
+      const resolved = resolveLocalizedPngPath(this.options.library, `${FOLDER}/${name}.png`);
+      path = this.options.library.canonicalCandidates(resolved).length > 0 ? resolved : null;
       this.textures.set(name, path);
     }
     return path ? this.images.get(path) : undefined;
@@ -451,47 +450,7 @@ class DictionaryWindow implements MyRoomDictionaryWindow {
     const state = selected ? 2 : st(key, this.hovered, this.pressed);
     const sprite = this.seriesSprite(series, state);
     if (sprite) this.context.drawImage(sprite, rect.x, rect.y, rect.width, rect.height);
-    const cardGroup = DICTIONARY_GROUPS.findIndex(group => group.card === name);
-    if (gameLocale() !== "zh-CN" && cardGroup >= 0) this.drawGroupCaptions(cardGroup, rect);
-    // Category tabs ship their caption inside the Chinese sprite.
-    if (gameLocale() !== "zh-CN" && (tab >= 0 || sub)) {
-      const context = this.context;
-      context.save();
-      context.fillStyle = selected ? "#278bbd" : this.hovered === key ? "#dcefff" : "#edf4fb";
-      context.fillRect(rect.x + 2, rect.y + 2, rect.width - 4, rect.height - 4);
-      context.font = "bold 14px 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.fillStyle = selected ? "#ffffff" : "#34465f";
-      context.fillText(this.buttonLabel(name), rect.x + rect.width / 2, rect.y + rect.height / 2,
-        Math.max(1, rect.width - 8));
-      context.restore();
-    }
     this.regions.push({ key, rect, label: this.buttonLabel(name), activate: () => this.activate(name) });
-  }
-
-  /** The collection overview cards also bake their heading and three category captions into the art. */
-  private drawGroupCaptions(group: number, rect: Rect): void {
-    const context = this.context;
-    context.save();
-    context.translate(rect.x, rect.y);
-    context.scale(rect.width / 650, rect.height / 314);
-    context.fillStyle = "white";
-    context.fillRect(24, 16, 610, 26);
-    context.font = "bold 17px 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
-    context.textAlign = "left";
-    context.textBaseline = "middle";
-    context.fillStyle = "#344156";
-    context.fillText(this.buttonLabel(DICTIONARY_GROUPS[group]!.card), 26, 30, 600);
-    context.font = "bold 14px 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
-    context.textAlign = "center";
-    DICTIONARY_GROUPS[group]!.subs.forEach((sub, index) => {
-      context.fillStyle = "#e3e7f0";
-      context.fillRect(18 + index * 208, 59, 198, 34);
-      context.fillStyle = "#344f79";
-      context.fillText(tr(sub.title), 117 + index * 208, 77, 190);
-    });
-    context.restore();
   }
 
   /** subTab_N have no series in the BML: collect_btn_2depthMenu<group><sub>_<state>@zz. */

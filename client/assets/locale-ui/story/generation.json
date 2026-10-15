@@ -1,0 +1,293 @@
+{
+  "method": "Built-in imagegen text-localization of complete original native chapter sprites. No runtime lettering or patches.",
+  "groups": [
+    "Castle_Episode",
+    "chapter",
+    "chapter_1920y",
+    "chapter_NewChina",
+    "chapter_NewMoonhill",
+    "chapter_abyss",
+    "chapter_abyss2",
+    "chapter_beach",
+    "chapter_black",
+    "chapter_boomhill",
+    "chapter_brodi",
+    "chapter_camelot",
+    "chapter_fengshen",
+    "chapter_flowerBazzi",
+    "chapter_god",
+    "chapter_jurassic",
+    "chapter_mabinogi",
+    "chapter_maple",
+    "chapter_moonhill",
+    "chapter_nemoBlock",
+    "chapter_northeu",
+    "chapter_nymph",
+    "chapter_olympos",
+    "chapter_penguin",
+    "chapter_pirate",
+    "chapter_sword",
+    "chapter_themePark",
+    "chapter_tomb",
+    "chapter_wkc",
+    "chapter_world",
+    "extra",
+    "mecha_"
+  ],
+  "chapters": [
+    "chapter1",
+    "chapter2",
+    "chapter3",
+    "chapter4",
+    "chapter_tomb",
+    "chapter_penguin",
+    "chapter_fengshen2",
+    "chapter_fengshen",
+    "chapter_NewChina2",
+    "chapter_maple",
+    "chapter_mabinogi",
+    "chapter_olympos2",
+    "chapter_olympos",
+    "chapter_camelot2",
+    "chapter_camelot",
+    "chapter_abyss2",
+    "chapter_abyss",
+    "chapter_god2",
+    "chapter_god",
+    "chapter_sword",
+    "chapter_NewMoonhill",
+    "chapter_northeu3",
+    "chapter_northeu2",
+    "chapter_northeu",
+    "chapter_NewChina",
+    "chapter_nemoBlock",
+    "chapter_world2",
+    "chapter_world",
+    "chapter_jurassic",
+    "chapter_1920y",
+    "chapter_flowerBazzi",
+    "chapter_beach2",
+    "chapter_beach",
+    "chapter_black3",
+    "chapter_black2",
+    "chapter_black1",
+    "chapter_boomhill",
+    "chapter_themePark",
+    "chapter_brodi",
+    "chapter_wkc",
+    "xyy_1",
+    "mecha_3",
+    "mecha_2",
+    "mecha_1",
+    "Castle_Episode4",
+    "Castle_Episode3",
+    "Castle_Episode2",
+    "Castle_Episode1",
+    "chapter_nymph",
+    "chapter_pirate",
+    "chapter_moonhill",
+    "extra1"
+  ],
+  "sourceArchive": "zeta_cn_scenario.rho",
+  "sourceRoot": "zeta_/cn/scenario/select",
+  "states": [
+    "normal",
+    "hover",
+    "pressed",
+    "disabled"
+  ],
+  "atlasFiles": [
+    "source/atlas-1-en.png",
+    "source/atlas-1-ko.png",
+    "source/atlas-2-en.png",
+    "source/atlas-2-ko.png",
+    "source/atlas-3-en.png",
+    "source/atlas-3-ko.png",
+    "source/atlas-4-en.png",
+    "source/atlas-4-ko.png",
+    "source/abyss2-en.png",
+    "source/abyss2-ko.png"
+  ],
+  "subPictures": {
+    "count": 52,
+    "localized": 0,
+    "reason": "All 52 original chapter detail backgrounds are artwork without embedded text and are reused."
+  },
+  "missing": [
+    "xyy_1"
+  ],
+  "sha256": {
+    "source/atlas-1-en.png": "9808815449b098bc75d7e42f7a618e4f576d4911d8572c524da8a393520cd437",
+    "source/atlas-2-en.png": "b0adce0e2884533fcdbe640ef95617b9c2512a1de4efb69fedaa957c3de28c35",
+    "source/atlas-3-en.png": "166e1aaa37e00465e66547a4f2e8cf9ea15ee6b42dd955fbd3ef5d12d6fce5ce",
+    "source/atlas-4-en.png": "136c064a4a920303fdd3b7b3e3fe06d41c5b35e6c6234e1dedc19c3d8648f74f",
+    "source/abyss2-en.png": "fb1a24a5addce7af95fb17389b5f693f04cc226382ec1ff2be5396ead4cb9dc9",
+    "source/atlas-1-ko.png": "eb29077b54e2f203b87ea0d39dd7a440b8f2bf48cbf8785bbf4b3d84d3906f56",
+    "source/atlas-2-ko.png": "1ba2aeefd725ec3375cb04ca825c14ff1b6fe21e4a9c316f17fc378453f2ad3e",
+    "source/atlas-3-ko.png": "1d83b8912bcbfdffbfc5ed00d8fd0f55ff1e81365912d51b351ee188a8ca4407",
+    "source/atlas-4-ko.png": "e745860bc379af95b568152832d91a6668c73f551f82f531332fd2eaf13f7f02",
+    "source/abyss2-ko.png": "a386995eac9190eb8fdc19d2a19bfbbda1c4331b9697db297822abf7486fdd2f"
+  },
+  "atlasBounds": {
+    "atlas-1-en": {
+      "rows": [
+        0,
+        155,
+        310,
+        465,
+        621,
+        776,
+        932,
+        1083,
+        1242
+      ],
+      "columns": [
+        0,
+        315,
+        632,
+        947,
+        1263
+      ]
+    },
+    "atlas-2-en": {
+      "rows": [
+        0,
+        155,
+        310,
+        464,
+        619,
+        775,
+        930,
+        1085,
+        1245
+      ],
+      "columns": [
+        0,
+        316,
+        633,
+        947,
+        1263
+      ]
+    },
+    "atlas-3-en": {
+      "rows": [
+        0,
+        155,
+        310,
+        465,
+        620,
+        775,
+        930,
+        1085,
+        1245
+      ],
+      "columns": [
+        0,
+        316,
+        633,
+        948,
+        1263
+      ]
+    },
+    "atlas-4-en": {
+      "rows": [
+        0,
+        155,
+        309,
+        464,
+        619,
+        773,
+        927,
+        1082,
+        1245
+      ],
+      "columns": [
+        0,
+        315,
+        632,
+        947,
+        1263
+      ]
+    },
+    "atlas-1-ko": {
+      "rows": [
+        0,
+        155,
+        310,
+        465,
+        620,
+        776,
+        932,
+        1083,
+        1242
+      ],
+      "columns": [
+        0,
+        315,
+        632,
+        947,
+        1263
+      ]
+    },
+    "atlas-2-ko": {
+      "rows": [
+        0,
+        154,
+        310,
+        464,
+        619,
+        775,
+        931,
+        1085,
+        1245
+      ],
+      "columns": [
+        0,
+        316,
+        633,
+        949,
+        1263
+      ]
+    },
+    "atlas-3-ko": {
+      "rows": [
+        0,
+        155,
+        310,
+        465,
+        620,
+        775,
+        930,
+        1085,
+        1245
+      ],
+      "columns": [
+        0,
+        315,
+        633,
+        947,
+        1263
+      ]
+    },
+    "atlas-4-ko": {
+      "rows": [
+        0,
+        155,
+        311,
+        466,
+        622,
+        776,
+        932,
+        1089,
+        1245
+      ],
+      "columns": [
+        0,
+        315,
+        632,
+        947,
+        1263
+      ]
+    }
+  }
+}

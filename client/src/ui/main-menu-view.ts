@@ -1,4 +1,3 @@
-import { paintMainMenuCaption, paintStoryCardCaption } from "./main-menu-caption";
 import { CanvasHitController, type CanvasHitRegion } from "./canvas-hit-controller";
 import { C9, E9, Ft, G1, T, V0, ct, f5, m9, p2, s2, st } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
@@ -733,7 +732,6 @@ export class MainMenuView {
         (this.category === "cat_replay" && menu === "cats" && name === `replay_${this.replayTab}`);
       const state = selected ? 2 : action ? st(key, this.hovered, this.pressed) : 3;
       ct(this.context, textures[state]!, rect);
-      paintMainMenuCaption(this.context, rect, name, SINGLE_LABELS[name], selected);
       if (action) this.regions.push({ key, rect, label: this.label(node, name),
         activate: () => { this.options.onActivate?.(); action(); } });
     } else if (textures) {
@@ -1003,7 +1001,6 @@ export class MainMenuView {
         context.drawImage(states[0].image, box.x, box.y, box.width, box.height);
         context.restore();
       }
-      paintStoryCardCaption(context, box, chapter.title, chapter.open, chapter.name);
       // scenarioCard: chapterCompleted at the card's corner, chapterNew top right.
       if (chapter.cleared && art?.completed)
         context.drawImage(art.completed.image, box.x, box.y, art.completed.width,
@@ -1270,10 +1267,10 @@ export class MainMenuView {
     if (!raw) return undefined;
     const key = /^#sb\(([^)]+)\)$/.exec(raw)?.[1];
     const value = key ? this.assets.strings.get(key) : raw;
-    // licenseInfo1 serves the PRO qualification page (获得徽章) and the license pages, whose
-    // button is 获得驾照: the CN text names the emblem on both (KR 라이센스 획득, TW 駕照獲得).
+    // The shared StringBag row describes the PRO emblem. Ordinary license
+    // pages must name their own button in every language.
     if (key === "licenseInfo1" && this.category === "cat_riderSchool" && this.selectedLicense !== 6)
-      return tr(value?.replace(tr("获得徽章"), tr("获得驾照")) ?? "");
+      return tr("* 完成所有任务后，点击下方的“获得驾照”按钮。");
     return value === undefined ? undefined : tr(value);
   }
 

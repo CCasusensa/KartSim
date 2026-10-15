@@ -7,6 +7,7 @@ import { openAccountPanel, type AccountPanelDocument, type AccountPanelHandle } 
 import { HomeScreen } from "../ui/home-screen";
 import { LobbyHomeView, type QuickEntry } from "../ui/lobby-home-view";
 import { loadLobbyPromos } from "../ui/lobby-promos";
+import { lobbyPromoArtLoader } from "../ui/lobby-promo-art";
 import { followAccountTopBar, lobbyAccountInfo } from "../ui/lobby-top-bar";
 import { loadLobbyTopBarArt, type TopBarArtLibrary } from "../ui/lobby-top-bar-assets";
 import { MAIN_MENU_FONT_FAMILY, MainMenuView, loadMainMenuAssets, type MainMenuAssets, type ReplayTab,
@@ -175,7 +176,7 @@ export async function openReadyHome(controller: ReadyHomeController,
   const host = controller.host;
   controller.homeOpening = true;
   // 大厅宣传 (server-go ADMIN.md 10): read while the home art loads.
-  const promos = loadLobbyPromos(activeBrowserSession());
+  const promos = loadLobbyPromos(activeBrowserSession(), lobbyPromoArtLoader(library));
   try {
     const assets = await homeAssets(library);
     if (controller.disposed || controller.activeHome || controller.activeHouse) return;

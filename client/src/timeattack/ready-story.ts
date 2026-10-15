@@ -1,4 +1,4 @@
-import { tr } from "../i18n/locale";
+import { gameLocale, tr } from "../i18n/locale";
 import { ensureFeatureResources } from "../ui/resource-panel";
 import { ksvCompression } from "../codecs/ksv-compression";
 import { decodeKsvFile } from "../game/ghost/ksv-codec";
@@ -10,6 +10,7 @@ import { clearOpenMultiplayerSteps, clearStoryStep, isChapterCleared, isChapterO
   type StoryProgress } from "../story/story-progress";
 import type { StoryGhostSource, StoryRaceOutcome } from "../story/story-race";
 import { STORY_ROOT, StoryResources, type StoryLibrary } from "../story/story-resources";
+import { storyChapterCardPaths } from "../story/story-card-art";
 import type { StoryMenuChapter } from "../ui/main-menu-view";
 import { decodeStoryTexture, openStoryMap, openStoryMessage, openStoryReady,
   openStoryScene, type StoryMapWindow } from "../ui/story-windows";
@@ -117,22 +118,20 @@ export function closeStory(controller: ReadyStoryController): void {
 const cardTextures = new WeakMap<object, Map<string, Promise<Array<{
   image: CanvasImageSource; width: number; height: number }> | undefined>>>();
 
-/** select/<chapter>.png, or the four button states select/<chapter>1…4.png. */
+/** A complete four-state family wins over an ambiguous single filename. */
 function chapterCard(library: StoryReadyLibrary, chapter: string) {
   let cache = cardTextures.get(library);
   if (!cache) cardTextures.set(library, cache = new Map());
-  let pending = cache.get(chapter);
+  const locale = gameLocale();
+  const key = `${locale}:${chapter}`;
+  let pending = cache.get(key);
   if (!pending) {
-    const roots = [`${STORY_ROOT}/select`];
     pending = Promise.resolve().then(async () => {
-      try {
-        return [await decodeStoryTexture(U1(library, roots, chapter) as never)];
-      } catch {
-        return Promise.all([1, 2, 3, 4].map(index =>
-          decodeStoryTexture(U1(library, roots, `${chapter}${index}`) as never)));
-      }
+      const paths = storyChapterCardPaths(library, chapter, locale);
+      return paths.length ? Promise.all(paths.map(path =>
+        decodeStoryTexture(library.canonicalCandidates(path)[0]!))) : undefined;
     }).catch(() => undefined);
-    cache.set(chapter, pending);
+    cache.set(key, pending);
   }
   return pending;
 }
@@ -144,12 +143,13 @@ const subTextures = new WeakMap<object, Map<string, Promise<{
 function chapterPicture(library: StoryReadyLibrary, chapter: string) {
   let cache = subTextures.get(library);
   if (!cache) subTextures.set(library, cache = new Map());
-  let pending = cache.get(chapter);
+  const key = `${gameLocale()}:${chapter}`;
+  let pending = cache.get(key);
   if (!pending) {
     pending = Promise.resolve().then(() =>
       decodeStoryTexture(U1(library, [`${STORY_ROOT}/select/sub`], chapter) as never))
       .catch(() => undefined);
-    cache.set(chapter, pending);
+    cache.set(key, pending);
   }
   return pending;
 }

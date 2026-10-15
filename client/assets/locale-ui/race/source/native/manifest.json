@@ -1,0 +1,310 @@
+[
+  {
+    "file": "result-ResultText@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/ResultText@cn.png",
+    "locale": "ko",
+    "width": 170,
+    "height": 48
+  },
+  {
+    "file": "result-result_rankText@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/result_rankText@cn.png",
+    "locale": "ko",
+    "width": 70,
+    "height": 76
+  },
+  {
+    "file": "result-redWin@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/redWin@cn.png",
+    "locale": "ko",
+    "width": 324,
+    "height": 92
+  },
+  {
+    "file": "result-blueWin@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/blueWin@cn.png",
+    "locale": "ko",
+    "width": 324,
+    "height": 92
+  },
+  {
+    "file": "result-greenWin@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/greenWin@cn.png",
+    "locale": "ko",
+    "width": 324,
+    "height": 92
+  },
+  {
+    "file": "result-yellowWin@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/yellowWin@cn.png",
+    "locale": "ko",
+    "width": 324,
+    "height": 92
+  },
+  {
+    "file": "result-scoreBox@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/scoreBox@cn.png",
+    "locale": "ko",
+    "width": 308,
+    "height": 86
+  },
+  {
+    "file": "result-scoreBox_blue@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/scoreBox_blue@cn.png",
+    "locale": "ko",
+    "width": 166,
+    "height": 86
+  },
+  {
+    "file": "result-scoreBox_red@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/scoreBox_red@cn.png",
+    "locale": "ko",
+    "width": 166,
+    "height": 86
+  },
+  {
+    "file": "result-scoreBox_green@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/scoreBox_green@cn.png",
+    "locale": "ko",
+    "width": 166,
+    "height": 86
+  },
+  {
+    "file": "result-scoreBox_yellow@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/scoreBox_yellow@cn.png",
+    "locale": "ko",
+    "width": 166,
+    "height": 86
+  },
+  {
+    "file": "result-victory@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/victory@cn.png",
+    "locale": "ko",
+    "width": 223,
+    "height": 119
+  },
+  {
+    "file": "result-perpect@kr.png",
+    "canonicalPath": "stage_/mqGameFinal/perpect@cn.png",
+    "locale": "ko",
+    "width": 134,
+    "height": 76
+  },
+  {
+    "file": "result-victory@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/victory@cn.png",
+    "locale": "en",
+    "width": 223,
+    "height": 119
+  },
+  {
+    "file": "result-perpect@zz.png",
+    "canonicalPath": "stage_/mqGameFinal/perpect@cn.png",
+    "locale": "en",
+    "width": 134,
+    "height": 76
+  },
+  {
+    "file": "ready-btn_ready_1@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_ready_1@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_ready_2@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_ready_2@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_ready_3@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_ready_3@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_ready_4@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_ready_4@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_cancel_1@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_cancel_1@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_cancel_2@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_cancel_2@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_cancel_3@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_cancel_3@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_cancel_4@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_cancel_4@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_start_1@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_start_1@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_start_2@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_start_2@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_start_3@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_start_3@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_start_4@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_start_4@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_gameStart1@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_gameStart1@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_gameStart2@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_gameStart2@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_gameStart3@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_gameStart3@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_gameStart4@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_gameStart4@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_Autostart_1@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_Autostart_1@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_Autostart_2@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_Autostart_2@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_Autostart_3@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_Autostart_3@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-btn_Autostart_4@zz.png",
+    "canonicalPath": "stage_/mqReady/btn_Autostart_4@cn.png",
+    "locale": "ko",
+    "width": 249,
+    "height": 78
+  },
+  {
+    "file": "ready-slotReady@zz.png",
+    "canonicalPath": "stage_/mqReady/slotReady@cn.png",
+    "locale": "ko",
+    "width": 251,
+    "height": 45
+  },
+  {
+    "file": "common-btn_teamChange_1@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_1@cn.png",
+    "locale": "en",
+    "width": 80,
+    "height": 78
+  },
+  {
+    "file": "common-btn_teamChange_1@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_1@cn.png",
+    "locale": "ko",
+    "width": 80,
+    "height": 78
+  },
+  {
+    "file": "common-btn_teamChange_2@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_2@cn.png",
+    "locale": "en",
+    "width": 80,
+    "height": 78
+  },
+  {
+    "file": "common-btn_teamChange_2@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_2@cn.png",
+    "locale": "ko",
+    "width": 80,
+    "height": 78
+  },
+  {
+    "file": "common-btn_teamChange_3@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_3@cn.png",
+    "locale": "en",
+    "width": 80,
+    "height": 78
+  },
+  {
+    "file": "common-btn_teamChange_3@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_3@cn.png",
+    "locale": "ko",
+    "width": 80,
+    "height": 78
+  },
+  {
+    "file": "common-btn_teamChange_4@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_4@cn.png",
+    "locale": "en",
+    "width": 80,
+    "height": 78
+  },
+  {
+    "file": "common-btn_teamChange_4@zz.png",
+    "canonicalPath": "stage_/common/btn_teamChange_4@cn.png",
+    "locale": "ko",
+    "width": 80,
+    "height": 78
+  }
+]

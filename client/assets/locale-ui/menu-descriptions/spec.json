@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "prompt": "source/prompt.txt",
+  "preparation": "node tools/slice-menu-description-art.mjs (requires ImageMagick)",
+  "entries": [
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleBlue.png",
+      "locale": "en",
+      "file": "en/img_titleBlue.png",
+      "width": 246,
+      "height": 318,
+      "provenance": "Complete imagegen translation of original title and explanation paragraph; original character/trophy art retained; geometry-only slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleRed.png",
+      "locale": "en",
+      "file": "en/img_titleRed.png",
+      "width": 246,
+      "height": 318,
+      "provenance": "Complete imagegen translation of original title and explanation paragraph; original character/trophy art retained; geometry-only slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleYellow.png",
+      "locale": "en",
+      "file": "en/img_titleYellow.png",
+      "width": 246,
+      "height": 318,
+      "provenance": "Complete imagegen translation of original title and explanation paragraph; original character/trophy art retained; geometry-only slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleBlue.png",
+      "locale": "ko",
+      "file": "ko/img_titleBlue.png",
+      "width": 246,
+      "height": 318,
+      "provenance": "Complete imagegen translation of original title and explanation paragraph; original character/trophy art retained; geometry-only slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleRed.png",
+      "locale": "ko",
+      "file": "ko/img_titleRed.png",
+      "width": 246,
+      "height": 318,
+      "provenance": "Complete imagegen translation of original title and explanation paragraph; original character/trophy art retained; geometry-only slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleYellow.png",
+      "locale": "ko",
+      "file": "ko/img_titleYellow.png",
+      "width": 246,
+      "height": 318,
+      "provenance": "Complete imagegen translation of original title and explanation paragraph; original character/trophy art retained; geometry-only slicing"
+    }
+  ]
+}

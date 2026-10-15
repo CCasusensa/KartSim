@@ -52,7 +52,7 @@ test("groups cover every container; themes gather tracks, textures, music and rh
   assert.equal(trackThemeOf("simulationGame"), undefined);
 });
 
-test("the release manifest: every container in a group, 首页 under 400 MiB", () => {
+test("the release manifest: home stays within separate base and locale image budgets", () => {
   const manifestPath = new URL("../../../mirror/__p3553/resources", import.meta.url);
   const indexPath = new URL("../../../mirror/__p3553/archive-index", import.meta.url);
   if (!existsSync(manifestPath) || !existsSync(indexPath)) return;
@@ -61,7 +61,13 @@ test("the release manifest: every container in a group, 首页 under 400 MiB", (
   const groups = buildResourceGroups(manifest.files, index.rho5);
   assert.equal(new Set(groups.flatMap(group => group.containers)).size, manifest.files.length);
   const home = findResourceGroup(groups, "home")!;
-  assert.ok(home.bytes < 400 * 1024 * 1024, `home ${home.bytes}`);
+  const locale = manifest.files.find(file => file.name === "locale_ui.rho");
+  assert.ok(locale && home.containers.includes(locale.name), "complete language images are a base resource");
+  // Keep the original 400 MiB base budget; the complete three-language image
+  // archive has its own 50 MiB allowance instead of hiding unrelated growth.
+  assert.ok(locale.size < 50 * 1024 * 1024, `locale images ${locale.size}`);
+  assert.ok(home.bytes - locale.size < 400 * 1024 * 1024, `base home ${home.bytes - locale.size}`);
+  assert.ok(home.bytes < 450 * 1024 * 1024, `home including locale images ${home.bytes}`);
   assert.ok((findResourceGroup(groups, "tracks")!.children?.length ?? 0) >= 30);
 });
 
@@ -97,6 +103,31 @@ class FakeStore implements ResourceStoreApi {
 }
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+
+test("localized UI art downloads with home resources and survives resource cleanup", async () => {
+  const store = new FakeStore();
+  store.list = () => [...files, { name: "locale_ui.rho", size: 250 }];
+  store.cached = new Set(files.map(file => file.name));
+  store.ensure = async name => {
+    store.started.push(name);
+    store.cached.add(name);
+  };
+  const manager = new ResourceManager(store, packs);
+  await manager.ready;
+  assert.ok(manager.group("home")!.containers.includes("locale_ui.rho"));
+  assert.ok(!manager.group("other")!.containers.includes("locale_ui.rho"));
+  assert.equal(manager.status("home").state, "partial");
+
+  await manager.downloadGroup("home").done;
+  assert.deepEqual(store.started, ["locale_ui.rho"]);
+  assert.equal(manager.status("home").state, "complete");
+
+  await manager.removeGroup("other");
+  assert.deepEqual(store.removed, ["stage_weird.rho"]);
+  assert.equal(manager.removableBytes("home"), 0);
+  assert.equal(await manager.removeGroup("home"), 0);
+  assert.ok(store.cached.has("locale_ui.rho"), "language art stays available after cleanup");
+});
 
 test("the queue runs the highest priority first and downloads each container once", async () => {
   const store = new FakeStore();

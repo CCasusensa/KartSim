@@ -1,5 +1,5 @@
 import { translateItemName } from "../i18n/item-names";
-import { localizeImageCaption } from "../shop/shop-widgets";
+import { setImageButtonLabel } from "../shop/shop-widgets";
 import { tr, gameLocale } from "../i18n/locale";
 /**
  * The 精品道具场 (通用扭蛋): the release GachaUseStage (stage_/gachaUse
@@ -144,7 +144,7 @@ export class GachaView {
       const target = this.el(name);
       if (target instanceof HTMLButtonElement) {
         target.setAttribute("aria-label", label);
-        if (name !== "quitButton") localizeImageCaption(target, label);
+        if (name !== "quitButton") setImageButtonLabel(target, label);
         target.addEventListener("click", onClick);
       }
       return target;
@@ -389,21 +389,9 @@ export class GachaView {
       part.style.height = "28px";
       x += widths[index]! + 4;
     });
-    if (gameLocale() !== "zh-CN") {
-      // These descendants are number/unit/use sprites with baked Chinese captions.
-      const hideChildren = (node: ShopNode): void => {
-        for (const child of node.children) {
-          const element = this.tree.elements.get(child);
-          if (element) element.hidden = true;
-          hideChildren(child);
-        }
-      };
-      for (const [name, amount] of [["oneUse", 1], ["multiUse", count]] as const) {
-        const node = findIn(this.layoutWindow, name);
-        if (node) hideChildren(node);
-        const target = this.el(name);
-        if (target) localizeImageCaption(target, tr("使用%d个").replace("%d", String(amount)));
-      }
+    for (const [name, amount] of [["oneUse", 1], ["multiUse", count]] as const) {
+      const target = this.el(name);
+      if (target) setImageButtonLabel(target, tr("使用%d个").replace("%d", String(amount)));
     }
     for (const name of ["oneUse", "multiUse"]) {
       const target = this.el(name);

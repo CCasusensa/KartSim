@@ -1,0 +1,14 @@
+[
+  {
+    "locale": "en",
+    "raw": "exec-1e2b82e2-19ab-413e-9957-01aa1fef2bbb.png",
+    "crop": "1989x252+0+217",
+    "prompt": "Edit exact game sprite atlas 2 columns x 2 rows, aspect ratio 644:80, keep grid and icons/checker/green gradients and native state colors exactly. Row1 normal and bright hover, row2 pressed dark green and grey disabled. Replace ONLY Korean lettering, integrate original bold white shadowed type seamlessly with no boxes, keep right chevron; no margins. ALL FOUR cells read exactly 'Watch the Official Guide'."
+  },
+  {
+    "locale": "zh-CN",
+    "raw": "exec-37fda37d-24df-40c2-a0b5-4f702586924a.png",
+    "crop": "1989x269+0+198",
+    "prompt": "Edit exact game sprite atlas 2 columns x 2 rows, aspect ratio 644:80, keep grid and icons/checker/green gradients and native state colors exactly. Row1 normal and bright hover, row2 pressed dark green and grey disabled. Replace ONLY Korean lettering, integrate original bold white shadowed type seamlessly with no boxes, keep right chevron; no margins. ALL FOUR cells read exactly '观看官方驾驶指南'。"
+  }
+]

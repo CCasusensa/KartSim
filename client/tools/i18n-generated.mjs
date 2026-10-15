@@ -33,6 +33,18 @@ export function localizeGeneratedModule(filename, source) {
     if (source.includes('trackDisplayTitle(') && !source.includes(trackImport)) source = trackImport + source;
   }
   if (filename === "library.js") {
+    source = source.replace('fetch(`/ui/multiplayer/${p.editedImage}${v}.png`)',
+      'loadMultiplayerModeImage(n, `${p.editedImage}${v}.png`)');
+    source = source.replace('fetch(`/ui/multiplayer/${p.image}`)',
+      'loadMultiplayerModeImage(n, p.image)');
+    const modeImport = 'import { loadMultiplayerModeImage } from "../multiplayer/mode-art.ts";\n';
+    if (source.includes('loadMultiplayerModeImage(n,') && !source.includes(modeImport)) source = modeImport + source;
+    // Bitmap labels are localized by selecting a complete native/generated PNG.
+    // Keep BML lookup unchanged so resource geometry and game logic stay stable.
+    source = source.replace('const a = n.canonicalCandidates(`${o}/${s}${i}`);',
+      'const path = `${o}/${s}${i}`;\n      const a = n.canonicalCandidates(i === ".png" ? resolveLocalizedPngPath(n, path) : path);');
+    const pngImport = 'import { resolveLocalizedPngPath } from "../resources/localized-png.ts";\n';
+    if (source.includes('resolveLocalizedPngPath(n, path)') && !source.includes(pngImport)) source = pngImport + source;
     source = source.replace('this.canvas.setAttribute("aria-label", "多人游戏大厅")',
       'this.canvas.setAttribute("aria-label", translateGeneratedLabel("多人游戏大厅"))');
     source = source.replace('this.element.setAttribute("aria-label", "多人游戏大厅"),',

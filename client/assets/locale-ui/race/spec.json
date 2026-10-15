@@ -1,0 +1,1086 @@
+{
+  "version": 1,
+  "preparation": "node tools/slice-race-locale-art.mjs (requires ImageMagick)",
+  "entries": [
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_singleAgain_1.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_singleAgain_2.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_singleAgain_3.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_singleAgain_4.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_menu_1.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_menu_2.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_menu_3.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_menu_4.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_singleAgain_1.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_singleAgain_2.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_singleAgain_3.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_singleAgain_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_singleAgain_4.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_menu_1.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_menu_2.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_menu_3.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_menu_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_menu_4.png",
+      "width": 104,
+      "height": 106,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/ResultText@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/ResultText.png",
+      "width": 170,
+      "height": 48,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/result_rankText@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/result_rankText.png",
+      "width": 70,
+      "height": 76,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/redWin@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/redWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/blueWin@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/blueWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/scoreBox.png",
+      "width": 308,
+      "height": 86,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_blue@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/scoreBox_blue.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_red@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/scoreBox_red.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_green@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/scoreBox_green.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_yellow@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/scoreBox_yellow.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockSpeedGame/lap_RunnerText@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockSpeedGame/lap_RunnerText.png",
+      "width": 182,
+      "height": 68,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockSpeedGame/lap_BlockerText@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockSpeedGame/lap_BlockerText.png",
+      "width": 182,
+      "height": 68,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockSpeedGame/lap_HandicapText@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockSpeedGame/lap_HandicapText.png",
+      "width": 182,
+      "height": 30,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockSpeedGame/rank_RunnerText@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockSpeedGame/rank_RunnerText.png",
+      "width": 190,
+      "height": 56,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockSpeedGame/rank_BlockerText@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockSpeedGame/rank_BlockerText.png",
+      "width": 190,
+      "height": 56,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockGameFinal/runnerHeader@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockGameFinal/runnerHeader.png",
+      "width": 374,
+      "height": 33,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockGameFinal/blockerHeader@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockGameFinal/blockerHeader.png",
+      "width": 374,
+      "height": 33,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockGameFinal/gameresult_RunnerWin@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockGameFinal/gameresult_RunnerWin.png",
+      "width": 414,
+      "height": 85,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqRoadBlockGameFinal/gameresult_RunnerLose@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqRoadBlockGameFinal/gameresult_RunnerLose.png",
+      "width": 414,
+      "height": 85,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/greenWin@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/greenWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Complete transparent imagegen lettering; source/victory-generation.json; geometry-only crop and resize"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/yellowWin@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/yellowWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Complete transparent imagegen lettering; source/victory-generation.json; geometry-only crop and resize"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_ready_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_ready_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_ready_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_ready_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_cancel_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_cancel_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_cancel_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_cancel_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_start_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_start_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_start_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_start_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_gameStart1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_gameStart2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_gameStart3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_gameStart4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_Autostart_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_Autostart_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_Autostart_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_Autostart_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_set_1.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_set_2.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_set_3.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/btn_set_4.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_exit_1.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_exit_2.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_exit_3.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_exit_4.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/slotReady@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqReady/slotReady.png",
+      "width": 251,
+      "height": 45,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_set_1.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_set_2.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_set_3.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_set_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_set_4.png",
+      "width": 134,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_exit_1.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_exit_2.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_exit_3.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_exit_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_exit_4.png",
+      "width": 104,
+      "height": 38,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/ordinary-race.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/ordinary-race.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/grip-mode.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/grip-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/ghost-mode.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/ghost-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/blocking-mode.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/blocking-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/giant-mode.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/giant-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-01.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/rp-race-neutral-01.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-02.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/rp-race-neutral-02.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-03.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/rp-race-neutral-03.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-04.png",
+      "locale": "en",
+      "file": "en/ui/multiplayer/rp-race-neutral-04.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/ordinary-race.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/ordinary-race.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/grip-mode.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/grip-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/ghost-mode.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/ghost-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/blocking-mode.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/blocking-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/giant-mode.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/giant-mode.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-01.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/rp-race-neutral-01.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-02.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/rp-race-neutral-02.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-03.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/rp-race-neutral-03.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "ui/multiplayer/rp-race-neutral-04.png",
+      "locale": "ko",
+      "file": "ko/ui/multiplayer/rp-race-neutral-04.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Complete imagegen localization of the source sprite; geometry-only resizing and slicing; prompt in source/prompts.json"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/ResultText@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/ResultText.png",
+      "width": 170,
+      "height": 48,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/result_rankText@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/result_rankText.png",
+      "width": 70,
+      "height": 76,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/redWin@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/redWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/blueWin@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/blueWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/greenWin@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/greenWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/yellowWin@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/yellowWin.png",
+      "width": 324,
+      "height": 92,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/scoreBox.png",
+      "width": 308,
+      "height": 86,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_blue@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/scoreBox_blue.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_red@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/scoreBox_red.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_green@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/scoreBox_green.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/scoreBox_yellow@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/scoreBox_yellow.png",
+      "width": 166,
+      "height": 86,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/victory@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/victory.png",
+      "width": 223,
+      "height": 119,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/perpect@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqGameFinal/perpect.png",
+      "width": 134,
+      "height": 76,
+      "provenance": "Original Korean artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/victory@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/victory.png",
+      "width": 223,
+      "height": 119,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqGameFinal/perpect@cn.png",
+      "locale": "en",
+      "file": "en/stage_/mqGameFinal/perpect.png",
+      "width": 134,
+      "height": 76,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_ready_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_ready_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_ready_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_ready_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_ready_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_cancel_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_cancel_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_cancel_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_cancel_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_cancel_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_start_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_start_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_start_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_start_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_start_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_gameStart1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_gameStart2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_gameStart3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_gameStart4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_gameStart4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_Autostart_1.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_Autostart_2.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_Autostart_3.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/btn_Autostart_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/btn_Autostart_4.png",
+      "width": 249,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/mqReady/slotReady@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/mqReady/slotReady.png",
+      "width": 251,
+      "height": 45,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_1@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_teamChange_1.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_1@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_teamChange_1.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_2@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_teamChange_2.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_2@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_teamChange_2.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_3@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_teamChange_3.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_3@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_teamChange_3.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_4@cn.png",
+      "locale": "en",
+      "file": "en/stage_/common/btn_teamChange_4.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    },
+    {
+      "canonicalPath": "stage_/common/btn_teamChange_4@cn.png",
+      "locale": "ko",
+      "file": "ko/stage_/common/btn_teamChange_4.png",
+      "width": 80,
+      "height": 78,
+      "provenance": "Original audited native artwork; whole-image size adaptation without changing lettering"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "name": "ordinary-race.png",
+    "locale": "en",
+    "column": 0,
+    "row": 0,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "grip-mode.png",
+    "locale": "en",
+    "column": 1,
+    "row": 0,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "ghost-mode.png",
+    "locale": "en",
+    "column": 2,
+    "row": 0,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "blocking-mode.png",
+    "locale": "en",
+    "column": 0,
+    "row": 1,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "giant-mode.png",
+    "locale": "en",
+    "column": 1,
+    "row": 1,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "rp-race-neutral-01.png",
+    "locale": "en",
+    "column": 2,
+    "row": 1,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "ordinary-race.png",
+    "locale": "ko",
+    "column": 0,
+    "row": 2,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "grip-mode.png",
+    "locale": "ko",
+    "column": 1,
+    "row": 2,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "ghost-mode.png",
+    "locale": "ko",
+    "column": 2,
+    "row": 2,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "blocking-mode.png",
+    "locale": "ko",
+    "column": 0,
+    "row": 3,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "giant-mode.png",
+    "locale": "ko",
+    "column": 1,
+    "row": 3,
+    "width": 272,
+    "height": 134
+  },
+  {
+    "name": "rp-race-neutral-01.png",
+    "locale": "ko",
+    "column": 2,
+    "row": 3,
+    "width": 272,
+    "height": 134
+  }
+]

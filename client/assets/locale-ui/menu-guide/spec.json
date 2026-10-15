@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_1@zz.png",
+      "locale": "en",
+      "file": "en/btn_watchingGuide_1@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_2@zz.png",
+      "locale": "en",
+      "file": "en/btn_watchingGuide_2@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_3@zz.png",
+      "locale": "en",
+      "file": "en/btn_watchingGuide_3@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_4@zz.png",
+      "locale": "en",
+      "file": "en/btn_watchingGuide_4@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_1@zz.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/btn_watchingGuide_1@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_2@zz.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/btn_watchingGuide_2@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_3@zz.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/btn_watchingGuide_3@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_watchingGuide_4@zz.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/btn_watchingGuide_4@zz.png",
+      "width": 322,
+      "height": 40,
+      "provenance": "imagegen localization of original Korean guide sprite, with geometry-only atlas cropping"
+    }
+  ]
+}

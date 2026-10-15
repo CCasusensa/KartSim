@@ -66,9 +66,6 @@ button.ks-bml:disabled{cursor:default}
 .ks-bml[data-valign=center]>.ks-text{align-items:center}
 .ks-bml[data-wrap=true]>.ks-text{white-space:pre-wrap;word-break:break-all;display:block}
 .ks-bml[data-stroke=true]>.ks-text{text-shadow:${OUTLINE};letter-spacing:1.5px}
-.ks-localized-image-caption{border:2px solid #94731d;border-radius:3px;background-size:100% 100%}
-.ks-localized-image-caption>.ks-text{white-space:normal;padding:3px 6px;line-height:1.15;overflow:hidden;text-shadow:none;letter-spacing:0}
-.ks-shop-mark.ks-shop-mark-localized{background:#d54250;border:1px solid #fff8;border-radius:4px;color:white;padding:3px 6px;font-size:12px;line-height:1.2;text-align:center;animation:none;white-space:nowrap}
 /* The CN FtFonts sit their glyphs a little lower in a top-aligned box than CSS does. */
 .ks-bml[data-valign=top]>.ks-text{transform:translateY(2px)}
 .ks-bml[data-face=plain]>.ks-text{font-weight:400}

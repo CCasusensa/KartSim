@@ -268,13 +268,7 @@ export class SpendEventPanel {
     root.hidden = true;
     this.element = root;
     const title = this.tree.named("title");
-    setTexture(title, gameLocale() === "zh-CN" ? TITLE_IMAGE : undefined);
-    if (gameLocale() !== "zh-CN") {
-      setText(title, SHOP_STRINGS.tcCashEvent1);
-      title.style.setProperty("--fz", "21px");
-      title.dataset.align = "center";
-      title.dataset.valign = "center";
-    }
+    setTexture(title, TITLE_IMAGE);
     title.setAttribute("role", "heading");
     title.setAttribute("aria-level", "2");
     title.setAttribute("aria-label", SHOP_STRINGS.tcCashEvent1);
@@ -364,13 +358,8 @@ export class SpendEventPanel {
     for (const name of ["complete", "close"]) {
       const node = find(TC_CASH_SLOT, name);
       const panel = slot.named(name);
-      setTexture(panel, gameLocale() === "zh-CN" ? attr(node, "texture") : undefined);
-      if (gameLocale() !== "zh-CN") {
-        setText(panel, name === "complete" ? tr("已达成") : tr("活动结束"));
-        panel.dataset.align = panel.dataset.valign = "center";
-        panel.style.backgroundColor = "#193755e6";
-        panel.style.setProperty("--fz", "12px");
-      }
+      setTexture(panel, attr(node, "texture"));
+      panel.setAttribute("aria-label", name === "complete" ? tr("已达成") : tr("活动结束"));
     }
     slot.named("effect").hidden = true;
     return root;

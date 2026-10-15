@@ -1,0 +1,482 @@
+[
+  {
+    "name": "multiplayer",
+    "frame": 1,
+    "region": "cn",
+    "resource": "menu/btn_mainMulti_1@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "19e6eefade011a64ab56e0614490cfe3dfb373ec2195eedf2ec3286fdcd17256"
+  },
+  {
+    "name": "multiplayer",
+    "frame": 1,
+    "region": "zz",
+    "resource": "menu/btn_mainMulti_1@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "5742183fd821e062d3cfde89705b10bea2a27233f0b4de763cee01913e83e9db"
+  },
+  {
+    "name": "multiplayer",
+    "frame": 2,
+    "region": "cn",
+    "resource": "menu/btn_mainMulti_2@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "1775415192ce90b3f1a6f95882c62ae24e573f3236a466bfc3fc7e364079515d"
+  },
+  {
+    "name": "multiplayer",
+    "frame": 2,
+    "region": "zz",
+    "resource": "menu/btn_mainMulti_2@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "e879e7d8cfadd93d2c12206878239335385c652fb533d9ed9840b98a6c29a5b4"
+  },
+  {
+    "name": "multiplayer",
+    "frame": 3,
+    "region": "cn",
+    "resource": "menu/btn_mainMulti_3@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "91fb84e448a8289b3ca48359315218f799677e09f5c25aee5311f5cf384256f9"
+  },
+  {
+    "name": "multiplayer",
+    "frame": 3,
+    "region": "zz",
+    "resource": "menu/btn_mainMulti_3@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "f4700e5b4a3b5b59eec22d9ac1b99b5d83e018e366aeb18664804cb734a0f50f"
+  },
+  {
+    "name": "multiplayer",
+    "frame": 4,
+    "region": "cn",
+    "resource": "menu/btn_mainMulti_4@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "22f71a0539682c0fd7003e29fbc85630ed5cf8bc5cedaf36f6345f7d8b2c1e76"
+  },
+  {
+    "name": "multiplayer",
+    "frame": 4,
+    "region": "zz",
+    "resource": "menu/btn_mainMulti_4@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "053f29b0947f4b1fed78e200ba1097261fa34a187a78ba8b35ec693baea72a39"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 1,
+    "region": "cn",
+    "resource": "menu/btn_mainSingle_1@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "de3c12d6f2f0a7bcf260e6ba25a0882f25dacab466f1e08107c4d0e563e6b258"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 1,
+    "region": "zz",
+    "resource": "menu/btn_mainSingle_1@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "70b72c776361e2d331f354f8fe6a54de568ab19b5345b6e3266737b4a46658de"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 2,
+    "region": "cn",
+    "resource": "menu/btn_mainSingle_2@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "3fcce2653864bbd0ca90f90b384ebbe4442ed87ff73f41e64b46dece053ca2a7"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 2,
+    "region": "zz",
+    "resource": "menu/btn_mainSingle_2@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "a997072635510f77325664ebb939d109e9366b6b1977497c77b03336ec3f05ba"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 3,
+    "region": "cn",
+    "resource": "menu/btn_mainSingle_3@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "63aa5d5ee7a9486730a0173ed9ffdaef000e279021a23118b0921ba064d16841"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 3,
+    "region": "zz",
+    "resource": "menu/btn_mainSingle_3@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "f6f7d00aeea273f2cd93ebd3f110b5abd45edd3fd5ff693c381a3471e431be1d"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 4,
+    "region": "cn",
+    "resource": "menu/btn_mainSingle_4@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "7b43ad7a5bcd8edeaa90178ec80aa2e7c24d494c5cd0a3030614d9765b18529a"
+  },
+  {
+    "name": "singleplayer",
+    "frame": 4,
+    "region": "zz",
+    "resource": "menu/btn_mainSingle_4@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "0a450a0cc7d47cd969451f375c44c9974738848ea8a1c048b97291cc06dc5b13"
+  },
+  {
+    "name": "myroom",
+    "frame": 1,
+    "region": "cn",
+    "resource": "menu/btn_mainMyroom_1@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "adc12c2012ba0cd824b9481b86ff6915b1f31a7513ddb4cb143334ded16074fb"
+  },
+  {
+    "name": "myroom",
+    "frame": 1,
+    "region": "zz",
+    "resource": "menu/btn_mainMyroom_1@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "a340cd4391e9e53ba22a3d7fbe8d1025ef332b34185fde60cb42f67f05806ae6"
+  },
+  {
+    "name": "myroom",
+    "frame": 2,
+    "region": "cn",
+    "resource": "menu/btn_mainMyroom_2@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "303ab49452d7f66a9cece8d4ac9ed6c62a9632b5fe276ef79c94b16f18ccc1ce"
+  },
+  {
+    "name": "myroom",
+    "frame": 2,
+    "region": "zz",
+    "resource": "menu/btn_mainMyroom_2@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "980164f7df176ed80c854dea5eab946453da3721080ae9fe42a8712b1e2e81fb"
+  },
+  {
+    "name": "myroom",
+    "frame": 3,
+    "region": "cn",
+    "resource": "menu/btn_mainMyroom_3@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "f3de6178386009322bd9f56b9f0a2c2048608af78c04b14cbff12a70b2bbfeaf"
+  },
+  {
+    "name": "myroom",
+    "frame": 3,
+    "region": "zz",
+    "resource": "menu/btn_mainMyroom_3@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "acb113c9185eb12c10435df7c267923e73d46a7be10162d34df4953c4f4b55f4"
+  },
+  {
+    "name": "myroom",
+    "frame": 4,
+    "region": "cn",
+    "resource": "menu/btn_mainMyroom_4@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "b08685e5d1c394dfe11a68a216f591fbfd55340ca67a336a86b76a02d395a58f"
+  },
+  {
+    "name": "myroom",
+    "frame": 4,
+    "region": "zz",
+    "resource": "menu/btn_mainMyroom_4@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "7fb985eb58279631f4ab9e36ae06214131140fb3789b290213e696cbac48de52"
+  },
+  {
+    "name": "shop",
+    "frame": 1,
+    "region": "cn",
+    "resource": "menu/btn_mainShop_1@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "5a76b228693d5b6fe57b4a7e81c988dcb827d18ac6d2edfcaaafc04fb9a69199"
+  },
+  {
+    "name": "shop",
+    "frame": 1,
+    "region": "zz",
+    "resource": "menu/btn_mainShop_1@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "0c21787527494134db2d0b1a4a07350c00a6cb1bfed4cec5366a75d6f03af81a"
+  },
+  {
+    "name": "shop",
+    "frame": 2,
+    "region": "cn",
+    "resource": "menu/btn_mainShop_2@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "d40b43a214fbeaa716d889f440f68127e724d7d637736cbf573e440b36eff8e8"
+  },
+  {
+    "name": "shop",
+    "frame": 2,
+    "region": "zz",
+    "resource": "menu/btn_mainShop_2@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "ceefc23471c9346e362e481a8e2441b3d91f3cbf2925a34b0168568a1ff89c78"
+  },
+  {
+    "name": "shop",
+    "frame": 3,
+    "region": "cn",
+    "resource": "menu/btn_mainShop_3@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "93acd55c588b6edace2d82986266a776d9e6b2c5564dd28e8e380c67ad4b161a"
+  },
+  {
+    "name": "shop",
+    "frame": 3,
+    "region": "zz",
+    "resource": "menu/btn_mainShop_3@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "5fb405833c05b12b8bce15cc05c40232cd0d359e8e4c000a98c13f6798b593bf"
+  },
+  {
+    "name": "shop",
+    "frame": 4,
+    "region": "cn",
+    "resource": "menu/btn_mainShop_4@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "739e00bc56e9bea1ff6d1e825fccd313b3dd331aa07c4b325ed38b7fa3ec6629"
+  },
+  {
+    "name": "shop",
+    "frame": 4,
+    "region": "zz",
+    "resource": "menu/btn_mainShop_4@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "fcaa0a4043adeaa990d2cdbe5ac891725ba7e2cfc2a4e81225823fc1c9a14eda"
+  },
+  {
+    "name": "garage",
+    "frame": 1,
+    "region": "cn",
+    "resource": "menu/튜닝_01@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "d4c3db376dfbc813544633dfeeb35bb537aa0771719575fdbff11b6fd978acd9"
+  },
+  {
+    "name": "garage",
+    "frame": 1,
+    "region": "zz",
+    "resource": "menu/튜닝_01@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "98d15886fe489358a543284afd01ebd90bcfcd3c7582d55487d7a8062d1faf34"
+  },
+  {
+    "name": "garage",
+    "frame": 2,
+    "region": "cn",
+    "resource": "menu/튜닝_02@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "df22076bf1725c99a5d525c0a5f13a88095ec43fb3680d5b50fa4d6b63434d4b"
+  },
+  {
+    "name": "garage",
+    "frame": 2,
+    "region": "zz",
+    "resource": "menu/튜닝_02@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "1b9ede6bf1e926cce05babe0de8d891bea9e1ca286e4fda24bad5e07bc132409"
+  },
+  {
+    "name": "garage",
+    "frame": 3,
+    "region": "cn",
+    "resource": "menu/튜닝_03@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "c5c662dc9b63cb615251842320562b055731f3e440c321cc74fe86ac6b995fd5"
+  },
+  {
+    "name": "garage",
+    "frame": 3,
+    "region": "zz",
+    "resource": "menu/튜닝_03@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "a1a06e764e60bc2a51f90701f32ee57709d0dcb90dce804b94a75dcd2ea9552a"
+  },
+  {
+    "name": "garage",
+    "frame": 4,
+    "region": "cn",
+    "resource": "menu/튜닝_04@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "69d3138129e134ab0c51c9d558d45e3c633cc21546d30aca5766342ca26db3e4"
+  },
+  {
+    "name": "garage",
+    "frame": 4,
+    "region": "zz",
+    "resource": "menu/튜닝_04@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "5ab257826490371a06352a729721123a4fcc577b17619beaa2fb4d01d7e6bf69"
+  },
+  {
+    "name": "club",
+    "frame": 1,
+    "region": "cn",
+    "resource": "menu/클럽_01@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "25095d6495fdd47be8b33ffe3d8e98854a2f0d7620acaca0b87f398bdfafd918"
+  },
+  {
+    "name": "club",
+    "frame": 1,
+    "region": "zz",
+    "resource": "menu/클럽_01@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "c40341caf71f23a5634554e5f63c4c910ccdf6cfd7f3af42f00b32b79dda1b91"
+  },
+  {
+    "name": "club",
+    "frame": 2,
+    "region": "cn",
+    "resource": "menu/클럽_02@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "6922a1d54df67c4a3e1dec353b8b0b29a429d182f6a9296329f0e54396898b33"
+  },
+  {
+    "name": "club",
+    "frame": 2,
+    "region": "zz",
+    "resource": "menu/클럽_02@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "81489e69ea37ff03bfed9a22d4919f4af12465e8cadcbb314e7f1928b521565b"
+  },
+  {
+    "name": "club",
+    "frame": 3,
+    "region": "cn",
+    "resource": "menu/클럽_03@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "5f7f4689e1b1646209eb143ad4d67b4427d8cc371c13188988418140b2f230aa"
+  },
+  {
+    "name": "club",
+    "frame": 3,
+    "region": "zz",
+    "resource": "menu/클럽_03@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "80ba1bd31600245778829e691fc367ce884e34362b090fc613aba9562ca3e99a"
+  },
+  {
+    "name": "club",
+    "frame": 4,
+    "region": "cn",
+    "resource": "menu/클럽_04@cn.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "132a6c967820249b5deef3734df3a22e5d0f39d1fc6b3c63a9edd722fa571ac1"
+  },
+  {
+    "name": "club",
+    "frame": 4,
+    "region": "zz",
+    "resource": "menu/클럽_04@zz.png",
+    "width": 104,
+    "height": 66,
+    "archive": "gui_window.rho",
+    "sha256": "a759e11e2490c244574f4220d66d38dba7e63c30c4b97e7059d071d0b42289f7"
+  }
+]

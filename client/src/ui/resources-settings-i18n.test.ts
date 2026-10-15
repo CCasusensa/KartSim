@@ -69,7 +69,7 @@ test("settings translate resource fallbacks, custom options and dynamic speed hi
   }));
 });
 
-test("English and Korean pause menus replace baked Chinese text while keeping the icons", () => {
+test("pause menus draw complete locale bitmaps without painting caption overlays", () => {
   const images: unknown[] = [];
   const labels: string[] = [];
   const bitmaps: unknown[] = [];
@@ -87,8 +87,8 @@ test("English and Korean pause menus replace baked Chinese text while keeping th
     view.drawButton("menu", [image]);
     view.drawButton("resume", [image]);
     assert.equal(bitmaps.length, 3);
-    assert.equal(images.length, index === 0 ? 0 : 2);
-    assert.deepEqual(labels, [[], ["Retry", "Main menu"], ["다시 시작", "메뉴로"]][index]);
+    assert.equal(images.length, 0);
+    assert.deepEqual(labels, []);
   }));
 });
 

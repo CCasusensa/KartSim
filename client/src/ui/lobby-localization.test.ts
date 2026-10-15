@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { tr, type GameLocale } from "../i18n/locale";
 import { LobbyHomeView, QUICK_ENTRIES } from "./lobby-home-view";
-import { localizedLobbyPromo } from "./lobby-promos";
+import { localizedLobbyPromoPath } from "./lobby-promos";
 import { lobbyRoomModeLabel } from "./lobby-list-layout";
 import { lobbyRoomStatus } from "./lobby-list-draw";
 import { installFakeDom, type FakeElement } from "./fake-dom";
@@ -52,11 +52,11 @@ test("home content follows all three languages while rider names and entry ident
   });
 });
 
-test("known Chinese promo artwork becomes localized copy without changing links or custom artwork", () => {
-  for (const [locale, group, subtitle] of [
-    ["zh-CN", "加入QQ 群", undefined],
-    ["en", "Join our QQ group", "Web edition · Play in your browser"],
-    ["ko", "QQ 그룹 참여", "웹 버전 · 브라우저에서 바로 플레이"],
+test("promo images remain complete images in every locale without text overlays or changed links", () => {
+  for (const [locale, group] of [
+    ["zh-CN", "加入QQ 群"],
+    ["en", "Join our QQ group"],
+    ["ko", "QQ 그룹 참여"],
   ] as const) withLocale(locale, () => {
     const dom = installFakeDom();
     const opened: string[] = [];
@@ -74,16 +74,15 @@ test("known Chinese promo artwork becomes localized copy without changing links 
       const element = view.element as unknown as FakeElement;
       const boards = element.querySelectorAll(".ks-lobby-board");
       assert.equal(boards[0]!.querySelector("span")!.text(), group);
-      assert.equal(boards[0]!.classList.contains("ks-picture"), locale === "zh-CN");
+      assert.equal(boards[0]!.classList.contains("ks-picture"), true);
+      assert.equal(boards[0]!.querySelector("canvas")!.hidden, false);
       assert.equal(boards[1]!.classList.contains("ks-picture"), true);
       assert.equal(boards[1]!.getAttribute("aria-label"), "玩家自制宣传");
-      const copy = element.querySelector(".ks-lobby-promo-copy")!;
-      assert.equal(copy.hidden, locale === "zh-CN");
-      if (subtitle) assert.equal(copy.text(), `CCRAFT${subtitle}`);
+      assert.equal(element.querySelector(".ks-lobby-promo-copy"), null);
       element.querySelector(".ks-lobby-carousel")!.children[0]!.click();
       boards[0]!.click();
       assert.deepEqual(opened, ["https://ccraft.app/play", "https://qm.qq.com/q/community"]);
-      assert.equal(localizedLobbyPromo({ link: "https://ccraft.app.evil.example" }), undefined);
+      assert.equal(localizedLobbyPromoPath({ link: "https://ccraft.app.evil.example" }), undefined);
       view.dispose();
     } finally { dom.restore(); }
   });

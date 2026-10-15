@@ -1,5 +1,4 @@
 import { tr } from "../i18n/locale";
-import { localizeResultTexture } from "./result-art-localization";
 /** Multiplayer finish screen assembled from the game's original BML panels. */
 import {
   formatRaceReward, formatRaceRewardLines, parseRaceRewards, type RaceReward,
@@ -289,7 +288,7 @@ export class MultiplayerResultView {
       roots: [folder, "stage_/common", "gui_/windowTemplate"],
       smoothImages: deps.smoothImages(),
       preserveDisplayPixels: deps.smoothImages(),
-      label: tr("比赛结果"), modulateTextures: true, projectTexture: localizeResultTexture,
+      label: tr("比赛结果"), modulateTextures: true,
       state: node => screen.nodeState(node, race, localPlayerId, deps),
     });
     return screen;

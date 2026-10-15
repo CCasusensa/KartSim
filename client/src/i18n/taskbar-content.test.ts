@@ -27,23 +27,18 @@ function withLocale(locale: string, run: () => void): void {
 const button: TaskbarButton = { node: {}, name: "multiplay", rect: { x: 100, y: 0, width: 104, height: 66 } };
 const image: TaskbarImage = { image: {} as CanvasImageSource, width: 104, height: 66 };
 
-test("tray captions switch across three languages and remove the baked Chinese band", () => {
+test("tray sprites render whole in all three languages without runtime caption overlays", () => {
   for (const [locale, label] of [["zh-CN", "多人游戏"], ["en", "Multiplayer"], ["ko", "멀티 플레이"]] as const) {
     withLocale(locale, () => {
       const images: unknown[][] = [], captions: unknown[][] = [];
       const context = { drawImage: (...args: unknown[]) => images.push(args),
         fillText: (...args: unknown[]) => captions.push(args), save() {}, restore() {} } as unknown as CanvasRenderingContext2D;
-      drawTaskbarButton(context, image, button, 0);
+      drawTaskbarButton(context, image, button);
       assert.equal(taskbarButtonLabel("multiplay", "多人游戏"), label);
-      if (locale === "zh-CN") {
-        assert.equal(images[0]?.length, 3);
-        assert.equal(captions.length, 0);
-      } else {
-        assert.deepEqual(images[0]?.slice(1, 5), [0, 0, 104, 46]);
-        assert.deepEqual(captions[0], [label, 152, 56, 98]);
-      }
+      assert.deepEqual(images[0], [image.image, 100, 0]);
+      assert.equal(captions.length, 0);
       captions.length = 0;
-      drawTaskbarButton(context, image, { ...button, name: "messengerButton" }, 0);
+      drawTaskbarButton(context, image, { ...button, name: "messengerButton" });
       assert.equal(captions.length, 0, "icon-only tray buttons retain artwork");
     });
   }

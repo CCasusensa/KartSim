@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "prompt": "source/prompt.txt",
+  "preparation": "node tools/prepare-menu-supplement-art.mjs (requires ImageMagick)",
+  "entries": [
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_clearIcon.png",
+      "locale": "en",
+      "file": "en/img_clearIcon.png",
+      "width": 96,
+      "height": 92,
+      "provenance": "Whole native stage_common.rho clear_stamp@zz.png CLEAR artwork, contain resize only"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_clearIcon_list.png",
+      "locale": "en",
+      "file": "en/img_clearIcon_list.png",
+      "width": 70,
+      "height": 70,
+      "provenance": "Whole native stage_common.rho clear_stamp@zz.png CLEAR artwork, contain resize only"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/클리어라벨.png",
+      "locale": "en",
+      "file": "en/img_clearIcon_list.png",
+      "width": 70,
+      "height": 70,
+      "provenance": "Story completion uses the same full localized stamp as the license step list"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_clearIcon.png",
+      "locale": "ko",
+      "file": "ko/img_clearIcon.png",
+      "width": 96,
+      "height": 92,
+      "provenance": "Complete Korean 통과 stamp generated from original Chinese sprite; contain resize only"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_clearIcon_list.png",
+      "locale": "ko",
+      "file": "ko/img_clearIcon_list.png",
+      "width": 70,
+      "height": 70,
+      "provenance": "Complete Korean 통과 stamp generated from original Chinese sprite; contain resize only"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/클리어라벨.png",
+      "locale": "ko",
+      "file": "ko/img_clearIcon_list.png",
+      "width": 70,
+      "height": 70,
+      "provenance": "Story completion uses the same full localized stamp as the license step list"
+    }
+  ]
+}

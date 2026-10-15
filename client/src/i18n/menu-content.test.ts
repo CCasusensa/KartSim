@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { type GameLocale, tr } from "./locale";
-import { paintMainMenuCaption, paintStoryCardCaption } from "../ui/main-menu-caption";
 import { ItemInventoryView } from "../ui/item-inventory-view";
 import { defaultLocalProfile } from "../ui/local-profile";
 import { installShopTestDom } from "../shop/shop-test-dom";
-import { localizeImageCaption } from "../shop/shop-widgets";
+import { setImageButtonLabel } from "../shop/shop-widgets";
 import { discountMark } from "../shop/shop-view";
 import { mallTabEntries, shopTabEntries } from "../shop/shop-model";
 import { rR } from "../generated/formats.js";
@@ -51,50 +50,6 @@ test("quest menus translate service copy and kick votes keep player names intact
   });
 });
 
-test("baked mode captions are replaced in English and Korean without changing the artwork in Chinese", () => {
-  for (const locale of ["zh-CN", "en", "ko"] as const) withLocale(locale, () => {
-    const labels: string[] = [];
-    const bands: number[][] = [];
-    const context = { save() {}, restore() {}, fillRect: (...rect: number[]) => bands.push(rect),
-      measureText: (value: string) => ({ width: value.length * 8 }),
-      fillText: (label: string) => labels.push(label) } as unknown as CanvasRenderingContext2D;
-    const rect = { x: 10, y: 20, width: 272, height: 134 };
-    paintMainMenuCaption(context, rect, "timeAttack_train", "练习计时赛", false);
-    paintMainMenuCaption(context, rect, "unknown", undefined, false);
-    assert.deepEqual(labels, locale === "zh-CN" ? [] : [tr("练习计时赛")]);
-    for (const [x, y, width, height] of bands) {
-      assert.ok(x! >= rect.x && y! >= rect.y);
-      assert.ok(x! + width! <= rect.x + rect.width && y! + height! <= rect.y + rect.height);
-    }
-  });
-});
-
-test("story cards replace baked titles inside their artwork while Chinese stays unchanged", () => {
-  for (const locale of ["zh-CN", "en", "ko"] as const) withLocale(locale, () => {
-    const labels: Array<{ text: string; x: number; y: number }> = [];
-    const bands: number[][] = [];
-    const context = { save() {}, restore() {}, fillRect: (...rect: number[]) => bands.push(rect),
-      measureText: (value: string) => ({ width: Array.from(value).length * 8 }),
-      fillText: (text: string, x: number, y: number) => labels.push({ text, x, y }),
-    } as unknown as CanvasRenderingContext2D;
-    const rect = { x: 10, y: 20, width: 272, height: 134 };
-    const title = locale === "en" ? "The Birth of a Rider" : locale === "ko" ? "라이더의 탄생" : "车手的诞生";
-    paintStoryCardCaption(context, rect, title, true);
-    assert.equal(labels.map(entry => entry.text).join(" "), locale === "zh-CN" ? "" : title);
-    assert.equal(bands.length, locale === "zh-CN" ? 0 : 1);
-    if (bands.length) {
-      const [x, y, width, height] = bands[0]!;
-      assert.ok(x! >= rect.x && y! >= rect.y && x! + width! <= rect.x + rect.width && y! + height! <= rect.y + rect.height);
-      for (const label of labels) assert.ok(label.x >= x! && label.x <= x! + width! && label.y >= y! && label.y <= y! + height!);
-    }
-    if (locale !== "zh-CN") {
-      paintStoryCardCaption(context, rect, title, false, "chapter_1920y");
-      assert.equal(bands[1]![0], rect.x + 48, "long baked titles need a wider cover");
-      assert.equal(bands[1]![2], 217);
-    }
-  });
-});
-
 test("inventory menus translate while item identity and user text stay intact", () => {
   for (const locale of ["zh-CN", "en", "ko"] as const) withLocale(locale, () => {
     const dom = installShopTestDom();
@@ -131,10 +86,11 @@ test("shop category labels and discount badges follow the language, preserving c
       const button = dom.document.createElement("button");
       let clicks = 0;
       button.addEventListener("click", () => clicks++);
-      localizeImageCaption(button as unknown as HTMLElement, tr("兑换"));
+      setImageButtonLabel(button as unknown as HTMLElement, tr("兑换"));
       button.click();
       assert.equal(clicks, 1);
-      if (locale !== "zh-CN") assert.equal(button.textContent, tr("兑换"));
+      assert.equal(button.getAttribute("aria-label"), tr("兑换"));
+      assert.equal(button.textContent, "");
     } finally { dom.restore(); }
   });
 });

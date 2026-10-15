@@ -1,0 +1,120 @@
+[
+  {
+    "kind": "race",
+    "locale": "en",
+    "raw": "exec-13980048-1a67-4076-99cc-a7e04eb9f8bd.png",
+    "prompt": "Edit this EXACT game UI sprite atlas for English localization. Source is a 4-column x 3-row sprite sheet, each cell 272x134, total 1088x402. Preserve that exact grid, every cell, original character/cart/trophy illustrations, arrows, gradients, icon positions, thin borders, and normal/bright-hover/dark-pressed/grayscale-disabled state colors in columns 1/2/3/4. Change ONLY the Chinese lettering, remove it cleanly restoring the original art/gradient behind, and integrate English lettering into the original same upper-right title position with the original italic bold white black-outline style. No overlay rectangles, no plaques, no covering panels, no UI redesign. Each of the FOUR cells in row 1 must read exactly 'Practice Time Attack' (can use two compact lines); row 2 exactly 'Ranked Time Attack'; row 3 exactly 'Competitive Ranked'. Fit within original title area without clipping or hiding icon/art. Output ONLY the sprite atlas with same 1088:402 aspect ratio, no margins or added labels.",
+    "sha256": "a3e17b3e629c70b806243ec91418c4716d9663ac84e7146049b357238acfb93b"
+  },
+  {
+    "kind": "race",
+    "locale": "ko",
+    "raw": "exec-db791727-d104-4dd2-a770-70f2a6ded7e5.png",
+    "prompt": "Edit this EXACT game UI sprite atlas for Korean localization. Source is a 4-column x 3-row sprite sheet, each cell 272x134, total 1088x402. Preserve that exact grid, every cell, original character/cart/trophy illustrations, arrows, gradients, icon positions, thin borders, and normal/bright-hover/dark-pressed/grayscale-disabled state colors in columns 1/2/3/4. Change ONLY the Chinese lettering, remove it cleanly restoring the original art/gradient behind, and integrate Korean lettering into the original same upper-right title position with the original italic bold white black-outline style. No overlay rectangles, no plaques, no covering panels, no UI redesign. Each of the FOUR cells in row 1 must read exactly '연습 타임어택' (can use two compact lines); row 2 exactly '랭킹 타임어택'; row 3 exactly '경쟁 랭킹전'. Fit within original title area without clipping or hiding icon/art. Output ONLY the sprite atlas with same 1088:402 aspect ratio, no margins or added labels.",
+    "sha256": "20ade7f060226a58bb8466cced8095cd39599913c3566d53cfd08baff09b6bde"
+  },
+  {
+    "kind": "tabs",
+    "locale": "en",
+    "raw": "exec-e4f31712-6f83-49a1-a562-7cad646cfb69.png",
+    "prompt": "Localize the attached EXACT game tab-button atlas to English. It contains 4 columns and 5 rows; keep exact cell alignment, aspect ratio 440:160, no margins, no added labels. Preserve every original icon, separator, transparent areas and four state styles: column 1 white background grey label, column 2 bright blue selected with white label, column 3 dark blue pressed with grey label, column 4 disabled grey. Replace only all Chinese lettering, cleanly integrated into each original sprite. Row 1 ALL FOUR cells: 'Time Attack'; row 2: 'License'; row 3: 'Story'; row 4: 'Rider School'; row 5: 'Replay'. Fit each label after its icon without clipping. Same compact bold type treatment as original. Do not overlay boxes or rebuild icons. Output complete usable PNG atlas.",
+    "sha256": "c0f69b771855719c4569761395d7f09b2362c4e71f38eed7f7d98c8d2ea2be7d"
+  },
+  {
+    "kind": "tabs",
+    "locale": "ko",
+    "raw": "exec-082207f7-e580-4451-9af0-80ec5f2a9e78.png",
+    "prompt": "Localize the attached EXACT game tab-button atlas to Korean. It contains 4 columns and 5 rows; keep exact cell alignment, aspect ratio 440:160, no margins, no added labels. Preserve every original icon, separator, transparent areas and four state styles: column 1 white background grey label, column 2 bright blue selected with white label, column 3 dark blue pressed with grey label, column 4 disabled grey. Replace only all Chinese lettering, cleanly integrated into each original sprite. Row 1 ALL FOUR cells: '타임어택'; row 2: '라이선스'; row 3: '시나리오'; row 4: '라이더 스쿨'; row 5: '리플레이'. Fit each label after its icon without clipping. Same compact bold type treatment as original. Do not overlay boxes or rebuild icons. Output complete usable PNG atlas.",
+    "sha256": "c7d94e39eeeb3e81963c8073153f434b1fdb6f137457646dcde025b39b20297f"
+  },
+  {
+    "kind": "license",
+    "locale": "en",
+    "raw": "exec-ea99f6c1-b058-4f43-b416-5bef34b7b5d7.png",
+    "prompt": "Edit attached EXACT original game atlas, 4 columns x 6 rows, 1088:804 aspect ratio, keep perfectly regular grid, no margins. Every row has four button states normal, brighter hover, dark pressed, grayscale disabled. Preserve each background checkered gradient, arrows and original layout. Replace Chinese text cleanly, no covering rectangles/panels. White bold italic game lettering with black outline integrated directly into original image. Output full atlas. English localization. In ALL FOUR cells per row: row1 replace 新手 with 'Beginner' and 驾照 with 'License'; row2 初级 with 'Rookie' and 驾照 with 'License'; rows3/4/5 preserve the original L3/L2/L1 emblem respectively, and replace 驾照 with 'License'. Row6 preserve Pro emblem and replace 驾照 with 'License'. Fit English, keep legible and not clipped.",
+    "sha256": "7b9f2b550098817f51713771c8b4f5f265fa830ccd84e5547ab3398a4b2b7990",
+    "rowCrops": [
+      "1459x178+0+0",
+      "1459x179+0+178",
+      "1459x178+0+357",
+      "1459x178+0+535",
+      "1459x179+0+713",
+      "1459x186+0+892"
+    ]
+  },
+  {
+    "kind": "license",
+    "locale": "ko",
+    "raw": "exec-09822c2a-6826-4ca2-8486-ebd9d26ed642.png",
+    "prompt": "Edit attached EXACT original game atlas, 4 columns x 6 rows, 1088:804 aspect ratio, keep perfectly regular grid, no margins. Every row has four button states normal, brighter hover, dark pressed, grayscale disabled. Preserve each background checkered gradient, arrows and original layout. Replace Chinese text cleanly, no covering rectangles/panels. White bold italic game lettering with black outline integrated directly into original image. Output full atlas. Korean localization. In ALL FOUR cells per row: row1 replace 新手 with '초보' and 驾照 with '라이선스'; row2 初级 with '루키' and 驾照 with '라이선스'; rows3/4/5 preserve the original L3/L2/L1 emblem respectively, and replace 驾照 with '라이선스'. Row6 preserve Pro emblem and replace 驾照 with '라이선스'. Fit Korean, keep legible and not clipped.",
+    "sha256": "f1b419bdb6b3df90b78b09b6120f2458ff8382441cd9635ffe57441198563c71",
+    "rowCrops": [
+      "1459x179+0+0",
+      "1459x180+0+179",
+      "1459x178+0+359",
+      "1459x179+0+537",
+      "1459x181+0+716",
+      "1459x181+0+897"
+    ]
+  },
+  {
+    "kind": "replay",
+    "locale": "en",
+    "raw": "exec-3bb501fd-993a-4d1b-8c42-2ba24860d559.png",
+    "prompt": "Localize the attached exact 4-column x 6-row game button sprite atlas, 1088:804 aspect ratio. Preserve perfectly regular grid, every character/cart/camera icon, background gradient/checkers, arrows and original composition. Columns are normal/bright hover/dark pressed/grayscale disabled; preserve each state. Only replace Chinese text cleanly with integrated white bold italic black-outline lettering at original title location. NO solid patches, NO text panels, NO added margins. All four cells per row repeat the same translation. English labels: row1 'My Replays'; row2 'League Replays'; row3 'Other Replays'; row4 'Basic Driving'; row5 'Advanced Driving'; row6 'Special Driving'. Fit at top-right, two compact lines if needed without clipping.",
+    "sha256": "d46b81672e6673081bd100b759084c1d679f574db341a359d88bb6af746f2f69"
+  },
+  {
+    "kind": "replay",
+    "locale": "ko",
+    "raw": "exec-238fc891-c89b-44ba-9e97-a44a48e9a20f.png",
+    "prompt": "Localize the attached exact 4-column x 6-row game button sprite atlas, 1088:804 aspect ratio. Preserve perfectly regular grid, every character/cart/camera icon, background gradient/checkers, arrows and original composition. Columns are normal/bright hover/dark pressed/grayscale disabled; preserve each state. Only replace Chinese text cleanly with integrated white bold italic black-outline lettering at original title location. NO solid patches, NO text panels, NO added margins. All four cells per row repeat the same translation. Korean labels: row1 '내 리플레이'; row2 '리그 리플레이'; row3 '다른 리플레이'; row4 '기초 주행 기술'; row5 '고급 주행 기술'; row6 '특수 주행 기술'. Fit at top-right without clipping.",
+    "sha256": "d032e8d87300f02230cbee5e73c78e783981d5deecb45676fefb8ff3d67299f5"
+  },
+  {
+    "kind": "overview",
+    "locale": "en",
+    "raw": "exec-1a5eefdd-18b2-4a2a-bf32-c346673b0ee9.png",
+    "prompt": "Edit this exact original game category-card sprite sheet. Grid is 4 columns x 5 rows; each cell 148x318, full aspect ratio 592:1590. Keep exactly the grid, character/cart artwork, icons, borders and per-column normal/hover/pressed/disabled colors and shading unchanged. Replace ONLY the Chinese label in the white footer at bottom of each cell, cleanly using the original dark bold typography and the original right chevron. No new covering panels, no added margins, no layout redesign. Each of four cells in a row has same text. Fit inside footer, may split two lines if needed. English: row1 'Time Attack'; row2 'License'; row3 'Story'; row4 'Rider School'; row5 'Replay'.",
+    "sha256": "55474dda50bb8f83db75bd0d8af9305e6fe03f829cbe68b867fa01342ad61aa9"
+  },
+  {
+    "kind": "overview",
+    "locale": "ko",
+    "raw": "exec-1fb90adb-80d0-42ed-959f-3553b67ad2a8.png",
+    "prompt": "Edit this exact original game category-card sprite sheet. Grid is 4 columns x 5 rows; each cell 148x318, full aspect ratio 592:1590. Keep exactly the grid, character/cart artwork, icons, borders and per-column normal/hover/pressed/disabled colors and shading unchanged. Replace ONLY the Chinese label in the white footer at bottom of each cell, cleanly using the original dark bold typography and the original right chevron. No new covering panels, no added margins, no layout redesign. Each of four cells in a row has same text. Fit inside footer, may split two lines if needed. Korean: row1 '타임어택'; row2 '라이선스'; row3 '시나리오'; row4 '라이더 스쿨'; row5 '리플레이'.",
+    "sha256": "f544e0f34477f33e6eed63f3429d93d5d4af4bea0fdff8d599653bd62a91ae5b"
+  },
+  {
+    "kind": "pro",
+    "locale": "en",
+    "raw": "exec-10d6a344-510f-4633-9b81-66ca18bd0d5e.png",
+    "prompt": "Edit exact game atlas, 4 columns x 2 rows, aspect ratio 3000:460. Preserve exact grid, original icons, artwork, gradients, checker patterns, borders, transparency and column states (normal,hover,pressed,disabled), no margins. Change ONLY Chinese words, clean removal and seamless original background, same white bold italic typography (plain bold for blue claim buttons), no panels/no covering rectangles. Text in ALL FOUR cells of each row exactly: row1 'PRO Time Attack'; row2 'PRO Duel'. Keep stopwatch/VS/star/license icons unchanged. Output complete usable sprite atlas.",
+    "crop": "2172x331+0+195",
+    "sha256": "382e2285511e087df16691be8d50edd01216fab38818adbf9f8ea9834b4ef130"
+  },
+  {
+    "kind": "pro",
+    "locale": "ko",
+    "raw": "exec-cbb11233-78fc-494f-8bd3-25c031d05090.png",
+    "prompt": "Edit exact game atlas, 4 columns x 2 rows, aspect ratio 3000:460. Preserve exact grid, original icons, artwork, gradients, checker patterns, borders, transparency and column states (normal,hover,pressed,disabled), no margins. Change ONLY Chinese words, clean removal and seamless original background, same white bold italic typography (plain bold for blue claim buttons), no panels/no covering rectangles. Text in ALL FOUR cells of each row exactly: row1 'PRO 타임어택'; row2 'PRO 대결'. Keep stopwatch/VS/star/license icons unchanged. Output complete usable sprite atlas.",
+    "crop": "2145x327+0+193",
+    "sha256": "2289a560f150e58a76aa50591fe13b167f0cadcc3030dc5b5bed1d52c26ace99"
+  },
+  {
+    "kind": "claim",
+    "locale": "en",
+    "raw": "exec-85adeb3d-01d2-438b-bb3e-d2bb853f02bd.png",
+    "prompt": "Edit exact game atlas, 4 columns x 2 rows, aspect ratio 1048:152. Preserve exact grid, original icons, artwork, gradients, checker patterns, borders, transparency and column states (normal,hover,pressed,disabled), no margins. Change ONLY Chinese words, clean removal and seamless original background, same white bold italic typography (plain bold for blue claim buttons), no panels/no covering rectangles. Text in ALL FOUR cells of each row exactly: row1 'Earn Emblem'; row2 'Get License'. Keep stopwatch/VS/star/license icons unchanged. Output complete usable sprite atlas.",
+    "crop": "2170x310+0+206",
+    "sha256": "942d546fadfd352784ba0145e5fdef88747454077a03832d3112952b18b6e357"
+  },
+  {
+    "kind": "claim",
+    "locale": "ko",
+    "raw": "exec-b06c7e30-48f1-480a-9988-eed3445bc8e4.png",
+    "prompt": "Edit exact game atlas, 4 columns x 2 rows, aspect ratio 1048:152. Preserve exact grid, original icons, artwork, gradients, checker patterns, borders, transparency and column states (normal,hover,pressed,disabled), no margins. Change ONLY Chinese words, clean removal and seamless original background, same white bold italic typography (plain bold for blue claim buttons), no panels/no covering rectangles. Text in ALL FOUR cells of each row exactly: row1 '엠블럼 획득'; row2 '라이선스 획득'. Keep stopwatch/VS/star/license icons unchanged. Output complete usable sprite atlas.",
+    "crop": "2168x309+0+205",
+    "sha256": "8f0c1a0d659e097a39c47cc90c22a34b83d4827c815f885ad2b19beb7cd05c79"
+  }
+]

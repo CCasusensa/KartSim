@@ -1,4 +1,4 @@
-import { gameLocale, tr } from "../i18n/locale";
+import { tr } from "../i18n/locale";
 
 export type PauseAction = "retry" | "menu" | "resume";
 
@@ -172,18 +172,6 @@ export class PauseMenuView {
     if (!hit) throw new Error(`P3528 pause button ${action} 缺少布局。`);
     const state = this.dependencies.buttonState(action, this.hovered, this.pressed);
     this.dependencies.drawButton(this.context, images[state]!, hit.rect);
-    if (gameLocale() === "zh-CN" || action === "resume") return;
-    // Replace only the bitmap's text area with its own blank background,
-    // preserving the icon, border and hover/pressed appearance.
-    const image = images[state] as { image: CanvasImageSource; width: number; height: number };
-    const scaleX = hit.rect.width / image.width, scaleY = hit.rect.height / image.height;
-    this.context.drawImage(image.image, 2, 3, image.width - 4, 10,
-      hit.rect.x + 2 * scaleX, hit.rect.y + 65 * scaleY,
-      (image.width - 4) * scaleX, (image.height - 68) * scaleY);
-    this.dependencies.drawText(this.context, tr(action === "retry" ? "重新开始" : "返回菜单"), {
-      ...hit.rect, y: hit.rect.y + 65 * scaleY, height: (image.height - 68) * scaleY,
-    }, { family: this.dependencies.fontFamily, size: 16, kind: "button", color: "rgb(42,55,80)",
-      align: "center", verticalAlign: "center" });
   }
 
   resizeCanvas(): void {

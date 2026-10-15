@@ -2,9 +2,62 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { LobbyHomeView } from "./lobby-home-view";
-import { fetchLobbyPromos, parseLobbyPromos, safeLobbyLink } from "./lobby-promos";
+import { fetchLobbyPromos, loadLobbyPromos, localizedLobbyPromoPath, parseLobbyPromos, safeLobbyLink } from "./lobby-promos";
+import type { GameLocale } from "../i18n/locale";
 
 const picture = (id: string) => `/api/lobby/promo-images/${id.repeat(32)}`;
+
+test("known promotions load whole locale assets; arbitrary admin pictures keep their original source", async () => {
+  const original = { image: {} as CanvasImageSource, width: 20, height: 10 };
+  const artwork = { image: {} as CanvasImageSource, width: 1040, height: 600 };
+  const session = { backendOrigin: "https://data.example", requestJson: async () => ({
+    carousel: [{ url: picture("a"), link: "https://ccraft.app/play", title: "CCRAFT" }],
+    boards: [{ url: picture("b"), link: "https://qm.qq.com/q/community", title: "加入QQ 群" },
+      { url: picture("c"), link: "https://custom.example", title: "管理员自制宣传" }],
+  }) };
+  for (const locale of ["zh-CN", "en", "ko"] as const) {
+    const remote: string[] = [], packed: string[] = [];
+    const promos = await fetchLobbyPromos(session, async url => { remote.push(url); return original; },
+      async (path, selected) => { packed.push(`${selected}/${path}`); return artwork; }, locale);
+    assert.equal(promos!.banners[0]!.image, locale === "zh-CN" ? original.image : artwork.image);
+    assert.equal(promos!.boards[0]!.image, locale === "zh-CN" ? original : artwork);
+    assert.equal(promos!.boards[1]!.image, original);
+    assert.equal(promos!.banners[0]!.link, "https://ccraft.app/play");
+    assert.equal(promos!.boards[0]!.link, "https://qm.qq.com/q/community");
+    assert.deepEqual(packed, locale === "zh-CN" ? [] : [`${locale}/lobby/ccraft.png`, `${locale}/lobby/qq-group.png`]);
+    assert.equal(remote.length, locale === "zh-CN" ? 3 : 1);
+    assert.equal(localizedLobbyPromoPath({ link: "https://ccraft.app.evil.example" }, locale), undefined);
+  }
+  const fallback = await fetchLobbyPromos(session, async () => original,
+    async () => { throw new Error("Missing optional pack"); }, "en");
+  assert.equal(fallback!.banners[0]!.image, original.image);
+  assert.equal(fallback!.boards[0]!.image, original);
+});
+
+test("promo cache changes with language and cannot reuse images from the previous locale", async () => {
+  let locale: GameLocale = "en", requests = 0;
+  const saved = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  Object.defineProperty(globalThis, "localStorage", { configurable: true,
+    value: { getItem: () => locale } });
+  try {
+    const session = { backendOrigin: "", requestJson: async () => { requests++;
+      return { carousel: [{ url: picture("a"), link: "https://ccraft.app" }] }; } };
+    const loaded: string[] = [];
+    const loadArt = async (_path: string, language: GameLocale) => {
+      loaded.push(language); return { image: {} as CanvasImageSource, width: 1040, height: 600 };
+    };
+    const english = await loadLobbyPromos(session, loadArt);
+    assert.equal(await loadLobbyPromos(session, loadArt), english);
+    locale = "ko";
+    const korean = await loadLobbyPromos(session, loadArt);
+    assert.notEqual(korean, english);
+    assert.deepEqual(loaded, ["en", "ko"]);
+    assert.equal(requests, 2);
+  } finally {
+    if (saved) Object.defineProperty(globalThis, "localStorage", saved);
+    else Reflect.deleteProperty(globalThis, "localStorage");
+  }
+});
 
 test("大厅宣传链接只接受 http(s) 网址和本站路径", () => {
   const origin = "https://kart.example.com";

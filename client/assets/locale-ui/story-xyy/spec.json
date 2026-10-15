@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_11.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/xyy_11.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/zh-CN.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_12.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/xyy_12.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/zh-CN.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_13.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/xyy_13.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/zh-CN.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_14.png",
+      "locale": "zh-CN",
+      "file": "zh-CN/xyy_14.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/zh-CN.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_11.png",
+      "locale": "en",
+      "file": "en/xyy_11.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/en.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_12.png",
+      "locale": "en",
+      "file": "en/xyy_12.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/en.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_13.png",
+      "locale": "en",
+      "file": "en/xyy_13.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/en.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_14.png",
+      "locale": "en",
+      "file": "en/xyy_14.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/en.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_11.png",
+      "locale": "ko",
+      "file": "ko/xyy_11.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/ko.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_12.png",
+      "locale": "ko",
+      "file": "ko/xyy_12.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/ko.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_13.png",
+      "locale": "ko",
+      "file": "ko/xyy_13.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/ko.png; inspected state slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/scenario/select/xyy_14.png",
+      "locale": "ko",
+      "file": "ko/xyy_14.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "Generated complete XYY chapter artwork using native story characters and backgrounds; source/ko.png; inspected state slicing"
+    }
+  ]
+}

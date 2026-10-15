@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "chapter": "xyy_1",
+  "nativeCardMissing": true,
+  "size": [
+    272,
+    134
+  ],
+  "stateOrder": [
+    "normal",
+    "hover",
+    "pressed",
+    "disabled"
+  ],
+  "method": "Built-in imagegen reconstruction from original stage_scene.rho character and grassland artwork. Complete image text is generated into each locale atlas.",
+  "references": [
+    {
+      "archive": "stage_scene.rho",
+      "path": "bg/xyy1_1.png",
+      "file": "reference/xyy1_1.png"
+    },
+    {
+      "archive": "stage_scene.rho",
+      "path": "시양양_웃기.png",
+      "file": "reference/시양양_웃기.png"
+    },
+    {
+      "archive": "stage_scene.rho",
+      "path": "양다오_웃기.png",
+      "file": "reference/양다오_웃기.png"
+    },
+    {
+      "archive": "stage_scene.rho",
+      "path": "후이타이랑_기본.png",
+      "file": "reference/후이타이랑_기본.png"
+    },
+    {
+      "archive": "zeta_cn_scenario.rho",
+      "path": "select/chapter_boomhill1.png",
+      "file": "reference/chapter-style.png"
+    }
+  ],
+  "atlases": {
+    "zh-CN": {
+      "file": "source/zh-CN.png",
+      "cells": [
+        [
+          0,
+          0,
+          894,
+          442
+        ],
+        [
+          894,
+          0,
+          893,
+          442
+        ],
+        [
+          0,
+          442,
+          894,
+          438
+        ],
+        [
+          894,
+          442,
+          893,
+          438
+        ]
+      ],
+      "sha256": "06ee603871ddc463790aff8929c2c752ed204b63991f4ca21d6d7e6ec35ff784"
+    },
+    "en": {
+      "file": "source/en.png",
+      "cells": [
+        [
+          0,
+          0,
+          894,
+          443
+        ],
+        [
+          894,
+          0,
+          893,
+          443
+        ],
+        [
+          0,
+          443,
+          894,
+          437
+        ],
+        [
+          894,
+          443,
+          893,
+          437
+        ]
+      ],
+      "sha256": "6abf4ea8332c0ee8e9817a3624f997eb6b76a4cca139d6d456d2deeec0610eb6"
+    },
+    "ko": {
+      "file": "source/ko.png",
+      "cells": [
+        [
+          0,
+          0,
+          894,
+          442
+        ],
+        [
+          894,
+          0,
+          893,
+          442
+        ],
+        [
+          0,
+          442,
+          894,
+          438
+        ],
+        [
+          894,
+          442,
+          893,
+          438
+        ]
+      ],
+      "sha256": "c210f47d8d3624821f21e30ac53338f5e359269e254fca52b3856f96e4e842f2"
+    }
+  }
+}

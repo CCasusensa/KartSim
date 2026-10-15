@@ -1,0 +1,1861 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_1.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_2.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_3.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_4.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_1.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_2.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_3.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_4.png",
+      "locale": "en",
+      "file": "en/btn_timeAttack02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_1.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackCompetitive_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_2.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackCompetitive_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_3.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackCompetitive_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_4.png",
+      "locale": "en",
+      "file": "en/btn_timeAttackCompetitive_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/race-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_1.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_2.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_3.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_4.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_1.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_2.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_3.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_4.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttack02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_1.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackCompetitive_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_2.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackCompetitive_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_3.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackCompetitive_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_4.png",
+      "locale": "ko",
+      "file": "ko/btn_timeAttackCompetitive_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/race-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_1.png",
+      "locale": "en",
+      "file": "en/cat_timeAttack_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_2.png",
+      "locale": "en",
+      "file": "en/cat_timeAttack_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_3.png",
+      "locale": "en",
+      "file": "en/cat_timeAttack_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_4.png",
+      "locale": "en",
+      "file": "en/cat_timeAttack_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_1.png",
+      "locale": "en",
+      "file": "en/cat_riderSchool_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_2.png",
+      "locale": "en",
+      "file": "en/cat_riderSchool_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_3.png",
+      "locale": "en",
+      "file": "en/cat_riderSchool_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_4.png",
+      "locale": "en",
+      "file": "en/cat_riderSchool_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_1.png",
+      "locale": "en",
+      "file": "en/cat_scenirio_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_2.png",
+      "locale": "en",
+      "file": "en/cat_scenirio_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_3.png",
+      "locale": "en",
+      "file": "en/cat_scenirio_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_4.png",
+      "locale": "en",
+      "file": "en/cat_scenirio_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_1.png",
+      "locale": "en",
+      "file": "en/cat_training_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_2.png",
+      "locale": "en",
+      "file": "en/cat_training_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_3.png",
+      "locale": "en",
+      "file": "en/cat_training_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_4.png",
+      "locale": "en",
+      "file": "en/cat_training_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_1.png",
+      "locale": "en",
+      "file": "en/cat_replay_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_2.png",
+      "locale": "en",
+      "file": "en/cat_replay_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_3.png",
+      "locale": "en",
+      "file": "en/cat_replay_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_4.png",
+      "locale": "en",
+      "file": "en/cat_replay_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/tabs-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_1.png",
+      "locale": "ko",
+      "file": "ko/cat_timeAttack_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_2.png",
+      "locale": "ko",
+      "file": "ko/cat_timeAttack_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_3.png",
+      "locale": "ko",
+      "file": "ko/cat_timeAttack_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_4.png",
+      "locale": "ko",
+      "file": "ko/cat_timeAttack_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_1.png",
+      "locale": "ko",
+      "file": "ko/cat_riderSchool_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_2.png",
+      "locale": "ko",
+      "file": "ko/cat_riderSchool_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_3.png",
+      "locale": "ko",
+      "file": "ko/cat_riderSchool_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_4.png",
+      "locale": "ko",
+      "file": "ko/cat_riderSchool_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_1.png",
+      "locale": "ko",
+      "file": "ko/cat_scenirio_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_2.png",
+      "locale": "ko",
+      "file": "ko/cat_scenirio_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_3.png",
+      "locale": "ko",
+      "file": "ko/cat_scenirio_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_4.png",
+      "locale": "ko",
+      "file": "ko/cat_scenirio_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_1.png",
+      "locale": "ko",
+      "file": "ko/cat_training_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_2.png",
+      "locale": "ko",
+      "file": "ko/cat_training_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_3.png",
+      "locale": "ko",
+      "file": "ko/cat_training_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_4.png",
+      "locale": "ko",
+      "file": "ko/cat_training_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_1.png",
+      "locale": "ko",
+      "file": "ko/cat_replay_1.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_2.png",
+      "locale": "ko",
+      "file": "ko/cat_replay_2.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_3.png",
+      "locale": "ko",
+      "file": "ko/cat_replay_3.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_4.png",
+      "locale": "ko",
+      "file": "ko/cat_replay_4.png",
+      "width": 110,
+      "height": 32,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/tabs-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_1.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_2.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_3.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_4.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_1.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_2.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_3.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_4.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_1.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool03_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_2.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool03_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_3.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool03_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_4.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool03_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_1.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool04_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_2.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool04_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_3.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool04_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_4.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool04_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_1.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool05_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_2.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool05_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_3.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool05_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_4.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool05_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_1.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool06_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_2.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool06_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_3.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool06_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_4.png",
+      "locale": "en",
+      "file": "en/btn_riderSchool06_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/license-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_1.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_2.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_3.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_4.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_1.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_2.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_3.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_4.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_1.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool03_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_2.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool03_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_3.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool03_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_4.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool03_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_1.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool04_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_2.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool04_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_3.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool04_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_4.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool04_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_1.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool05_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_2.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool05_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_3.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool05_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_4.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool05_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_1.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool06_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_2.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool06_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_3.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool06_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_4.png",
+      "locale": "ko",
+      "file": "ko/btn_riderSchool06_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/license-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_1.png",
+      "locale": "en",
+      "file": "en/btn_replay01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_2.png",
+      "locale": "en",
+      "file": "en/btn_replay01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_3.png",
+      "locale": "en",
+      "file": "en/btn_replay01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_4.png",
+      "locale": "en",
+      "file": "en/btn_replay01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_1.png",
+      "locale": "en",
+      "file": "en/btn_replay02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_2.png",
+      "locale": "en",
+      "file": "en/btn_replay02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_3.png",
+      "locale": "en",
+      "file": "en/btn_replay02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_4.png",
+      "locale": "en",
+      "file": "en/btn_replay02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_1.png",
+      "locale": "en",
+      "file": "en/btn_replay03_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_2.png",
+      "locale": "en",
+      "file": "en/btn_replay03_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_3.png",
+      "locale": "en",
+      "file": "en/btn_replay03_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_4.png",
+      "locale": "en",
+      "file": "en/btn_replay03_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_1.png",
+      "locale": "en",
+      "file": "en/cn_training01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_2.png",
+      "locale": "en",
+      "file": "en/cn_training01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_3.png",
+      "locale": "en",
+      "file": "en/cn_training01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_4.png",
+      "locale": "en",
+      "file": "en/cn_training01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_1.png",
+      "locale": "en",
+      "file": "en/cn_training02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_2.png",
+      "locale": "en",
+      "file": "en/cn_training02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_3.png",
+      "locale": "en",
+      "file": "en/cn_training02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_4.png",
+      "locale": "en",
+      "file": "en/cn_training02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_1.png",
+      "locale": "en",
+      "file": "en/cn_training03_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_2.png",
+      "locale": "en",
+      "file": "en/cn_training03_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_3.png",
+      "locale": "en",
+      "file": "en/cn_training03_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_4.png",
+      "locale": "en",
+      "file": "en/cn_training03_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/replay-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_1.png",
+      "locale": "ko",
+      "file": "ko/btn_replay01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_2.png",
+      "locale": "ko",
+      "file": "ko/btn_replay01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_3.png",
+      "locale": "ko",
+      "file": "ko/btn_replay01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_4.png",
+      "locale": "ko",
+      "file": "ko/btn_replay01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_1.png",
+      "locale": "ko",
+      "file": "ko/btn_replay02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_2.png",
+      "locale": "ko",
+      "file": "ko/btn_replay02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_3.png",
+      "locale": "ko",
+      "file": "ko/btn_replay02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_4.png",
+      "locale": "ko",
+      "file": "ko/btn_replay02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_1.png",
+      "locale": "ko",
+      "file": "ko/btn_replay03_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_2.png",
+      "locale": "ko",
+      "file": "ko/btn_replay03_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_3.png",
+      "locale": "ko",
+      "file": "ko/btn_replay03_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_4.png",
+      "locale": "ko",
+      "file": "ko/btn_replay03_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_1.png",
+      "locale": "ko",
+      "file": "ko/cn_training01_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_2.png",
+      "locale": "ko",
+      "file": "ko/cn_training01_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_3.png",
+      "locale": "ko",
+      "file": "ko/cn_training01_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_4.png",
+      "locale": "ko",
+      "file": "ko/cn_training01_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_1.png",
+      "locale": "ko",
+      "file": "ko/cn_training02_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_2.png",
+      "locale": "ko",
+      "file": "ko/cn_training02_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_3.png",
+      "locale": "ko",
+      "file": "ko/cn_training02_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_4.png",
+      "locale": "ko",
+      "file": "ko/cn_training02_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_1.png",
+      "locale": "ko",
+      "file": "ko/cn_training03_1.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_2.png",
+      "locale": "ko",
+      "file": "ko/cn_training03_2.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_3.png",
+      "locale": "ko",
+      "file": "ko/cn_training03_3.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_4.png",
+      "locale": "ko",
+      "file": "ko/cn_training03_4.png",
+      "width": 272,
+      "height": 134,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/replay-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_1.png",
+      "locale": "en",
+      "file": "en/lobby_btn_TimeAttack_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_2.png",
+      "locale": "en",
+      "file": "en/lobby_btn_TimeAttack_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_3.png",
+      "locale": "en",
+      "file": "en/lobby_btn_TimeAttack_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_4.png",
+      "locale": "en",
+      "file": "en/lobby_btn_TimeAttack_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_1.png",
+      "locale": "en",
+      "file": "en/lobby_btn_License_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_2.png",
+      "locale": "en",
+      "file": "en/lobby_btn_License_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_3.png",
+      "locale": "en",
+      "file": "en/lobby_btn_License_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_4.png",
+      "locale": "en",
+      "file": "en/lobby_btn_License_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_1.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Scenario_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_2.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Scenario_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_3.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Scenario_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_4.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Scenario_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_1.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Training_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_2.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Training_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_3.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Training_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_4.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Training_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_1.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Replay_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_2.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Replay_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_3.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Replay_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_4.png",
+      "locale": "en",
+      "file": "en/lobby_btn_Replay_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen en localization of original zeta_cn_stage.rho; source/overview-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_1.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_TimeAttack_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_2.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_TimeAttack_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_3.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_TimeAttack_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_4.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_TimeAttack_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_1.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_License_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_2.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_License_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_3.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_License_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_4.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_License_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_1.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Scenario_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_2.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Scenario_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_3.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Scenario_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_4.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Scenario_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_1.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Training_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_2.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Training_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_3.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Training_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_4.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Training_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_1.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Replay_1.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_2.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Replay_2.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_3.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Replay_3.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_4.png",
+      "locale": "ko",
+      "file": "ko/lobby_btn_Replay_4.png",
+      "width": 148,
+      "height": 318,
+      "provenance": "imagegen ko localization of original zeta_cn_stage.rho; source/overview-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_1@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission1_timeattack_1@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_2@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission1_timeattack_2@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_3@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission1_timeattack_3@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_4@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission1_timeattack_4@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_1@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission2_shadow_1@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_2@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission2_shadow_2@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_3@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission2_shadow_3@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_4@cn.png",
+      "locale": "en",
+      "file": "en/btn_proMission2_shadow_4@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/pro-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_1@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission1_timeattack_1@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_2@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission1_timeattack_2@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_3@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission1_timeattack_3@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_4@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission1_timeattack_4@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_1@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission2_shadow_1@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_2@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission2_shadow_2@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_3@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission2_shadow_3@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_4@cn.png",
+      "locale": "ko",
+      "file": "ko/btn_proMission2_shadow_4@cn.png",
+      "width": 750,
+      "height": 230,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/pro-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_1@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_emblem_1@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_2@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_emblem_2@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_3@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_emblem_3@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_4@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_emblem_4@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_1@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_getlicense_1@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_2@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_getlicense_2@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_3@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_getlicense_3@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_4@cn.png",
+      "locale": "en",
+      "file": "en/riderSchool_btn_getlicense_4@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen en localization of original stage_mainMenu.rho; source/claim-en.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_1@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_emblem_1@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_2@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_emblem_2@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_3@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_emblem_3@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_4@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_emblem_4@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_1@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_getlicense_1@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_2@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_getlicense_2@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_3@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_getlicense_3@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    },
+    {
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_4@cn.png",
+      "locale": "ko",
+      "file": "ko/riderSchool_btn_getlicense_4@cn.png",
+      "width": 262,
+      "height": 76,
+      "provenance": "imagegen ko localization of original stage_mainMenu.rho; source/claim-ko.png; geometry-only atlas slicing"
+    }
+  ]
+}

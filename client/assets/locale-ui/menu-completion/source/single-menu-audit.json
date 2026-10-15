@@ -1,0 +1,270 @@
+{
+  "scope": "singleplay_pop plus riderSchoolPage, riderSchoolStepCard, riderSchoolPro1, riderSchoolPro2 and dynamic story/replay art. First state per family; four button states verified by pack coverage tests.",
+  "resources": [
+    {
+      "name": "1400_lobby_left_title_bg",
+      "canonicalPath": "stage_/mainMenu/1400_lobby_left_title_bg.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "lobby_right_title_bg",
+      "canonicalPath": "stage_/mainMenu/lobby_right_title_bg.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "lobby_right_bg",
+      "canonicalPath": "stage_/mainMenu/lobby_right_bg.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "lobby_btn_TimeAttack_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_TimeAttack_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "icon_notice_s",
+      "canonicalPath": "stage_/mainMenu/icon_notice_s.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "lobby_btn_License_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_License_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "lobby_btn_Scenario_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Scenario_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "lobby_btn_Training_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Training_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "lobby_btn_Replay_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/lobby_btn_Replay_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_timeAttack01_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack01_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_timeAttackVS_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackVS_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_timeAttack02_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttack02_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_timeAttackCompetitive_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_timeAttackCompetitive_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "img_titleBlue",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleBlue.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "img_titleRed",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleRed.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "img_titleYellow",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_titleYellow.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "left_1",
+      "canonicalPath": "stage_/mainMenu/left_1.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "right_1",
+      "canonicalPath": "stage_/mainMenu/right_1.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "btn_replay01_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay01_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_replay02_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay02_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_replay03_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_replay03_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_riderSchool01_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool01_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "img_clearIcon",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_clearIcon.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_riderSchool02_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool02_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_riderSchool03_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool03_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_riderSchool04_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool04_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_riderSchool05_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool05_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_riderSchool06_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/btn_riderSchool06_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cn_training01_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training01_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cn_training02_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training02_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cn_training03_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cn_training03_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cat_timeAttack_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_timeAttack_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cat_riderSchool_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_riderSchool_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cat_scenirio_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_scenirio_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cat_training_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_training_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "cat_replay_1",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/cat_replay_1.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "common_list_line",
+      "canonicalPath": "stage_/mainMenu/riderSchool/common_list_line.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "riderSchool_btn_getlicense_1@zz",
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_getlicense_1@cn.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "img_clearIcon_list",
+      "canonicalPath": "zeta_/cn/stage/mainMenu/img_clearIcon_list.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "img_proLicenseBg",
+      "canonicalPath": "stage_/mainMenu/riderSchool/img_proLicenseBg.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "img_emblemBg",
+      "canonicalPath": "stage_/mainMenu/riderSchool/img_emblemBg.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "img_missionTitleBg",
+      "canonicalPath": "stage_/mainMenu/riderSchool/img_missionTitleBg.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "img_recordBg",
+      "canonicalPath": "stage_/mainMenu/riderSchool/img_recordBg.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "riderSchool_btn_emblem_1@zz",
+      "canonicalPath": "stage_/mainMenu/riderSchool/riderSchool_btn_emblem_1@cn.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_proMission1_timeattack_1@zz",
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission1_timeattack_1@cn.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "btn_proMission2_shadow_1@zz",
+      "canonicalPath": "stage_/mainMenu/riderSchool/btn_proMission2_shadow_1@cn.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "클리어라벨",
+      "canonicalPath": "stage_/mainMenu/클리어라벨.png",
+      "disposition": "Localized complete PNG family"
+    },
+    {
+      "name": "scenario_new_01",
+      "canonicalPath": "stage_/mainMenu/scenario_new_01.png",
+      "disposition": "Original NEW in both blink frames, shared across locales"
+    },
+    {
+      "name": "scenario_new_05",
+      "canonicalPath": "stage_/mainMenu/scenario_new_05.png",
+      "disposition": "Original NEW in both blink frames, shared across locales"
+    },
+    {
+      "name": "scenario_select_chapter_btn_01",
+      "canonicalPath": "stage_/mainMenu/scenario_select_chapter_btn_01.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "scenario_select_chapter_btn_lock",
+      "canonicalPath": "stage_/mainMenu/scenario_select_chapter_btn_lock.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "replay_list_01",
+      "canonicalPath": "stage_/mainMenu/replay_list_01.png",
+      "disposition": "No baked language text"
+    },
+    {
+      "name": "btn_replayDelete_1",
+      "canonicalPath": "stage_/mainMenu/btn_replayDelete_1.png",
+      "disposition": "No baked language text"
+    }
+  ]
+}

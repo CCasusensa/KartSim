@@ -79,3 +79,12 @@ test('generated record panels translate kart labels without rewriting stored sum
   const checkedIn = fs.readFileSync(new URL('../src/generated/ui.js', import.meta.url), 'utf8');
   assert.match(checkedIn, /kart: translateItemName\(n.kartName\)/);
 });
+
+test('generated multiplayer mode cards prefer packaged complete locale images', () => {
+  const source = 'const a = fetch(`/ui/multiplayer/${p.editedImage}${v}.png`);\nconst b = fetch(`/ui/multiplayer/${p.image}`);';
+  const result = localizeGeneratedModule('library.js', source);
+  assert.match(result, /loadMultiplayerModeImage\(n, `\$\{p.editedImage\}\$\{v\}.png`\)/);
+  assert.match(result, /loadMultiplayerModeImage\(n, p.image\)/);
+  assert.doesNotMatch(result, /fetch\(/);
+  assert.equal(localizeGeneratedModule('library.js', result), result);
+});

@@ -1,4 +1,3 @@
-import { gameLocale } from "../i18n/locale";
 /**
  * DOM for original BML windows: one absolutely positioned element per BML
  * node at the rectangle the release layout functions give it (shop-original
@@ -102,21 +101,10 @@ export function setText(target: HTMLElement, text: string): void {
   span.textContent = text.replaceAll("|", "\n");
 }
 
-/** Replace a known caption baked into an image while retaining the button's hit area. */
-export function localizeImageCaption(target: HTMLElement, label: string): void {
-  if (gameLocale() === "zh-CN") return;
-  target.classList.add("ks-localized-image-caption");
-  target.dataset.align = "center";
-  target.dataset.valign = "center";
+/** Localized accessible name for a button whose full artwork comes from the locale pack. */
+export function setImageButtonLabel(target: HTMLElement, label: string): void {
   target.setAttribute("aria-label", label);
-  for (const [index, colors] of ["#ffe85b,#edb82a", "#fff58c,#ffd841", "#e6b42e,#f8d64b", "#c3c3c3,#929292"].entries()) {
-    target.style.setProperty(`--i${index + 1}`, `linear-gradient(${colors})`);
-    target.style.setProperty(`--c${index}`, "#4a3814");
-  }
-  target.style.setProperty("--fz", "16px");
-  target.style.setProperty("--sx", "0px");
-  target.style.setProperty("--sy", "0px");
-  setText(target, label);
+  target.title = label;
 }
 
 const BUTTONS = new Set(["ImageButton", "TextButton", "ComboBox"]);

@@ -1,0 +1,15 @@
+Edit this existing game information card atlas. STRICTLY preserve all reference artwork, card arrangement, THREE COLUMNS and TWO ROWS, logical 738x636. Every cell is 246x318. Most important: preserve the reference card backgrounds: the upper blue/red/gold artwork GRADUALLY FADES DOWN TO PURE WHITE at the bottom, with BLACK OR DARK CHARCOAL BODY TEXT. Do not replace the WHITE lower area with a dark background. The white lower area and light colored gradient are essential to match the original game. Preserve character faces, trophy, color bands, and white titles with their original black drop shadow/outline. Only replace the Chinese lettering with the complete translations below. This must be six complete localized game image sprites with integrated lettering; no separate boxes, no captions placed over Chinese, no Chinese remaining.
+Top row ENGLISH. Bottom row KOREAN. Body text dark charcoal on LIGHT/WHITE lower portion, tightly wrapped but legible, all paragraph sentences included. Titles may wrap to two lines in the original title region. Preserve stopwatch icon next to first two titles. All columns and rows exact equal sizes, no gaps, no extra frame/padding. Do not rearrange artwork. Text must sit comfortably in the lower area and not be cropped.
+TOP LEFT TITLE "Practice Time Attack"
+BODY "Complete practice goals on each track to earn items. Race against different characters on selected tracks in classic matchups."
+TOP MIDDLE TITLE "Ranked Time Attack"
+BODY "Spend 500 Lucci to challenge track records. Track rankings reset periodically."
+TOP RIGHT TITLE "Competitive Ranked Race"
+BODY "Complete designated tracks during the season to earn points. Your points determine your rank. Ranking rewards are sent when the season ends."
+BOTTOM LEFT TITLE "연습 타임어택"
+BODY "트랙별 연습 목표를 달성하면 아이템을 받습니다. 지정된 트랙에서 다양한 캐릭터와 클래식 레이스를 즐겨 보세요."
+BOTTOM MIDDLE TITLE "랭킹 타임어택"
+BODY "500 루찌를 사용해 트랙 기록 순위에 도전하세요. 트랙 기록은 일정 기간마다 초기화됩니다."
+BOTTOM RIGHT TITLE "경쟁 랭킹전"
+BODY "시즌 중 지정된 트랙을 완주하면 점수를 얻습니다. 점수로 순위가 정해지며 시즌 종료 시 순위 보상을 받습니다."
+Final reminder: LIGHT COLOR GRADIENT TO WHITE at every card bottom, BLACK BODY TEXT. Faithful original art, complete bilingual replacement.

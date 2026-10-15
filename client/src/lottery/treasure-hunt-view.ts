@@ -17,7 +17,7 @@ import { tr, gameLocale } from "../i18n/locale";
 import type { ShopNode, ShopRect } from "../shop/shop-original";
 import { attr, screenRect, ShopLayout } from "../shop/shop-original";
 import { imageVar } from "../shop/shop-assets";
-import { BmlTree, createNodeElement, element, place, setText, localizeImageCaption } from "../shop/shop-widgets";
+import { BmlTree, createNodeElement, element, place, setText, setImageButtonLabel } from "../shop/shop-widgets";
 import { lotteryErrorMessage, type DrawResult, type HuntSlot, type LotteryDraw,
   type TreasureHuntState } from "./lottery-api";
 import { findIn, isLotteryLibrary, loadLotteryStage, loadStageArt, prune, TREASURE_ROOTS,
@@ -200,7 +200,7 @@ export class TreasureHuntView {
       multiAutoUse: tr("10个使用（连续）"), buyButton: tr("兑换"), stopAutoButton: tr("停止连抽"),
       fixedRewardConfirmButton: tr("确定") })) {
       const target = this.el(name);
-      if (target) localizeImageCaption(target, label);
+      if (target) setImageButtonLabel(target, label);
     }
     this.shell.element.dataset.skipAnimation = String(this.skip);
     for (let slot = 1; slot <= SLOT_COUNT; slot++) {

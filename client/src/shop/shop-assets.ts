@@ -13,6 +13,8 @@
  */
 import { C9, p2 } from "../generated/formats.js";
 import { U1 } from "../generated/library.js";
+import { resolveLocalizedPngPath } from "../resources/localized-png";
+import { gameLocale, type GameLocale } from "../i18n/locale";
 import {
   attr, BUY_DIALOG, SHOP_CARD_TIP, SHOP_CARDS, SHOP_FRAMES, STAGE_WINDOW, STOCK_COMBO_ITEM,
   TC_CASH_SLOT, TC_CASH_WINDOW, textButtonStyle, type ShopFrame, type ShopNode,
@@ -106,6 +108,14 @@ interface Decoded { canvas: HTMLCanvasElement; width: number; height: number }
 
 function find(library: ShopArtLibrary, roots: readonly string[], name: string,
   extension = ".png"): ShopArtEntry | undefined {
+  if (extension === ".png") {
+    for (const root of roots) {
+      const path = resolveLocalizedPngPath(library, `${root}/${name}${extension}`);
+      const entries = library.canonicalCandidates(path);
+      if (entries.length === 1) return entries[0];
+      if (entries.length > 1) throw new Error(`商店图片资源不唯一：${path}`);
+    }
+  }
   try {
     return U1(library, [...roots], name, extension) as ShopArtEntry;
   } catch {
@@ -153,7 +163,7 @@ function paintFrame(frame: ShopFrame, texture: CanvasImageSource): HTMLCanvasEle
   return canvas;
 }
 
-const cache = new WeakMap<object, Promise<ShopArt>>();
+const cache = new WeakMap<object, Map<GameLocale, Promise<ShopArt>>>();
 const fonts = new WeakMap<object, Promise<string | undefined>>();
 
 /**
@@ -200,13 +210,16 @@ export function shopArtRequest(): { images: Set<string>; frames: Set<string> } {
  * skipped.
  */
 export function loadShopArt(library: ShopArtLibrary): Promise<ShopArt> {
-  let pending = cache.get(library);
+  const locale = gameLocale();
+  let byLocale = cache.get(library);
+  if (!byLocale) cache.set(library, byLocale = new Map());
+  let pending = byLocale.get(locale);
   if (!pending) {
     const request = shopArtRequest();
     pending = load(library, [...request.images], [...request.frames]);
-    cache.set(library, pending);
+    byLocale.set(locale, pending);
     // A failed load may be retried by the next shop.
-    pending.catch(() => cache.delete(library));
+    pending.catch(() => byLocale!.delete(locale));
   }
   return pending;
 }
@@ -222,7 +235,7 @@ export function loadLayoutArt(library: ShopArtLibrary, roots: readonly string[],
   frames: Iterable<string> = []): Promise<ShopArt> {
   const imageList = [...new Set(images)].sort();
   const frameList = [...new Set(frames)].sort();
-  const key = JSON.stringify([roots, imageList, frameList]);
+  const key = JSON.stringify([gameLocale(), roots, imageList, frameList]);
   let byKey = layoutCache.get(library);
   if (!byKey) layoutCache.set(library, byKey = new Map());
   let pending = byKey.get(key);

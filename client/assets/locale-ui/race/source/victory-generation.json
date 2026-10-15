@@ -1,0 +1,10 @@
+{
+  "tool": "built-in imagegen",
+  "prompt": "Use case: text-localization. Reference 1 is a transparent green-team victory text sprite; reference 2 is its yellow-team version. Create one transparent production sprite atlas, exactly one column and two equal-height rows. TOP row text exactly 'GREEN TEAM WINS!' and BOTTOM row exactly 'YELLOW TEAM WINS!'. Preserve the reference's bold italic arcade typography, green top lettering/dark green outline, golden yellow bottom lettering/dark gold outline. Each complete line centered within its half, generous clear gap between rows and safe margins. LETTERING ONLY on genuinely transparent alpha: no rectangles, no panels, no frames, no colored backplates, no solid background, no checkerboard. Clean precise antialiased letter contours. Do not add other text.",
+  "reference": [
+    "../ko/stage_/mqGameFinal/greenWin.png",
+    "../ko/stage_/mqGameFinal/yellowWin.png"
+  ],
+  "output": "victory-generated.png",
+  "transparent_background": true
+}

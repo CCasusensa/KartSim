@@ -55,7 +55,7 @@ import {
 } from "./shop-original";
 import { fetchSpendEvent, SpendEventPanel, type SpendEventReward } from "./shop-spend-event";
 import { SHOP_STYLES } from "./shop-styles";
-import { BmlTree, createNodeElement, editInput, element, place, setFrame, setText, localizeImageCaption } from "./shop-widgets";
+import { BmlTree, createNodeElement, editInput, element, place, setFrame, setText, setImageButtonLabel } from "./shop-widgets";
 
 export type ShopTab = "recommand" | "kartBody" | "character" | "equip";
 
@@ -640,7 +640,7 @@ class ShopView {
     const gacha = this.tree.named("gachaOpenResult");
     gacha.setAttribute("aria-label", SHOP_STRINGS.gachaUseResult);
     gacha.title = SHOP_STRINGS.gachaUseResult;
-    localizeImageCaption(gacha, SHOP_STRINGS.gachaUseResult);
+    setImageButtonLabel(gacha, SHOP_STRINGS.gachaUseResult);
     notice(gacha, tr("{0}暂未开放", { "0": SHOP_STRINGS.gachaUseResult }));
     const reset = this.tree.named("reset");
     reset.title = tr("试穿的道具恢复为当前装备");
@@ -1336,14 +1336,7 @@ class ShopView {
         label.style.width = `${mark.width - 23}px`;
       }
       sprite.title = mark.label ?? { new: tr("新品"), hot: tr("人气"), limited: tr("限购") }[mark.mark] ?? "";
-      if (gameLocale() !== "zh-CN") {
-        sprite.classList.add("ks-shop-mark-localized");
-        sprite.style.removeProperty("--mark");
-        sprite.style.width = "auto";
-        sprite.style.height = "auto";
-        sprite.textContent = sprite.title;
-        label.hidden = true;
-      }
+
       tag.prepend(sprite);
     }
 

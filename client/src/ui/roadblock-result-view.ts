@@ -1,5 +1,5 @@
 import { gameLocale, tr } from "../i18n/locale";
-import { localizedRoadblockTexture, localizeResultTexture } from "./result-art-localization";
+import { localizedRoadblockTexture } from "./result-art-localization";
 /** Roadblock race HUD and result panels built from the original BML assets. */
 
 import type { ResultNode } from "./multiplayer-result-view";
@@ -100,10 +100,7 @@ export class RoadblockResultView {
       library, root, definition,
       roots: [hudFolder, "stage_/common", "stage_/speedIndiGame", "stage_/itemIndiGame"],
       label: isRunner ? tr("跑者：到达终点") : tr("挡人方：阻止跑者"),
-      projectTexture: (name: string, canvas: HTMLCanvasElement) => {
-        const projected = typeof deps.projectTexture === "function" ? deps.projectTexture(name, canvas) : canvas;
-        return localizeResultTexture(name, projected);
-      },
+      projectTexture: deps.projectTexture,
       state: node => {
         const name = deps.attribute(node, "name");
         const ms = screen.remainingMs;
@@ -205,7 +202,6 @@ export class RoadblockResultView {
     screen.view = await deps.loadView({
       library, root, definition, roots: [resultFolder, "stage_/common"],
       label: tr("挡人模式结果"),
-      projectTexture: localizeResultTexture,
       state: node => {
         const name = deps.attribute(node, "name");
         const outcome = screen.race?.roadblockOutcome;

@@ -1,5 +1,6 @@
 import type { PauseHit, PauseMenuAssets } from "./pause-menu-view";
 import { resourceText, tr } from "../i18n/locale";
+import { LOCALIZED_PNG_CONTAINER, LOCALIZED_PNG_MOUNT, resolveLocalizedPngPath } from "../resources/localized-png";
 
 export const PAUSE_VIEW_WIDTH = 1600;
 export const PAUSE_VIEW_HEIGHT = 900;
@@ -191,8 +192,9 @@ function loadPauseButtonImages(
 ): Promise<Array<{ image: HTMLCanvasElement; width: number; height: number }>> {
   return Promise.all([1, 2, 3, 4].map(index => {
     const filename = chinese ? `${index}@cn.png` : `${index}.png`;
-    return decodePauseImage(pauseResourceFromArchive(library,
-      `${paths.commonImages}/${prefix}${filename}`, paths.commonArchive), ops);
+    const path = resolveLocalizedPngPath(library, `${paths.commonImages}/${prefix}${filename}`);
+    const archive = path.startsWith(`${LOCALIZED_PNG_MOUNT}/`) ? LOCALIZED_PNG_CONTAINER : paths.commonArchive;
+    return decodePauseImage(pauseResourceFromArchive(library, path, archive), ops);
   }));
 }
 

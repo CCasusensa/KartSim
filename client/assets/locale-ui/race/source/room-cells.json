@@ -1,0 +1,402 @@
+[
+  {
+    "folder": "ready",
+    "name": "btn_ready_1",
+    "text": "READY (F5)",
+    "locale": "en",
+    "row": 0,
+    "column": 0,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_ready_2",
+    "text": "READY (F5)",
+    "locale": "en",
+    "row": 0,
+    "column": 1,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_ready_3",
+    "text": "READY (F5)",
+    "locale": "en",
+    "row": 0,
+    "column": 2,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_ready_4",
+    "text": "READY (F5)",
+    "locale": "en",
+    "row": 0,
+    "column": 3,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_cancel_1",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 1,
+    "column": 0,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_cancel_2",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 1,
+    "column": 1,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_cancel_3",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 1,
+    "column": 2,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_cancel_4",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 1,
+    "column": 3,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_start_1",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 2,
+    "column": 0,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_start_2",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 2,
+    "column": 1,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_start_3",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 2,
+    "column": 2,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_start_4",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 2,
+    "column": 3,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_gameStart1",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 3,
+    "column": 0,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_gameStart2",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 3,
+    "column": 1,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_gameStart3",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 3,
+    "column": 2,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_gameStart4",
+    "text": "START (F5)",
+    "locale": "en",
+    "row": 3,
+    "column": 3,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_Autostart_1",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 4,
+    "column": 0,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_Autostart_2",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 4,
+    "column": 1,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_Autostart_3",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 4,
+    "column": 2,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_Autostart_4",
+    "text": "CANCEL (F5)",
+    "locale": "en",
+    "row": 4,
+    "column": 3,
+    "width": 249,
+    "height": 78
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_1",
+    "text": "Room settings",
+    "locale": "en",
+    "row": 5,
+    "column": 0,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_2",
+    "text": "Room settings",
+    "locale": "en",
+    "row": 5,
+    "column": 1,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_3",
+    "text": "Room settings",
+    "locale": "en",
+    "row": 5,
+    "column": 2,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_4",
+    "text": "Room settings",
+    "locale": "en",
+    "row": 5,
+    "column": 3,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_1",
+    "text": "Leave",
+    "locale": "en",
+    "row": 6,
+    "column": 0,
+    "width": 104,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_2",
+    "text": "Leave",
+    "locale": "en",
+    "row": 6,
+    "column": 1,
+    "width": 104,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_3",
+    "text": "Leave",
+    "locale": "en",
+    "row": 6,
+    "column": 2,
+    "width": 104,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_4",
+    "text": "Leave",
+    "locale": "en",
+    "row": 6,
+    "column": 3,
+    "width": 104,
+    "height": 38
+  },
+  {
+    "folder": "ready",
+    "name": "slotReady",
+    "text": "READY",
+    "locale": "en",
+    "row": 7,
+    "column": 0,
+    "width": 251,
+    "height": 45
+  },
+  {
+    "folder": "ready",
+    "name": "slotReady",
+    "text": "READY",
+    "locale": "en",
+    "row": 7,
+    "column": 1,
+    "width": 251,
+    "height": 45
+  },
+  {
+    "folder": "ready",
+    "name": "slotReady",
+    "text": "READY",
+    "locale": "en",
+    "row": 7,
+    "column": 2,
+    "width": 251,
+    "height": 45
+  },
+  {
+    "folder": "ready",
+    "name": "slotReady",
+    "text": "READY",
+    "locale": "en",
+    "row": 7,
+    "column": 3,
+    "width": 251,
+    "height": 45
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_1",
+    "text": "\ubc29 \uc124\uc815",
+    "locale": "ko",
+    "row": 8,
+    "column": 0,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_2",
+    "text": "\ubc29 \uc124\uc815",
+    "locale": "ko",
+    "row": 8,
+    "column": 1,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_3",
+    "text": "\ubc29 \uc124\uc815",
+    "locale": "ko",
+    "row": 8,
+    "column": 2,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "ready",
+    "name": "btn_set_4",
+    "text": "\ubc29 \uc124\uc815",
+    "locale": "ko",
+    "row": 8,
+    "column": 3,
+    "width": 134,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_1",
+    "text": "\ub098\uac00\uae30",
+    "locale": "ko",
+    "row": 9,
+    "column": 0,
+    "width": 104,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_2",
+    "text": "\ub098\uac00\uae30",
+    "locale": "ko",
+    "row": 9,
+    "column": 1,
+    "width": 104,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_3",
+    "text": "\ub098\uac00\uae30",
+    "locale": "ko",
+    "row": 9,
+    "column": 2,
+    "width": 104,
+    "height": 38
+  },
+  {
+    "folder": "common",
+    "name": "btn_exit_4",
+    "text": "\ub098\uac00\uae30",
+    "locale": "ko",
+    "row": 9,
+    "column": 3,
+    "width": 104,
+    "height": 38
+  }
+]

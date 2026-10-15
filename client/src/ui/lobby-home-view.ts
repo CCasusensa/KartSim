@@ -3,7 +3,7 @@ import { setLobbyHomeBackdrop, setLobbyShopBackdrop } from "./lobby-home-backdro
 import { LobbyTopBar, type LobbyAccountInfo, type LobbyExperience,
   type LobbyWallet } from "./lobby-top-bar";
 import type { LobbyTopBarArt } from "./lobby-top-bar-assets";
-import { localizedLobbyPromo, openLobbyLink, type LobbyBanner, type LobbyBoard, type LobbyPromos } from "./lobby-promos";
+import { openLobbyLink, type LobbyBanner, type LobbyBoard, type LobbyPromos } from "./lobby-promos";
 import { te } from "../generated/library.js";
 import { node as bmlNode, nodeName, paintText, prepare, type Node, type NodeState, type Rect,
   type WindowView } from "./bml-kit";
@@ -218,10 +218,6 @@ const STYLES = `
 .ks-lobby-promo{position:absolute;right:1.4cqw;top:8.6cqh;width:35cqh;display:flex;flex-direction:column;gap:.9cqh}
 .ks-lobby-carousel{position:relative;height:20.2cqh;border-radius:.5cqh;overflow:hidden;
   box-shadow:0 .4cqh 1.2cqh rgba(0,0,0,.35);background:#16305e}
-.ks-lobby-promo-copy{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:center;gap:1cqh;padding:2cqh;background:linear-gradient(135deg,#134f83,#142143);text-align:center}
-.ks-lobby-promo-copy[hidden]{display:none}
-.ks-lobby-promo-copy strong{font-size:3.8cqh;line-height:1.15}
-.ks-lobby-promo-copy span{font-size:1.85cqh;line-height:1.4}
 .ks-lobby-carousel canvas{position:absolute;inset:0;width:100%;height:100%}
 .ks-lobby-carousel.ks-link canvas{cursor:pointer}
 .ks-lobby-carousel canvas:focus-visible{outline:.3cqh solid #ffe66b;outline-offset:-.3cqh}
@@ -291,7 +287,6 @@ export class LobbyHomeView {
   private settings?: { close(restoreFocus?: boolean): void };
   private readonly carousel = element("canvas");
   private readonly dots = element("div", "ks-lobby-dots");
-  private readonly promoText = element("div", "ks-lobby-promo-copy");
   private readonly observer?: ResizeObserver;
   /** The status bar across the top. */
   readonly topBar: LobbyTopBar;
@@ -659,8 +654,7 @@ export class LobbyHomeView {
     const promo = element("aside", "ks-lobby-promo");
     promo.setAttribute("aria-label", tr("活动"));
     const carousel = element("div", "ks-lobby-carousel");
-    this.promoText.setAttribute("aria-hidden", "true");
-    carousel.append(this.carousel, this.dots, this.promoText);
+    carousel.append(this.carousel, this.dots);
     // A picture with a link opens it.
     this.carousel.addEventListener("click", () => this.openBanner());
     this.carousel.addEventListener("keydown", event => {
@@ -773,13 +767,12 @@ export class LobbyHomeView {
   /** A board shows its picture, or the drawn board with its title (COMING SOON without one). */
   private setBoard(board: PromoBoard, promo: LobbyBoard): void {
     board.promo = promo;
-    const localized = localizedLobbyPromo(promo);
-    board.text.textContent = localized?.title ?? (promo.title ? tr(promo.title) : gameLocale() === "zh-CN" ? "COMING SOON" : tr("即将推出"));
-    board.element.setAttribute("aria-label", localized?.title ?? tr(promo.title ?? (promo.link ? "宣传" : "即将推出")));
-    if (promo.title || localized) board.element.title = localized?.title ?? tr(promo.title!);
+    board.text.textContent = promo.title ? tr(promo.title) : gameLocale() === "zh-CN" ? "COMING SOON" : tr("即将推出");
+    board.element.setAttribute("aria-label", tr(promo.title ?? (promo.link ? "宣传" : "即将推出")));
+    if (promo.title) board.element.title = tr(promo.title);
     else board.element.removeAttribute("title");
-    board.element.classList.toggle("ks-picture", !!promo.image && !localized);
-    board.picture.hidden = !promo.image || !!localized;
+    board.element.classList.toggle("ks-picture", !!promo.image);
+    board.picture.hidden = !promo.image;
   }
 
   private bindSound(button: HTMLElement): void {
@@ -794,7 +787,6 @@ export class LobbyHomeView {
   }
 
   private paintBoard(board: PromoBoard): void {
-    if (localizedLobbyPromo(board.promo)) return;
     const image = board.promo.image;
     const canvas = board.picture;
     const width = board.element.clientWidth;
@@ -836,14 +828,10 @@ export class LobbyHomeView {
     const link = !!banner?.link;
     canvas.parentElement?.classList.toggle("ks-link", link);
     canvas.setAttribute("role", link ? "link" : "img");
-    const localized = banner && localizedLobbyPromo(banner);
-    canvas.setAttribute("aria-label", localized?.title ?? tr(banner?.title ?? "活动宣传图"));
-    this.promoText.hidden = !localized;
-    this.promoText.replaceChildren(...(localized ? [element("strong", undefined, localized.title),
-      element("span", undefined, localized.subtitle)] : []));
+    canvas.setAttribute("aria-label", tr(banner?.title ?? "活动宣传图"));
     if (link) canvas.tabIndex = 0;
     else canvas.removeAttribute("tabindex");
-    if (banner?.title || localized) canvas.title = localized?.title ?? tr(banner!.title!);
+    if (banner?.title) canvas.title = tr(banner.title);
     else canvas.removeAttribute("title");
     this.dots.querySelectorAll("button").forEach((dot, index) =>
       dot.setAttribute("aria-current", String(index === this.banner)));
@@ -857,7 +845,7 @@ export class LobbyHomeView {
     if (!context) return;
     context.fillStyle = "#16305e";
     context.fillRect(0, 0, canvas.width, canvas.height);
-    if (banner && !localized) {
+    if (banner) {
       context.imageSmoothingQuality = "high";
       const crop = coverCrop(banner, canvas);
       context.drawImage(banner.image, crop.x, crop.y, crop.width, crop.height,

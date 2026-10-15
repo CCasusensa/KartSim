@@ -2320,6 +2320,10 @@ export const lobbyTranslations: Record<string, readonly [string, string]> = {
     "* Complete all missions, then click Get Emblem below.",
     "* 모든 미션 완료 시, 하단의 '라이센스 획득' 버튼을 눌러주세요."
   ],
+  "* 完成所有任务后，点击下方的“获得驾照”按钮。": [
+    "* Complete all missions, then click Get License below.",
+    "* 모든 미션을 완료한 후 아래 '라이선스 획득' 버튼을 눌러 주세요."
+  ],
   "* 获得PRO驾照后可维持90天。": [
     "* The PRO License is valid for 90 days.",
     "* PRO 라이센스는 획득 후 90일 간 유지됩니다."

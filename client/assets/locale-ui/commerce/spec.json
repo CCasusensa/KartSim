@@ -1,0 +1,1585 @@
+{
+  "version": 1,
+  "generation": {
+    "tool": "imagegen",
+    "preparation": "node tools/slice-commerce-locale-art.mjs (requires ImageMagick)",
+    "atlases": [
+      {
+        "input": "source/lottery-controls-original.png",
+        "prompt": "source/lottery-controls-en-prompt.txt",
+        "output": "source/lottery-controls-en-generated.png",
+        "outputSha256": "0d9aecb506eece9da2bef276afdfc9da0505d177a8876d9639dfa52c588204e8"
+      },
+      {
+        "input": "source/lottery-controls-original.png",
+        "prompt": "source/lottery-controls-ko-prompt.txt",
+        "output": "source/lottery-controls-ko-generated.png",
+        "outputSha256": "22008e6d349086fcc5e16bb9ab2da93aa37cbee9de492d3537ae7d2cb59fde39"
+      },
+      {
+        "input": "source/dictionary-tabs-original.png",
+        "prompt": "source/dictionary-tabs-en-prompt.txt",
+        "output": "source/dictionary-tabs-en-generated.png",
+        "outputSha256": "954ad29d3592d2dfd4544890339e2f7ae144b55044c0c2bb901838f4e8dcc4b8"
+      },
+      {
+        "input": "source/dictionary-cards-original.png",
+        "prompt": "source/dictionary-cards-en-prompt.txt",
+        "output": "source/dictionary-cards-en-generated.png",
+        "outputSha256": "264fb7982981c942f6ccbf163882677922bb93375248d2d5d598eb7ac325c0e1"
+      },
+      {
+        "input": "source/dictionary-cards-original.png",
+        "prompt": "source/dictionary-cards-ko-prompt.txt",
+        "output": "source/dictionary-cards-ko-generated.png",
+        "outputSha256": "e4008685ba840e75388a35b01b308ffab2b9db4c92afb7ef7c1fde039c832e63"
+      },
+      {
+        "input": "source/commerce-details-original.png",
+        "prompt": "source/commerce-details-en-prompt.txt",
+        "output": "source/commerce-details-en-generated.png",
+        "outputSha256": "598745ac4213ba8c297ade4b7c296e0c334c2ae1f6adc82bfdfd178cc375993f"
+      },
+      {
+        "input": "source/commerce-details-original.png",
+        "prompt": "source/commerce-details-ko-prompt.txt",
+        "output": "source/commerce-details-ko-generated.png",
+        "outputSha256": "9a67713d31da713cb7636b9ee100957e4352962efe8765fa6b7c480ef11348b4"
+      },
+      {
+        "input": "source/treasure-headers-original.png",
+        "prompt": "source/treasure-headers-en-prompt.txt",
+        "output": "source/treasure-headers-en-generated.png",
+        "outputSha256": "bb03fb06bb853db95bbf1e94435c3f2ecbb9bd3e1c263b97ff90c49e708ba95d"
+      },
+      {
+        "input": "source/treasure-headers-original.png",
+        "prompt": "source/treasure-headers-ko-prompt.txt",
+        "output": "source/treasure-headers-ko-generated.png",
+        "outputSha256": "df2bedda58554c53dba19fd77af324446fedeeb067d5fc4f9fc2c4b65315973f"
+      }
+    ]
+  },
+  "entries": [
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_01@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-1.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_02@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-2.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_03@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-3.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_04@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-4.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_01@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-5.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_02@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-6.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_03@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-7.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_04@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-8.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_01@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-9.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_02@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-10.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_03@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-11.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_04@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-12.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy1@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-13.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy1@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-13.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy2@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-14.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy2@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-14.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy3@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-15.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy3@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-15.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy4@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-16.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy4@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-16.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_1@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-17.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_2@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-18.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_3@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-19.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_4@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-20.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_1@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-21.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_2@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-22.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_3@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-23.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_4@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-24.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop1@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-25.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop2@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-26.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop3@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-27.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop4@cn.png",
+      "locale": "en",
+      "file": "en/lottery-controls-28.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen en complete sprite; source/lottery-controls-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_01@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-1.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_02@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-2.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_03@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-3.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use1_04@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-4.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_01@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-5.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_02@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-6.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_03@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-7.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10_04@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-8.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_01@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-9.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_02@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-10.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_03@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-11.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_Use10con_04@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-12.png",
+      "width": 228,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy1@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-13.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy1@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-13.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy2@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-14.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy2@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-14.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy3@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-15.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy3@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-15.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_buy4@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-16.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/buy4@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-16.png",
+      "width": 180,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_1@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-17.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_2@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-18.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_3@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-19.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_stop_4@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-20.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_1@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-21.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_2@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-22.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_3@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-23.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgacha_ok_4@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-24.png",
+      "width": 180,
+      "height": 58,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop1@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-25.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop2@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-26.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop3@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-27.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/stop4@cn.png",
+      "locale": "ko",
+      "file": "ko/lottery-controls-28.png",
+      "width": 258,
+      "height": 66,
+      "provenance": "imagegen ko complete sprite; source/lottery-controls-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu1_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-1.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu11_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-2.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu12_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-3.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu13_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-4.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu1_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-5.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu11_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-6.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu12_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-7.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu13_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-8.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu1_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-9.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu11_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-10.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu12_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-11.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu13_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-12.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu1_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-13.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu11_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-14.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu12_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-15.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu13_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-16.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu2_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-17.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu21_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-18.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu22_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-19.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu23_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-20.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu2_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-21.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu21_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-22.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu22_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-23.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu23_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-24.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu2_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-25.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu21_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-26.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu22_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-27.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu23_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-28.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu2_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-29.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu21_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-30.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu22_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-31.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu23_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-32.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu3_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-33.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu31_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-34.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu32_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-35.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu33_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-36.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu3_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-37.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu31_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-38.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu32_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-39.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu33_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-40.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu3_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-41.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu31_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-42.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu32_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-43.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu33_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-44.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu3_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-45.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu31_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-46.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu32_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-47.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu33_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-48.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu4_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-49.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu41_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-50.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu42_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-51.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu43_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-52.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu4_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-53.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu41_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-54.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu42_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-55.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu43_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-56.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu4_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-57.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu41_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-58.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu42_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-59.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu43_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-60.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_1depthMenu4_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-61.png",
+      "width": 106,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu41_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-62.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu42_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-63.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_2depthMenu43_4@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-tabs-64.png",
+      "width": 122,
+      "height": 38,
+      "provenance": "imagegen en complete sprite; source/dictionary-tabs-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card1_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-1.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card1_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-2.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card1_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-3.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card2_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-4.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card2_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-5.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card2_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-6.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card3_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-7.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card3_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-8.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card3_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-9.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card4_1@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-10.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card4_2@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-11.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card4_3@cn.png",
+      "locale": "en",
+      "file": "en/dictionary-cards-12.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen en complete sprite; source/dictionary-cards-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card1_1@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-1.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card1_2@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-2.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card1_3@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-3.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card2_1@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-4.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card2_2@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-5.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card2_3@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-6.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card3_1@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-7.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card3_2@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-8.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card3_3@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-9.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card4_1@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-10.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card4_2@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-11.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_btn_card4_3@cn.png",
+      "locale": "ko",
+      "file": "ko/dictionary-cards-12.png",
+      "width": 650,
+      "height": 314,
+      "provenance": "imagegen ko complete sprite; source/dictionary-cards-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/new@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-1.png",
+      "width": 80,
+      "height": 30,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/hot@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-2.png",
+      "width": 72,
+      "height": 34,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/eventbuycount@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-3.png",
+      "width": 68,
+      "height": 34,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/limited@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-4.png",
+      "width": 68,
+      "height": 34,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/event@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-5.png",
+      "width": 68,
+      "height": 34,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/tcCashEventTitle0@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-6.png",
+      "width": 164,
+      "height": 24,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/tcCashEventTitle1@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-7.png",
+      "width": 164,
+      "height": 24,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/shop_chargePoint_slot_complete@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-8.png",
+      "width": 80,
+      "height": 80,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/shop_chargePoint_slot_eventClose@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-9.png",
+      "width": 80,
+      "height": 80,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_01@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-10.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_02@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-11.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_03@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-12.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_04@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-13.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/count@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-14.png",
+      "width": 26,
+      "height": 28,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/use@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-15.png",
+      "width": 50,
+      "height": 28,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/매진@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-16.png",
+      "width": 292,
+      "height": 168,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_txt_mainTitle@cn.png",
+      "locale": "en",
+      "file": "en/commerce-details-17.png",
+      "width": 96,
+      "height": 20,
+      "provenance": "imagegen en complete sprite; source/commerce-details-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/new@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-1.png",
+      "width": 80,
+      "height": 30,
+      "provenance": "Native Korean stage_mqShop/new@zz.png; full-image resize to current release geometry"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/hot@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-2.png",
+      "width": 72,
+      "height": 34,
+      "provenance": "Native Korean stage_mqShop/hot@zz.png; full-image resize to current release geometry"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/eventbuycount@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-3.png",
+      "width": 68,
+      "height": 34,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/limited@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-4.png",
+      "width": 68,
+      "height": 34,
+      "provenance": "Native Korean stage_mqShop/limited@zz.png; full-image resize to current release geometry"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/event@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-5.png",
+      "width": 68,
+      "height": 34,
+      "provenance": "Native Korean stage_mqShop/event@zz.png; full-image resize to current release geometry"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/tcCashEventTitle0@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-6.png",
+      "width": 164,
+      "height": 24,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/tcCashEventTitle1@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-7.png",
+      "width": 164,
+      "height": 24,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/shop_chargePoint_slot_complete@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-8.png",
+      "width": 80,
+      "height": 80,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/tcCashEvent/shop_chargePoint_slot_eventClose@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-9.png",
+      "width": 80,
+      "height": 80,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_01@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-10.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_02@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-11.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_03@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-12.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/mqShop/btn_gachaOpenResult_04@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-13.png",
+      "width": 162,
+      "height": 40,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/count@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-14.png",
+      "width": 26,
+      "height": 28,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/use@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-15.png",
+      "width": 50,
+      "height": 28,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/gachaUse/매진@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-16.png",
+      "width": 292,
+      "height": 168,
+      "provenance": "imagegen ko complete sprite; source/commerce-details-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "dialog/itemDictionary/collect_txt_mainTitle@cn.png",
+      "locale": "ko",
+      "file": "ko/commerce-details-17.png",
+      "width": 96,
+      "height": 20,
+      "provenance": "Native Korean dialog/itemDictionary/collect_txt_mainTitle@zz.png; full-image resize to current release geometry"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgachaMainBg_tiitle@cn.png",
+      "locale": "en",
+      "file": "en/treasure-headers-1.png",
+      "width": 998,
+      "height": 242,
+      "provenance": "imagegen en complete sprite; source/treasure-headers-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgachaPopupBg@cn.png",
+      "locale": "en",
+      "file": "en/treasure-headers-2.png",
+      "width": 1920,
+      "height": 1080,
+      "provenance": "imagegen en complete sprite; source/treasure-headers-en-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgachaMainBg_tiitle@cn.png",
+      "locale": "ko",
+      "file": "ko/treasure-headers-1.png",
+      "width": 998,
+      "height": 242,
+      "provenance": "imagegen ko complete sprite; source/treasure-headers-ko-generated.png; geometry-only resize and crop"
+    },
+    {
+      "canonicalPath": "stage_/treasureHunt/newgachaPopupBg@cn.png",
+      "locale": "ko",
+      "file": "ko/treasure-headers-2.png",
+      "width": 1920,
+      "height": 1080,
+      "provenance": "imagegen ko complete sprite; source/treasure-headers-ko-generated.png; geometry-only resize and crop"
+    }
+  ]
+}

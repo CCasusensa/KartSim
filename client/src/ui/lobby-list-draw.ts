@@ -1,5 +1,4 @@
-import { paintMultiplayerModeCaption } from "./multiplayer-localized-art";
-import { tr } from "../i18n/locale";
+import { gameLocale, tr } from "../i18n/locale";
 /** Draw the original multiplayer lobby's declarative BML tree. */
 export interface LobbyLayoutNode {
   name: string;
@@ -117,7 +116,7 @@ export function drawLobbyListNode(
 
   if (textures) {
     host.context.save();
-    if (mode && mode.gameplay !== "rp") {
+    if (mode && (mode.gameplay !== "rp" || gameLocale() !== "zh-CN")) {
       host.context.filter = interactive
         ? host.pressed === name ? "brightness(.85)"
           : host.hovered === name ? "brightness(1.15)" : "none"
@@ -144,7 +143,6 @@ export function drawLobbyListNode(
         bounds.width, bounds.height);
     }
     host.context.restore();
-    if (mode?.label) paintMultiplayerModeCaption(host.context, bounds, mode.label);
     if (mode && "gameplay" in mode && host.mode &&
         mode.gameplay === host.gameplay) {
       host.context.save();

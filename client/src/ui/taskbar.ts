@@ -84,14 +84,10 @@ function drawCentered(context: CanvasRenderingContext2D, image: TaskbarImage, re
     rect.y + (rect.height - image.height) * 0.5);
 }
 
-/** These six large tray sprites include Chinese text below their icon. */
-const CAPTIONED_BUTTONS: Record<string, string> = {
+const BUTTON_LABELS: Record<string, string> = {
   multiplay: "多人游戏", singleplay: "单人游戏", "마이룸": "小屋",
   "상점": "商店", "파츠": "车库", club: "俱乐部",
-};
-
-const BUTTON_LABELS: Record<string, string> = {
-  ...CAPTIONED_BUTTONS, "설정": "设置", gotoHome: "返回主页", goRewardBox: "奖励箱",
+  "설정": "设置", gotoHome: "返回主页", goRewardBox: "奖励箱",
   noticer: "迷你提示窗", questDialog: "任务", toggle_gchat: "聊天",
   findRiderButton: "查找车手", messengerButton: "好友聊天系统", goKartPass: "跑跑通行证",
 };
@@ -100,27 +96,10 @@ export function taskbarButtonLabel(name: string, fallback: string): string {
   return gameLocale() === "zh-CN" ? fallback : tr(BUTTON_LABELS[name] ?? fallback);
 }
 
-/** Keep the artwork and hover states, replacing only the baked caption band. */
+/** Draw the complete localized sprite selected by the asset loader. */
 export function drawTaskbarButton(context: CanvasRenderingContext2D, image: TaskbarImage,
-  button: TaskbarButton, frame: number): void {
-  const caption = CAPTIONED_BUTTONS[button.name];
-  if (gameLocale() === "zh-CN" || !caption) {
-    drawCentered(context, image, button.rect);
-    return;
-  }
-  const { rect } = button;
-  const x = rect.x + (rect.width - image.width) / 2;
-  const y = rect.y + (rect.height - image.height) / 2;
-  // Original 66px sprites put captions in the final 20px.
-  const iconHeight = Math.max(0, image.height - 20);
-  context.drawImage(image.image, 0, 0, image.width, iconHeight, x, y, image.width, iconHeight);
-  context.save();
-  context.font = "bold 14px 'Apple SD Gothic Neo', 'Malgun Gothic', 'Microsoft YaHei', sans-serif";
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillStyle = frame === 3 ? "#aebad0" : frame === 0 ? "#8497b8" : "#2988bf";
-  context.fillText(tr(caption), rect.x + rect.width / 2, y + image.height - 10, Math.max(1, rect.width - 6));
-  context.restore();
+  button: TaskbarButton): void {
+  drawCentered(context, image, button.rect);
 }
 
 function buttonFrame(name: string, hovered?: string, pressed?: string): number {
@@ -275,7 +254,7 @@ export class Taskbar {
       const frame = this.actionFor(button.name)
         ? buttonFrame(button.name, this.hovered, this.pressed)
         : 3;
-      drawTaskbarButton(this.context, this.assets.images.get(button.node)![frame]!, button, frame);
+      drawTaskbarButton(this.context, this.assets.images.get(button.node)![frame]!, button);
       const focused = document.activeElement;
       if (focused?.parentElement === this.element &&
         focused.getAttribute("aria-label") === taskbarButtonLabel(button.name, this.assets.labels.get(button.name) ?? button.name) &&
