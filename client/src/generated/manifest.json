@@ -1852,8 +1852,8 @@
     },
     {
       "file": "formats.js",
-      "bytes": 154982,
-      "sha256": "f82210d5e83cfd05db9faa46c287f51a4cad0f92ba56510408e052499cfd90a6",
+      "bytes": 153705,
+      "sha256": "31537a5c17051f3f06a43c30d92ad450094cc51a9b0ff1a7e3888436ca551bb4",
       "imports": 71,
       "exports": 185
     },

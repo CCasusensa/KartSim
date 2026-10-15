@@ -1684,6 +1684,7 @@ let replacedCourseGraph = false;
 let replacedPngDecoder = false;
 let retiredPngSignature = false;
 const replacedTextureAlpha = new Set();
+let replacedTextureSourceFile = false;
 const bodies = new Map(order.map((name) => [name, []]));
 let garageExportNode;
 let dlDeclarator;
@@ -2764,6 +2765,15 @@ function II(version, speed) { return findSpeedTypeEntry(version, speed); }` });
     bodies.get("formats").push({ at: node.start,
       text: "async function p2(bytes) { return decodePngRgba(bytes); }" });
     replacedPngDecoder = true;
+    continue;
+  }
+  // Texture files match whatever their case, as on Windows (src/resources/texture-source-file.ts).
+  if (declarationName === "mK") {
+    assert(node.type === "FunctionDeclaration" && originalSection(node.start) === "formats",
+      "The texture source file lookup moved from formats.");
+    bodies.get("formats").push({ at: node.start,
+      text: "function mK(n, e, t) { return findTextureSourceFile(n, e, t); }" });
+    replacedTextureSourceFile = true;
     continue;
   }
   if (declarationName === "aK" || declarationName === "cK") {
@@ -4285,6 +4295,7 @@ assert(replacedPngDecoder && retiredPngSignature,
   "The PNG decoder and signature were not both replaced.");
 assert(groupNames(replacedTextureAlpha) === "aK, cK",
   "The texture alpha correctors were not both replaced.");
+assert(replacedTextureSourceFile, "The texture source file lookup was not replaced.");
 assert(dlDeclarator, "The shared dl constant was not found.");
 assert(
   replacedInputs.size === inputOverrides.size,
@@ -4703,6 +4714,7 @@ function renderModule(name) {
     lines.push('import { createBasicTextureMaterial } from "../resources/basic-texture-material.ts";');
     lines.push('import { decodePngRgba } from "../resources/png-decoder.ts";');
     lines.push('import { normalizeLegacyTextureAlpha } from "../resources/texture-alpha.ts";');
+    lines.push('import { findTextureSourceFile } from "../resources/texture-source-file.ts";');
     lines.push('import { buildTrackCourseGraph } from "../resources/track-course-graph.ts";');
     lines.push('import { cameraCullingPlanes } from "../resources/camera-culling-planes.ts";');
     lines.push('const fontLayoutOps = { attribute: T, rectangle: lt, parseNumbers: j2 };');

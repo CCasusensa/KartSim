@@ -39,6 +39,7 @@ import { createToonEnvironmentMaterial } from "../resources/toon-environment-mat
 import { createBasicTextureMaterial } from "../resources/basic-texture-material.ts";
 import { decodePngRgba } from "../resources/png-decoder.ts";
 import { normalizeLegacyTextureAlpha } from "../resources/texture-alpha.ts";
+import { findTextureSourceFile } from "../resources/texture-source-file.ts";
 import { buildTrackCourseGraph } from "../resources/track-course-graph.ts";
 import { cameraCullingPlanes } from "../resources/camera-culling-planes.ts";
 const fontLayoutOps = { attribute: T, rectangle: lt, parseNumbers: j2 };
@@ -2040,8 +2041,7 @@ function hK(n) {
 
 
 
-const pK = ["dds", "png", "jpg", "tga", "kng"],
-  vb = [
+const vb = [
     "steam",
     "forest",
     "desert",
@@ -2157,21 +2157,7 @@ function Gu(n, e) {
   };
 }
 
-function mK(n, e, t) {
-  for (const i of pK) {
-    const r = `${MB(e.canonicalPrefix)}/${t}.${i}`,
-      s = n.exactCanonicalCandidates(r);
-    if (s.length > 1)
-      return {
-        status: "unresolved",
-        reason: `${r} 在 source 中不唯一。`,
-        source: e,
-        stem: t,
-      };
-    if (s.length === 1)
-      return { status: "found", entry: s[0], source: e, stem: t, extension: i };
-  }
-}
+function mK(n, e, t) { return findTextureSourceFile(n, e, t); }
 
 function MB(n) {
   return n
