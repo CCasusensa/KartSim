@@ -15,7 +15,7 @@
 | `tv` 充能动画 | `ChargerEffect`，`charger-effect.ts` | 特效原件唯一性、启停切换、时间戳转换与资源释放；已接入 |
 | `d7` 车膜 owner | `CoatingOwner`，`coating-owner.ts` | 装配选项、共用/独占纹理管理器、时间推进和失败清理；已接入 |
 | `sL` 雨天屏幕粒子 | `RainScreenEffect`，`rain-screen-effect.ts` | 200 个雨滴的生成、投影、淡入、画布顶点与清理；发行版差分通过，已接入 |
-| `A7` 雪天屏幕粒子 | `SnowScreenEffect`，`snow-screen-effect.ts` | 雪花运动、纹理 SHA-256 与尺寸校验、绘制和清理；发行版差分及真实 `theme_ice.rho` 资源加载通过，已接入 |
+| `A7` 雪天屏幕粒子 | `SnowScreenEffect`，`snow-screen-effect.ts` | 雪花运动、纹理 SHA-256 与尺寸校验、绘制和清理；粒子状态与发行版差分一致，真实 `theme_ice.rho` 资源加载通过，已接入。绘制有意偏离发行版（发行版的雪看不见，2026-10-15）：纹理横向 Repeat、不做深度测试、四边形按贴图 1:4 竖条放大两倍、淡拖尾滤掉 |
 | `y7` 雨声过渡 | `RainAudioCue`，`rain-audio-cue.ts` | 唯一音效资源、重播、过期回调和释放；发行版差分通过，已接入 |
 | `Qk` warpnext 状态机 | `WarpNextController`，`warp-next-controller.ts` | 普通/精灵传送、镜头冻结、黑边淡入淡出与驾驶锁定；发行版差分通过，已接入 |
 | `EC`、`Kn0` 赛道事件状态与 owner | `EventCollisionLatch`、`TrackEventOwner`，`event-collision-latch.ts`、`track-event-owner.ts` | 首次碰撞、重臂计时、效果冷却、动画节流与复位；发行版差分通过，已接入 |

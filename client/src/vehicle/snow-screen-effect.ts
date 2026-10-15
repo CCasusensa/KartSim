@@ -8,6 +8,7 @@ import {
   Mesh,
   NormalBlending,
   PerspectiveCamera,
+  RepeatWrapping,
   RGBAFormat,
   ShaderMaterial,
   SRGBColorSpace,
@@ -18,6 +19,19 @@ const maximumSnowflakes = 200;
 const texturePath = "theme_/ice/texture/snow.png";
 const textureHash = "1688e1d0cc36f0b19ca1f4e49771c006cc318704e7f2897ca362cbd543d48d23";
 const float32 = Math.fround;
+/**
+ * Flake quads, 2026-10-15 ("冰河圣诞版没有下雪"). snow.png is white with the
+ * flakes in its alpha: each flake shows a 16×64 texel strip of it (half the
+ * width, v 0–0.5) holding a few flakes and a faint motion trail. The release
+ * drew that strip into a square of its own `size` pixels, squashing the flakes
+ * into 1–3 px specks no one could see on the bright ice. Quads keep the strip's
+ * 1:4 shape at twice the release size in the 1600×900 frame, so the flakes stay
+ * round, and the trail (alpha up to ~0.45) fades out below the flakes (~0.5–0.8).
+ */
+const flakeScale = 2;
+const stripAspect = 4;
+const trailAlpha = 0.3;
+const flakeAlpha = 0.65;
 
 interface Snowflake {
   active: boolean;
@@ -59,7 +73,9 @@ export async function loadSnowScreenEffect<T extends SnowScreenEffect>(
   texture.name = texturePath;
   texture.colorSpace = SRGBColorSpace;
   texture.flipY = false;
-  texture.wrapS = ClampToEdgeWrapping;
+  // u0 = u1 - 0.5 runs below 0: the original sampler wraps, so those flakes
+  // show the right half. Clamped (the release) they drew the transparent edge.
+  texture.wrapS = RepeatWrapping;
   texture.wrapT = ClampToEdgeWrapping;
   texture.magFilter = LinearFilter;
   texture.minFilter = LinearFilter;
@@ -105,7 +121,10 @@ export class SnowScreenEffect {
       uniforms: { map: { value: texture } },
       vertexColors: true,
       transparent: true,
-      depthTest: true,
+      // A screen-space layer: flakes spawn 10–200 units ahead anywhere in the
+      // view volume, so on the enclosed ice tracks nearly all of them lie behind
+      // the ground or the ice walls, and depth-tested (the release) none showed.
+      depthTest: false,
       depthWrite: false,
       blending: NormalBlending,
       // three declares the vec4 colour attribute itself (vertexColors with a 4-component attribute).
@@ -122,7 +141,10 @@ export class SnowScreenEffect {
         uniform sampler2D map;
         varying vec4 vColor;
         varying vec2 vUv;
-        void main() { gl_FragColor = texture2D(map, vUv) * vColor; }
+        void main() {
+          vec4 texel = texture2D(map, vUv);
+          gl_FragColor = vec4(texel.rgb, smoothstep(${trailAlpha.toFixed(2)}, ${flakeAlpha.toFixed(2)}, texel.a)) * vColor;
+        }
       `,
     });
     material.toneMapped = false;
@@ -233,9 +255,9 @@ export class SnowScreenEffect {
     let vertex = 0;
     for (const { particle, projected, alpha } of visible) {
       const depth = float32(float32(projected.z + 1) * float32(0.5));
-      const size = float32(float32(1.8 - depth) * particle.size);
+      const size = float32(float32(1.8 - depth) * particle.size) * flakeScale;
       const halfWidth = size * 2 / Math.max(1, width);
-      const halfHeight = size * 2 / Math.max(1, height);
+      const halfHeight = size * stripAspect * 2 / Math.max(1, height);
       const corners = [
         [projected.x - halfWidth, projected.y + halfHeight, particle.u0, 0],
         [projected.x - halfWidth, projected.y - halfHeight, particle.u0, 0.5],

@@ -86,11 +86,48 @@ function exercise(Type) {
   return states;
 }
 
-test("snow screen renderer matches release particle state and geometry", () => {
+/** Release state without the parts the 2026-10-15 snow fix changed on purpose. */
+function releaseShared(state) {
+  const { positions, material: { depthTest, ...material }, ...rest } = state;
+  return { ...rest, material };
+}
+
+test("snow screen renderer keeps the release particle state, colours and uvs", () => {
   const original = exercise(Original);
   const rewritten = exercise(Rewritten);
   assert.ok(original.some(state => state.drawRange.count > 0));
-  assert.deepEqual(rewritten, original);
+  assert.deepEqual(rewritten.map(releaseShared), original.map(releaseShared));
+});
+
+test("snow flakes draw as visible screen quads: strip-shaped, twice the release size, no depth test", () => {
+  const original = exercise(Original);
+  const rewritten = exercise(Rewritten);
+  let quads = 0;
+  for (let index = 0; index < original.length; index++) {
+    assert.equal(original[index].material.depthTest, true);
+    assert.equal(rewritten[index].material.depthTest, false);
+    const count = original[index].drawRange.count / 6;
+    for (let quad = 0; quad < Math.min(count, 8); quad++) {
+      const corners = positions => [0, 1, 2, 3].map(corner => positions.slice((quad * 4 + corner) * 3, (quad * 4 + corner) * 3 + 3));
+      const before = corners(original[index].positions), after = corners(rewritten[index].positions);
+      const extent = quad => ({
+        x: (quad[2][0] + quad[0][0]) / 2, y: (quad[0][1] + quad[1][1]) / 2, z: quad[0][2],
+        halfWidth: (quad[2][0] - quad[0][0]) / 2, halfHeight: (quad[0][1] - quad[1][1]) / 2,
+      });
+      const a = extent(before), b = extent(after);
+      assert.ok(Math.abs(b.x - a.x) < 1e-6 && Math.abs(b.y - a.y) < 1e-6 && b.z === a.z);
+      assert.ok(Math.abs(b.halfWidth - a.halfWidth * 2) < 1e-6);
+      assert.ok(Math.abs(b.halfHeight - a.halfHeight * 8) < 1e-6);
+      quads++;
+    }
+  }
+  assert.ok(quads > 0);
+});
+
+test("snow fades the faint motion trail and keeps the flakes", () => {
+  const effect = new Rewritten(random(), new DataTexture(new Uint8Array(32 * 128 * 4), 32, 128));
+  assert.match(effect.object.material.fragmentShader, /smoothstep\(0\.30, 0\.65, texel\.a\)/);
+  effect.dispose();
 });
 
 test("snow texture loader validates source identity before decode", async () => {
