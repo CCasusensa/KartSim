@@ -48,6 +48,7 @@ type accountRowJSON struct {
 	Username       string           `json:"username"`
 	Nickname       string           `json:"nickname"`
 	Admin          bool             `json:"admin"`
+	GM             bool             `json:"gm"`
 	CreatedAt      int64            `json:"createdAt"`
 	RegisterIP     string           `json:"registerIp"`
 	LastLoginAt    *int64           `json:"lastLoginAt"`
@@ -87,7 +88,7 @@ func (a *API) accountRows(ctx context.Context, rows []store.AdminAccountRow, now
 	for i, row := range rows {
 		account := a.withAdmin(row.Account)
 		list[i] = accountRowJSON{
-			ID: account.ID, Username: account.Username, Nickname: account.Nickname, Admin: account.Admin,
+			ID: account.ID, Username: account.Username, Nickname: account.Nickname, Admin: account.Admin, GM: account.GM,
 			CreatedAt: row.CreatedAt, RegisterIP: row.RegisterIP, LastLoginAt: nonZero(row.LastLoginAt),
 			LastLoginIP: row.LastLoginIP, LastSeenAt: nonZero(row.LastSeenAt), LastSeenIP: row.LastSeenIP,
 			BannedUntil: nonZero(row.BannedUntil), BanReason: row.BanReason,
@@ -414,6 +415,7 @@ func (a *API) adminPatchAccount(w http.ResponseWriter, r *http.Request) error {
 	var request struct {
 		Nickname    *string `json:"nickname"`
 		Admin       *bool   `json:"admin"`
+		GM          *bool   `json:"gm"`
 		BannedUntil *int64  `json:"bannedUntil"`
 		BanReason   *string `json:"banReason"`
 		Password    *string `json:"password"`
@@ -464,7 +466,7 @@ func (a *API) adminPatchAccount(w http.ResponseWriter, r *http.Request) error {
 		(request.BanReason == nil || *request.BanReason == target.BanReason) {
 		request.BanReason = new(string) // lifting the ban clears its reason
 	}
-	patch := store.AccountPatch{Nickname: request.Nickname, Admin: request.Admin, BannedUntil: request.BannedUntil,
+	patch := store.AccountPatch{Nickname: request.Nickname, Admin: request.Admin, GM: request.GM, BannedUntil: request.BannedUntil,
 		BanReason: request.BanReason}
 	ctx := r.Context()
 	if request.Password != nil {
@@ -493,6 +495,9 @@ func (a *API) adminPatchAccount(w http.ResponseWriter, r *http.Request) error {
 	changes := []any{"admin", admin.Username, "account", before.Username}
 	if request.Nickname != nil {
 		changes = append(changes, "nickname", *request.Nickname)
+	}
+	if request.GM != nil {
+		changes = append(changes, "gmFlag", *request.GM)
 	}
 	if request.Admin != nil {
 		changes = append(changes, "adminFlag", *request.Admin)

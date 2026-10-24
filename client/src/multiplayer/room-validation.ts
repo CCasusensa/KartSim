@@ -21,6 +21,7 @@ export interface RoomEquipment {
 }
 
 export interface RoomMember {
+  gm?: boolean;
   playerId: string;
   name: string;
   slot: number;
@@ -257,6 +258,7 @@ function validMembers(value: unknown, capacity: number, hostId: string, slotCoun
         typeof member.ready !== "boolean" ||
         (member.team !== null && member.team !== 1 && member.team !== 2) ||
         ids.has(member.playerId) || slots.has(member.slot) ||
+        (member.gm !== undefined && typeof member.gm !== "boolean") ||
         (member.changing !== undefined && typeof member.changing !== "boolean") ||
         (member.initial !== undefined && !text(member.initial, 0, 64)) ||
         (member.equipment !== undefined && !validEquipment(member.equipment))) return undefined;

@@ -1,5 +1,6 @@
 /** Lobby and multiplayer interface translations, including original menu fallbacks. */
 export const lobbyTranslations: Record<string, readonly [string, string]> = {
+  "开发者": ["Developer", "개발자"],
   "大厅": [
     "Lobby",
     "로비"

@@ -21,6 +21,7 @@ const narrow = useNarrow()
 const form = reactive({
   nickname: '',
   admin: false,
+  gm: false,
   bannedUntil: null as string | null,
   banReason: '',
   password: '',
@@ -39,6 +40,7 @@ watch(open, (value) => {
   const account = props.account
   form.nickname = account.nickname
   form.admin = account.admin
+  form.gm = account.gm === true
   form.bannedUntil = currentBan.value ? toBeijingString(currentBan.value) : null
   form.banReason = account.banReason ?? ''
   form.password = ''
@@ -112,6 +114,10 @@ async function saveChanges() {
   if (form.admin !== account.admin) {
     patch.admin = form.admin
     changes.push(form.admin ? '设为管理员' : '撤销管理员')
+  }
+  if (form.gm !== (account.gm === true)) {
+    patch.gm = form.gm
+    changes.push(form.gm ? '设为 GM 玩家' : '撤销 GM 玩家')
   }
   const until = form.bannedUntil ? parseBeijing(form.bannedUntil) : 0
   if (form.bannedUntil && (!Number.isFinite(until) || until <= Date.now())) {
@@ -199,6 +205,10 @@ async function saveChanges() {
       <el-form-item label="管理员">
         <el-switch v-model="form.admin" :disabled="self && account.admin" inline-prompt active-text="是" inactive-text="否" />
         <span v-if="self" class="hint inline">不能撤销自己的管理员权限</span>
+      </el-form-item>
+      <el-form-item label="GM 玩家">
+        <el-switch v-model="form.gm" inline-prompt active-text="是" inactive-text="否" />
+        <span class="hint inline">大厅显示开发者标识，不授予后台权限；重新进入大厅后生效</span>
       </el-form-item>
       <el-form-item label="封禁到期">
         <div class="ban">

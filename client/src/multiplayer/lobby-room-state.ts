@@ -1,11 +1,13 @@
 import { tr } from "../i18n/locale";
 /** Maps a room UI node to its live presentation and command state. */
 
+import { paintDeveloperBadge } from "../ui/developer-badge";
 import { paintRandomTeamToggle } from "../ui/random-team-art";
 import { BRAWL_LABEL } from "./lobby-brawl-mode";
 import { itemModeLabel } from "./lobby-item-mode";
 
 interface RoomMember {
+  gm?: boolean;
   playerId: string;
   name: string;
   ready?: boolean;
@@ -247,6 +249,9 @@ function memberSlotState(host: LobbyRoomStateHost, name: string,
     case "riderNameLabel": return { visible: !!member, text: member?.name ?? "" };
     // 50人乱斗: an open seat nobody takes races as AI.
     case "aiHint": return { visible: !member && !!slot?.open };
+    case "developerTag": return { visible: member?.gm === true, label: tr("开发者"),
+      paint: (canvas: PaintContext, rect: RoomRect) =>
+        paintDeveloperBadge(canvas as CanvasRenderingContext2D, rect) };
     case "bossTag_me": return { visible: !!member && roomHost && own };
     case "bossTag_other": return { visible: !!member && roomHost && !own };
     case "ready": return { visible: !!member && member.ready && !roomHost && !member.changing };

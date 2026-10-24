@@ -106,7 +106,7 @@ func exportRoom(r *room) contract.RoomState {
 	}
 	for _, m := range r.members {
 		state.Members = append(state.Members, contract.RoomMember{
-			PlayerID: m.playerID, Name: m.name, AccountID: m.accountID, Slot: m.slot, Ready: m.ready,
+			PlayerID: m.playerID, Name: m.name, AccountID: m.accountID, GM: m.gm, Slot: m.slot, Ready: m.ready,
 			Team: m.team, Equipment: m.equipment, Initial: m.initial, Changing: m.changing})
 	}
 	return state
@@ -132,7 +132,7 @@ func importRoom(state contract.RoomState) (*room, error) {
 		}
 	}
 	for _, m := range state.Members {
-		r.members = append(r.members, &member{playerID: m.PlayerID, name: m.Name, accountID: m.AccountID,
+		r.members = append(r.members, &member{playerID: m.PlayerID, name: m.Name, accountID: m.AccountID, gm: m.GM,
 			slot: m.Slot, ready: m.Ready, team: m.Team, equipment: m.Equipment, initial: m.Initial,
 			changing: m.Changing})
 	}

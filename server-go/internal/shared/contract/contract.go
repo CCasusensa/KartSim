@@ -197,6 +197,7 @@ type RoomState struct {
 
 // RoomMember is one member of a RoomState.
 type RoomMember struct {
+	GM        bool            `json:"gm,omitempty"`
 	PlayerID  string          `json:"playerId"`
 	Name      string          `json:"name"`
 	AccountID string          `json:"accountId,omitempty"`

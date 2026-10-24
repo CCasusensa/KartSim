@@ -965,3 +965,23 @@ func TestAdminEconomySettings(t *testing.T) {
 	h.post("/api/shop/free-coupon/claim", map[string]any{"requestId": "11111111-2222-4333-8444-555555555556"},
 		bearerHeader(token)).expect(t, http.StatusForbidden, "SHOP_CLAIM_CLOSED")
 }
+
+// GM is a cosmetic identity, independent of console authorization.
+func TestAdminGMFlag(t *testing.T) {
+	h := newAdminHarness(t, harnessOptions{})
+	target := h.account("gm_"+h.u, "GM"+h.u, password, false)
+	token := h.login("gm_"+h.u, password)
+	var row struct {
+		GM    bool `json:"gm"`
+		Admin bool `json:"admin"`
+	}
+	h.patch(target, map[string]any{"gm": true}).expect(t, http.StatusOK, "").json(t, &row)
+	if !row.GM || row.Admin {
+		t.Fatalf("GM must not grant admin: %+v", row)
+	}
+	h.get("/api/admin/accounts", bearerHeader(token)).expect(t, http.StatusForbidden, "ADMIN_REQUIRED")
+	h.patch(target, map[string]any{"gm": false}).expect(t, http.StatusOK, "").json(t, &row)
+	if row.GM || row.Admin {
+		t.Fatalf("GM was not revoked: %+v", row)
+	}
+}

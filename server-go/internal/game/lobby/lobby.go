@@ -154,6 +154,7 @@ type Client struct {
 	name            string
 	folded          string // names.Fold(name), for the duplicate check
 	accountID       string
+	gm              bool
 	resourceVersion string
 	roomID          string
 	equipment       json.RawMessage
@@ -521,6 +522,7 @@ func (l *Lobby) Evict(playerIDs []string) int {
 // admitted is a hello that passed every local check and waits for the
 // cluster-wide nickname claim.
 type admitted struct {
+	gm        bool
 	playerID  string
 	name      string
 	accountID string
@@ -598,6 +600,7 @@ func (l *Lobby) hello(ctx context.Context, c *Client, in Request) (Reply, error)
 	c.name = ad.name
 	c.folded = names.Fold(ad.name)
 	c.accountID = ad.accountID
+	c.gm = ad.gm
 	c.resourceVersion = ad.version
 	c.equipment = ad.equipment
 	c.initial = ad.initial
@@ -674,6 +677,7 @@ func (l *Lobby) admit(c *Client, in Request) (admitted, error) {
 		}
 		ad.lobbyHeld, ad.use, ad.handoff = true, claims.Use, claims.Handoff
 		ad.guest, ad.name, ad.accountID = claims.Guest, claims.Nickname, claims.AccountID
+		ad.gm = !claims.Guest && claims.GM
 		if l.nameTaken(ad.name) || (ad.accountID != "" && l.accountOnline(ad.accountID)) {
 			return ad, fail(http.StatusConflict, "ACCOUNT_ONLINE")
 		}
@@ -698,6 +702,7 @@ func (l *Lobby) admit(c *Client, in Request) (admitted, error) {
 	} else {
 		ad.name = claims.Nickname
 		ad.accountID = claims.AccountID
+		ad.gm = claims.GM
 	}
 	if l.nameTaken(ad.name) {
 		return ad, fail(http.StatusConflict, "NICKNAME_TAKEN")
@@ -904,7 +909,7 @@ func (l *Lobby) create(c *Client, in Request, check *ownershipCheck) (obj, error
 		team = 1
 	}
 	r.members = append(r.members, &member{playerID: c.playerID, name: c.name,
-		accountID: c.accountID, slot: 0, team: team, equipment: c.equipment, initial: c.initial})
+		accountID: c.accountID, gm: c.gm, slot: 0, team: team, equipment: c.equipment, initial: c.initial})
 	l.rooms[r.id] = r
 	l.order = append(l.order, r)
 	c.roomID = r.id
@@ -971,7 +976,7 @@ func (l *Lobby) join(c *Client, in Request, check *ownershipCheck) (obj, error) 
 	}
 	c.equipment = equipment
 	r.members = append(r.members, &member{playerID: c.playerID, name: c.name,
-		accountID: c.accountID, slot: slot, team: team, equipment: c.equipment, initial: c.initial})
+		accountID: c.accountID, gm: c.gm, slot: slot, team: team, equipment: c.equipment, initial: c.initial})
 	c.roomID = r.id
 	r.revision++
 	l.broadcastRoom(r, c)

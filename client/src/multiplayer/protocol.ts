@@ -8,6 +8,7 @@ export type ResourceVersion = "p3528" | "p3543" | "p3553";
 export type RoomPhase = "open" | "loading" | "countdown" | "racing" | "finished";
 
 export interface RoomMember {
+  gm?: boolean;
   playerId: string;
   name: string;
   slot: number;

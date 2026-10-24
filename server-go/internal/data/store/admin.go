@@ -197,7 +197,7 @@ var accountSorts = map[string]string{
 // and now. The item count is what the player's own inventory lists
 // (Inventory): rows with a quantity that have not expired; used-up rows
 // stay for the 道具图鉴 and do not count.
-const adminAccountColumns = `SELECT a.id, a.username, a.nickname, a.admin, a.created_at, a.register_ip,
+const adminAccountColumns = `SELECT a.id, a.username, a.nickname, a.admin, a.gm, a.created_at, a.register_ip,
 		a.last_login_at, a.last_login_ip, a.last_seen_at, a.last_seen_ip, a.banned_until, a.ban_reason,
 		COALESCE(p.exp, 0) AS acc_exp, COALESCE(w.coupon, ?) AS acc_coupon, COALESCE(w.lucci, ?) AS acc_lucci,
 		COALESCE(w.koin, ?) AS acc_koin,
@@ -260,7 +260,7 @@ func (s *Store) adminAccounts(ctx context.Context, now int64, tail string, args 
 	err = s.queryRows(ctx, adminAccountColumns+tail, append([]any{grant.Coupon, grant.Lucci, grant.Koin, now}, args...),
 		func(rows *sql.Rows) error {
 			var row AdminAccountRow
-			if err := rows.Scan(&row.Account.ID, &row.Account.Username, &row.Account.Nickname, &row.Account.Admin,
+			if err := rows.Scan(&row.Account.ID, &row.Account.Username, &row.Account.Nickname, &row.Account.Admin, &row.Account.GM,
 				&row.CreatedAt, &row.RegisterIP, &row.LastLoginAt, &row.LastLoginIP, &row.LastSeenAt, &row.LastSeenIP,
 				&row.BannedUntil, &row.BanReason,
 				&row.Exp, &row.Wallet.Coupon, &row.Wallet.Lucci, &row.Wallet.Koin, &row.InventoryCount,
@@ -277,10 +277,10 @@ func (s *Store) adminAccounts(ctx context.Context, now int64, tail string, args 
 func (s *Store) AccountsByID(ctx context.Context, ids []string) (map[string]Account, error) {
 	accounts := map[string]Account{}
 	for chunk := range slices.Chunk(ids, 500) {
-		err := s.queryRows(ctx, "SELECT id, username, nickname, admin FROM accounts WHERE id IN ("+
+		err := s.queryRows(ctx, "SELECT id, username, nickname, admin, gm FROM accounts WHERE id IN ("+
 			placeholders(len(chunk))+")", anySlice(chunk), func(rows *sql.Rows) error {
 			var account Account
-			if err := rows.Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin); err != nil {
+			if err := rows.Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin, &account.GM); err != nil {
 				return err
 			}
 			accounts[account.ID] = account
@@ -303,6 +303,7 @@ func (s *Store) SessionCount(ctx context.Context, accountID string, now int64) (
 type AccountPatch struct {
 	Nickname     *string
 	Admin        *bool
+	GM           *bool
 	BannedUntil  *int64 // 0 lifts a ban
 	BanReason    *string
 	PasswordHash *string
@@ -322,8 +323,8 @@ func (s *Store) AdminUpdateAccount(ctx context.Context, accountID string, patch 
 	)
 	err := inTx(ctx, s.db, nil, func(tx *sql.Tx) error {
 		ended = nil
-		err := tx.QueryRowContext(ctx, "SELECT id, username, nickname, admin FROM accounts WHERE id = ? FOR UPDATE",
-			accountID).Scan(&before.ID, &before.Username, &before.Nickname, &before.Admin)
+		err := tx.QueryRowContext(ctx, "SELECT id, username, nickname, admin, gm FROM accounts WHERE id = ? FOR UPDATE",
+			accountID).Scan(&before.ID, &before.Username, &before.Nickname, &before.Admin, &before.GM)
 		if errors.Is(err, sql.ErrNoRows) {
 			return errAccountNotFound
 		} else if err != nil {
@@ -339,6 +340,9 @@ func (s *Store) AdminUpdateAccount(ctx context.Context, accountID string, patch 
 				return errNicknameTaken
 			}
 			q.add("nickname = ?", *patch.Nickname)
+		}
+		if patch.GM != nil {
+			q.add("gm = ?", *patch.GM)
 		}
 		if patch.Admin != nil {
 			q.add("admin = ?", *patch.Admin)

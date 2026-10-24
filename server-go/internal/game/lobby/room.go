@@ -179,6 +179,7 @@ func (v *kickVote) snapshot() obj {
 
 // member is one player in a room. accountID is empty for guests.
 type member struct {
+	gm        bool
 	playerID  string
 	name      string
 	accountID string
@@ -197,6 +198,9 @@ func (m *member) snapshot() obj {
 		{"slot", m.slot},
 		{"ready", m.ready},
 		{"team", teamValue(m.team)},
+	}
+	if m.gm {
+		value = append(value, field{"gm", true})
 	}
 	if m.equipment != nil {
 		value = append(value, field{"equipment", m.equipment})

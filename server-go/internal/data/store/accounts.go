@@ -17,6 +17,7 @@ type Account struct {
 	Username string `json:"username"`
 	Nickname string `json:"nickname"`
 	Admin    bool   `json:"admin"`
+	GM       bool   `json:"gm"`
 }
 
 // Registration is a validated sign-up request. Hashes are computed by the
@@ -216,8 +217,8 @@ func (s *Store) LoginAccount(ctx context.Context, username string) (Account, str
 		hash    string
 	)
 	err := s.db.QueryRowContext(ctx,
-		"SELECT id, username, nickname, admin, password_hash FROM accounts WHERE username = ?", username).
-		Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin, &hash)
+		"SELECT id, username, nickname, admin, gm, password_hash FROM accounts WHERE username = ?", username).
+		Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin, &account.GM, &hash)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Account{}, "", false, nil
 	}
@@ -417,10 +418,10 @@ func (s *Store) SessionAccount(ctx context.Context, tokenHash string, now int64)
 		account   Account
 		expiresAt int64
 	)
-	err := s.db.QueryRowContext(ctx, `SELECT a.id, a.username, a.nickname, a.admin, s.expires_at
+	err := s.db.QueryRowContext(ctx, `SELECT a.id, a.username, a.nickname, a.admin, a.gm, s.expires_at
 		FROM sessions s JOIN accounts a ON a.id = s.account_id
 		WHERE s.token_hash = ? AND s.expires_at > ?`, tokenHash, now).
-		Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin, &expiresAt)
+		Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin, &account.GM, &expiresAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Account{}, 0, false, nil
 	}
@@ -430,8 +431,8 @@ func (s *Store) SessionAccount(ctx context.Context, tokenHash string, now int64)
 // AccountByID loads one account.
 func (s *Store) AccountByID(ctx context.Context, id string) (Account, bool, error) {
 	var account Account
-	err := s.db.QueryRowContext(ctx, "SELECT id, username, nickname, admin FROM accounts WHERE id = ?", id).
-		Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin)
+	err := s.db.QueryRowContext(ctx, "SELECT id, username, nickname, admin, gm FROM accounts WHERE id = ?", id).
+		Scan(&account.ID, &account.Username, &account.Nickname, &account.Admin, &account.GM)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Account{}, false, nil
 	}

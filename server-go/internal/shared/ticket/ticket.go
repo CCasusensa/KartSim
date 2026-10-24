@@ -35,6 +35,7 @@ var (
 
 // Claims is the signed content of a ticket.
 type Claims struct {
+	GM        bool   `json:"gm,omitempty"`
 	Version   int    `json:"v"`
 	NodeID    string `json:"node"`
 	DataNode  string `json:"data"`

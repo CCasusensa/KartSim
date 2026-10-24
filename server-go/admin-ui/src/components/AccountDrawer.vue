@@ -217,6 +217,7 @@ const banText = computed(() => {
             <template v-else>—</template>
           </el-descriptions-item>
           <el-descriptions-item label="管理员">
+            <el-tag v-if="account.gm" type="success" disable-transitions>GM · 开发者</el-tag>
             <el-tag v-if="account.admin" type="warning" disable-transitions>管理员</el-tag>
             <span v-else>否</span>
           </el-descriptions-item>

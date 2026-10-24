@@ -27,6 +27,7 @@ export interface AccountRow {
   username: string
   nickname: string
   admin: boolean
+  gm: boolean
   createdAt: number
   registerIp: string | null
   lastLoginAt: number | null
@@ -117,6 +118,7 @@ export interface AccountDetail {
 export interface AccountPatch {
   nickname?: string
   admin?: boolean
+  gm?: boolean
   bannedUntil?: number
   banReason?: string
   password?: string

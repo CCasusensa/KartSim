@@ -954,6 +954,9 @@ var migrations = []migration{
 			PRIMARY KEY (id)
 		) ` + tableTail,
 	}},
+	{version: 24, columns: []tableColumn{
+		{table: "accounts", name: "gm", definition: "TINYINT NOT NULL DEFAULT 0"},
+	}},
 }
 
 // LatestSchemaVersion is the version Migrate brings a database to.

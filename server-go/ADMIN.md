@@ -13,7 +13,7 @@
 | 标签 | 内容 |
 |---|---|
 | 概览 | 统计卡片：注册用户总数、今日新增、今日登录人数、当前在线、游戏节点数（在线/总数）、房间数、今日比赛场次、今日点券消费、今日发放；最近注册、最近登录两张小表 |
-| 用户管理 | 表格：账号、昵称、等级、经验、点券、金币、K币、物品数、注册时间、注册 IP、最后登录时间、最后登录 IP、在线（所在节点）、管理员、封禁；搜索：关键字（账号/昵称/IP）、注册时间范围、在线/封禁/管理员筛选；排序；分页。操作：详情（抽屉：基本信息、钱包、物品表、货币流水、登录记录、比赛记录）、编辑（昵称、管理员、封禁到期与原因、重置密码）、赠送（点券/金币/K币/经验，正数发放、负数扣除，备注）、踢下线 |
+| 用户管理 | 表格：账号、昵称、等级、经验、点券、金币、K币、物品数、注册时间、注册 IP、最后登录时间、最后登录 IP、在线（所在节点）、管理员、封禁；搜索：关键字（账号/昵称/IP）、注册时间范围、在线/封禁/管理员筛选；排序；分页。操作：详情（抽屉：基本信息、钱包、物品表、货币流水、登录记录、比赛记录）、编辑（昵称、管理员、GM 玩家、封禁到期与原因、重置密码）、赠送（点券/金币/K币/经验，正数发放、负数扣除，备注）、踢下线 |
 | 登录记录 | 注册与登录记录：时间、类型、账号、昵称、IP、浏览器；按账号/IP/时间/类型搜索 |
 | 在线玩家 | 当前在线的账号与游客：昵称、账号、所在节点、所在房间（有就显示）；按昵称/账号/节点搜索；可踢下线 |
 | 服务器节点 | 卡丁城服务器（所有进城玩家去的节点，或自动：跟着城里人最多的节点；`GLOBAL_LOBBY.md`“卡丁城”）；节点管理（后台添加的节点与节点密钥，第 8 节）；游戏节点：节点 ID、名称、地址、玩家/容量（进度条）、房间数、卡丁城人数、启动时间与运行时长、最后心跳、协议版本、状态（正常/超时/满员）、内存、协程数、连接数、进行中的比赛；数据服务自身：版本、启动时间、数据库与 Redis 状态。自动刷新（5 秒） |
@@ -70,7 +70,7 @@
 | GET | `/api/admin/overview` | 概览统计与最近注册/登录各 10 条 |
 | GET | `/api/admin/accounts` | 用户列表；筛选 `online=1`、`banned=1`、`admin=1`；`q` 匹配账号、昵称、注册/最后登录 IP；排序 `createdAt`、`lastLoginAt`、`level`、`coupon`、`lucci`、`koin` |
 | GET | `/api/admin/accounts/{id}` | 详情：账号字段、钱包、等级、物品数、在线状态、最近 20 条登录、最近 20 场比赛 |
-| PATCH | `/api/admin/accounts/{id}` | 编辑 `{nickname?, admin?, bannedUntil?, banReason?, password?}`；昵称规则与注册相同且不能重名；不能撤销自己的管理员、不能封禁自己 |
+| PATCH | `/api/admin/accounts/{id}` | 编辑 `{nickname?, admin?, gm?, bannedUntil?, banReason?, password?}`；昵称规则与注册相同且不能重名；不能撤销自己的管理员、不能封禁自己 |
 | POST | `/api/admin/accounts/{id}/kick` | 作废会话并断开游戏连接；不能踢自己（409 `CANNOT_MODIFY_SELF`，否则当前管理会话也会作废） |
 | GET | `/api/admin/accounts/{id}/inventory` | 物品列表（分页、按类别/名称搜索），带商城名称 |
 | POST | `/api/admin/grant` | 现有接口（点券/金币/K币/经验发放与扣除），请求与错误不变；响应的 `account` 改为 `AccountRow` 加 `wallet: {coupon, lucci, koin}`（原有的 `wallet`、`level` 等字段仍在） |
@@ -93,10 +93,10 @@
 
 ## 4. 返回字段（JSON 一律小驼峰；时间为毫秒；没有的值给 `null` 或空串，前端显示“—”）
 
-- `AccountRow`：`id, username, nickname, admin, createdAt, registerIp, lastLoginAt, lastLoginIp, bannedUntil, banReason, banned`（`bannedUntil > now`）`, level, exp, coupon, lucci, koin, inventoryCount, onboarded, online`（`null` 或 `{nodeId, nodeName}`）。`lastLoginAt`、`bannedUntil` 为 0 时给 `null`（过期的封禁仍给出到期时间，`banned` 为 `false`）；旧账号的 `registerIp` 为空串；`admin` 含 `KART_ADMIN_USERNAMES`；`online` 在不在线或 Redis 不可用时为 `null`；没用过经济功能的账号 `lucci` 显示将要发放的初始金币。
+- `AccountRow`：`id, username, nickname, admin, gm, createdAt, registerIp, lastLoginAt, lastLoginIp, bannedUntil, banReason, banned`（`bannedUntil > now`）`, level, exp, coupon, lucci, koin, inventoryCount, onboarded, online`（`null` 或 `{nodeId, nodeName}`）。`lastLoginAt`、`bannedUntil` 为 0 时给 `null`（过期的封禁仍给出到期时间，`banned` 为 `false`）；旧账号的 `registerIp` 为空串；`admin` 含 `KART_ADMIN_USERNAMES`；`online` 在不在线或 Redis 不可用时为 `null`；没用过经济功能的账号 `lucci` 显示将要发放的初始金币。
 - `GET /api/admin/me` → `{id, username, nickname}`
 - `GET /api/admin/accounts/{id}` → `{account: AccountRow, club: null | {id, name, grade}, sessions: 有效会话数, logins: LoginRow[20], races: RaceParticipantRow[20]}`
-- `PATCH /api/admin/accounts/{id}` 请求 `{nickname?, admin?, bannedUntil?`（0 = 解封）`, banReason?, password?}` → `AccountRow`；错误码沿用注册的 409 `NICKNAME_TAKEN`、400 `INVALID_ACCOUNT_FIELDS`（昵称 ≤ 16 字且规则同注册、密码 8–128 位、`banReason` ≤ 200 字且不含控制字符、`bannedUntil` 不为负且不晚于 9999 年），请求体不是 JSON 400 `INVALID_REQUEST`，以及 409 `CANNOT_MODIFY_SELF`（撤销自己的管理员、封禁自己）。`bannedUntil` 早于现在等于 0；解封时不带 `banReason` 就清空原因，封禁时不带则保留原来的。`KART_ADMIN_USERNAMES` 中的账号无论 `admin` 怎么设都仍是管理员（返回的 `admin` 反映这一点）。封禁与重置密码会作废该账号所有会话并断开游戏连接；每次修改都以管理员用户名写日志
+- `PATCH /api/admin/accounts/{id}` 请求 `{nickname?, admin?, gm?, bannedUntil?`（0 = 解封）`, banReason?, password?}` → `AccountRow`；错误码沿用注册的 409 `NICKNAME_TAKEN`、400 `INVALID_ACCOUNT_FIELDS`（昵称 ≤ 16 字且规则同注册、密码 8–128 位、`banReason` ≤ 200 字且不含控制字符、`bannedUntil` 不为负且不晚于 9999 年），请求体不是 JSON 400 `INVALID_REQUEST`，以及 409 `CANNOT_MODIFY_SELF`（撤销自己的管理员、封禁自己）。`bannedUntil` 早于现在等于 0；解封时不带 `banReason` 就清空原因，封禁时不带则保留原来的。`KART_ADMIN_USERNAMES` 中的账号无论 `admin` 怎么设都仍是管理员（返回的 `admin` 反映这一点）。封禁与重置密码会作废该账号所有会话并断开游戏连接；每次修改都以管理员用户名写日志
 - `POST /api/admin/accounts/{id}/kick` → `{sessions: 作废的会话数, game: 是否通知了游戏节点}`
 - `InventoryRow`：`id, category, categoryName, itemId, name, systemKey, quantity, expiresAt, source, createdAt, updatedAt`
 - `LoginRow`：`id, at, kind, accountId, username, nickname, ip, userAgent`
@@ -189,3 +189,9 @@
 - 图片：`POST /api/admin/lobby-promos/images`，请求体就是图片文件本身（PNG、JPEG、GIF 或 WebP，不收 SVG；最大 4 MiB、每边最多 4096 px）→ `{image, url, contentType, width, height, size}`。`image` 是内容 SHA-256 的前 32 位十六进制，同一张图重复上传得到同一个 ID。坏图 400 `INVALID_PROMO_IMAGE`，过大 413 `PROMO_IMAGE_TOO_LARGE`；库里已有 100 张且清理后仍满时 409 `PROMO_IMAGE_LIMIT`。上传后没被任何位置用到、超过一天的图片在下次保存（或上传满额）时删除。
 - 设置：`GET /api/admin/lobby-promos`；`PUT /api/admin/lobby-promos {interval, carousel:[{image, link, title}], boards:[{image, link, title}, {…}]}`（`boards` 依次是蓝、紫）。格式不对 400 `INVALID_LOBBY_PROMOS`，引用的图片不存在 400 `PROMO_IMAGE_NOT_FOUND`。两个接口都返回 `{interval, carousel[], boards[2], updatedAt, updatedBy}`，每项 `{image, url, width, height, link, title}`（没有图片时 `image`、`url` 为空串）。保存写数据服务日志（`admin lobby promos`）。
 - 游戏读取（不需要登录）：`GET /api/lobby/promos`，字段同上但没有 `updatedBy`；图片已删除的轮播项不返回。图片 `GET /api/lobby/promo-images/{id}` 公开、`Cache-Control: public, max-age=31536000, immutable`、带 `ETag`、`X-Content-Type-Options: nosniff` 与 `Cross-Origin-Resource-Policy: cross-origin`。玩家下次打开大厅首页时看到新设置（客户端缓存 1 分钟）。
+
+### GM 玩家标识
+
+用户管理 → 编辑账号 → GM 玩家可设置或撤销开发者身份。`gm` 是独立于 `admin` 的布尔字段，默认 `false`，不会授予后台权限。数据库迁移 v24 添加 `accounts.gm`；账号列表与详情返回该字段，修改操作写入审计日志。
+
+玩家重新进入大厅后，身份通过服务端签名票据传递，在房间玩家卡片底部显示独立的紫金开发者徽标，与房主及准备标识共存。普通房间、组队、挡人和 50 人乱斗共用此规则；跨节点比赛交接保留身份。文案随客户端语言显示为“开发者” / “Developer” / “개발자”。已连接的玩家需重新进入大厅以刷新身份。

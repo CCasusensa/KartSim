@@ -139,12 +139,13 @@ function banTip(row: AccountRow) {
       <el-table-column label="状态" min-width="290">
         <template #default="{ row }">
           <div class="tags">
+            <el-tag v-if="row.gm" type="success" disable-transitions>GM · 开发者</el-tag>
             <el-tag v-if="row.admin" type="warning" disable-transitions>管理员</el-tag>
             <el-tooltip v-if="row.banned" :content="banTip(row)" placement="top">
               <el-tag type="danger" disable-transitions>{{ banLabel(row) }}</el-tag>
             </el-tooltip>
             <el-tag v-if="!row.onboarded" type="info" disable-transitions>未领新手礼包</el-tag>
-            <span v-if="!row.admin && !row.banned && row.onboarded" class="muted">正常</span>
+            <span v-if="!row.admin && !row.gm && !row.banned && row.onboarded" class="muted">正常</span>
           </div>
         </template>
       </el-table-column>

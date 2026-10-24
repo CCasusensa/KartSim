@@ -107,7 +107,7 @@ func (h *lobbyHome) Handoff(ctx context.Context, handoff contract.RoomHandoff,
 	plan := lobby.HandoffPlan{Node: h.entry(node), Tickets: map[string]string{}}
 	for _, m := range handoff.Room.Members {
 		plan.Tickets[m.PlayerID] = h.sign(node, ticket.Claims{Guest: m.AccountID == "", AccountID: m.AccountID,
-			Nickname: m.Name, PlayerID: m.PlayerID, Use: ticket.UseRace, Handoff: handoff.HandoffID})
+			Nickname: m.Name, GM: m.GM, PlayerID: m.PlayerID, Use: ticket.UseRace, Handoff: handoff.HandoffID})
 	}
 	h.mu.Lock()
 	h.handoffs[handoff.HandoffID] = &handoffRecord{handoff: handoff, nodeID: node.NodeID, createdAt: h.a.now()}

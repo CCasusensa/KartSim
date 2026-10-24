@@ -36,6 +36,14 @@ export async function loadLobbyRoomTemplate(library: unknown,
     talkBalloon, roadblock, dependencies, brawl);
 }
 
+/** A separate footer ribbon leaves the host/ready ribbon visible. */
+function developerTag(prefix: string, compact = false): RoomTemplateNode {
+  return { name: "Panel", text: "", children: [], attributes: Object.entries({
+    name: prefix + "developerTag", leftTopWH: compact ? "0 0 68 14" : "0 0 128 22",
+    align: "hcenter;bottom", adjust: compact ? "0 18" : "0 26",
+  }).map(([name, value]) => ({ name, value })) };
+}
+
 const slotPartNames = new Set([
   "riderNameLabel", "bossTag_me", "bossTag_other", "ready", "changing",
   "closed", "kick", "info", "myRiderTag",
@@ -178,6 +186,7 @@ export function buildLobbyRoomTemplate(
         clone(slotBackground("btn_singleSlotCover"), {
           name: prefix + "singleCover" }),
         ...teamCovers, ...roadblockCovers, ...partsAndHover, ...roadblockTags,
+        developerTag(prefix),
         ...(balloon ? [balloon] : []),
       ] };
     }
@@ -261,6 +270,7 @@ function brawlSeats(first: RoomTemplateNode, riderCard: RoomTemplateNode,
       const node = part(tag);
       if (node) children.push(placed(node, prefix + tag, `0 ${grid.height - 18} ${grid.width} 18`));
     }
+    children.push(developerTag(prefix, true));
     const frame = part("myRiderTag");
     if (frame) children.push(placed(frame, prefix + "myRiderTag", full));
     const label = part("riderNameLabel");

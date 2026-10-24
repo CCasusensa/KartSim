@@ -68,7 +68,7 @@ func (a *API) ticketClaims(r *http.Request) (ticket.Claims, error) {
 	if !onboarded {
 		return ticket.Claims{}, errOnboardingRequired
 	}
-	return ticket.Claims{AccountID: account.ID, Username: account.Username, Nickname: account.Nickname,
+	return ticket.Claims{AccountID: account.ID, Username: account.Username, Nickname: account.Nickname, GM: account.GM,
 		Admin: account.Admin}, nil
 }
 
